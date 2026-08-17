@@ -59,15 +59,15 @@ namespace Microsoft.ML.Tests
         [MemberData(nameof(Cases))]
         public void ManagedSumupMatchesNative(string kind, bool useWeights, bool useIndices)
         {
-            // The public Sumup dispatches to the native handler when the native FastTree library is
-            // available (this attribute guarantees it), so this compares native vs the managed handler.
+            // This attribute guarantees the native FastTree library is available, so the native
+            // handlers below run and are compared against the managed handler.
             Assert.True(IntArray.UseFastTreeNative);
 
             var arr = CreateIntArray(kind, seed: 1, out int numBins);
             var input = CreateInput(seed: 2, useWeights, useIndices, out double[] outputs, out double[] weights, out int[] docIndices, out int count);
 
             var native = new FeatureHistogram(arr, numBins, useWeights);
-            arr.Sumup(input, native);
+            CallNative(arr, input, native);
 
             var managed = new FeatureHistogram(arr, numBins, useWeights);
             CallManaged(arr, input, managed);
@@ -200,6 +200,18 @@ namespace Microsoft.ML.Tests
                 case SegmentIntArray a: a.SumupManaged(input, histogram); break;
                 default: throw new InvalidOperationException($"Unexpected IntArray type {arr.GetType().Name}");
             }
+        }
+
+        private static void CallNative(IntArray arr, SumupInputData input, FeatureHistogram histogram)
+        {
+            // For SegmentIntArray we call the native decoder (SumupCPlusPlus) directly rather than via
+            // arr.Sumup: this array is built with the managed encoder through FromWorkArray, whose
+            // constructor does not wire up SumupHandler, so arr.Sumup would NullReference. Dense arrays
+            // set up their handler in their constructor, so arr.Sumup dispatches to the native handler.
+            if (arr is SegmentIntArray seg)
+                seg.SumupCPlusPlus(input, histogram);
+            else
+                arr.Sumup(input, histogram);
         }
 
         private static void AssertHistogramEqual(int[] expectedCounts, double[] expectedTargets, double[] expectedWeights,
