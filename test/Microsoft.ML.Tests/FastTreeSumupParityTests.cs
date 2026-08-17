@@ -64,7 +64,7 @@ namespace Microsoft.ML.Tests
             Assert.True(IntArray.UseFastTreeNative);
 
             var arr = CreateIntArray(kind, seed: 1, out int numBins);
-            var input = CreateInput(seed: 2, useWeights, useIndices, out _, out _, out _, out _);
+            var input = CreateInput(seed: 2, useWeights, useIndices, out double[] outputs, out double[] weights, out int[] docIndices, out int count);
 
             var native = new FeatureHistogram(arr, numBins, useWeights);
             arr.Sumup(input, native);
@@ -72,6 +72,11 @@ namespace Microsoft.ML.Tests
             var managed = new FeatureHistogram(arr, numBins, useWeights);
             CallManaged(arr, input, managed);
 
+            // Managed must match native exactly, and both must match the independent reference so a
+            // shared decode mistake can't hide behind an equal-but-wrong comparison.
+            ComputeReference(arr, numBins, outputs, weights, docIndices, count,
+                out double[] refTargets, out double[] refWeights, out int[] refCounts);
+            AssertHistogramEqual(refCounts, refTargets, refWeights, native, useWeights);
             AssertHistogramEqual(native.CountByBin, native.SumTargetsByBin, native.SumWeightsByBin, managed, useWeights);
         }
 
