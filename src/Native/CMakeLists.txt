@@ -267,7 +267,8 @@ if(NOT ${ARCHITECTURE} MATCHES "arm.*")
     add_subdirectory(MklProxyNative)
     add_subdirectory(SymSgdNative)
 else()
-    add_subdirectory(MklImportsArm)
+    # On ARM, SymSgdNative compiles the small MklImportsArm CBLAS shim directly
+    # (see SymSgdNative/CMakeLists.txt), so we do not build a separate libMklImports here.
     add_subdirectory(SymSgdNative)
 endif()
 
