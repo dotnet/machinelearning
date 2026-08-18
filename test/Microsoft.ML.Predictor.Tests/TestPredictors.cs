@@ -278,7 +278,7 @@ namespace Microsoft.ML.RunTests
             Done();
         }
 
-        [NativeDependencyFact("MklImports")]
+        [NativeDependencyFact("SymSgdNative")]
         [TestCategory("Binary")]
         public void BinaryClassifierSymSgdTest()
         {
