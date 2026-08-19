@@ -269,7 +269,11 @@ if(NOT ${ARCHITECTURE} MATCHES "arm.*")
 else()
     # On ARM, SymSgdNative compiles the small MklImportsArm CBLAS shim directly
     # (see SymSgdNative/CMakeLists.txt), so we do not build a separate libMklImports here.
-    add_subdirectory(SymSgdNative)
+    # SymSGD needs OpenMP, which is unavailable for arm64 on the macOS cross-compilation
+    # runner (it only ships an x86_64 libomp), so SymSgdNative is built on Windows/Linux arm only.
+    if(NOT APPLE)
+        add_subdirectory(SymSgdNative)
+    endif()
 endif()
 
 if(${ARCHITECTURE} MATCHES "[xX].*64")
