@@ -30,12 +30,20 @@
 		</ItemGroup>
 
     <ItemGroup Condition="'$(TargetArchitecture)' == 'arm64' Or '$(TargetArchitecture)' == 'arm'">
+      <!-- SymSgdNative is built on arm/arm64 (with its CBLAS shim compiled in), so keep it
+           here so it is copied next to the managed assemblies. There is no separate MklImports
+           on arm/arm64, so it stays removed like the other MKL-based natives. -->
       <NativeAssemblyReference Remove="MklImports"/>
       <NativeAssemblyReference Remove="CpuMathNative"/>
       <NativeAssemblyReference Remove="FastTreeNative"/>
-      <NativeAssemblyReference Remove="SymSgdNative"/>
       <NativeAssemblyReference Remove="MklProxyNative"/>
       <NativeAssemblyReference Remove="libiomp5md"/>
+    </ItemGroup>
+
+    <!-- SymSgdNative is not built on macOS arm: SymSGD needs OpenMP and the macOS
+         cross-compilation runner has no arm64 libomp. It is built on Windows/Linux arm. -->
+    <ItemGroup Condition="('$(TargetArchitecture)' == 'arm64' Or '$(TargetArchitecture)' == 'arm') And $([MSBuild]::IsOSPlatform('osx'))">
+      <NativeAssemblyReference Remove="SymSgdNative"/>
     </ItemGroup>
   </Target>
 

@@ -13,8 +13,15 @@ if(APPLE)
     # and the else condition can be used instead.
     SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Xpreprocessor -fopenmp")
     SET(OPENMP_LIBRARY "omp")
-    include_directories("/usr/local/opt/libomp/include")
-    link_directories("/usr/local/opt/libomp/lib")
+    # Apple silicon and Intel macs store brew in different locations, this finds it no matter where it is.
+    execute_process(
+        COMMAND brew --prefix libomp
+        RESULT_VARIABLE BREW_LIBOMP
+        OUTPUT_VARIABLE BREW_LIBOMP_PREFIX
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+    )
+    include_directories("${BREW_LIBOMP_PREFIX}/include")
+    link_directories("${BREW_LIBOMP_PREFIX}/lib")
 
     list(APPEND SOURCES ${VERSION_FILE_PATH})
 else()
@@ -33,7 +40,15 @@ else()
     endif()
 endif()
 
-if(NOT ${ARCHITECTURE} MATCHES "arm.*")
+if(${ARCHITECTURE} MATCHES "arm.*")
+    # On ARM, Intel MKL is unavailable. Compile the minimal, self-contained CBLAS shim
+    # (the four level-1 routines SymSGD needs, implemented as plain C loops with no external
+    # BLAS dependency) directly into SymSgdNative. We deliberately do NOT build or ship a
+    # separate libMklImports on ARM, so components that require the full MKL (LAPACK/DFTI)
+    # continue to correctly report it as unavailable there.
+    list(APPEND SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/../MklImportsArm/MklImportsArm.c)
+    set(MKL_LIBRARY "")
+else()
     find_library(MKL_LIBRARY MklImports HINTS ${MKL_LIB_PATH})
 endif()
 

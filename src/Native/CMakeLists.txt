@@ -265,9 +265,16 @@ if(NOT ${ARCHITECTURE} MATCHES "arm.*")
     add_subdirectory(CpuMathNative)
     add_subdirectory(FastTreeNative)
     add_subdirectory(MklProxyNative)
-    # TODO: once we fix the 4 intel MKL methods, SymSgdNative will need to go back in.
     add_subdirectory(SymSgdNative)
-  endif()
+else()
+    # On ARM, SymSgdNative compiles the small MklImportsArm CBLAS shim directly
+    # (see SymSgdNative/CMakeLists.txt), so we do not build a separate libMklImports here.
+    # SymSGD needs OpenMP, which is unavailable for arm64 on the macOS cross-compilation
+    # runner (it only ships an x86_64 libomp), so SymSgdNative is built on Windows/Linux arm only.
+    if(NOT APPLE)
+        add_subdirectory(SymSgdNative)
+    endif()
+endif()
 
 if(${ARCHITECTURE} MATCHES "[xX].*64")
   add_subdirectory(OneDalNative)
