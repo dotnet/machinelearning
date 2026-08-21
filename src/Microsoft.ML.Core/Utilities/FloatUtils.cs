@@ -6,6 +6,7 @@ using System;
 using System.Globalization;
 using System.Runtime.InteropServices;
 using Microsoft.ML.Runtime;
+using System.Runtime.CompilerServices;
 
 namespace Microsoft.ML.Internal.Utilities
 {
@@ -400,16 +401,12 @@ namespace Microsoft.ML.Internal.Utilities
 
         public static ulong GetBits(double x)
         {
-            var bits = default(DoubleBits);
-            bits.Float = x;
-            return bits.Bits;
+            return Unsafe.As<double, ulong>(ref x);
         }
 
         public static uint GetBits(float x)
         {
-            var bits = default(SingleBits);
-            bits.Float = x;
-            return bits.Bits;
+            return Unsafe.As<float, uint>(ref x);
         }
 
         public static double FromBits(ulong bits)
