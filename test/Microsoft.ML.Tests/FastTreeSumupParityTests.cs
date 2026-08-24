@@ -4,6 +4,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Reflection;
+using System.Runtime.InteropServices;
 using Microsoft.ML.TestFramework;
 using Microsoft.ML.TestFramework.Attributes;
 using Microsoft.ML.Trainers.FastTree;
@@ -80,6 +82,145 @@ namespace Microsoft.ML.Tests
             AssertHistogramEqual(native.CountByBin, native.SumTargetsByBin, native.SumWeightsByBin, managed, useWeights);
         }
 
+        // Segment shapes that exercise the hard part of the segment decoder: multiple segments of
+        // different bit widths and different run lengths, transitions across 32-bit packed-word
+        // boundaries, and degenerate corner cases (all-zero, all-same, single element, long runs).
+        public static IEnumerable<object[]> SegmentShapeCases()
+        {
+            foreach (var shape in new[]
+            {
+                "AllZero", "AllSame", "Single", "Two", "IncreasingWidths",
+                "DecreasingWidths", "AlternatingExtremes", "WordBoundaryWidths",
+                "LongSingleWidth", "PowersOfTwo", "ManyShortSegments"
+            })
+                foreach (var useWeights in new[] { false, true })
+                    foreach (var useIndices in new[] { false, true })
+                        yield return new object[] { shape, useWeights, useIndices };
+        }
+
+        [Theory]
+        [MemberData(nameof(SegmentShapeCases))]
+        public void ManagedSegmentSumupHandlesVariedShapes(string shape, bool useWeights, bool useIndices)
+        {
+            var values = BuildSegmentValues(shape, out int numBins);
+            var arr = CreateManagedSegment(values);
+            var input = CreateInputForLength(values.Length, seed: 3, useWeights, useIndices,
+                out double[] outputs, out double[] weights, out int[] docIndices, out int count);
+
+            var managed = new FeatureHistogram(arr, numBins, useWeights);
+            CallManaged(arr, input, managed);
+
+            ComputeReference(arr, numBins, outputs, weights, docIndices, count,
+                out double[] refTargets, out double[] refWeights, out int[] refCounts);
+            AssertHistogramEqual(refCounts, refTargets, refWeights, managed, useWeights);
+
+            // Where the native FastTree library is present (x64), the managed decoder must also be
+            // bit-identical to the native one on these same varied-segment shapes.
+            if (IntArray.UseFastTreeNative)
+            {
+                var native = new FeatureHistogram(arr, numBins, useWeights);
+                CallNative(arr, input, native);
+                AssertHistogramEqual(native.CountByBin, native.SumTargetsByBin, native.SumWeightsByBin, managed, useWeights);
+            }
+        }
+
+        [Fact]
+        public void SumupDispatchMatchesArchitecture()
+        {
+            // The whole point of the PR: x64/x86 must dispatch Sumup to the native handler and every
+            // other architecture (e.g. arm64) to the new managed handler.
+            bool expectNative = RuntimeInformation.ProcessArchitecture == Architecture.X64 ||
+                                RuntimeInformation.ProcessArchitecture == Architecture.X86;
+            Assert.Equal(expectNative, IntArray.UseFastTreeNative);
+
+            // Verify the delegate actually wired into a real array matches that decision, not just the
+            // UseFastTreeNative flag. A dense array is used because its constructor sets up the handler
+            // without invoking the (separately tested) segment encoder.
+            var values = new int[Length];
+            var rand = new Random(7);
+            for (int i = 0; i < Length; i++)
+                values[i] = rand.Next(256);
+            var dense = IntArray.New(Length, IntArrayType.Dense, IntArrayBits.Bits8, values);
+
+            var handlerProp = typeof(IntArray).GetProperty("SumupHandler", BindingFlags.NonPublic | BindingFlags.Instance);
+            var handler = (Delegate)handlerProp.GetValue(dense);
+            Assert.NotNull(handler);
+            Assert.Equal(expectNative ? "SumupNative" : "SumupManaged", handler.Method.Name);
+        }
+
+        // Builds a value array with the given segment "shape". Segments are runs of values that share
+        // the same bit width, so varying the magnitude and run length of blocks yields multiple
+        // segments of different widths/lengths.
+        private static int[] BuildSegmentValues(string shape, out int numBins)
+        {
+            var values = new List<int>();
+            var rand = new Random(101);
+
+            // Appends 'count' values drawn from [0, maxExclusive), i.e. a run of a given bit width.
+            void Block(int maxExclusive, int count)
+            {
+                for (int i = 0; i < count; i++)
+                    values.Add(maxExclusive <= 1 ? 0 : rand.Next(maxExclusive));
+            }
+
+            switch (shape)
+            {
+                case "AllZero":
+                    Block(1, 500);
+                    break;
+                case "AllSame":
+                    for (int i = 0; i < 500; i++)
+                        values.Add(42);
+                    break;
+                case "Single":
+                    values.Add(123);
+                    break;
+                case "Two":
+                    values.Add(1);
+                    values.Add(200);
+                    break;
+                case "IncreasingWidths":
+                    Block(2, 1); Block(16, 3); Block(256, 17); Block(4, 100); Block(64, 33); Block(1024, 7);
+                    break;
+                case "DecreasingWidths":
+                    Block(1024, 7); Block(64, 33); Block(4, 100); Block(256, 17); Block(16, 3); Block(2, 1);
+                    break;
+                case "AlternatingExtremes":
+                    for (int i = 0; i < 200; i++)
+                    {
+                        values.Add(0);
+                        values.Add(1500 + (i % 100));
+                    }
+                    break;
+                case "WordBoundaryWidths":
+                    // Bit widths 3,5,7,3,1 with run lengths chosen so bit offsets cross 32-bit words.
+                    Block(8, 5); Block(32, 7); Block(128, 11); Block(8, 13); Block(2, 64); Block(128, 3);
+                    break;
+                case "LongSingleWidth":
+                    Block(256, 3000);
+                    break;
+                case "PowersOfTwo":
+                    for (int p = 0; p <= 20; p++)
+                        values.Add(1 << p);
+                    break;
+                case "ManyShortSegments":
+                    for (int i = 0; i < 300; i++)
+                        Block((i % 6) switch { 0 => 2, 1 => 16, 2 => 4, 3 => 256, 4 => 8, _ => 64 }, 1 + (i % 3));
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(shape), shape, null);
+            }
+
+            int max = 0;
+            foreach (int v in values)
+            {
+                if (v > max)
+                    max = v;
+            }
+            numBins = max + 1;
+            return values.ToArray();
+        }
+
         private static IntArray CreateIntArray(string kind, int seed, out int numBins)
         {
             IntArrayBits bits;
@@ -128,17 +269,23 @@ namespace Microsoft.ML.Tests
         private static SumupInputData CreateInput(int seed, bool useWeights, bool useIndices,
             out double[] outputs, out double[] weights, out int[] docIndices, out int count)
         {
+            return CreateInputForLength(Length, seed, useWeights, useIndices, out outputs, out weights, out docIndices, out count);
+        }
+
+        private static SumupInputData CreateInputForLength(int length, int seed, bool useWeights, bool useIndices,
+            out double[] outputs, out double[] weights, out int[] docIndices, out int count)
+        {
             var rand = new Random(seed);
 
-            outputs = new double[Length];
-            for (int i = 0; i < Length; i++)
+            outputs = new double[length];
+            for (int i = 0; i < length; i++)
                 outputs[i] = rand.NextDouble() * 2 - 1;
 
             weights = null;
             if (useWeights)
             {
-                weights = new double[Length];
-                for (int i = 0; i < Length; i++)
+                weights = new double[length];
+                for (int i = 0; i < length; i++)
                     weights[i] = rand.NextDouble();
             }
 
@@ -148,7 +295,7 @@ namespace Microsoft.ML.Tests
                 // Leaf case: a strictly increasing subset of document indices, as required by the
                 // segment decoder (it walks segments forward assuming ascending indices).
                 var list = new List<int>();
-                for (int i = 0; i < Length; i++)
+                for (int i = 0; i < length; i++)
                 {
                     if (rand.Next(2) == 0)
                         list.Add(i);
@@ -156,7 +303,7 @@ namespace Microsoft.ML.Tests
                 docIndices = list.ToArray();
             }
 
-            count = useIndices ? docIndices.Length : Length;
+            count = useIndices ? docIndices.Length : length;
 
             double sumTargets = 0;
             double sumWeights = 0;
