@@ -122,17 +122,12 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 });
 
             var transformedData = pipeline.Fit(data).Transform(data);
-            var predictions = mlContext.Data.CreateEnumerable<SamplesUtils.DatasetUtils.CalibratedBinaryClassifierOutput>(transformedData, false).ToArray();
+            var metrics = mlContext.BinaryClassification.Evaluate(transformedData);
+            var priorModel = mlContext.BinaryClassification.Trainers.Prior().Fit(data);
+            var priorMetrics = mlContext.BinaryClassification.Evaluate(priorModel.Transform(data));
 
-            Assert.Equal(100, predictions.Length);
-            Assert.All(predictions, prediction =>
-            {
-                Assert.False(float.IsNaN(prediction.Score));
-                Assert.False(float.IsInfinity(prediction.Score));
-                Assert.InRange(prediction.Probability, 0, 1);
-            });
-            Assert.True(predictions.Where(prediction => prediction.Label).Average(prediction => prediction.Score) >
-                predictions.Where(prediction => !prediction.Label).Average(prediction => prediction.Score));
+            Assert.InRange(metrics.AreaUnderRocCurve, 0.9, 1);
+            Assert.True(metrics.LogLoss < priorMetrics.LogLoss);
         }
 
         [Fact]
