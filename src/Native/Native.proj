@@ -189,11 +189,11 @@
                           RelativePath="Microsoft.ML.CpuMath\runtimes\$(PackageRid)\nativeassets\net8.0" />
       <NativePackageAsset Include="$(NativeAssetsBuiltPath)\$(NativeLibPrefix)LdaNative$(NativeLibExtension)"
                           RelativePath="Microsoft.ML\runtimes\$(PackageRid)\native" />
-      <!-- SymSgdNative is built on x64 and on Windows/Linux arm64 (with its self-contained CBLAS
-           shim). It is not built on macOS arm64 (the macOS cross-compilation runner has no arm64
-           libomp), so only exclude it there. -->
-      <NativePackageAsset Condition="!($([MSBuild]::IsOSPlatform('osx')) And ('$(TargetArchitecture)' == 'arm64' Or '$(TargetArchitecture)' == 'arm'))"
-                          Include="$(NativeAssetsBuiltPath)\$(NativeLibPrefix)SymSgdNative$(NativeLibExtension)"
+      <NativePackageAsset Include="$(NativeAssetsBuiltPath)\$(NativeLibPrefix)SymSgdNative$(NativeLibExtension)"
+                          RelativePath="Microsoft.ML.Mkl.Components\runtimes\$(PackageRid)\native" />
+      <NativePackageAsset Condition="$([MSBuild]::IsOSPlatform('osx')) And '$(TargetArchitecture)' == 'arm64'"
+                          Include="$(NativeAssetsBuiltPath)\libomp.dylib"
+                          IncludeSymbols="false"
                           RelativePath="Microsoft.ML.Mkl.Components\runtimes\$(PackageRid)\native" />
       <NativePackageAsset Condition="'$(TargetArchitecture)' != 'arm64' And '$(TargetArchitecture)' != 'arm'"
                           Include="$(NativeAssetsBuiltPath)\$(NativeLibPrefix)MklProxyNative$(NativeLibExtension)"
@@ -227,7 +227,8 @@
 
     <ItemGroup>
       <NativePackageAsset Condition="('$(OS)' == 'Windows_NT' OR '$(StripNativeSymbols)' == 'True')
-                                     AND '%(NativePackageAsset.Identity)' != '$(PlaceholderFile)'"
+                                     AND '%(NativePackageAsset.Identity)' != '$(PlaceholderFile)'
+                                     AND '%(NativePackageAsset.IncludeSymbols)' != 'false'"
                           Include="@(NativePackageAsset->'%(RootDir)%(Directory)%(Filename)$(NativeLibSymbolExtension)')" />
     </ItemGroup>
 

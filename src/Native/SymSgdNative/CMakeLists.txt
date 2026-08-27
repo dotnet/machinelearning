@@ -20,8 +20,8 @@ if(APPLE)
         OUTPUT_VARIABLE BREW_LIBOMP_PREFIX
         OUTPUT_STRIP_TRAILING_WHITESPACE
     )
+    SET(OPENMP_LIBRARY "${BREW_LIBOMP_PREFIX}/lib/libomp.dylib")
     include_directories("${BREW_LIBOMP_PREFIX}/include")
-    link_directories("${BREW_LIBOMP_PREFIX}/lib")
 
     list(APPEND SOURCES ${VERSION_FILE_PATH})
 else()
@@ -61,7 +61,20 @@ endif()
 target_link_libraries(SymSgdNative PUBLIC ${MKL_LIBRARY} PUBLIC ${OPENMP_LIBRARY})
 
 if(APPLE)
-    set_target_properties(SymSgdNative PROPERTIES INSTALL_RPATH "@loader_path;@loader_path/${MKL_LIB_RPATH}}")
+    set_target_properties(SymSgdNative PROPERTIES INSTALL_RPATH "@loader_path")
+    if(MKL_LIB_RPATH)
+        set_property(TARGET SymSgdNative APPEND PROPERTY INSTALL_RPATH "@loader_path/${MKL_LIB_RPATH}")
+    endif()
+    if(${ARCHITECTURE} STREQUAL "arm64")
+        add_custom_command(
+            TARGET SymSgdNative
+            POST_BUILD
+            VERBATIM
+            COMMAND ${CMAKE_INSTALL_NAME_TOOL} -change "${BREW_LIBOMP_PREFIX}/lib/libomp.dylib" "@loader_path/libomp.dylib" $<TARGET_FILE:SymSgdNative>
+            COMMENT "Making SymSgdNative load libomp from its package directory"
+        )
+        install(FILES "${BREW_LIBOMP_PREFIX}/lib/libomp.dylib" DESTINATION .)
+    endif()
 endif()
 
 install_library_and_symbols (SymSgdNative)

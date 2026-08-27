@@ -158,7 +158,7 @@ extends:
       ################################################################################
         pool:
           name: Azure Pipelines
-          vmImage: $(MacImage)
+          vmImage: macOS-15-arm64
           os: macOS
         templateContext:
           outputs:

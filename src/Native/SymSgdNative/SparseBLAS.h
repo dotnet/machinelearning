@@ -21,7 +21,7 @@ float SDOT(const int vecSize, const float* denseVecX, const float* denseVecY)
     return cblas_sdot(vecSize, denseVecX, 1, denseVecY, 1);
 }
 
-float SDOTI(const int sparseVecSize, const int* sparseVecIndices, const float* sparseVecValues, const float* denseVec) 
+float SDOTI(const int sparseVecSize, const int* sparseVecIndices, const float* sparseVecValues, const float* denseVec)
 {
     return cblas_sdoti(sparseVecSize, sparseVecValues, sparseVecIndices, denseVec);
 }
