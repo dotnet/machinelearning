@@ -72,7 +72,14 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
             // Step 2: Create a binary classifier.
             // We set the "Label" column as the label of the dataset, and the "Features" column as the features column.
-            var pipeline = mlContext.BinaryClassification.Trainers.SdcaLogisticRegression(labelColumnName: "Label", featureColumnName: "Features", l2Regularization: 0.001f);
+            var pipeline = mlContext.BinaryClassification.Trainers.SdcaLogisticRegression(
+                new SdcaLogisticRegressionBinaryTrainer.Options
+                {
+                    LabelColumnName = "Label",
+                    FeatureColumnName = "Features",
+                    L2Regularization = 0.001f,
+                    NumberOfThreads = 1
+                });
 
             // Step 3: Train the pipeline created.
             var model = pipeline.Fit(data);
@@ -95,6 +102,37 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             Assert.True(first.Score > 0);
             // Positive example should have high probability of belonging the positive class.
             Assert.InRange(first.Probability, 0.8, 1);
+        }
+
+        [Fact]
+        public void SdcaLogisticRegressionMultithreaded()
+        {
+            // Keep coverage of the nondeterministic parallel path while the quality test above remains deterministic.
+            // See https://github.com/dotnet/machinelearning/blob/240a849becda954f3e17d39f7606328be3a7f0de/src/Microsoft.ML.StandardTrainers/Standard/SdcaBinary.cs#L180-L188.
+            var rawData = SamplesUtils.DatasetUtils.GenerateBinaryLabelFloatFeatureVectorFloatWeightSamples(100);
+            var mlContext = new MLContext(1);
+            var data = mlContext.Data.Cache(mlContext.Data.LoadFromEnumerable(rawData));
+            var pipeline = mlContext.BinaryClassification.Trainers.SdcaLogisticRegression(
+                new SdcaLogisticRegressionBinaryTrainer.Options
+                {
+                    LabelColumnName = "Label",
+                    FeatureColumnName = "Features",
+                    L2Regularization = 0.001f,
+                    NumberOfThreads = 4
+                });
+
+            var transformedData = pipeline.Fit(data).Transform(data);
+            var predictions = mlContext.Data.CreateEnumerable<SamplesUtils.DatasetUtils.CalibratedBinaryClassifierOutput>(transformedData, false).ToArray();
+
+            Assert.Equal(100, predictions.Length);
+            Assert.All(predictions, prediction =>
+            {
+                Assert.False(float.IsNaN(prediction.Score));
+                Assert.False(float.IsInfinity(prediction.Score));
+                Assert.InRange(prediction.Probability, 0, 1);
+            });
+            Assert.True(predictions.Where(prediction => prediction.Label).Average(prediction => prediction.Score) >
+                predictions.Where(prediction => !prediction.Label).Average(prediction => prediction.Score));
         }
 
         [Fact]
