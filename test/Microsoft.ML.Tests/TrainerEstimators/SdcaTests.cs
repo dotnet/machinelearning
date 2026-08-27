@@ -109,9 +109,17 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         {
             // Keep coverage of the nondeterministic parallel path while the quality test above remains deterministic.
             // See https://github.com/dotnet/machinelearning/blob/240a849becda954f3e17d39f7606328be3a7f0de/src/Microsoft.ML.StandardTrainers/Standard/SdcaBinary.cs#L180-L188.
+
+            // Generate C# objects as training examples.
             var rawData = SamplesUtils.DatasetUtils.GenerateBinaryLabelFloatFeatureVectorFloatWeightSamples(100);
+
+            // Create a new context for ML.NET operations.
             var mlContext = new MLContext(1);
+
+            // Step 1: Read and cache the data as an IDataView.
             var data = mlContext.Data.Cache(mlContext.Data.LoadFromEnumerable(rawData));
+
+            // Step 2: Create a binary classifier that exercises the parallel training path.
             var pipeline = mlContext.BinaryClassification.Trainers.SdcaLogisticRegression(
                 new SdcaLogisticRegressionBinaryTrainer.Options
                 {
@@ -121,11 +129,15 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                     NumberOfThreads = 4
                 });
 
+            // Step 3: Train and evaluate the classifier on the training data.
             var transformedData = pipeline.Fit(data).Transform(data);
             var metrics = mlContext.BinaryClassification.Evaluate(transformedData);
+
+            // Step 4: Evaluate a featureless classifier as a quality baseline.
             var priorModel = mlContext.BinaryClassification.Trainers.Prior().Fit(data);
             var priorMetrics = mlContext.BinaryClassification.Evaluate(priorModel.Transform(data));
 
+            // Verify the multithreaded classifier learns the signal in the generated data.
             Assert.InRange(metrics.AreaUnderRocCurve, 0.9, 1);
             Assert.True(metrics.LogLoss < priorMetrics.LogLoss);
         }
