@@ -20,6 +20,27 @@ if(APPLE)
         OUTPUT_VARIABLE BREW_LIBOMP_PREFIX
         OUTPUT_STRIP_TRAILING_WHITESPACE
     )
+    if(NOT BREW_LIBOMP EQUAL 0)
+        message(FATAL_ERROR "Homebrew libomp is required to build SymSgdNative on macOS.")
+    endif()
+
+    set(OPENMP_ARCHITECTURE ${ARCHITECTURE})
+    if(OPENMP_ARCHITECTURE STREQUAL "x64")
+        set(OPENMP_ARCHITECTURE "x86_64")
+    endif()
+    execute_process(
+        COMMAND lipo -archs "${BREW_LIBOMP_PREFIX}/lib/libomp.dylib"
+        RESULT_VARIABLE LIBOMP_ARCH_RESULT
+        OUTPUT_VARIABLE LIBOMP_ARCHITECTURES
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+    )
+    string(FIND "${LIBOMP_ARCHITECTURES}" "${OPENMP_ARCHITECTURE}" LIBOMP_ARCH_INDEX)
+    if(NOT LIBOMP_ARCH_RESULT EQUAL 0 OR LIBOMP_ARCH_INDEX EQUAL -1)
+        message(FATAL_ERROR
+            "libomp at ${BREW_LIBOMP_PREFIX} does not contain ${OPENMP_ARCHITECTURE}; "
+            "install a matching libomp or build SymSgdNative on a ${OPENMP_ARCHITECTURE} host.")
+    endif()
+
     include_directories("${BREW_LIBOMP_PREFIX}/include")
     link_directories("${BREW_LIBOMP_PREFIX}/lib")
 

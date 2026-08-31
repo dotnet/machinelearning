@@ -144,7 +144,7 @@ jobs:
         _targetFramework: net8.0
     innerLoop: true
     pool:
-      vmImage: macOS-15
+      vmImage: macOS-15-arm64
     helixQueue: osx.15.arm64.open
 
 - template: /build/ci/job-template.yml

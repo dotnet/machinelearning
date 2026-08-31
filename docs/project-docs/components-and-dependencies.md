@@ -24,7 +24,7 @@ ML.NET redistributes Intel MKL as Microsoft.ML.MKL.Redist in which is a minimize
 | `Microsoft.ML.FastTree`             | `FastTreeRankingTrainer`                                       | Optional native acceleration                   | Stable   | Native library used on x86/x64; managed fallback                                           |
 | `Microsoft.ML.ImageAnalytics`       | `MLImage` (image exchange type)                                | `libSkiaSharp`                                 | Stable   | Wrapper over SkiaSharp / Google Skia; supported where dependency is supported              |
 | `Microsoft.ML.LightGBM`             | `LightGbm\*Trainer`                                            | `LightGBM`                                     | Stable   | Wrapper over LightGBM; supported where dependency is supported                             |
-| `Microsoft.ML.MKL.Components`       | `SymbolicSgdLogisticRegressionBinaryTrainer`                   | Intel MKL                                      | Stable   | Only works where Intel MKL works                                                           |
+| `Microsoft.ML.MKL.Components`       | `SymbolicSgdLogisticRegressionBinaryTrainer`                   | Intel MKL (x86/x64); OpenMP runtime             | Stable   | Uses a built-in CBLAS implementation on ARM                                                |
 | `Microsoft.ML.MKL.Redist`           | Internal native Intel MKL                                      | `libomp`                                       | Stable   | Not for direct reference; win-x86/x64 only                                                 |
 | `Microsoft.ML.OneDal`               | Internal native Intel OneDal                                   | Intel OneDAL                                   | Preview  | Not for direct reference; x64 only                                                         |
 | `Microsoft.ML.OnnxConverter`        | Adds ONNX export support                                       | `Microsoft.ML.OnnxRuntime`                     | Stable   | Wrapper over ONNX Runtime; supports "bring your own" runtime                               |
@@ -266,4 +266,3 @@ graph TD
     class AutoML,CodeGen,FastTree,LightGBM,Recommender,TimeSeries,TorchSharp,ImageAnalytics,DnnFeaturizerAlexNet,DnnFeaturizerResNet18,DnnFeaturizerResNet50,DnnFeaturizerResNet101,DnnFeaturizerModelRedist,Vision,OnnxConverter,OnnxTransformer,TensorFlow,MKLComponents,Ensemble,EntryPoints,Experimental,FairLearn,Parquet,DataAnalysis,GenAICore,GenAILLaMA,GenAIMistral,GenAIPhi,Tokenizers,TokenizersGpt2,TokenizersR50k,TokenizersP50k,TokenizersO200k,TokenizersCl100k,SampleUtils algorithm
     class CpuMath,MKLRedist,OneDal bundled
 ```
-

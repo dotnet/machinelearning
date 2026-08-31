@@ -39,12 +39,6 @@
       <NativeAssemblyReference Remove="MklProxyNative"/>
       <NativeAssemblyReference Remove="libiomp5md"/>
     </ItemGroup>
-
-    <!-- SymSgdNative is not built on macOS arm: SymSGD needs OpenMP and the macOS
-         cross-compilation runner has no arm64 libomp. It is built on Windows/Linux arm. -->
-    <ItemGroup Condition="('$(TargetArchitecture)' == 'arm64' Or '$(TargetArchitecture)' == 'arm') And $([MSBuild]::IsOSPlatform('osx'))">
-      <NativeAssemblyReference Remove="SymSgdNative"/>
-    </ItemGroup>
   </Target>
 
   <Target Name="CopyNativeAssembliesPublish" AfterTargets="Publish" DependsOnTargets="SetCopyProperties">
