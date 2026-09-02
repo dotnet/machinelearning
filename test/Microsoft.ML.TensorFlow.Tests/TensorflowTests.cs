@@ -8,8 +8,6 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using Microsoft.ML.Data;
-using Microsoft.ML.Internal.Utilities;
-using Microsoft.ML.Runtime;
 using Microsoft.ML.TensorFlow;
 using Microsoft.ML.TestFramework;
 using Microsoft.ML.TestFramework.Attributes;
@@ -61,7 +59,6 @@ namespace Microsoft.ML.TensorFlow.Scenarios
     {
         private readonly string _fullImagesetFolderPath;
         private readonly string _finalImagesFolderName;
-        private string _timeOutOldValue;
         private MLContext _mlContext = new MLContext(seed: 1);
 
         public TensorFlowScenariosTests(ITestOutputHelper output) : base(output)
@@ -75,19 +72,6 @@ namespace Microsoft.ML.TensorFlow.Scenarios
 
             _fullImagesetFolderPath = Path.Combine(
                 imagesDownloadFolderPath, _finalImagesFolderName);
-        }
-
-        protected override void Initialize()
-        {
-            // set timeout to 3 minutes, download sometimes will stuck so set smaller timeout to fail fast and retry download
-            _timeOutOldValue = Environment.GetEnvironmentVariable(ResourceManagerUtils.TimeoutEnvVariable);
-            Environment.SetEnvironmentVariable(ResourceManagerUtils.TimeoutEnvVariable, (3 * 60 * 1000).ToString());
-        }
-
-        protected override void Cleanup()
-        {
-            // set back timeout value
-            Environment.SetEnvironmentVariable(ResourceManagerUtils.TimeoutEnvVariable, _timeOutOldValue);
         }
 
         private class TestData
@@ -1952,7 +1936,7 @@ namespace Microsoft.ML.TensorFlow.Scenarios
         {
             string fileName = "flower_photos_tiny_set_for_unit_tests.zip";
             string filenameAlias = "FPTSUT"; // FPTSUT = flower photos tiny set for unit tests
-            string url = "datasets/flower_photos_tiny_set_for_unit_test.zip";
+            string url = "https://mlpublicassets.blob.core.windows.net/assets/datasets/flower_photos_tiny_set_for_unit_tests.zip";
 
             Download(url, imagesDownloadFolder, fileName);
             UnZip(Path.Combine(imagesDownloadFolder, fileName), imagesDownloadFolder);
@@ -1965,7 +1949,7 @@ namespace Microsoft.ML.TensorFlow.Scenarios
         public string DownloadBadImageSet(string imagesDownloadFolder)
         {
             string fileName = "CatsVsDogs_tiny_for_unit_tests.zip";
-            string url = "datasets/CatsVsDogs_tiny_for_unit_tests.zip";
+            string url = "https://mlpublicassets.blob.core.windows.net/assets/datasets/CatsVsDogs_tiny_for_unit_tests.zip";
 
             Download(url, imagesDownloadFolder, fileName);
             UnZip(Path.Combine(imagesDownloadFolder, fileName), imagesDownloadFolder);
@@ -1985,20 +1969,7 @@ namespace Microsoft.ML.TensorFlow.Scenarios
             if (File.Exists(relativeFilePath))
                 return false;
 
-            int timeout = 10 * 60 * 1000;
-            using (var ch = (_mlContext as IHostEnvironment).Start("Ensuring image files are present."))
-            {
-                var ensureModel = ResourceManagerUtils.Instance.EnsureResourceAsync(_mlContext, ch, url, destFileName, destDir, timeout);
-                ensureModel.Wait();
-                var errorResult = ResourceManagerUtils.GetErrorMessage(out var errorMessage, ensureModel.Result);
-                if (errorResult != null)
-                {
-                    var directory = Path.GetDirectoryName(errorResult.FileName);
-                    var name = Path.GetFileName(errorResult.FileName);
-                    throw ch.Except($"{errorMessage}\nImage file could not be downloaded!");
-                }
-            }
-
+            TestDownloadUtils.DownloadFile(url, relativeFilePath, TimeSpan.FromMinutes(3));
             return true;
         }
 

@@ -20,6 +20,7 @@ namespace Microsoft.Extensions.ML
         /// <returns>
         /// The updated <see cref="PredictionEnginePoolBuilder{TData, TPrediction}"/>.
         /// </returns>
+        /// <remarks>Only add models from trusted sources. Adding models from untrusted sources is a security risk.</remarks>
         public static PredictionEnginePoolBuilder<TData, TPrediction> FromUri<TData, TPrediction>(
             this PredictionEnginePoolBuilder<TData, TPrediction> builder, string uri)
             where TData : class
@@ -41,6 +42,7 @@ namespace Microsoft.Extensions.ML
         /// <returns>
         /// The updated <see cref="PredictionEnginePoolBuilder{TData, TPrediction}"/>.
         /// </returns>
+        /// <remarks>Only add models from trusted sources. Adding models from untrusted sources is a security risk.</remarks>
         public static PredictionEnginePoolBuilder<TData, TPrediction> FromUri<TData, TPrediction>(
             this PredictionEnginePoolBuilder<TData, TPrediction> builder, string modelName, string uri)
             where TData : class
@@ -62,6 +64,7 @@ namespace Microsoft.Extensions.ML
         /// <returns>
         /// The updated <see cref="PredictionEnginePoolBuilder{TData, TPrediction}"/>.
         /// </returns>
+        /// <remarks>Only add models from trusted sources. Adding models from untrusted sources is a security risk.</remarks>
         public static PredictionEnginePoolBuilder<TData, TPrediction> FromUri<TData, TPrediction>(
             this PredictionEnginePoolBuilder<TData, TPrediction> builder, string modelName, Uri uri)
             where TData : class where TPrediction : class, new()
@@ -80,6 +83,7 @@ namespace Microsoft.Extensions.ML
         /// <returns>
         /// The updated <see cref="PredictionEnginePoolBuilder{TData, TPrediction}"/>.
         /// </returns>
+        /// <remarks>Only add models from trusted sources. Adding models from untrusted sources is a security risk.</remarks>
         public static PredictionEnginePoolBuilder<TData, TPrediction> FromUri<TData, TPrediction>(
             this PredictionEnginePoolBuilder<TData, TPrediction> builder, string uri, TimeSpan period)
             where TData : class where TPrediction : class, new()
@@ -103,6 +107,7 @@ namespace Microsoft.Extensions.ML
         /// <returns>
         /// The updated <see cref="PredictionEnginePoolBuilder{TData, TPrediction}"/>.
         /// </returns>
+        /// <remarks>Only add models from trusted sources. Adding models from untrusted sources is a security risk.</remarks>
         public static PredictionEnginePoolBuilder<TData, TPrediction> FromUri<TData, TPrediction>(
             this PredictionEnginePoolBuilder<TData, TPrediction> builder, string modelName, string uri, TimeSpan period)
             where TData : class
@@ -127,6 +132,7 @@ namespace Microsoft.Extensions.ML
         /// <returns>
         /// The updated <see cref="PredictionEnginePoolBuilder{TData, TPrediction}"/>.
         /// </returns>
+        /// <remarks>Only add models from trusted sources. Adding models from untrusted sources is a security risk.</remarks>
         public static PredictionEnginePoolBuilder<TData, TPrediction> FromUri<TData, TPrediction>(
             this PredictionEnginePoolBuilder<TData, TPrediction> builder, string modelName, Uri uri, TimeSpan period)
             where TData : class
@@ -150,6 +156,7 @@ namespace Microsoft.Extensions.ML
         /// <returns>
         /// The updated <see cref="PredictionEnginePoolBuilder{TData, TPrediction}"/>.
         /// </returns>
+        /// <remarks>Only add models from trusted sources. Adding models from untrusted sources is a security risk.</remarks>
         public static PredictionEnginePoolBuilder<TData, TPrediction> FromFile<TData, TPrediction>(
             this PredictionEnginePoolBuilder<TData, TPrediction> builder, string filePath)
             where TData : class
@@ -169,6 +176,7 @@ namespace Microsoft.Extensions.ML
         /// <returns>
         /// The updated <see cref="PredictionEnginePoolBuilder{TData, TPrediction}"/>.
         /// </returns>
+        /// <remarks>Only add models from trusted sources. Adding models from untrusted sources is a security risk.</remarks>
         public static PredictionEnginePoolBuilder<TData, TPrediction> FromFile<TData, TPrediction>(
             this PredictionEnginePoolBuilder<TData, TPrediction> builder, string filePath, bool watchForChanges)
             where TData : class
@@ -190,6 +198,7 @@ namespace Microsoft.Extensions.ML
         /// <returns>
         /// The updated <see cref="PredictionEnginePoolBuilder{TData, TPrediction}"/>.
         /// </returns>
+        /// <remarks>Only add models from trusted sources. Adding models from untrusted sources is a security risk.</remarks>
         public static PredictionEnginePoolBuilder<TData, TPrediction> FromFile<TData, TPrediction>(
             this PredictionEnginePoolBuilder<TData, TPrediction> builder, string modelName, string filePath)
             where TData : class
@@ -214,6 +223,7 @@ namespace Microsoft.Extensions.ML
         /// <returns>
         /// The updated <see cref="PredictionEnginePoolBuilder{TData, TPrediction}"/>.
         /// </returns>
+        /// <remarks>Only add models from trusted sources. Adding models from untrusted sources is a security risk.</remarks>
         public static PredictionEnginePoolBuilder<TData, TPrediction> FromFile<TData, TPrediction>(
             this PredictionEnginePoolBuilder<TData, TPrediction> builder, string modelName, string filePath, bool watchForChanges)
             where TData : class

@@ -1,26 +1,6 @@
----
-description: "Dashboard groomer: links investigation results into the dashboard issue, marks resolved findings, hides stale comments, and enforces issue body sanity."
+# Repo health groom playbook
 
-on:
-  schedule: "0 9 * * *"
-  workflow_dispatch:
-
-permissions:
-  contents: read
-  issues: read
-
-tools:
-  github:
-    toolsets: [repos, issues]
-  bash: ["gh", "jq", "echo", "date", "wc"]
-
-safe-outputs:
-  update-issue:
-    max: 1
-    target: "*"
-  hide-comment:
-    max: 50
----
+This playbook contains the detailed ML.NET dashboard-grooming methodology. The local execution and approval rules in [`../SKILL.md`](../SKILL.md) override any mutating command examples below.
 
 # Repo Health — Dashboard Groomer
 
@@ -139,10 +119,10 @@ Hide comments that are no longer useful to reduce noise. Apply in priority order
 2. **Old daily overviews** — Daily delta comments > 7 days old (keep the last 7)
 3. **Superseded investigations** — If a finding was investigated multiple times, hide older reports
 
-### Hide Operation
+### Approved Hide Operation
 
 ```bash
-# Minimize comment (hide with reason)
+# Run only after the user approves this exact comment ID.
 gh api graphql -f query='
   mutation {
     minimizeComment(input: {
@@ -194,14 +174,14 @@ Verify the updated body still contains required sections:
 - `## Findings` section
 - At least one findings table
 - `## Trends` section
-- Footer with workflow link
+- Footer with local skill link
 
 If any required section is missing, abort the update.
 
-### Apply Update
+### Apply Approved Update
 
 ```bash
-# Only if validation passes
+# Run only if validation passes and the user approves the exact body.
 gh issue edit "$ISSUE" --repo dotnet/machinelearning --body "$UPDATED_BODY"
 ```
 
@@ -209,7 +189,7 @@ gh issue edit "$ISSUE" --repo dotnet/machinelearning --body "$UPDATED_BODY"
 
 ## Rules
 
-1. **Dashboard-only** — Only modifies the dashboard issue, never other issues or PRs
+1. **Dashboard-only** — Approved writes modify only the dashboard issue, never other issues or PRs
 2. **Conservative** — When in doubt, don't hide a comment or remove a finding
 3. **Length-preserving** — Never shrink the issue body below 80% of its previous length
 4. **Budget-aware** — Max 1 issue update, max 50 comment hides

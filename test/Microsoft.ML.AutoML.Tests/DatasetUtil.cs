@@ -185,7 +185,7 @@ namespace Microsoft.ML.AutoML.Test
         public static string DownloadImageSet(string imagesDownloadFolder)
         {
             string fileName = "flower_photos_tiny_set_for_unit_tests.zip";
-            string url = $"https://aka.ms/mlnet-resources/datasets/flower_photos_tiny_set_for_unit_test.zip";
+            string url = "https://mlpublicassets.blob.core.windows.net/assets/datasets/flower_photos_tiny_set_for_unit_tests.zip";
 
             Download(url, imagesDownloadFolder, fileName).Wait();
             UnZip(Path.Combine(imagesDownloadFolder, fileName), imagesDownloadFolder);
