@@ -129,7 +129,7 @@ jobs:
 - template: /build/ci/job-template.yml
   parameters:
     architecture: arm64
-    name: MacOS_cross_arm64
+    name: MacOS_arm64
     buildScript: ./build.sh
     customMatrixes:
       Debug_Build:

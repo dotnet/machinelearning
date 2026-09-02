@@ -30,9 +30,8 @@
 		</ItemGroup>
 
     <ItemGroup Condition="'$(TargetArchitecture)' == 'arm64' Or '$(TargetArchitecture)' == 'arm'">
-      <!-- SymSgdNative is built on arm/arm64 (with its CBLAS shim compiled in), so keep it
-           here so it is copied next to the managed assemblies. There is no separate MklImports
-           on arm/arm64, so it stays removed like the other MKL-based natives. -->
+      <!-- Remove native libraries that are unavailable on ARM. SymSgdNative is intentionally
+           not removed because it is built with its self-contained CBLAS shim on ARM. -->
       <NativeAssemblyReference Remove="MklImports"/>
       <NativeAssemblyReference Remove="CpuMathNative"/>
       <NativeAssemblyReference Remove="FastTreeNative"/>
