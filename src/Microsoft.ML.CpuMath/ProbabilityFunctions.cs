@@ -55,6 +55,24 @@ namespace Microsoft.ML.Internal.CpuMath
             return x >= 0 ? ev : -ev;
         }
 
+#pragma warning disable CA2207 // Here we want lazy allocation for performance purposes
+        private readonly struct ErfInvSeriesCoefficients
+        {
+            public static readonly double[] SeriesCoefficients;
+
+            static ErfInvSeriesCoefficients()
+            {
+                SeriesCoefficients = new double[1000];
+                SeriesCoefficients[0] = 1;
+                for (int k = 1; k < SeriesCoefficients.Length; ++k)
+                {
+                    for (int m = 0; m < k; ++m)
+                        SeriesCoefficients[k] += SeriesCoefficients[m] * SeriesCoefficients[k - 1 - m] / (m + 1) / (m + m + 1);
+                }
+            }
+        }
+#pragma warning restore CA2207
+
         /// <summary>
         /// The inverse error function.
         /// </summary>
@@ -71,20 +89,12 @@ namespace Microsoft.ML.Internal.CpuMath
             if (x == -1.0)
                 return Double.NegativeInfinity;
 
-            // This is very inefficient... fortunately we only need to compute it very infrequently.
-            double[] c = new double[1000];
-            c[0] = 1;
-            for (int k = 1; k < c.Length; ++k)
-            {
-                for (int m = 0; m < k; ++m)
-                    c[k] += c[m] * c[k - 1 - m] / (m + 1) / (m + m + 1);
-            }
-
             double cc = Math.Sqrt(Math.PI) / 2.0;
             double ccinc = Math.PI / 4.0;
             double zz = x;
             double zzinc = x * x;
             double ans = 0.0;
+            double[] c = ErfInvSeriesCoefficients.SeriesCoefficients;
             for (int k = 0; k < c.Length; ++k)
             {
                 ans += c[k] * cc * zz / (2 * k + 1);
