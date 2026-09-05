@@ -111,8 +111,8 @@
 
       <HelixPreCommands Condition="$(HelixTargetQueues.ToLowerInvariant().Contains('osx'))">$(HelixPreCommands);export LD_LIBRARY_PATH=/opt/homebrew/opt/mono-libgdiplus/lib;ls /usr/lib;ls $HELIX_WORKITEM_ROOT;export KMP_DUPLICATE_LIB_OK=TRUE;otool -L $HELIX_WORKITEM_ROOT/runtimes/osx-x64/native/lib_lightgbm.dylib</HelixPreCommands>
 
-      <!-- macOS x64 only: add DYLD paths so the local libomp/libiomp5 in the work item is discoverable -->
-      <HelixPreCommands Condition="$(HelixTargetQueues.ToLowerInvariant().Contains('osx')) and '$(BuildArchitecture)'=='x64'">$(HelixPreCommands);export DYLD_LIBRARY_PATH=$HELIX_WORKITEM_ROOT:$DYLD_LIBRARY_PATH;export DYLD_FALLBACK_LIBRARY_PATH=$HELIX_WORKITEM_ROOT:$DYLD_FALLBACK_LIBRARY_PATH</HelixPreCommands>
+      <!-- Add DYLD paths so the local libomp/libiomp5 in the work item is discoverable. -->
+      <HelixPreCommands Condition="$(HelixTargetQueues.ToLowerInvariant().Contains('osx'))">$(HelixPreCommands);export DYLD_LIBRARY_PATH=$HELIX_WORKITEM_ROOT:$DYLD_LIBRARY_PATH;export DYLD_FALLBACK_LIBRARY_PATH=$HELIX_WORKITEM_ROOT:$DYLD_FALLBACK_LIBRARY_PATH</HelixPreCommands>
 
       <HelixPreCommands Condition="$(HelixTargetQueues.ToLowerInvariant().Contains('armarch'))">$(HelixPreCommands);sudo apt update;sudo apt-get install libomp-dev libomp5 -y</HelixPreCommands>
 
@@ -121,9 +121,22 @@
 
       <RunTestScript Condition="'$(OS)' != 'Windows_NT'">runTests.sh</RunTestScript>
       <RunTestScript Condition="'$(OS)' == 'Windows_NT'">.\runTests.cmd</RunTestScript>
-
-      <MacFilesToCopy>/usr/local/opt/libomp/lib/libomp.dylib;</MacFilesToCopy>
     </PropertyGroup>
+
+    <Exec Condition="$(HelixTargetQueues.ToLowerInvariant().Contains('osx'))"
+          Command="brew --prefix libomp"
+          ConsoleToMSBuild="true"
+          StandardOutputImportance="Low">
+      <Output TaskParameter="ConsoleOutput" PropertyName="MacLibOmpPrefix" />
+    </Exec>
+
+    <PropertyGroup Condition="$(HelixTargetQueues.ToLowerInvariant().Contains('osx'))">
+      <MacLibOmpPath>$(MacLibOmpPrefix)/lib/libomp.dylib</MacLibOmpPath>
+      <MacFilesToCopy>$(MacLibOmpPath);</MacFilesToCopy>
+    </PropertyGroup>
+
+    <Error Condition="$(HelixTargetQueues.ToLowerInvariant().Contains('osx')) And !Exists('$(MacLibOmpPath)')"
+           Text="Unable to find the Homebrew libomp runtime at $(MacLibOmpPath)." />
 
     <!-- Copy OpenMP runtime(s) to the publish folders for OSX -->
     <Copy Condition="$(HelixTargetQueues.ToLowerInvariant().Contains('osx'))"
@@ -136,12 +149,12 @@
 
     <!-- Fix up install names where we know about libomp.dylib usage -->
     <Exec Condition="Exists('$(BUILD_SOURCESDIRECTORY)\artifacts\bin\%(ProjectsWithTargetFramework.Filename)\$(BuildConfig)\%(ProjectsWithTargetFramework.TargetFrameworks)$(PublishFolder)\libSymSgdNative.dylib') AND $(HelixTargetQueues.ToLowerInvariant().Contains('osx'))" 
-    Command="install_name_tool -change &quot;/usr/local/opt/libomp/lib/libomp.dylib&quot; &quot;@loader_path/libomp.dylib&quot; $(BUILD_SOURCESDIRECTORY)/artifacts/bin/%(ProjectsWithTargetFramework.Filename)/$(BuildConfig)/%(ProjectsWithTargetFramework.TargetFrameworks)$(PublishFolder)/libSymSgdNative.dylib" />
+    Command="install_name_tool -change &quot;$(MacLibOmpPath)&quot; &quot;@loader_path/libomp.dylib&quot; $(BUILD_SOURCESDIRECTORY)/artifacts/bin/%(ProjectsWithTargetFramework.Filename)/$(BuildConfig)/%(ProjectsWithTargetFramework.TargetFrameworks)$(PublishFolder)/libSymSgdNative.dylib" />
     
-    <Exec Condition="Exists('$(BUILD_SOURCESDIRECTORY)\artifacts\bin\%(ProjectsWithTargetFramework.Filename)\$(BuildConfig)\%(ProjectsWithTargetFramework.TargetFrameworks)$(PublishFolder)\runtimes\osx-x64\native\lib_lightgbm.dylib') AND $(HelixTargetQueues.ToLowerInvariant().Contains('osx'))" 
+    <Exec Condition="'$(BuildArchitecture)' == 'x64' AND Exists('$(BUILD_SOURCESDIRECTORY)\artifacts\bin\%(ProjectsWithTargetFramework.Filename)\$(BuildConfig)\%(ProjectsWithTargetFramework.TargetFrameworks)$(PublishFolder)\runtimes\osx-x64\native\lib_lightgbm.dylib') AND $(HelixTargetQueues.ToLowerInvariant().Contains('osx'))"
     Command="install_name_tool -change &quot;/usr/local/opt/libomp/lib/libomp.dylib&quot; &quot;@rpath/libomp.dylib&quot; $(BUILD_SOURCESDIRECTORY)/artifacts/bin/%(ProjectsWithTargetFramework.Filename)/$(BuildConfig)/%(ProjectsWithTargetFramework.TargetFrameworks)$(PublishFolder)/runtimes/osx-x64/native/lib_lightgbm.dylib" />
     
-    <Exec Condition="Exists('$(BUILD_SOURCESDIRECTORY)\artifacts\bin\%(ProjectsWithTargetFramework.Filename)\$(BuildConfig)\%(ProjectsWithTargetFramework.TargetFrameworks)$(PublishFolder)\runtimes\osx-x64\native\libonnxruntime.dylib') AND $(HelixTargetQueues.ToLowerInvariant().Contains('osx'))" 
+    <Exec Condition="'$(BuildArchitecture)' == 'x64' AND Exists('$(BUILD_SOURCESDIRECTORY)\artifacts\bin\%(ProjectsWithTargetFramework.Filename)\$(BuildConfig)\%(ProjectsWithTargetFramework.TargetFrameworks)$(PublishFolder)\runtimes\osx-x64\native\libonnxruntime.dylib') AND $(HelixTargetQueues.ToLowerInvariant().Contains('osx'))"
     Command="install_name_tool -change &quot;/usr/local/opt/libomp/lib/libomp.dylib&quot; &quot;@loader_path/libomp.dylib&quot; $(BUILD_SOURCESDIRECTORY)/artifacts/bin/%(ProjectsWithTargetFramework.Filename)/$(BuildConfig)/%(ProjectsWithTargetFramework.TargetFrameworks)$(PublishFolder)/runtimes/osx-x64/native/libonnxruntime.dylib" />
 
     <!-- macOS x64 ONLY: if libiomp5.dylib isn't present in the publish folder, duplicate libomp.dylib as libiomp5.dylib -->

@@ -189,9 +189,8 @@
                           RelativePath="Microsoft.ML.CpuMath\runtimes\$(PackageRid)\nativeassets\net8.0" />
       <NativePackageAsset Include="$(NativeAssetsBuiltPath)\$(NativeLibPrefix)LdaNative$(NativeLibExtension)"
                           RelativePath="Microsoft.ML\runtimes\$(PackageRid)\native" />
-      <!-- TODO: once we fix the 4 intel MKL methods, SymSgdNative will need to go back in. -->
-      <NativePackageAsset Condition="'$(TargetArchitecture)' != 'arm64' And '$(TargetArchitecture)' != 'arm'"
-                          Include="$(NativeAssetsBuiltPath)\$(NativeLibPrefix)SymSgdNative$(NativeLibExtension)"
+      <!-- On ARM, SymSgdNative contains a self-contained CBLAS shim instead of using Intel MKL. -->
+      <NativePackageAsset Include="$(NativeAssetsBuiltPath)\$(NativeLibPrefix)SymSgdNative$(NativeLibExtension)"
                           RelativePath="Microsoft.ML.Mkl.Components\runtimes\$(PackageRid)\native" />
       <NativePackageAsset Condition="'$(TargetArchitecture)' != 'arm64' And '$(TargetArchitecture)' != 'arm'"
                           Include="$(NativeAssetsBuiltPath)\$(NativeLibPrefix)MklProxyNative$(NativeLibExtension)"
