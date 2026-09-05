@@ -82,6 +82,40 @@ namespace Microsoft.Data.Analysis.Tests
             VerifyJoin(join, left, right, JoinAlgorithm.Inner);
         }
 
+        [Theory]
+        [InlineData(JoinAlgorithm.Left)]
+        [InlineData(JoinAlgorithm.Right)]
+        [InlineData(JoinAlgorithm.FullOuter)]
+        [InlineData(JoinAlgorithm.Inner)]
+        public void TestJoin_SameSuffixOnBothSides_Issue6128(JoinAlgorithm joinAlgorithm)
+        {
+            DataFrame left = MakeDataFrameWithNumericColumns(3, false);
+            DataFrame right = MakeDataFrameWithNumericColumns(4, false);
+
+            // Both frames have a column called "Int", and one suffix cannot make the two names different,
+            // so the join used to keep renaming for ever instead of coming back
+            Assert.Throws<ArgumentException>(() => left.Join(right, "_same", "_same", joinAlgorithm));
+            Assert.Throws<ArgumentException>(() => left.Join(right, "", "", joinAlgorithm));
+
+            // different suffixes still work
+            DataFrame join = left.Join(right, "_left", "_right", joinAlgorithm);
+            Assert.Equal(left.Columns.Count + right.Columns.Count, join.Columns.Count);
+        }
+
+        [Fact]
+        public void TestJoin_SameSuffixWithNoSharedColumnNames()
+        {
+            DataFrame left = new DataFrame(new Int32DataFrameColumn("Left", new int?[] { 0, 1, 2 }));
+            DataFrame right = new DataFrame(new Int32DataFrameColumn("Right", new int?[] { 0, 1, 2 }));
+
+            // no name is shared, so nothing is renamed and the suffixes are never used
+            DataFrame join = left.Join(right, "_same", "_same");
+
+            Assert.Equal(2, join.Columns.Count);
+            Assert.Equal("Left", join.Columns[0].Name);
+            Assert.Equal("Right", join.Columns[1].Name);
+        }
+
         private void VerifyJoin(DataFrame join, DataFrame left, DataFrame right, JoinAlgorithm joinAlgorithm)
         {
             Int64DataFrameColumn mapIndices = new Int64DataFrameColumn("map", join.Rows.Count);
