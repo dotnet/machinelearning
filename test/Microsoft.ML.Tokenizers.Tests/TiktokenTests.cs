@@ -435,7 +435,7 @@ namespace Microsoft.ML.Tokenizers.Tests
         [InlineData("gpt-5.6")]
         [InlineData("gpt-5.6-nano")]
         [InlineData("gpt-6")]
-        [InlineData("gpt-6-mini")]
+        [InlineData("gpt-6-astra")]
         [InlineData("chatgpt-4o-")]
         [InlineData("gpt-4")]
         [InlineData("gpt-4-")]
