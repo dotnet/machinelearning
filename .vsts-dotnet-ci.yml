@@ -167,7 +167,7 @@ jobs:
     vsTestConfiguration: "/Framework:.NETCoreApp,Version=v6.0"
     pool:
       name: NetCore-Public
-      demands: ImageOverride -equals 1es-windows-2019-open
+      demands: ImageOverride -equals 1es-windows-2022-open
     helixQueue: windows.11.arm64.open
 
 - template: /build/ci/job-template.yml
@@ -178,7 +178,7 @@ jobs:
     vsTestConfiguration: "/Framework:.NETCoreApp,Version=v3.1"
     pool:
       name: NetCore-Public
-      demands: ImageOverride -equals 1es-windows-2019-open
+      demands: ImageOverride -equals 1es-windows-2022-open
     helixQueue: Windows.10.Amd64.Open
 
 - template: /build/ci/job-template.yml
@@ -200,7 +200,7 @@ jobs:
     vsTestConfiguration: "/Framework:.NETCoreApp,Version=v4.0"
     pool:
       name: NetCore-Public
-      demands: ImageOverride -equals 1es-windows-2019-open
+      demands: ImageOverride -equals 1es-windows-2022-open
     helixQueue: Windows.10.Amd64.Open
 
 - template: /build/ci/job-template.yml
@@ -212,5 +212,5 @@ jobs:
     vsTestConfiguration: "/Framework:.NETCoreApp,Version=v3.1"
     pool:
       name: NetCore-Public
-      demands: ImageOverride -equals 1es-windows-2019-open
+      demands: ImageOverride -equals 1es-windows-2022-open
     helixQueue: Windows.10.Amd64.Open
