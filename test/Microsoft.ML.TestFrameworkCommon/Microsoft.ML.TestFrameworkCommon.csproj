@@ -2,6 +2,10 @@
 
   <Import Project="..\TestFrameworkDependency.props" />
 
+  <PropertyGroup>
+    <Nullable>annotations</Nullable>
+  </PropertyGroup>
+
   <ItemGroup>
     <None Update="xunit.runner.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -11,6 +15,10 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.DependencyModel" />
     <PackageReference Include="Microsoft.DotNet.PlatformAbstractions" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="..\..\src\Common\tests\RetryHelper.cs" Link="RetryHelper.cs" />
   </ItemGroup>
 
 </Project>
