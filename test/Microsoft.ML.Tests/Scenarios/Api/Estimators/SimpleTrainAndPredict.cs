@@ -56,7 +56,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         /// (for example, the prediction does not happen over a file as it did during training).
         /// Uses Symbolic SGD Trainer.
         /// </summary>
-        [NativeDependencyFact("MklImports")]
+        [NativeDependencyFact("SymSgdNative")]
         public void SimpleTrainAndPredictSymSGD()
         {
             var ml = new MLContext(seed: 1);
