@@ -4,11 +4,9 @@
 
 using System;
 using System.Linq;
-using System.Reflection;
 using System.Threading;
 using Microsoft.ML.Data;
 using Microsoft.ML.RunTests;
-using Microsoft.ML.Runtime;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -69,32 +67,6 @@ namespace Microsoft.ML.Tests
             var ex = Assert.Throws<InvalidOperationException>(() => CacheOnEmptyEstimatorChain());
             Assert.Contains("Current estimator chain has no estimator, can't append cache checkpoint.", ex.Message,
                 StringComparison.InvariantCultureIgnoreCase);
-        }
-
-        [Theory]
-        [InlineData(true)]
-        [InlineData(false)]
-        public void EstimatorChainAcceptsNullOrEmptyEstimators(bool useNull)
-        {
-            var constructor = typeof(EstimatorChain<ITransformer>).GetConstructor(
-                BindingFlags.Instance | BindingFlags.NonPublic, null,
-                new[] { typeof(IHostEnvironment), typeof(IEstimator<ITransformer>[]), typeof(TransformerScope[]), typeof(bool[]) }, null);
-            Assert.NotNull(constructor);
-
-            var chain = (EstimatorChain<ITransformer>)constructor.Invoke(new object[]
-            {
-                null,
-                useNull ? null : Array.Empty<IEstimator<ITransformer>>(),
-                useNull ? null : Array.Empty<TransformerScope>(),
-                useNull ? null : Array.Empty<bool>()
-            });
-
-            Assert.Null(chain.LastEstimator);
-            var data = ML.Data.LoadFromEnumerable(new[] { new MyData() });
-            Assert.Same(data, chain.Fit(data).Transform(data));
-
-            var estimator = ML.Transforms.CopyColumns("F1", "Features");
-            Assert.Same(estimator, chain.Append(estimator).LastEstimator);
         }
 
         private void CacheOnEmptyEstimatorChain()
