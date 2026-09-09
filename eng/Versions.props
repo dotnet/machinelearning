@@ -40,7 +40,7 @@
     <JsonSchemaNetGenerationVersion>5.0.1</JsonSchemaNetGenerationVersion>
     <JsonSchemaNetVersion>7.3.4</JsonSchemaNetVersion>
     <MicrosoftBclHashCodeVersion>6.0.0</MicrosoftBclHashCodeVersion>
-    <MicrosoftBclMemoryVersion>9.0.4</MicrosoftBclMemoryVersion>
+    <MicrosoftBclMemoryVersion>9.0.14</MicrosoftBclMemoryVersion>
     <MicrosoftCodeAnalysisAnalyzersVersion>3.11.0</MicrosoftCodeAnalysisAnalyzersVersion>
     <MicrosoftCodeAnalysisCSharpVersion>4.13.0</MicrosoftCodeAnalysisCSharpVersion>
     <MicrosoftDotNetInteractiveVersion>1.0.0-beta.25177.1</MicrosoftDotNetInteractiveVersion>

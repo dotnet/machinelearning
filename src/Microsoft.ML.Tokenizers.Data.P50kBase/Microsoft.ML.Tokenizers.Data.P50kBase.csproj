@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFrameworks>netstandard2.0;net8.0</TargetFrameworks>
     <Nullable>enable</Nullable>
     <IsPackable>true</IsPackable>
     <PackageDescription>The Microsoft.ML.Tokenizers.Data.P50kBase includes the Tiktoken tokenizer data file p50k_base.tiktoken, which is utilized by models such as text-davinci-002</PackageDescription>
