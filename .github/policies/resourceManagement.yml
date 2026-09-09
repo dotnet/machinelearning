@@ -252,12 +252,14 @@ configuration:
       - payloadType: Issue_Comment
       - hasLabel:
           label: no-recent-activity
+      - isIssue
       then:
       - removeLabel:
           label: no-recent-activity
       description: Remove `no-recent-activity` label when an issue is commented on
     - if:
       - payloadType: Pull_Request
+      - isPullRequest
       - isOpen
       - hasLabel:
           label: no-recent-activity
@@ -272,6 +274,7 @@ configuration:
       - payloadType: Issue_Comment
       - hasLabel:
           label: no-recent-activity
+      - isPullRequest
       - isOpen
       then:
       - removeLabel:
@@ -281,6 +284,7 @@ configuration:
       - payloadType: Pull_Request_Review
       - hasLabel:
           label: no-recent-activity
+      - isPullRequest
       - isOpen
       then:
       - removeLabel:
