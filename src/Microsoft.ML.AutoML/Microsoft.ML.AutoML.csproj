@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFrameworks>netstandard2.0;net8.0</TargetFrameworks>
     <IsPackable>true</IsPackable>
     <PackageDescription>ML.NET AutoML: Optimizes an ML pipeline for your dataset, by automatically locating the best feature engineering, model, and hyperparameters</PackageDescription>
     <!--
@@ -54,6 +54,7 @@
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
     <PackageReference Include="System.IO.Pipelines" />
+    <PackageReference Include="System.Text.Json" />
   </ItemGroup>
   
   <ItemGroup>
