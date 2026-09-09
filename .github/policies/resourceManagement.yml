@@ -109,6 +109,7 @@ configuration:
       - payloadType: Pull_Request
       - isAction:
           action: Opened
+      - isPullRequest
       - and:
         - not:
             activitySenderHasPermission:
@@ -140,6 +141,10 @@ configuration:
             isActivitySender:
               user: github-actions
               issueAuthor: False
+        - not:
+            isActivitySender:
+              user: dependabot[bot]
+              issueAuthor: False
       then:
       - addLabel:
           label: community-contribution
@@ -157,6 +162,7 @@ configuration:
       - not:
           activitySenderHasPermission:
             permission: Read
+      - isPullRequest
       - isAction:
           action: Submitted
       - isReviewState:
@@ -176,6 +182,7 @@ configuration:
       - not:
           hasLabel:
             label: untriaged
+      - isIssue
       - isOpen
       then:
       - addLabel:
@@ -193,6 +200,7 @@ configuration:
           label: needs-author-action
       - hasLabel:
           label: untriaged
+      - isIssue
       - isOpen
       then:
       - removeLabel:
@@ -200,6 +208,7 @@ configuration:
       description: Remove `needs-author-action` label when the author comments on an `untriaged` issue
     - if:
       - payloadType: Pull_Request
+      - isPullRequest
       - isAction:
           action: Synchronize
       - hasLabel:
@@ -216,6 +225,7 @@ configuration:
           action: Created
       - hasLabel:
           label: needs-author-action
+      - isPullRequest
       - isOpen
       then:
       - removeLabel:
@@ -229,6 +239,7 @@ configuration:
           label: needs-author-action
       - isAction:
           action: Submitted
+      - isPullRequest
       - isOpen
       then:
       - removeLabel:
@@ -252,12 +263,14 @@ configuration:
       - payloadType: Issue_Comment
       - hasLabel:
           label: no-recent-activity
+      - isIssue
       then:
       - removeLabel:
           label: no-recent-activity
       description: Remove `no-recent-activity` label when an issue is commented on
     - if:
       - payloadType: Pull_Request
+      - isPullRequest
       - isOpen
       - hasLabel:
           label: no-recent-activity
@@ -272,6 +285,7 @@ configuration:
       - payloadType: Issue_Comment
       - hasLabel:
           label: no-recent-activity
+      - isPullRequest
       - isOpen
       then:
       - removeLabel:
@@ -281,6 +295,7 @@ configuration:
       - payloadType: Pull_Request_Review
       - hasLabel:
           label: no-recent-activity
+      - isPullRequest
       - isOpen
       then:
       - removeLabel:

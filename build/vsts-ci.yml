@@ -31,6 +31,8 @@ variables:
   value: 1es-windows-2022
 - name: MacImage
   value: macOS-15
+- name: MacArm64Image
+  value: macOS-15-arm64
 - ${{ if and(notin(variables['Build.Reason'], 'PullRequest'), eq(variables['Build.SourceBranch'], 'refs/heads/main')) }}:
   - name: enableSourceIndex
     value: true
@@ -158,7 +160,7 @@ extends:
       ################################################################################
         pool:
           name: Azure Pipelines
-          vmImage: $(MacImage)
+          vmImage: $(MacArm64Image)
           os: macOS
         templateContext:
           outputs:
