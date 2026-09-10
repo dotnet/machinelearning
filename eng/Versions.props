@@ -37,7 +37,7 @@
     <ApacheArrowVersion>14.0.2</ApacheArrowVersion>
     <GoogleProtobufVersion>3.30.2</GoogleProtobufVersion>
     <LightGBMVersion>4.6.0</LightGBMVersion>
-    <JsonSchemaNetGenerationVersion>5.0.1</JsonSchemaNetGenerationVersion>
+    <JsonSchemaNetGenerationVersion>5.0.4</JsonSchemaNetGenerationVersion>
     <JsonSchemaNetVersion>7.3.4</JsonSchemaNetVersion>
     <MicrosoftBclHashCodeVersion>6.0.0</MicrosoftBclHashCodeVersion>
     <MicrosoftBclMemoryVersion>9.0.4</MicrosoftBclMemoryVersion>
