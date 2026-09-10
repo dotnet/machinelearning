@@ -81,7 +81,7 @@
     <LibTorchVersion>2.2.1.1</LibTorchVersion>
     <!-- Build/infrastructure Dependencies -->
     <CodecovVersion>1.12.4</CodecovVersion>
-    <CoverletCollectorVersion>6.0.4</CoverletCollectorVersion>
+    <CoverletCollectorVersion>10.0.1</CoverletCollectorVersion>
     <CoverletMsbuildVersion>6.0.0</CoverletMsbuildVersion>
     <MicrosoftCodeAnalysisCSharpInternalAnalyzerVersion>4.13.0</MicrosoftCodeAnalysisCSharpInternalAnalyzerVersion>
     <MicrosoftCSharpVersion>4.7.0</MicrosoftCSharpVersion>
