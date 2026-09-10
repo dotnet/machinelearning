@@ -1,50 +1,15 @@
----
-description: "Investigation worker: performs deep-dive analysis on a specific health check finding. Dispatched by repo-health-check for critical/high findings. Reports results back to the dashboard issue."
+# Repo health investigation playbook
 
-on:
-  workflow_dispatch:
-    inputs:
-      finding_id:
-        description: "Fingerprint of the finding to investigate"
-        required: true
-      category:
-        description: "Finding category: issue, pr, or pipeline"
-        required: true
-      severity:
-        description: "Finding severity: critical, high, or medium"
-        required: true
-      summary:
-        description: "One-line description of the finding"
-        required: true
-      health_issue_number:
-        description: "Dashboard issue number to report back to"
-        required: true
-
-permissions:
-  contents: read
-  issues: read
-  pull-requests: read
-  actions: read
-
-tools:
-  github:
-    toolsets: [repos, issues, pull_requests, actions]
-  bash: ["gh", "curl", "jq", "date", "echo", "sort", "uniq", "head", "tail", "grep", "wc"]
-
-safe-outputs:
-  add-comment:
-    max: 1
-    target: "*"
----
+This playbook contains the detailed ML.NET finding-investigation methodology. The local execution and approval rules in [`../SKILL.md`](../SKILL.md) override workflow input syntax and mutating command examples below.
 
 # Repo Health — Investigate Finding
 
 Deep-dive investigation of a specific finding from the repo health check.
 
-**Finding**: `${{ inputs.finding_id }}` — ${{ inputs.summary }}
-**Category**: ${{ inputs.category }}
-**Severity**: ${{ inputs.severity }}
-**Dashboard**: #${{ inputs.health_issue_number }}
+**Finding**: `FINDING_ID` — SUMMARY
+**Category**: CATEGORY
+**Severity**: SEVERITY
+**Dashboard**: DASHBOARD_ISSUE
 
 ---
 
@@ -108,28 +73,51 @@ Analyze:
 Deep-dive into the pipeline/workflow failure:
 
 ```bash
-# For Azure DevOps pipelines — get recent runs with details
-curl -s -u ":$AZDO_PAT" \
-  "https://dev.azure.com/dnceng/public/_apis/build/builds?definitions=PIPELINE_ID&\$top=10&api-version=7.0" \
+# For Azure DevOps pipelines, PIPELINE_ID must be a numeric definition ID
+# carried by the finding (for example, 167 for MachineLearning-CI).
+case "$PIPELINE_ID" in
+  ""|*[!0-9]*)
+    echo "PIPELINE_ID must be a numeric Azure DevOps definition ID" >&2
+    exit 1
+    ;;
+esac
+
+AZDO_AUTH=()
+if [ -n "${AZDO_PAT:-}" ]; then
+  AZDO_AUTH=(-u ":$AZDO_PAT")
+fi
+AZDO_BUILD_URL="https://dev.azure.com/dnceng-public/public/_apis/build"
+
+# Get recent main-branch runs with details.
+curl -fSs "${AZDO_AUTH[@]}" \
+  "$AZDO_BUILD_URL/builds?definitions=$PIPELINE_ID&branchName=refs%2Fheads%2Fmain&queryOrder=finishTimeDescending&\$top=10&api-version=7.0" \
   | jq '.value[] | {id, buildNumber, result, sourceBranch, startTime, finishTime}'
 
 # Get failed build timeline for root cause
-FAILED_BUILD_ID=$(curl -s -u ":$AZDO_PAT" \
-  "https://dev.azure.com/dnceng/public/_apis/build/builds?definitions=PIPELINE_ID&resultFilter=failed&\$top=1&api-version=7.0" \
-  | jq -r '.value[0].id')
+if ! FAILED_BUILD_ID=$(curl -fSs "${AZDO_AUTH[@]}" \
+  "$AZDO_BUILD_URL/builds?definitions=$PIPELINE_ID&branchName=refs%2Fheads%2Fmain&resultFilter=failed&queryOrder=finishTimeDescending&\$top=1&api-version=7.0" \
+  | jq -er 'if (.value | length) == 0 then error("No failed main-branch build found") else .value[0].id end'); then
+  echo "Unable to select a failed main-branch build for definition $PIPELINE_ID" >&2
+  exit 1
+fi
 
-curl -s -u ":$AZDO_PAT" \
-  "https://dev.azure.com/dnceng/public/_apis/build/builds/$FAILED_BUILD_ID/timeline?api-version=7.0" \
+curl -fSs "${AZDO_AUTH[@]}" \
+  "$AZDO_BUILD_URL/builds/$FAILED_BUILD_ID/timeline?api-version=7.0" \
   | jq '[.records[] | select(.result == "failed") | {name, result, errorCount, issues: [.issues[]? | {type, message}]}]'
 
 # Compare with last green run
-GREEN_BUILD_ID=$(curl -s -u ":$AZDO_PAT" \
-  "https://dev.azure.com/dnceng/public/_apis/build/builds?definitions=PIPELINE_ID&resultFilter=succeeded&\$top=1&api-version=7.0" \
-  | jq -r '.value[0].id')
+if ! GREEN_BUILD_ID=$(curl -fSs "${AZDO_AUTH[@]}" \
+  "$AZDO_BUILD_URL/builds?definitions=$PIPELINE_ID&branchName=refs%2Fheads%2Fmain&resultFilter=succeeded&queryOrder=finishTimeDescending&\$top=1&api-version=7.0" \
+  | jq -er 'if (.value | length) == 0 then error("No successful main-branch build found") else .value[0].id end'); then
+  echo "Unable to select a successful main-branch build for definition $PIPELINE_ID" >&2
+  exit 1
+fi
+
+printf 'Compare failed build %s with last green build %s\n' "$FAILED_BUILD_ID" "$GREEN_BUILD_ID"
 
 # Check for infrastructure vs code issues
-curl -s -u ":$AZDO_PAT" \
-  "https://dev.azure.com/dnceng/public/_apis/build/builds/$FAILED_BUILD_ID/timeline?api-version=7.0" \
+curl -fSs "${AZDO_AUTH[@]}" \
+  "$AZDO_BUILD_URL/builds/$FAILED_BUILD_ID/timeline?api-version=7.0" \
   | jq '[.records[] | select(.result == "failed") | .issues[]? | .message]' \
   | grep -iE "timeout|oom|disk.space|rate.limit|connection|pool|agent" | head -10
 ```
@@ -192,12 +180,12 @@ Provide actionable next steps:
 
 ---
 
-## Step 5 — Report Back
+## Step 5 — Draft the Report
 
-Post a single comment on the dashboard issue (#${{ inputs.health_issue_number }}).
+Prepare a single comment for the dashboard issue. Show it to the user before posting.
 
 ```bash
-gh issue comment ${{ inputs.health_issue_number }} --repo dotnet/machinelearning --body "$REPORT"
+gh issue comment DASHBOARD_ISSUE --repo dotnet/machinelearning --body "$REPORT"
 ```
 
 ### Report Format
@@ -245,6 +233,6 @@ gh issue comment ${{ inputs.health_issue_number }} --repo dotnet/machinelearning
 
 1. **Single-finding focus** — Investigate only the finding specified in inputs
 2. **Evidence-based** — Every conclusion must cite evidence
-3. **Non-destructive** — Read-only except for the final comment
-4. **Budget: 1 comment** — Post exactly one comment on the dashboard issue
+3. **Non-destructive** — Read-only except for an explicitly approved final comment
+4. **Budget: 1 comment** — Post at most one approved comment on the dashboard issue
 5. **Concise** — Keep report under 500 lines; use collapsible sections for long logs

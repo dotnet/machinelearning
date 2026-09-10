@@ -265,9 +265,11 @@ if(NOT ${ARCHITECTURE} MATCHES "arm.*")
     add_subdirectory(CpuMathNative)
     add_subdirectory(FastTreeNative)
     add_subdirectory(MklProxyNative)
-    # TODO: once we fix the 4 intel MKL methods, SymSgdNative will need to go back in.
-    add_subdirectory(SymSgdNative)
-  endif()
+endif()
+
+# On ARM, SymSgdNative compiles the small MklImportsArm CBLAS shim directly
+# (see SymSgdNative/CMakeLists.txt), so we do not build a separate libMklImports.
+add_subdirectory(SymSgdNative)
 
 if(${ARCHITECTURE} MATCHES "[xX].*64")
   add_subdirectory(OneDalNative)
