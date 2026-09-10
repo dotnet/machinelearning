@@ -157,11 +157,11 @@ jobs:
               Configuration: $(_configuration)
               Architecture: ${{ parameters.architecture }}
               ${{ if eq(parameters.buildScript, 'build.cmd') }}:
-                MsBuildScript: 'powershell $(Build.SourcesDirectory)/eng/common/msbuild.ps1'
+                MsBuildScript: 'powershell $(Build.SourcesDirectory)/eng/common/msbuild.ps1 -ci'
                 WarnAsError: '-warnAsError 0'
                 TestTargetFramework: '$(testTargetFramework)'
               ${{ if eq(parameters.buildScript, './build.sh') }}:
-                MsBuildScript: '$(Build.SourcesDirectory)/eng/common/msbuild.sh'
+                MsBuildScript: '$(Build.SourcesDirectory)/eng/common/msbuild.sh --ci'
                 WarnAsError: '--warnAsError false'
                 TestTargetFramework: '$(testTargetFramework)'
     - script: $(dotnetPath) msbuild -restore build/Codecoverage.proj
