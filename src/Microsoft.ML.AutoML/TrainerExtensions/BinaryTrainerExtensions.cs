@@ -232,4 +232,24 @@ namespace Microsoft.ML.AutoML
                 columnInfo.LabelColumnName);
         }
     }
+    internal class FieldAwareFactorizationMachineBinaryExtension : ITrainerExtension
+    {
+        public IEnumerable<SweepableParam> GetHyperparamSweepRanges()
+        {
+            return SweepableParams.BuildSdcaParams();
+        }
+
+        public ITrainerEstimator CreateInstance(MLContext mlContext, IEnumerable<SweepableParam> sweepParams,
+            ColumnInformation columnInfo, IDataView validationSet)
+        {
+            var options = TrainerExtensionUtil.CreateOptions<Microsoft.ML.Trainers.FieldAwareFactorizationMachineTrainer.Options>(sweepParams, columnInfo.LabelColumnName);
+            return mlContext.BinaryClassification.Trainers.FieldAwareFactorizationMachine(options);
+        }
+
+        public PipelineNode CreatePipelineNode(IEnumerable<SweepableParam> sweepParams, ColumnInformation columnInfo)
+        {
+            return TrainerExtensionUtil.BuildPipelineNode(TrainerExtensionCatalog.GetTrainerName(this), sweepParams,
+                columnInfo.LabelColumnName);
+        }
+    }
 }
