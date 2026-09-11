@@ -145,6 +145,7 @@ namespace Microsoft.ML.Internal.Utilities
                 value = default(Single);
                 return Result.Error;
             }
+            ichEnd += ich;
 
             // Make sure everything was consumed.
             while (ichEnd < span.Length)
@@ -197,6 +198,7 @@ namespace Microsoft.ML.Internal.Utilities
                 value = default(Double);
                 return Result.Error;
             }
+            ichEnd += ich;
 
             // Make sure everything was consumed.
             while (ichEnd < span.Length)
