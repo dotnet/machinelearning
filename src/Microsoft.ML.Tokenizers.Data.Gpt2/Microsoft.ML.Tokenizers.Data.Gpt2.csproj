@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFrameworks>netstandard2.0;net8.0</TargetFrameworks>
     <Nullable>enable</Nullable>
     <IsPackable>true</IsPackable>
     <PackageDescription>The Microsoft.ML.Tokenizers.Data.Gpt2 includes the Tiktoken tokenizer data file gpt2.tiktoken, which is utilized by models such as Gpt-2.</PackageDescription>
