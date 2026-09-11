@@ -125,7 +125,10 @@ jobs:
     - ${{ if eq(parameters.nightlyBuild, 'false') }}:
       - ${{ if eq(parameters.innerLoop, 'false') }}:
         - ${{ if and(eq(parameters.runSpecific, 'false'), eq(parameters.useVSTestTask, 'false')) }}:
-          - script: set PATH=%PATH%;%USERPROFILE%\.nuget\packages\libtorch-cpu-win-x64\2.2.1.1\runtimes\win-x64\native;%USERPROFILE%\.nuget\packages\torchsharp\0.102.7\runtimes\win-x64\native & ${{ parameters.buildScript }} $(arcadeCiOption) /p:Build=false -configuration $(_configuration) /p:TargetArchitecture=${{ parameters.architecture }} -test -integrationTest /p:Coverage=${{ parameters.codeCoverage }} $(testTargetFramework)
+          - script: |
+              for /f "delims=" %%p in ('$(dotnetPath) msbuild test\run-tests.proj -getProperty:NuGetPackageRoot /p:ContinuousIntegrationBuild^=${{ parameters.codeCoverage }} -nologo') do set "NUGET_PACKAGE_ROOT=%%p"
+              set "PATH=%PATH%;%NUGET_PACKAGE_ROOT%libtorch-cpu-win-x64\2.2.1.1\runtimes\win-x64\native;%NUGET_PACKAGE_ROOT%torchsharp\0.102.7\runtimes\win-x64\native"
+              ${{ parameters.buildScript }} $(arcadeCiOption) /p:Build=false -configuration $(_configuration) /p:TargetArchitecture=${{ parameters.architecture }} -test -integrationTest /p:Coverage=${{ parameters.codeCoverage }} $(testTargetFramework)
             displayName: Run All Tests.
         - ${{ if and(eq(parameters.runSpecific, 'true'), eq(parameters.useVSTestTask, 'false')) }}:
           - script: ${{ parameters.buildScript }} $(arcadeCiOption) /p:Build=false -configuration $(_configuration) /p:TargetArchitecture=${{ parameters.architecture }} -test -integrationTest /p:TestRunnerAdditionalArguments='-trait$(spaceValue)Category=RunSpecificTest' /p:Coverage=${{ parameters.codeCoverage }} $(testTargetFramework)
