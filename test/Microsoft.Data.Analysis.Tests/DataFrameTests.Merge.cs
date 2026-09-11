@@ -1014,8 +1014,7 @@ namespace Microsoft.Data.Analysis.Tests
         }
 
         [Fact]
-        //Issue 6128
-        public void TestMerge_SameSuffixOnBothSides()
+        public void TestMerge_ColumnNamesCollide_ThrowsOnSameSuffixOnBothSides()
         {
             DataFrame left = MakeDataFrameWithNumericColumns(3, false);
             DataFrame right = MakeDataFrameWithNumericColumns(4, false);

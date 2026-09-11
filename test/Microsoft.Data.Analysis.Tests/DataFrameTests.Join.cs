@@ -87,7 +87,7 @@ namespace Microsoft.Data.Analysis.Tests
         [InlineData(JoinAlgorithm.Right)]
         [InlineData(JoinAlgorithm.FullOuter)]
         [InlineData(JoinAlgorithm.Inner)]
-        public void TestJoin_SameSuffixOnBothSides_Issue6128(JoinAlgorithm joinAlgorithm)
+        public void TestJoin_ColumnNamesCollide_ThrowsOnSameSuffixOnBothSides(JoinAlgorithm joinAlgorithm)
         {
             DataFrame left = MakeDataFrameWithNumericColumns(3, false);
             DataFrame right = MakeDataFrameWithNumericColumns(4, false);
