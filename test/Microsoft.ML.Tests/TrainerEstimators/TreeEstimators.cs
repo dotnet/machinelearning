@@ -244,6 +244,127 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             Done();
         }
 
+        /// <summary>
+        /// LightGbmRegressionTrainer with quantile objective TrainerEstimator test
+        /// </summary>
+        [LightGBMFact]
+        public void LightGBMQuantileRegressorEstimator()
+        {
+            var dataView = GetRegressionPipeline();
+
+            var trainer = ML.Regression.Trainers.LightGbm(new LightGbmRegressionTrainer.Options
+            {
+                Objective = LightGbmRegressionTrainer.Options.RegressionObjective.Quantile,
+                Alpha = 0.5,
+                NumberOfIterations = 10,
+                NumberOfLeaves = 5,
+            });
+
+            TestEstimatorCore(trainer, dataView);
+            var model = trainer.Fit(dataView, dataView);
+
+            var gbmParameters = trainer.GetGbmParameters();
+            Assert.True(gbmParameters.ContainsKey("objective"));
+            Assert.Equal("quantile", gbmParameters["objective"]);
+            Assert.True(gbmParameters.ContainsKey("alpha"));
+            Assert.Equal(0.5, gbmParameters["alpha"]);
+
+            Done();
+        }
+
+        /// <summary>
+        /// Verify that quantile regression predictions with different alpha values
+        /// produce appropriately ordered results (lower quantile less than upper quantile).
+        /// </summary>
+        [LightGBMFact]
+        public void LightGBMQuantileRegressorPredictionOrdering()
+        {
+            var dataView = GetRegressionPipeline();
+
+            // Train model for the 5th percentile
+            var trainerLow = ML.Regression.Trainers.LightGbm(new LightGbmRegressionTrainer.Options
+            {
+                Objective = LightGbmRegressionTrainer.Options.RegressionObjective.Quantile,
+                Alpha = 0.05,
+                NumberOfIterations = 50,
+                NumberOfLeaves = 10,
+                Seed = 42,
+                Deterministic = true,
+            });
+
+            // Train model for the 95th percentile
+            var trainerHigh = ML.Regression.Trainers.LightGbm(new LightGbmRegressionTrainer.Options
+            {
+                Objective = LightGbmRegressionTrainer.Options.RegressionObjective.Quantile,
+                Alpha = 0.95,
+                NumberOfIterations = 50,
+                NumberOfLeaves = 10,
+                Seed = 42,
+                Deterministic = true,
+            });
+
+            var modelLow = trainerLow.Fit(dataView);
+            var modelHigh = trainerHigh.Fit(dataView);
+
+            var predictionsLow = modelLow.Transform(dataView);
+            var predictionsHigh = modelHigh.Transform(dataView);
+
+            var scoresLow = predictionsLow.GetColumn<float>(predictionsLow.Schema["Score"]).ToArray();
+            var scoresHigh = predictionsHigh.GetColumn<float>(predictionsHigh.Schema["Score"]).ToArray();
+
+            Assert.Equal(scoresLow.Length, scoresHigh.Length);
+            Assert.True(scoresLow.Length > 0);
+
+            // The 95th percentile predictions should generally be at least as large as the
+            // 5th percentile predictions. Allow a small numerical tolerance and a limited
+            // number of crossings since the models are trained independently.
+            const float tolerance = 1e-4f;
+            var orderedCount = Enumerable.Range(0, scoresLow.Length)
+                .Count(i => scoresHigh[i] + tolerance >= scoresLow[i]);
+            var orderedRatio = (float)orderedCount / scoresLow.Length;
+
+            Assert.True(orderedRatio >= 0.90f,
+                $"Expected the 95th percentile prediction to be >= the 5th percentile prediction for most rows, " +
+                $"but only {orderedCount} of {scoresLow.Length} rows satisfied the condition " +
+                $"({orderedRatio:P2}, tolerance={tolerance}).");
+
+            Done();
+        }
+
+        /// <summary>
+        /// Verify that invalid Alpha values are rejected for quantile regression.
+        /// </summary>
+        [LightGBMFact]
+        public void LightGBMQuantileRegressorInvalidAlpha()
+        {
+            var dataView = GetRegressionPipeline();
+
+            // Alpha = 0 should fail
+            var trainerZero = ML.Regression.Trainers.LightGbm(new LightGbmRegressionTrainer.Options
+            {
+                Objective = LightGbmRegressionTrainer.Options.RegressionObjective.Quantile,
+                Alpha = 0.0,
+            });
+            Assert.Throws<ArgumentOutOfRangeException>(() => trainerZero.Fit(dataView));
+
+            // Alpha = 1 should fail
+            var trainerOne = ML.Regression.Trainers.LightGbm(new LightGbmRegressionTrainer.Options
+            {
+                Objective = LightGbmRegressionTrainer.Options.RegressionObjective.Quantile,
+                Alpha = 1.0,
+            });
+            Assert.Throws<ArgumentOutOfRangeException>(() => trainerOne.Fit(dataView));
+
+            // Alpha = -0.1 should fail
+            var trainerNeg = ML.Regression.Trainers.LightGbm(new LightGbmRegressionTrainer.Options
+            {
+                Objective = LightGbmRegressionTrainer.Options.RegressionObjective.Quantile,
+                Alpha = -0.1,
+            });
+            Assert.Throws<ArgumentOutOfRangeException>(() => trainerNeg.Fit(dataView));
+
+            Done();
+        }
 
         /// <summary>
         /// RegressionGamTrainer TrainerEstimator test
