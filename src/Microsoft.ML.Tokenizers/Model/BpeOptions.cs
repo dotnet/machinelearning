@@ -143,6 +143,14 @@ namespace Microsoft.ML.Tokenizers
         /// if true, the input text will be converted to UTF-8 bytes before encoding it.
         /// Additionally, some ASCII characters will be transformed to different characters (e.g Space character will be transformed to 'Ġ' character).
         /// </summary>
+        /// <remarks>
+        /// Byte-level encoding is normally paired with a byte-level pre-tokenizer. When this property is set to
+        /// <see langword="true"/>, <see cref="PreTokenizer"/> must be set as well.
+        /// On its own, byte-level encoding maps the space character to 'Ġ' but does not keep the whitespace attached
+        /// to the following token, so spaces and newlines are dropped during encoding and cannot be recovered by decoding.
+        /// Configuring a byte-level pre-tokenizer, for example <see cref="RegexPreTokenizer"/> built from the GPT-2
+        /// pattern, makes the round trip lossless.
+        /// </remarks>
         public bool ByteLevel { get; set; }
 
         /// <summary>
