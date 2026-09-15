@@ -127,7 +127,8 @@ jobs:
         - ${{ if and(eq(parameters.runSpecific, 'false'), eq(parameters.useVSTestTask, 'false')) }}:
           - script: |
               for /f "delims=" %%p in ('$(dotnetPath) msbuild test\run-tests.proj -getProperty:NuGetPackageRoot /p:ContinuousIntegrationBuild^=${{ parameters.codeCoverage }} -nologo') do set "NUGET_PACKAGE_ROOT=%%p"
-              set "PATH=%PATH%;%NUGET_PACKAGE_ROOT%libtorch-cpu-win-x64\2.2.1.1\runtimes\win-x64\native;%NUGET_PACKAGE_ROOT%torchsharp\0.102.7\runtimes\win-x64\native"
+              for /f "delims=" %%v in ('$(dotnetPath) msbuild test\run-tests.proj -getProperty:LightGBMVersion -nologo') do set "LIGHTGBM_VERSION=%%v"
+              set "PATH=%PATH%;%NUGET_PACKAGE_ROOT%libtorch-cpu-win-x64\2.2.1.1\runtimes\win-x64\native;%NUGET_PACKAGE_ROOT%torchsharp\0.102.7\runtimes\win-x64\native;%NUGET_PACKAGE_ROOT%lightgbm\%LIGHTGBM_VERSION%\runtimes\win-x64\native"
               ${{ parameters.buildScript }} $(arcadeCiOption) /p:Build=false -configuration $(_configuration) /p:TargetArchitecture=${{ parameters.architecture }} -test -integrationTest /p:Coverage=${{ parameters.codeCoverage }} $(testTargetFramework)
             displayName: Run All Tests.
         - ${{ if and(eq(parameters.runSpecific, 'true'), eq(parameters.useVSTestTask, 'false')) }}:
