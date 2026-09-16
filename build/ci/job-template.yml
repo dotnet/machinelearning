@@ -125,11 +125,22 @@ jobs:
     - ${{ if eq(parameters.nightlyBuild, 'false') }}:
       - ${{ if eq(parameters.innerLoop, 'false') }}:
         - ${{ if and(eq(parameters.runSpecific, 'false'), eq(parameters.useVSTestTask, 'false')) }}:
-          - script: |
-              for /f "delims=" %%p in ('$(dotnetPath) msbuild test\run-tests.proj -getProperty:NuGetPackageRoot /p:ContinuousIntegrationBuild^=${{ parameters.codeCoverage }} -nologo') do set "NUGET_PACKAGE_ROOT=%%p"
-              for /f "delims=" %%v in ('$(dotnetPath) msbuild test\run-tests.proj -getProperty:LightGBMVersion -nologo') do set "LIGHTGBM_VERSION=%%v"
-              set "PATH=%PATH%;%NUGET_PACKAGE_ROOT%libtorch-cpu-win-x64\2.2.1.1\runtimes\win-x64\native;%NUGET_PACKAGE_ROOT%torchsharp\0.102.7\runtimes\win-x64\native;%NUGET_PACKAGE_ROOT%lightgbm\%LIGHTGBM_VERSION%\runtimes\win-x64\native"
-              ${{ parameters.buildScript }} $(arcadeCiOption) /p:Build=false -configuration $(_configuration) /p:TargetArchitecture=${{ parameters.architecture }} -test -integrationTest /p:Coverage=${{ parameters.codeCoverage }} $(testTargetFramework)
+          - powershell: |
+              $properties = (& "$(dotnetPath)" msbuild test\run-tests.proj `
+                  '-getProperty:NuGetPackageRoot,LibTorchVersion,TorchSharpVersion,LightGBMVersion' `
+                  '/p:ContinuousIntegrationBuild=true' `
+                  -nologo | ConvertFrom-Json).Properties
+              if ($LASTEXITCODE -ne 0) {
+                  exit $LASTEXITCODE
+              }
+
+              $packageRoot = $properties.NuGetPackageRoot
+              $env:PATH += ";${packageRoot}libtorch-cpu-win-x64\$($properties.LibTorchVersion)\runtimes\win-x64\native"
+              $env:PATH += ";${packageRoot}torchsharp\$($properties.TorchSharpVersion)\runtimes\win-x64\native"
+              $env:PATH += ";${packageRoot}lightgbm\$($properties.LightGBMVersion)\runtimes\win-x64\native"
+
+              & .\build.cmd $(arcadeCiOption) /p:Build=false -configuration $(_configuration) /p:TargetArchitecture=${{ parameters.architecture }} -test -integrationTest /p:Coverage=${{ parameters.codeCoverage }} $(testTargetFramework)
+              exit $LASTEXITCODE
             displayName: Run All Tests.
         - ${{ if and(eq(parameters.runSpecific, 'true'), eq(parameters.useVSTestTask, 'false')) }}:
           - script: ${{ parameters.buildScript }} $(arcadeCiOption) /p:Build=false -configuration $(_configuration) /p:TargetArchitecture=${{ parameters.architecture }} -test -integrationTest /p:TestRunnerAdditionalArguments='-trait$(spaceValue)Category=RunSpecificTest' /p:Coverage=${{ parameters.codeCoverage }} $(testTargetFramework)
