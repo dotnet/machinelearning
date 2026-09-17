@@ -36,7 +36,7 @@ Always add **untriaged** alongside any other label. This signals to maintainers 
 If the issue mentions specific components, note the relevant project area in your comment. Common areas in this repo:
 
 - Tokenizers (`Microsoft.ML.Tokenizers`)
-- GenAI / LLM support (`Microsoft.ML.GenAI.*`, TorchSharp)
+- TorchSharp-based trainers (`Microsoft.ML.TorchSharp`)
 - AutoML (`Microsoft.ML.AutoML`)
 - Data pipeline / DataView (`Microsoft.ML.Data`)
 - Image classification (`Microsoft.ML.Vision`, `Microsoft.ML.ImageAnalytics`)

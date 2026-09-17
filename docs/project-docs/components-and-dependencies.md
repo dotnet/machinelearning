@@ -41,7 +41,6 @@ Other packages:
 | NuGet Package                    | Entry-Point Components                           | Native Dependencies                           | Status     | Notes   |
 |----------------------------------|--------------------------------------------------|-----------------------------------------------|------------|---------|
 | `Microsoft.Data.Analysis`        | `DataFrame`                                      | `Apache.Arrow`                                | Preview    |         |
-| `Microsoft.ML.GenAI.*`           |                                                  |                                               | Preview    |         |
 | `Microsoft.ML.Tokenizers.*`      | `Tokenizer`                                      |                                               | Stable     |         |
 | `Microsoft.ML.SampleUtils`       |                                                  |                                               | Preview    |         |
 
@@ -108,18 +107,6 @@ graph TD
         MKLComponents["Microsoft.ML.MKL.Components"]
         MKLRedist["Microsoft.ML.MKL.Redist"]
         OneDal["Microsoft.ML.OneDal"]
-    end
-    
-    %% AI/GenAI packages
-    subgraph AIPackages["🧠 AI & GenAI Packages"]
-        direction TB
-        GenAICore["Microsoft.ML.GenAI.Core"]
-        GenAILLaMA["Microsoft.ML.GenAI.LLaMA"]
-        GenAIMistral["Microsoft.ML.GenAI.Mistral"]
-        GenAIPhi["Microsoft.ML.GenAI.Phi"]
-        AutoGenCore["AutoGen.Core"]
-        MSExtensionsAI["Microsoft.Extensions.AI.Abstractions"]
-        SemanticKernel["Microsoft.SemanticKernel.Abstractions"]
     end
     
     %% Tokenizer packages
@@ -226,16 +213,6 @@ graph TD
     Parquet --> ParquetNet
     DataAnalysis --> ApacheArrow
     
-    %% GenAI dependencies
-    GenAICore --> TorchSharpLib
-    GenAICore --> AutoGenCore
-    GenAICore --> MSExtensionsAI
-    GenAICore --> SemanticKernel
-    GenAILLaMA --> GenAICore
-    GenAILLaMA --> TorchSharpLib
-    GenAIMistral --> GenAICore
-    GenAIPhi --> GenAICore
-    
     %% DNN Image Featurizer dependencies
     DnnFeaturizerAlexNet --> OnnxTransformer
     DnnFeaturizerAlexNet --> DnnFeaturizerModelRedist
@@ -261,9 +238,8 @@ graph TD
     classDef bundled fill:#ffefd5,stroke:#ff8c00,stroke-width:4px,font-size:18px,font-weight:bold
     classDef subgraphStyle fill:#f9f9f9,stroke:#333,stroke-width:3px,font-size:20px,font-weight:bold
     
-    class SkiaSharp,LightGBMNative,OnnxRuntime,TensorFlowNET,TorchSharpLib,ApacheArrow,ParquetNet,GoogleProtobuf,AutoGenCore,MSExtensionsAI,SemanticKernel external
+    class SkiaSharp,LightGBMNative,OnnxRuntime,TensorFlowNET,TorchSharpLib,ApacheArrow,ParquetNet,GoogleProtobuf external
     class DataView,Core,Extensions core
-    class AutoML,CodeGen,FastTree,LightGBM,Recommender,TimeSeries,TorchSharp,ImageAnalytics,DnnFeaturizerAlexNet,DnnFeaturizerResNet18,DnnFeaturizerResNet50,DnnFeaturizerResNet101,DnnFeaturizerModelRedist,Vision,OnnxConverter,OnnxTransformer,TensorFlow,MKLComponents,Ensemble,EntryPoints,Experimental,FairLearn,Parquet,DataAnalysis,GenAICore,GenAILLaMA,GenAIMistral,GenAIPhi,Tokenizers,TokenizersGpt2,TokenizersR50k,TokenizersP50k,TokenizersO200k,TokenizersCl100k,SampleUtils algorithm
+    class AutoML,CodeGen,FastTree,LightGBM,Recommender,TimeSeries,TorchSharp,ImageAnalytics,DnnFeaturizerAlexNet,DnnFeaturizerResNet18,DnnFeaturizerResNet50,DnnFeaturizerResNet101,DnnFeaturizerModelRedist,Vision,OnnxConverter,OnnxTransformer,TensorFlow,MKLComponents,Ensemble,EntryPoints,Experimental,FairLearn,Parquet,DataAnalysis,Tokenizers,TokenizersGpt2,TokenizersR50k,TokenizersP50k,TokenizersO200k,TokenizersCl100k,SampleUtils algorithm
     class CpuMath,MKLRedist,OneDal bundled
 ```
-
