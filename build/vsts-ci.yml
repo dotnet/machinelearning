@@ -53,6 +53,7 @@ extends:
     sdl:
       binskim:
         enabled: true
+        break: true
         scanOutputDirectoryOnly: true
       policheck:
         enabled: true
