@@ -804,7 +804,6 @@ namespace Microsoft.ML.Tests
             var options = new SrCnnEntireAnomalyDetectorOptions()
             {
                 Threshold = 0.3,
-                // The current sensitivity scale gives wider bounds at the tutorial's original value of 64.
                 Sensitivity = 87.0,
                 DetectMode = SrCnnDetectMode.AnomalyAndMargin,
                 Period = period,
