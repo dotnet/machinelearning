@@ -804,6 +804,7 @@ namespace Microsoft.ML.Tests
             var options = new SrCnnEntireAnomalyDetectorOptions()
             {
                 Threshold = 0.3,
+                // The current sensitivity scale gives wider bounds at the tutorial's original value of 64.
                 Sensitivity = 87.0,
                 DetectMode = SrCnnDetectMode.AnomalyAndMargin,
                 Period = period,
@@ -814,22 +815,33 @@ namespace Microsoft.ML.Tests
             var predictions = mlContext.Data.CreateEnumerable<PhoneCallsPrediction>(
                 outputDataView, reuseRowObject: false);
 
-            var anomalyIndices = new HashSet<int> { 28, 44, 56, 70 };
+            var expectedAnomalyScores = new Dictionary<int, double>
+            {
+                { 28, 0.1545 },
+                { 44, 0.2667 },
+                { 56, 0.2154 },
+                { 70, 0.2516 },
+            };
 
             int k = 0;
             foreach (var prediction in predictions)
             {
-                if (anomalyIndices.Contains(k))
+                Assert.Equal(7, prediction.Prediction.Length);
+                if (expectedAnomalyScores.TryGetValue(k, out double expectedScore))
                 {
                     Assert.Equal(1, prediction.Prediction[0]);
+                    Assert.Equal(expectedScore, prediction.Prediction[1], 0.01);
                 }
                 else
                 {
                     Assert.Equal(0, prediction.Prediction[0]);
+                    Assert.Equal(0, prediction.Prediction[1]);
                 }
 
                 ++k;
             }
+
+            Assert.Equal(78, k);
         }
 
         [NativeDependencyTheory("MklImports"), CombinatorialData]
