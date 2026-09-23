@@ -13267,6 +13267,36 @@
           "Default": "RootMeanSquaredError"
         },
         {
+          "Name": "Objective",
+          "Type": {
+            "Kind": "Enum",
+            "Values": [
+              "Regression",
+              "Quantile"
+            ]
+          },
+          "Desc": "Regression objective type. Use 'Quantile' for quantile regression.",
+          "Aliases": [
+            "obj"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": "Regression"
+        },
+        {
+          "Name": "Alpha",
+          "Type": "Float",
+          "Desc": "The alpha (quantile) value for quantile regression. Must be in (0, 1).",
+          "Aliases": [
+            "qa"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": 0.5
+        },
+        {
           "Name": "MaximumBinCountPerFeature",
           "Type": "Int",
           "Desc": "Maximum number of bucket bin for features.",
