@@ -126,7 +126,7 @@ namespace Microsoft.ML.Data.IO
         /// either to a block binary-IDV formatted data if the offset is positive, or indicates that there
         /// is no corresponding IDV entry if the offset is zero.
         /// </summary>
-        private abstract class SubIdvEntry
+        private abstract class SubIdvEntry : IDisposable
         {
             private readonly TransposeLoader _parent;
             // The start of the binary IDV stream in the file.
@@ -187,17 +187,32 @@ namespace Microsoft.ML.Data.IO
                         binArgs.Threads = _parent._threads;
                     BinaryLoader loader = new BinaryLoader(Host,
                         binArgs, ss, leaveOpen: false);
+
+                    try
+                    {
+                        VerifyView(loader);
+                    }
+                    catch
+                    {
+                        loader.Dispose();
+                        throw;
+                    }
+
                     var view = Interlocked.CompareExchange(ref _view, loader, null);
-                    // If multiple threads have called this as it was being loaded,
-                    // have ensure that this check only happens once.
-                    if (view == loader)
-                        VerifyView(view);
+                    if (view != null)
+                        loader.Dispose();
                 }
                 return _view;
             }
 
+            public void Dispose()
+            {
+                var view = Interlocked.Exchange(ref _view, null);
+                (view as IDisposable)?.Dispose();
+            }
+
             /// <summary>
-            /// Called once, to verify that the lazily read dataview is "correct." Called by
+            /// Verifies that a lazily read dataview is "correct" before it is cached. Called by
             /// <see cref="GetViewOrNull"/> once it has been read. Any problems with the data-view
             /// should be handle with <see cref="Contracts.CheckDecode(bool)"/> or by throwing
             /// <see cref="Contracts.ExceptDecode()"/>, as we consider the views not adhering to
@@ -338,6 +353,7 @@ namespace Microsoft.ML.Data.IO
         // An object to lock on whenever one might be attempting to create one of the lazily initialized
         // transposers, since transposition is a tricky operation. This is null iff the above array is null.
         private readonly object _colTransposersLock;
+        private bool _disposed;
 
         /// <summary>
         /// Low inclusive bound of versions this reader can read.
@@ -632,6 +648,24 @@ namespace Microsoft.ML.Data.IO
             if (HasRowData)
                 return _schemaEntry.GetView().GetRowCursorSet(columnsNeeded, n, rand);
             return new DataViewRowCursor[] { GetRowCursor(columnsNeeded, rand) };
+        }
+
+        public void Dispose()
+        {
+            if (_disposed)
+                return;
+
+            if (_colTransposers != null)
+            {
+                foreach (var transposer in _colTransposers)
+                    transposer?.Dispose();
+            }
+
+            foreach (var entry in _entries)
+                entry.Dispose();
+            _schemaEntry.Dispose();
+
+            _disposed = true;
         }
 
         SlotCursor ITransposeDataView.GetSlotCursor(int col)

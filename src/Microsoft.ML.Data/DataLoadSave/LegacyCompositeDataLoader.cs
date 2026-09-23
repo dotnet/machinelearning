@@ -28,7 +28,7 @@ namespace Microsoft.ML.Data
     /// when there are transforms to keep, otherwise they just return underlying loaders.
     /// </summary>
     [BestFriend]
-    internal sealed class LegacyCompositeDataLoader : ILegacyDataLoader, ITransposeDataView
+    internal sealed class LegacyCompositeDataLoader : ILegacyDataLoader, ITransposeDataView, IDisposable
     {
         public sealed class Arguments
         {
@@ -79,6 +79,7 @@ namespace Microsoft.ML.Data
         private readonly TransformEx[] _transforms;
         private readonly ITransposeDataView _tview;
         private readonly IHost _host;
+        private bool _disposed;
 
         /// <summary>
         /// Returns the underlying data view of the composite loader.
@@ -417,6 +418,25 @@ namespace Microsoft.ML.Data
                 }
             }
             return result;
+        }
+
+        public void Dispose()
+        {
+            if (_disposed)
+                return;
+
+            for (int i = _transforms.Length - 1; i >= 0; i--)
+            {
+                var transform = _transforms[i].Transform;
+                // The view does not own its potentially shared transformer, but this composite does.
+                if (transform is RowToRowMapperTransform mapper)
+                    (mapper.GetTransformerForDisposal() as IDisposable)?.Dispose();
+                else
+                    (transform as IDisposable)?.Dispose();
+            }
+
+            _loader.Dispose();
+            _disposed = true;
         }
 
         private LegacyCompositeDataLoader(IHost host, TransformEx[] transforms)

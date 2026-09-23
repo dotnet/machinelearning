@@ -130,10 +130,11 @@ namespace Microsoft.ML.TensorFlow.Scenarios
                     }
             }, new MultiFileSource(dataFile));
 
+            using var tensorFlowModel = _mlContext.Model.LoadTensorFlowModel(modelLocation);
             var pipeEstimator = new ImageLoadingEstimator(_mlContext, imageFolder, ("ImageReal", "ImagePath"))
                     .Append(new ImageResizingEstimator(_mlContext, "ImageCropped", imageHeight, imageWidth, "ImageReal"))
                     .Append(new ImagePixelExtractingEstimator(_mlContext, "Input", "ImageCropped", interleavePixelColors: true))
-                    .Append(_mlContext.Model.LoadTensorFlowModel(modelLocation).ScoreTensorFlowModel("Output", "Input"))
+                    .Append(tensorFlowModel.ScoreTensorFlowModel("Output", "Input"))
                     .Append(new ColumnConcatenatingEstimator(_mlContext, "Features", "Output"))
                     .Append(new ValueToKeyMappingEstimator(_mlContext, "Label"))
                     .AppendCacheCheckpoint(_mlContext)
@@ -650,8 +651,9 @@ namespace Microsoft.ML.TensorFlow.Scenarios
             var trainData = reader.Load(GetDataPath(TestDatasets.mnistTiny28.trainFilename));
             var testData = reader.Load(GetDataPath(TestDatasets.mnistOneClass.testFilename));
 
+            using var tensorFlowModel = _mlContext.Model.LoadTensorFlowModel("mnist_model/frozen_saved_model.pb");
             var pipe = _mlContext.Transforms.CopyColumns("reshape_input", "Placeholder")
-                .Append(_mlContext.Model.LoadTensorFlowModel("mnist_model/frozen_saved_model.pb").ScoreTensorFlowModel(new[] { "Softmax", "dense/Relu" }, new[] { "Placeholder", "reshape_input" }))
+                .Append(tensorFlowModel.ScoreTensorFlowModel(new[] { "Softmax", "dense/Relu" }, new[] { "Placeholder", "reshape_input" }))
                 .Append(_mlContext.Transforms.Concatenate("Features", "Softmax", "dense/Relu"))
                 .Append(_mlContext.MulticlassClassification.Trainers.LightGbm("Label", "Features"));
 
@@ -874,8 +876,9 @@ namespace Microsoft.ML.TensorFlow.Scenarios
             var trainData = reader.Load(GetDataPath(TestDatasets.mnistTiny28.trainFilename));
             var testData = reader.Load(GetDataPath(TestDatasets.mnistOneClass.testFilename));
 
+            using var tensorFlowModel = _mlContext.Model.LoadTensorFlowModel("mnist_model");
             var pipe = _mlContext.Transforms.CopyColumns("reshape_input", "Placeholder")
-                .Append(_mlContext.Model.LoadTensorFlowModel("mnist_model").ScoreTensorFlowModel(new[] { "Softmax", "dense/Relu" }, new[] { "Placeholder", "reshape_input" }))
+                .Append(tensorFlowModel.ScoreTensorFlowModel(new[] { "Softmax", "dense/Relu" }, new[] { "Placeholder", "reshape_input" }))
                 .Append(_mlContext.Transforms.Concatenate("Features", new[] { "Softmax", "dense/Relu" }))
                 .Append(_mlContext.MulticlassClassification.Trainers.LightGbm("Label", "Features"));
 
@@ -1140,10 +1143,11 @@ namespace Microsoft.ML.TensorFlow.Scenarios
                     }
             }, new MultiFileSource(dataFile));
 
+            using var tensorFlowModel = _mlContext.Model.LoadTensorFlowModel(modelLocation);
             var pipeEstimator = new ImageLoadingEstimator(_mlContext, imageFolder, ("ImageReal", "ImagePath"))
                     .Append(new ImageResizingEstimator(_mlContext, "ImageCropped", imageHeight, imageWidth, "ImageReal"))
                     .Append(new ImagePixelExtractingEstimator(_mlContext, "Input", "ImageCropped", interleavePixelColors: true))
-                    .Append(_mlContext.Model.LoadTensorFlowModel(modelLocation).ScoreTensorFlowModel("Output", "Input"))
+                    .Append(tensorFlowModel.ScoreTensorFlowModel("Output", "Input"))
                     .Append(new ColumnConcatenatingEstimator(_mlContext, "Features", "Output"))
                     .Append(new ValueToKeyMappingEstimator(_mlContext, "Label"))
                     .AppendCacheCheckpoint(_mlContext)
@@ -1273,7 +1277,8 @@ namespace Microsoft.ML.TensorFlow.Scenarios
             // For explanation on how was the `sentiment_model` created 
             // c.f. https://github.com/dotnet/machinelearning-testdata/blob/master/Microsoft.ML.TensorFlow.TestModels/sentiment_model/README.md
             string modelLocation = @"sentiment_model";
-            using var pipelineModel = _mlContext.Model.LoadTensorFlowModel(modelLocation).ScoreTensorFlowModel(new[] { "Prediction/Softmax" }, new[] { "Features" })
+            using var tensorFlowModel = _mlContext.Model.LoadTensorFlowModel(modelLocation);
+            using var pipelineModel = tensorFlowModel.ScoreTensorFlowModel(new[] { "Prediction/Softmax" }, new[] { "Features" })
                 .Append(_mlContext.Transforms.CopyColumns("Prediction", "Prediction/Softmax"))
                 .Fit(dataView);
             using var tfEnginePipe = _mlContext.Model.CreatePredictionEngine<TensorFlowSentiment, TensorFlowSentiment>(pipelineModel);

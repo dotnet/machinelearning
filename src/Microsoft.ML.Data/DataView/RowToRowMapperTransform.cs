@@ -55,6 +55,12 @@ namespace Microsoft.ML.Data
         /// </summary>
         ITransformer GetTransformer();
     }
+
+    internal interface IRowMapperWithTransformer
+    {
+        ITransformer Transformer { get; }
+    }
+
     [BestFriend]
     internal delegate void SignatureLoadRowMapper(ModelLoadContext ctx, DataViewSchema schema);
 
@@ -424,5 +430,8 @@ namespace Microsoft.ML.Data
         {
             return _mapper.GetTransformer();
         }
+
+        internal ITransformer GetTransformerForDisposal()
+            => (_mapper as IRowMapperWithTransformer)?.Transformer;
     }
 }

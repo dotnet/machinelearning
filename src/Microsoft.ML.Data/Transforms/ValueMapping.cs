@@ -611,7 +611,7 @@ namespace Microsoft.ML.Transforms
             var valueColumnName = (string.IsNullOrEmpty(options.ValueColumn)) ? DefaultValueColumnName : options.ValueColumn;
 
             IMultiStreamSource fileSource = new MultiFileSource(options.DataFile);
-            IDataView loader;
+            ILegacyDataLoader loader;
             if (options.Loader != null)
             {
                 loader = options.Loader.CreateComponent(env, fileSource);
@@ -680,14 +680,17 @@ namespace Microsoft.ML.Transforms
                 }
             }
 
-            env.AssertValue(loader);
-            env.Assert(loader.Schema.TryGetColumnIndex(keyColumnName, out int keyColumnIndex));
-            env.Assert(loader.Schema.TryGetColumnIndex(valueColumnName, out int valueColumnIndex));
+            using (loader)
+            {
+                env.AssertValue(loader);
+                env.Assert(loader.Schema.TryGetColumnIndex(keyColumnName, out int keyColumnIndex));
+                env.Assert(loader.Schema.TryGetColumnIndex(valueColumnName, out int valueColumnIndex));
 
-            ValueMappingTransformer transformer = null;
-            (string outputColumnName, string inputColumnName)[] columns = options.Columns.Select(x => (x.Name, x.Source)).ToArray();
-            transformer = new ValueMappingTransformer(env, loader, loader.Schema[keyColumnName], loader.Schema[valueColumnName], columns);
-            return transformer.MakeDataTransform(input);
+                ValueMappingTransformer transformer = null;
+                (string outputColumnName, string inputColumnName)[] columns = options.Columns.Select(x => (x.Name, x.Source)).ToArray();
+                transformer = new ValueMappingTransformer(env, loader, loader.Schema[keyColumnName], loader.Schema[valueColumnName], columns);
+                return transformer.MakeDataTransform(input);
+            }
         }
 
         /// <summary>

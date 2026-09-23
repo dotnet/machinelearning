@@ -176,6 +176,7 @@ namespace Microsoft.ML.Data
                 }
             }
             loader = LegacyCompositeDataLoader.Create(Host, loader, preXf);
+            using ILegacyDataLoader loaderDisposer = loader;
 
             ch.Trace("Binding label and features columns");
 
@@ -504,6 +505,7 @@ namespace Microsoft.ML.Data
 
                     // Validation pipe and examples.
                     RoleMappedData validData = null;
+                    IDataView validLoader = null;
                     if (_getValidationDataView != null)
                     {
                         ch.Assert(_applyTransformsToValidationData != null);
@@ -512,12 +514,13 @@ namespace Microsoft.ML.Data
                         else
                         {
                             ch.Trace("Constructing the validation pipeline");
-                            IDataView validLoader = _getValidationDataView();
+                            validLoader = _getValidationDataView();
                             var validPipe = ApplyTransformUtils.ApplyAllTransformsToData(host, _inputDataView, validLoader);
                             validPipe = new OpaqueDataView(validPipe);
                             validData = _applyTransformsToValidationData(host, ch, validPipe, trainData, trainPipe);
                         }
                     }
+                    using IDisposable validLoaderDisposer = validLoader as IDisposable;
 
                     // Train.
                     var predictor = TrainUtils.Train(host, ch, trainData, trainer, validData,

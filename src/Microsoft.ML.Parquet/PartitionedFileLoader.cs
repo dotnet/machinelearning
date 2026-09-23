@@ -184,7 +184,7 @@ namespace Microsoft.ML.Data
 
             _files = files;
 
-            var subLoader = args.Loader.CreateComponent(_host, _files);
+            using var subLoader = args.Loader.CreateComponent(_host, _files);
             _subLoaderBytes = SaveLoaderToBytes(subLoader);
 
             string relativePath = GetRelativePath(args.BasePath, files);
@@ -227,10 +227,12 @@ namespace Microsoft.ML.Data
             byte[] buffer = null;
             if (!ctx.TryLoadBinaryStream(SchemaCtxName, r => buffer = r.ReadByteArray()))
                 throw _host.ExceptDecode();
-            BinaryLoader loader = null;
-            var strm = new MemoryStream(buffer, writable: false);
-            loader = new BinaryLoader(_host, new BinaryLoader.Arguments(), strm);
-            Schema = loader.Schema;
+
+            using (var strm = new MemoryStream(buffer, writable: false))
+            using (var loader = new BinaryLoader(_host, new BinaryLoader.Arguments(), strm))
+            {
+                Schema = loader.Schema;
+            }
 
             _srcDirIndex = ctx.Reader.ReadIntArray();
             _subLoaderBytes = ctx.Reader.ReadByteArray();
@@ -303,6 +305,10 @@ namespace Microsoft.ML.Data
         {
             var cursor = new Cursor(_host, this, _files, columnsNeeded, rand);
             return new DataViewRowCursor[] { cursor };
+        }
+
+        public void Dispose()
+        {
         }
 
         /// <summary>
@@ -381,7 +387,9 @@ namespace Microsoft.ML.Data
             private readonly IEnumerable<DataViewSchema.Column> _subActivecolumnsNeeded;
 
             private readonly ReadOnlyMemory<char>[] _colValues; // Column values cached from the file path.
+            private ILegacyDataLoader _subLoader;
             private DataViewRowCursor _subCursor; // Sub cursor of the current file.
+            private bool _disposed;
 
             private readonly IEnumerator<int> _fileOrder;
 
@@ -456,30 +464,25 @@ namespace Microsoft.ML.Data
                 while (_subCursor == null || !_subCursor.MoveNext())
                 {
                     // Cleanup old sub cursor
-                    if (_subCursor != null)
-                    {
-                        _subCursor.Dispose();
-                        _subCursor = null;
-                    }
+                    DisposeSubLoader();
 
                     if (!TryGetNextPathAndValues(out string path, out string relativePath, out List<string> values))
                     {
                         return false;
                     }
 
-                    ILegacyDataLoader loader = null;
                     try
                     {
                         // Load the sub cursor and reset the data.
-                        loader = _parent.CreateLoaderFromBytes(_parent._subLoaderBytes, new MultiFileSource(path));
+                        _subLoader = _parent.CreateLoaderFromBytes(_parent._subLoaderBytes, new MultiFileSource(path));
+                        _subCursor = _subLoader.GetRowCursor(_subActivecolumnsNeeded);
                     }
                     catch (Exception e)
                     {
+                        DisposeSubLoader();
                         Ch.Warning($"Failed to load file {path} due to a loader exception. Moving on to the next file. Ex: {e.Message}");
                         continue;
                     }
-
-                    _subCursor = loader.GetRowCursor(_subActivecolumnsNeeded);
 
                     try
                     {
@@ -490,15 +493,33 @@ namespace Microsoft.ML.Data
                     {
                         // Failed to load this file so skip.
                         Ch.Warning(MessageSensitivity.Schema, e.Message);
-                        if (_subCursor != null)
-                        {
-                            _subCursor.Dispose();
-                            _subCursor = null;
-                        }
+                        DisposeSubLoader();
                     }
                 }
 
                 return true;
+            }
+
+            protected override void Dispose(bool disposing)
+            {
+                if (_disposed)
+                    return;
+
+                if (disposing)
+                {
+                    DisposeSubLoader();
+                    (_fileOrder as IDisposable)?.Dispose();
+                }
+                _disposed = true;
+                base.Dispose(disposing);
+            }
+
+            private void DisposeSubLoader()
+            {
+                _subCursor?.Dispose();
+                _subCursor = null;
+                _subLoader?.Dispose();
+                _subLoader = null;
             }
 
             private bool TryGetNextPathAndValues(out string path, out string relativePath, out List<string> values)

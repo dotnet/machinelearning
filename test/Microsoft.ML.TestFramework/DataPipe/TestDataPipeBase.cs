@@ -605,7 +605,7 @@ namespace Microsoft.ML.RunTests
 
             var args = new TransposeLoader.Arguments();
             MultiFileSource src = new MultiFileSource(pathData);
-            TransposeLoader loader = new TransposeLoader(env, args, src);
+            using TransposeLoader loader = new TransposeLoader(env, args, src);
             if (!CheckMetadataTypes(loader.Schema))
                 return Failed();
 

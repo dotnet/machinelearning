@@ -1674,6 +1674,10 @@ LDone:
             }
 
             void ICanSaveModel.Save(ModelSaveContext ctx) => ((ICanSaveModel)_loader).Save(ctx);
+
+            public void Dispose()
+            {
+            }
         }
     }
 }

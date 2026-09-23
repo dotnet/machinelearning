@@ -588,10 +588,11 @@ namespace Microsoft.ML.Trainers.FastTree
                 }
             }
 
-            private sealed class Context
+            private sealed class Context : IDisposable
             {
                 private readonly GamModelParametersBase _pred;
                 private readonly RoleMappedData _data;
+                private readonly ILegacyDataLoader _loader;
 
                 private readonly VBuffer<ReadOnlyMemory<char>> _featNames;
                 // The scores.
@@ -620,13 +621,14 @@ namespace Microsoft.ML.Trainers.FastTree
                 /// </summary>
                 public int NumFeatures => _pred._inputType.Size;
 
-                public Context(IChannel ch, GamModelParametersBase pred, RoleMappedData data, IEvaluator eval)
+                public Context(IChannel ch, GamModelParametersBase pred, RoleMappedData data, IEvaluator eval, ILegacyDataLoader loader)
                 {
                     Contracts.AssertValue(ch);
                     ch.AssertValue(pred);
                     ch.AssertValue(data);
                     ch.AssertValueOrNull(eval);
 
+                    _loader = loader;
                     _saveVersion = -1;
                     _pred = pred;
                     _data = data;
@@ -709,6 +711,11 @@ namespace Microsoft.ML.Trainers.FastTree
                             _scores[docIndex] += (float)deltaEffect;
                         return checked(++_version);
                     }
+                }
+
+                public void Dispose()
+                {
+                    _loader?.Dispose();
                 }
 
                 public MetricsInfo GetMetrics()
@@ -892,7 +899,7 @@ namespace Microsoft.ML.Trainers.FastTree
                 if (hadCalibrator && !string.IsNullOrWhiteSpace(ImplOptions.OutputModelFile))
                     ch.Warning("If you save the GAM model, only the GAM model, not the wrapping calibrator, will be saved.");
 
-                return new Context(ch, pred, data, InitEvaluator(pred));
+                return new Context(ch, pred, data, InitEvaluator(pred), loader);
             }
 
             private IEvaluator InitEvaluator(GamModelParametersBase pred)
@@ -911,7 +918,7 @@ namespace Microsoft.ML.Trainers.FastTree
             private void Run(IChannel ch)
             {
                 // First we're going to initialize a structure with lots of information about the predictor, trainer, etc.
-                var context = Init(ch);
+                using Context context = Init(ch);
 
                 // REVIEW: What to do with the data? Not sure. Take a sample? We could have
                 // a very compressed one, since we can just "bin" everything based on pred._binUpperBounds. Anyway

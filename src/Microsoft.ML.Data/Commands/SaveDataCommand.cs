@@ -82,9 +82,9 @@ namespace Microsoft.ML.Data
                 saver = ImplOptions.Saver.CreateComponent(Host);
             }
 
-            ILegacyDataLoader loader = CreateAndSaveLoader();
-            using (var file = Host.CreateOutputFile(ImplOptions.OutputDataFile))
-                DataSaverUtils.SaveDataView(ch, saver, loader, file, ImplOptions.KeepHidden);
+            using ILegacyDataLoader loader = CreateAndSaveLoader();
+            using var file = Host.CreateOutputFile(ImplOptions.OutputDataFile);
+            DataSaverUtils.SaveDataView(ch, saver, loader, file, ImplOptions.KeepHidden);
         }
     }
 
@@ -127,7 +127,8 @@ namespace Microsoft.ML.Data
         private void RunCore(IChannel ch)
         {
             Host.AssertValue(ch);
-            IDataView data = CreateAndSaveLoader();
+            using ILegacyDataLoader loader = CreateAndSaveLoader();
+            IDataView data = loader;
 
             if (!string.IsNullOrWhiteSpace(ImplOptions.Columns))
             {

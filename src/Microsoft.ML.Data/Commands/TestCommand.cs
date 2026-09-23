@@ -95,6 +95,7 @@ namespace Microsoft.ML.Data
             ch.AssertValue(predictor);
             ch.AssertValueOrNull(trainSchema);
             ch.AssertValue(loader);
+            using ILegacyDataLoader loaderDisposer = loader;
 
             ch.Trace("Binding columns");
             var schema = loader.Schema;

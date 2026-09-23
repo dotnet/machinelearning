@@ -54,7 +54,7 @@ namespace Microsoft.ML.Data
         }
 
         [BestFriend]
-        private protected abstract class MapperBase : IRowMapper
+        private protected abstract class MapperBase : IRowMapper, IRowMapperWithTransformer
         {
             protected readonly IHost Host;
             protected readonly DataViewSchema InputSchema;
@@ -117,6 +117,8 @@ namespace Microsoft.ML.Data
             private protected abstract void SaveModel(ModelSaveContext ctx);
 
             public ITransformer GetTransformer() => _parent;
+
+            ITransformer IRowMapperWithTransformer.Transformer => _parent;
         }
     }
 }

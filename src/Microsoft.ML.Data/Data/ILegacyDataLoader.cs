@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.IO;
 using Microsoft.ML.Runtime;
 
@@ -54,7 +55,7 @@ namespace Microsoft.ML.Data
     /// and is instantiatable from arguments and an <see cref="IMultiStreamSource"/> .
     /// </summary>
     [BestFriend]
-    internal interface ILegacyDataLoader : IDataView, ICanSaveModel
+    internal interface ILegacyDataLoader : IDataView, ICanSaveModel, IDisposable
     {
     }
 
