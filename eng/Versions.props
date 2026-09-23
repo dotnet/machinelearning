@@ -34,7 +34,7 @@
     <SystemTextJsonVersion>9.0.4</SystemTextJsonVersion>
     <SystemThreadingChannelsVersion>9.0.4</SystemThreadingChannelsVersion>
     <!-- Other product dependencies -->
-    <ApacheArrowVersion>14.0.2</ApacheArrowVersion>
+    <ApacheArrowVersion>23.0.0</ApacheArrowVersion>
     <GoogleProtobufVersion>3.30.2</GoogleProtobufVersion>
     <LightGBMVersion>4.6.0</LightGBMVersion>
     <JsonSchemaNetGenerationVersion>5.0.4</JsonSchemaNetGenerationVersion>
