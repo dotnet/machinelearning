@@ -280,6 +280,91 @@ namespace Microsoft.ML.Tokenizers
             return new BpeTokenizer(result.vocab, result.merges, preTokenizer, normalizer, specialTokens, unknownToken, continuingSubwordPrefix, endOfWordSuffix, fuseUnknownTokens);
         }
 
+
+        /// <summary>
+        /// Create a new Bpe tokenizer object to use for text encoding.
+        /// </summary>
+        /// <param name="vocabStream">The JSON stream containing the dictionary of string keys and their ids.</param>
+        /// <param name="mergesStream">The stream containing the tokens's pairs list.</param>
+        /// <param name="preTokenizer">The pre-tokenizer to use.</param>
+        /// <param name="normalizer">The normalizer to use.</param>
+        /// <param name="specialTokens">The dictionary mapping special tokens to Ids.</param>
+        /// <param name="unknownToken"> The unknown token to be used by the model.</param>
+        /// <param name="continuingSubwordPrefix">The prefix to attach to sub-word units that don’t represent a beginning of word.</param>
+        /// <param name="endOfWordSuffix">The suffix to attach to sub-word units that represent an end of word.</param>
+        /// <param name="fuseUnknownTokens">Indicate whether allowing multiple unknown tokens get fused.</param>
+        /// <param name="byteLevel">Indicate whether to handle the input text in byte level.</param>
+        /// <param name="beginningOfSentenceToken">The beginning of sentence token.</param>
+        /// <param name="endOfSentenceToken">The end of sentence token.</param>
+        /// <remarks>
+        /// When creating the tokenizer, ensure that the vocabulary stream is sourced from a trusted provider.
+        /// </remarks>
+        public static BpeTokenizer Create(
+                                Stream vocabStream,
+                                Stream? mergesStream,
+                                PreTokenizer? preTokenizer = null,
+                                Normalizer? normalizer = null,
+                                IReadOnlyDictionary<string, int>? specialTokens = null,
+                                string? unknownToken = null,
+                                string? continuingSubwordPrefix = null,
+                                string? endOfWordSuffix = null,
+                                bool fuseUnknownTokens = false,
+                                bool byteLevel = false,
+                                string? beginningOfSentenceToken = null,
+                                string? endOfSentenceToken = null)
+        {
+            if (vocabStream is null)
+            {
+                throw new ArgumentNullException(nameof(vocabStream));
+            }
+
+            (Dictionary<StringSpanOrdinalKey, int>? vocab, Vec<(string, string)> merges) result = ReadModelDataAsync(vocabStream, mergesStream, useAsync: false).GetAwaiter().GetResult();
+
+            return new BpeTokenizer(result.vocab, result.merges, preTokenizer, normalizer, specialTokens, unknownToken, continuingSubwordPrefix, endOfWordSuffix, fuseUnknownTokens, byteLevel, beginningOfSentenceToken, endOfSentenceToken);
+        }
+
+        /// <summary>
+        /// Create a new Bpe tokenizer object asynchronously to use for text encoding.
+        /// </summary>
+        /// <param name="vocabStream">The JSON stream containing the dictionary of string keys and their ids.</param>
+        /// <param name="mergesStream">The stream containing the tokens's pairs list.</param>
+        /// <param name="preTokenizer">The pre-tokenizer to use.</param>
+        /// <param name="normalizer">The normalizer to use.</param>
+        /// <param name="specialTokens">The dictionary mapping special tokens to Ids.</param>
+        /// <param name="unknownToken"> The unknown token to be used by the model.</param>
+        /// <param name="continuingSubwordPrefix">The prefix to attach to sub-word units that don’t represent a beginning of word.</param>
+        /// <param name="endOfWordSuffix">The suffix to attach to sub-word units that represent an end of word.</param>
+        /// <param name="fuseUnknownTokens">Indicate whether allowing multiple unknown tokens get fused.</param>
+        /// <param name="byteLevel">Indicate whether to handle the input text in byte level.</param>
+        /// <param name="beginningOfSentenceToken">The beginning of sentence token.</param>
+        /// <param name="endOfSentenceToken">The end of sentence token.</param>
+        /// <remarks>
+        /// When creating the tokenizer, ensure that the vocabulary stream is sourced from a trusted provider.
+        /// </remarks>
+        public static async Task<BpeTokenizer> CreateAsync(
+                                Stream vocabStream,
+                                Stream? mergesStream,
+                                PreTokenizer? preTokenizer = null,
+                                Normalizer? normalizer = null,
+                                IReadOnlyDictionary<string, int>? specialTokens = null,
+                                string? unknownToken = null,
+                                string? continuingSubwordPrefix = null,
+                                string? endOfWordSuffix = null,
+                                bool fuseUnknownTokens = false,
+                                bool byteLevel = false,
+                                string? beginningOfSentenceToken = null,
+                                string? endOfSentenceToken = null)
+        {
+            if (vocabStream is null)
+            {
+                throw new ArgumentNullException(nameof(vocabStream));
+            }
+
+            (Dictionary<StringSpanOrdinalKey, int>? vocab, Vec<(string, string)> merges) result = await ReadModelDataAsync(vocabStream, mergesStream, useAsync: true).ConfigureAwait(false);
+
+            return new BpeTokenizer(result.vocab, result.merges, preTokenizer, normalizer, specialTokens, unknownToken, continuingSubwordPrefix, endOfWordSuffix, fuseUnknownTokens, byteLevel, beginningOfSentenceToken, endOfSentenceToken);
+        }
+
         /// <summary>
         /// Construct a new Bpe model object to use for text encoding.
         /// </summary>
