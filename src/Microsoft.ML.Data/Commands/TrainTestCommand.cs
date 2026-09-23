@@ -129,7 +129,8 @@ namespace Microsoft.ML.Data
                 ch.Warning("No input model file specified or model file did not contain a predictor. The model state cannot be initialized.");
 
             ch.Trace("Constructing the training pipeline");
-            IDataView trainPipe = CreateLoader();
+            using ILegacyDataLoader trainLoader = CreateLoader();
+            IDataView trainPipe = trainLoader;
 
             var schema = trainPipe.Schema;
             string label = TrainUtils.MatchNameOrDefaultOrNull(ch, schema, nameof(Arguments.LabelColumn),
@@ -150,6 +151,7 @@ namespace Microsoft.ML.Data
             var data = new RoleMappedData(trainPipe, label, features, group, weight, name, customCols);
 
             RoleMappedData validData = null;
+            ILegacyDataLoader validLoader = null;
             if (!string.IsNullOrWhiteSpace(ImplOptions.ValidationFile))
             {
                 if (!trainer.Info.SupportsValidation)
@@ -159,7 +161,8 @@ namespace Microsoft.ML.Data
                 else
                 {
                     ch.Trace("Constructing the validation pipeline");
-                    IDataView validPipe = CreateRawLoader(dataFile: ImplOptions.ValidationFile);
+                    validLoader = CreateRawLoader(dataFile: ImplOptions.ValidationFile);
+                    IDataView validPipe = validLoader;
                     validPipe = ApplyTransformUtils.ApplyAllTransformsToData(Host, trainPipe, validPipe);
                     validData = new RoleMappedData(validPipe, data.Schema.GetColumnRoleNames());
                 }
@@ -170,6 +173,7 @@ namespace Microsoft.ML.Data
             // indirectly use validation set to improve the model but the learned model should totally independent of test set.
             // Similar to validation set, the trainer can report the scores computed using test set.
             RoleMappedData testDataUsedInTrainer = null;
+            ILegacyDataLoader testLoader = null;
             if (!string.IsNullOrWhiteSpace(ImplOptions.TestFile))
             {
                 // In contrast to the if-else block for validation above, we do not throw a warning if test file is provided
@@ -177,11 +181,14 @@ namespace Microsoft.ML.Data
                 if (trainer.Info.SupportsTest)
                 {
                     ch.Trace("Constructing the test pipeline");
-                    IDataView testPipeUsedInTrainer = CreateRawLoader(dataFile: ImplOptions.TestFile);
+                    testLoader = CreateRawLoader(dataFile: ImplOptions.TestFile);
+                    IDataView testPipeUsedInTrainer = testLoader;
                     testPipeUsedInTrainer = ApplyTransformUtils.ApplyAllTransformsToData(Host, trainPipe, testPipeUsedInTrainer);
                     testDataUsedInTrainer = new RoleMappedData(testPipeUsedInTrainer, data.Schema.GetColumnRoleNames());
                 }
             }
+            using ILegacyDataLoader validLoaderDisposer = validLoader;
+            using ILegacyDataLoader testLoaderDisposer = testLoader;
 
             var predictor = TrainUtils.Train(Host, ch, data, trainer, validData,
                 ImplOptions.Calibrator, ImplOptions.MaxCalibrationExamples, ImplOptions.CacheData, inputPredictor, testDataUsedInTrainer);
@@ -198,6 +205,7 @@ namespace Microsoft.ML.Data
                 using (var rep = RepositoryReader.Open(stream, ch))
                     testPipe = LoadLoader(rep, ImplOptions.TestFile, true);
             }
+            using ILegacyDataLoader testPipeDisposer = testPipe;
 
             // Score.
             ch.Trace("Scoring and evaluating");

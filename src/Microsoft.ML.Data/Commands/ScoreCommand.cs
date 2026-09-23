@@ -128,6 +128,7 @@ namespace Microsoft.ML.Data
                 (env, view) => scorer.CreateComponent(env, view, mapper, trainSchema));
 
             loader = LegacyCompositeDataLoader.Create(Host, loader, ImplOptions.PostTransform);
+            using ILegacyDataLoader loaderDisposer = loader;
 
             if (!string.IsNullOrWhiteSpace(ImplOptions.OutputModelFile))
             {

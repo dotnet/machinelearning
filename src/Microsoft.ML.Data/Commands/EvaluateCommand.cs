@@ -222,8 +222,9 @@ namespace Microsoft.ML.Data
             Host.AssertValue(ch);
 
             ch.Trace("Creating loader");
-            IDataView view = CreateAndSaveLoader(
+            using ILegacyDataLoader loader = CreateAndSaveLoader(
                 (env, source) => new IO.BinaryLoader(env, new IO.BinaryLoader.Arguments(), source));
+            IDataView view = loader;
 
             ch.Trace("Binding columns");
             var schema = view.Schema;

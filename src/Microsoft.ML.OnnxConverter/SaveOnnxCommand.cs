@@ -320,6 +320,7 @@ namespace Microsoft.ML.Model.OnnxConverter
                 rawPred = _predictiveModel.Predictor;
                 trainSchema = _predictiveModel.GetTrainingSchema(Host);
             }
+            using ILegacyDataLoader loaderDisposer = loader;
 
             // Create the ONNX context for storing global information
             var assembly = System.Reflection.Assembly.GetExecutingAssembly();

@@ -134,6 +134,7 @@ namespace Microsoft.ML.Model.Pfa
             }
             else
                 LoadModelObjects(ch, _loadPredictor, out rawPred, true, out trainSchema, out loader);
+            using ILegacyDataLoader loaderDisposer = loader;
 
             // Get the transform chain.
             IDataView source;

@@ -796,6 +796,10 @@ namespace Microsoft.ML.Data
             {
                 ((ICanSaveModel)_loader).Save(ctx);
             }
+
+            public void Dispose()
+            {
+            }
         }
     }
 }

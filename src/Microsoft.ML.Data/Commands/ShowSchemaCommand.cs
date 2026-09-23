@@ -66,15 +66,12 @@ namespace Microsoft.ML.Data
 
         private void RunCore(IChannel ch)
         {
-            ILegacyDataLoader loader = CreateAndSaveLoader();
-            using (loader as IDisposable)
-            using (var schemaWriter = new StringWriter())
-            {
-                RunOnData(schemaWriter, ImplOptions, loader);
-                var str = schemaWriter.ToString();
-                ch.AssertNonEmpty(str);
-                ch.Info(str);
-            }
+            using ILegacyDataLoader loader = CreateAndSaveLoader();
+            using var schemaWriter = new StringWriter();
+            RunOnData(schemaWriter, ImplOptions, loader);
+            var str = schemaWriter.ToString();
+            ch.AssertNonEmpty(str);
+            ch.Info(str);
         }
 
         /// <summary>

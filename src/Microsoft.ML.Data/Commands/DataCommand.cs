@@ -304,8 +304,12 @@ namespace Microsoft.ML.Data
                             // load the full pipeline from the model, relying upon the fact that all loaders
                             // can be loaded with no data at all, to get their schemas.
                             if (trainPipe == null)
-                                trainPipe = ModelFileUtils.LoadLoader(Host, rep, new MultiFileSource(null), loadTransforms: true);
-                            trainSchema = new RoleMappedSchema(trainPipe.Schema, trainRoleMappings);
+                            {
+                                using var schemaPipe = ModelFileUtils.LoadLoader(Host, rep, new MultiFileSource(null), loadTransforms: true);
+                                trainSchema = new RoleMappedSchema(schemaPipe.Schema, trainRoleMappings);
+                            }
+                            else
+                                trainSchema = new RoleMappedSchema(trainPipe.Schema, trainRoleMappings);
                         }
                         // If the role mappings are null, an alternative would be to fail. However the idea
                         // is that the scorer should always still succeed, although perhaps with reduced

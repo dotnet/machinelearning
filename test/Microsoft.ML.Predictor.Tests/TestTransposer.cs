@@ -245,7 +245,7 @@ namespace Microsoft.ML.RunTests
                 saver.SaveData(mem, view, Utils.GetIdentityPermutation(view.Schema.Count));
                 src = new BytesStreamSource(mem.ToArray());
             }
-            TransposeLoader loader = new TransposeLoader(Env, new TransposeLoader.Arguments(), src);
+            using TransposeLoader loader = new TransposeLoader(Env, new TransposeLoader.Arguments(), src);
             // First check whether this as an IDataView yields the same values.
             CheckSameValues(view, loader);
 

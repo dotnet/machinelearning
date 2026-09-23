@@ -426,9 +426,16 @@ namespace Microsoft.ML.Data
                 return;
 
             for (int i = _transforms.Length - 1; i >= 0; i--)
-                (_transforms[i].Transform as IDisposable)?.Dispose();
+            {
+                var transform = _transforms[i].Transform;
+                // The view does not own its potentially shared transformer, but this composite does.
+                if (transform is RowToRowMapperTransform mapper)
+                    (mapper.GetTransformerForDisposal() as IDisposable)?.Dispose();
+                else
+                    (transform as IDisposable)?.Dispose();
+            }
 
-            (_loader as IDisposable)?.Dispose();
+            _loader.Dispose();
             _disposed = true;
         }
 

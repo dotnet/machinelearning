@@ -98,6 +98,30 @@ namespace Microsoft.ML.Tests
         }
 
         [TensorFlowFact]
+        public void DisposingTransformedViewDoesNotDisposeTransformer()
+        {
+            var dataView = ML.Data.LoadFromEnumerable(
+                new[]
+                {
+                    new TestData
+                    {
+                        a = new[] { 1.0f, 2.0f, 3.0f, 4.0f },
+                        b = new[] { 1.0f, 2.0f, 3.0f, 4.0f }
+                    }
+                });
+
+            using var model = ML.Model.LoadTensorFlowModel("model_matmul/frozen_saved_model.pb");
+            var estimator = model.ScoreTensorFlowModel(new[] { "c" }, new[] { "a", "b" });
+            using var transformer = estimator.Fit(dataView);
+            var firstView = transformer.Transform(dataView);
+            var secondView = transformer.Transform(dataView);
+
+            (firstView as IDisposable)?.Dispose();
+
+            ValidateTensorFlowTransformer(secondView);
+        }
+
+        [TensorFlowFact]
         public void TestOldSavingAndLoading()
         {
             var modelFile = "model_matmul/frozen_saved_model.pb";

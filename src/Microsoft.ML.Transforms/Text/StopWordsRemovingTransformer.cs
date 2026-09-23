@@ -863,7 +863,7 @@ namespace Microsoft.ML.Transforms.Text
             else
             {
                 string srcCol = stopwordsColumn;
-                var loader = GetLoaderForStopwords(ch, dataFile, loaderFactory, ref srcCol);
+                using ILegacyDataLoader loader = GetLoaderForStopwords(ch, dataFile, loaderFactory, ref srcCol);
 
                 if (!loader.Schema.TryGetColumnIndex(srcCol, out int colSrcIndex))
                     throw ch.ExceptUserArg(nameof(Options.StopwordsColumn), "Unknown column '{0}'", srcCol);

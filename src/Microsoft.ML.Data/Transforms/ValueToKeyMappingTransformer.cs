@@ -299,8 +299,10 @@ namespace Microsoft.ML.Transforms
                     cols[i].Keys = item.Terms;
                     cols[i].Key = item.Term ?? options.Term;
                 }
-                var keyData = GetKeyDataViewOrNull(env, ch, options.DataFile, options.TermsColumn, options.Loader, out bool autoLoaded);
-                return new ValueToKeyMappingTransformer(env, input, cols, keyData, autoLoaded).MakeDataTransform(input);
+                var keyData = GetKeyDataViewOrNull(env, ch, options.DataFile, options.TermsColumn, options.Loader,
+                    out bool autoLoaded, out ILegacyDataLoader keyDataLoader);
+                using (keyDataLoader)
+                    return new ValueToKeyMappingTransformer(env, input, cols, keyData, autoLoaded).MakeDataTransform(input);
             }
         }
 
@@ -386,6 +388,11 @@ namespace Microsoft.ML.Transforms
         internal static IDataView GetKeyDataViewOrNull(IHostEnvironment env, IChannel ch,
             string file, string termsColumn, IComponentFactory<IMultiStreamSource, ILegacyDataLoader> loaderFactory,
             out bool autoConvert)
+            => GetKeyDataViewOrNull(env, ch, file, termsColumn, loaderFactory, out autoConvert, out _);
+
+        private static IDataView GetKeyDataViewOrNull(IHostEnvironment env, IChannel ch,
+            string file, string termsColumn, IComponentFactory<IMultiStreamSource, ILegacyDataLoader> loaderFactory,
+            out bool autoConvert, out ILegacyDataLoader dataLoader)
         {
             ch.AssertValue(env);
             ch.AssertValueOrNull(file);
@@ -396,6 +403,7 @@ namespace Microsoft.ML.Transforms
             // file, then we assume the user knows what they're doing when they are so explicit,
             // and do not attempt to convert to the desired type ourselves.
             autoConvert = false;
+            dataLoader = null;
             if (string.IsNullOrWhiteSpace(file))
                 return null;
 
@@ -405,7 +413,7 @@ namespace Microsoft.ML.Transforms
 
             IDataView keyData;
             if (loaderFactory != null)
-                keyData = loaderFactory.CreateComponent(env, fileSource);
+                keyData = dataLoader = loaderFactory.CreateComponent(env, fileSource);
             else
             {
                 // Determine the default loader from the extension.
@@ -418,11 +426,11 @@ namespace Microsoft.ML.Transforms
                     ch.CheckUserArg(!string.IsNullOrWhiteSpace(src), nameof(termsColumn),
                         "Must be specified");
                     if (isBinary)
-                        keyData = new BinaryLoader(env, new BinaryLoader.Arguments(), fileSource);
+                        keyData = dataLoader = new BinaryLoader(env, new BinaryLoader.Arguments(), fileSource);
                     else
                     {
                         ch.Assert(isTranspose);
-                        keyData = new TransposeLoader(env, new TransposeLoader.Arguments(), fileSource);
+                        keyData = dataLoader = new TransposeLoader(env, new TransposeLoader.Arguments(), fileSource);
                     }
                 }
                 else
@@ -445,6 +453,8 @@ namespace Microsoft.ML.Transforms
                     var loader = new TextLoader(env, options: options, dataSample: fileSource);
 
                     keyData = loader.Load(fileSource);
+                    dataLoader = keyData as ILegacyDataLoader;
+                    ch.AssertValue(dataLoader);
 
                     src = "Term";
                     // In this case they are relying on heuristics, so auto-loading in this case is most appropriate.
