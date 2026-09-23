@@ -5,7 +5,8 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
+using System.Text;
+using Microsoft.ML.CommandLine;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.TestFrameworkCommon;
 
@@ -199,19 +200,16 @@ namespace Microsoft.ML.RunTests
                 return;
 
             // ResultProcessor output
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) // -rp.txt files are not getting generated for Non-Windows Os
-            {
-                string rpName = basePrefix + "-rp.txt";
-                string rpOutPath = DeleteOutputPath(dir, rpName);
+            string rpName = basePrefix + "-rp.txt";
+            string rpOutPath = DeleteOutputPath(dir, rpName);
 
-                string[] rpArgs = null;
-                if (ctx.Command == Cmd.CV && ctx.ExtraArgs != null && ctx.ExtraArgs.Any(arg => arg.Contains("opf+")))
-                    rpArgs = new string[] { "opf+" };
+            string[] rpArgs = null;
+            if (ctx.Command == Cmd.CV && ctx.ExtraArgs != null && ctx.ExtraArgs.Any(arg => arg.Contains("opf+")))
+                rpArgs = new string[] { "opf+" };
 
-                // Run result processor on the console output.
-                RunResultProcessorTest(new string[] { consOutPath.Path }, rpOutPath, rpArgs);
-                CheckEqualityNormalized(dir, rpName, digitsOfPrecision: digitsOfPrecision, parseOption: parseOption);
-            }
+            // Run result processor on the console output.
+            RunResultProcessorTest(new string[] { consOutPath.Path }, rpOutPath, rpArgs);
+            CheckEqualityNormalized(dir, rpName, digitsOfPrecision: digitsOfPrecision, parseOption: parseOption);
 
             // Check the prediction output against its baseline.
             Contracts.Assert(predOutPath != null);
@@ -288,17 +286,22 @@ namespace Microsoft.ML.RunTests
             File.Delete(outPath);
 
             List<string> args = new List<string>();
+            StringBuilder arg = new StringBuilder();
             for (int i = 0; i < dataFiles.Length; i++)
             {
-                args.Add("\"" + dataFiles[i] + "\"");
+                arg.Clear().Append("in=");
+                CmdQuoter.QuoteValue(dataFiles[i], arg);
+                args.Add(arg.ToString());
             }
-            args.Add("/o");
-            args.Add(outPath);
+            arg.Clear().Append("o=");
+            CmdQuoter.QuoteValue(outPath, arg);
+            args.Add(arg.ToString());
             args.Add("/calledFromUnitTestSuite+");
 
             if (extraArgs != null)
                 args.AddRange(extraArgs);
-            ResultProcessor.Main(Env, args.ToArray());
+            int result = ResultProcessor.Main(Env, args.ToArray());
+            Check(result == 0, "Result processor failed with exit code {0}.", result);
         }
 
         private static string GetNamePrefix(string testType, PredictorAndArgs predictor, TestDataset dataset, string extraTag = "")
