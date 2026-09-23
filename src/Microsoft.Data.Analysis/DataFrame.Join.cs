@@ -26,6 +26,15 @@ namespace Microsoft.Data.Analysis
         private void SetSuffixForDuplicatedColumnNames(DataFrame dataFrame, DataFrameColumn column, string leftSuffix, string rightSuffix)
         {
             int index = dataFrame._columnCollection.IndexOf(column.Name);
+
+            // The loop below appends leftSuffix to the existing column and rightSuffix to the new one until the two
+            // names differ. If both suffixes are the same the names stay equal however many times they are appended,
+            // so there is no name that ends the loop.
+            if (index != -1 && leftSuffix == rightSuffix)
+            {
+                throw new ArgumentException(string.Format(Strings.SuffixesMustBeDifferent, nameof(leftSuffix), nameof(rightSuffix), column.Name), nameof(rightSuffix));
+            }
+
             while (index != -1)
             {
                 // Pre-existing column. Change name
