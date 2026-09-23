@@ -88,7 +88,7 @@ namespace Microsoft.ML.Data
 
             _transformers = transformers?.ToArray() ?? new ITransformer[0];
             _scopes = scopes?.ToArray() ?? new TransformerScope[0];
-            LastTransformer = transformers.LastOrDefault() as TLastTransformer;
+            LastTransformer = _transformers.LastOrDefault() as TLastTransformer;
 
             Contracts.Check((_transformers.Length > 0) == (LastTransformer != null));
             Contracts.Check(_transformers.Length == _scopes.Length);

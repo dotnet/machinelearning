@@ -300,7 +300,7 @@ namespace Microsoft.ML.Transforms.Text
                     false,
                     InfoEx.MaximumTokenCountPerDocument);
 
-                _ldaTrainer.AllocateModelMemory(_numVocab, InfoEx.NumberOfTopics, memBlockSize, aliasMemBlockSize);
+                _ldaTrainer.AllocateModelMemory(InfoEx.NumberOfTopics, _numVocab, memBlockSize, aliasMemBlockSize);
 
                 for (int i = 0; i < _numVocab; i++)
                 {

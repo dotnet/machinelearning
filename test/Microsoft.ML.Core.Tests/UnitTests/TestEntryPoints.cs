@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text.RegularExpressions;
 using Microsoft.ML.Calibrators;
 using Microsoft.ML.Core.Tests.UnitTests;
@@ -1535,6 +1536,45 @@ namespace Microsoft.ML.RunTests
                 new Calibrate.NoArgumentsInput() { Data = splitOutput.TestData[0], UncalibratedPredictorModel = calibratedFfModel }).PredictorModel;
             var scoredFf = ScoreModel.Score(Env, new ScoreModel.Input() { Data = splitOutput.TestData[2], PredictorModel = twiceCalibratedFfModel }).ScoredData;
             Done();
+        }
+
+        [Theory]
+        [InlineData(0)]
+        [InlineData(1)]
+        [InlineData(2)]
+        public void PipelineEnsembleValidatesKeyValuesMetadata(int metadataSize)
+        {
+            PredictorModel CreateModel(int keyValuesCount)
+            {
+                var annotations = new DataViewSchema.Annotations.Builder();
+                if (keyValuesCount > 0)
+                {
+                    var values = new VBuffer<int>(keyValuesCount, Enumerable.Range(0, keyValuesCount).ToArray());
+                    annotations.AddKeyValues(keyValuesCount, NumberDataViewType.Int32,
+                        (ref VBuffer<int> destination) => values.CopyTo(ref destination));
+                }
+
+                var schema = new DataViewSchema.Builder();
+                schema.AddColumn("Label", new KeyDataViewType(typeof(uint), 2), annotations.ToAnnotations());
+                var data = new EmptyDataView(Env, schema.ToSchema());
+                return new PredictorModelImpl(Env, new RoleMappedData(data, label: "Label", feature: null),
+                    data, new PriorModelParameters(Env, 0.5f));
+            }
+
+            var models = new[] { CreateModel(2), CreateModel(metadataSize) };
+            if (metadataSize == 2)
+            {
+                Assert.NotNull(SchemaBindablePipelineEnsembleBase.Create(Env, models, new Average(Env),
+                    AnnotationUtils.Const.ScoreColumnKind.BinaryClassification));
+            }
+            else
+            {
+                var exception = Assert.Throws<TargetInvocationException>(() =>
+                    SchemaBindablePipelineEnsembleBase.Create(Env, models, new Average(Env),
+                        AnnotationUtils.Const.ScoreColumnKind.BinaryClassification));
+                var innerException = Assert.IsType<InvalidOperationException>(exception.InnerException);
+                Assert.Contains("Label column of model 1 has different key value type than model 0", innerException.Message);
+            }
         }
 
         [Fact]

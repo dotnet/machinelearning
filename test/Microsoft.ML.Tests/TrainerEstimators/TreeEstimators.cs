@@ -54,6 +54,36 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             Done();
         }
 
+        [Theory]
+        [InlineData(5, -1)]
+        [InlineData(5, 0)]
+        [InlineData(5, 1)]
+        [InlineData(5, 2)]
+        [InlineData(5, 4)]
+        [InlineData(5, 5)]
+        [InlineData(2, 1)]
+        public void FastTreeHistogramPoolSizeValidation(int numberOfLeaves, int histogramPoolSize)
+        {
+            var data = ML.Data.LoadFromEnumerable(
+                SamplesUtils.DatasetUtils.GenerateBinaryLabelFloatFeatureVectorFloatWeightSamples(100).ToList());
+            var trainer = ML.BinaryClassification.Trainers.FastTree(new FastTreeBinaryTrainer.Options
+            {
+                NumberOfThreads = 1,
+                NumberOfTrees = 1,
+                NumberOfLeaves = numberOfLeaves,
+                HistogramPoolSize = histogramPoolSize,
+                MinimumExampleCountPerLeaf = 1,
+            });
+
+            if (numberOfLeaves > 2 && histogramPoolSize > numberOfLeaves - 1)
+            {
+                var exception = Assert.Throws<InvalidOperationException>(() => trainer.Fit(data));
+                Assert.Contains("Histogram pool size (ps) must be at most numLeaves - 1.", exception.Message);
+            }
+            else
+                Assert.NotNull(trainer.Fit(data));
+        }
+
         [LightGBMFact]
         public void LightGBMBinaryEstimator()
         {
