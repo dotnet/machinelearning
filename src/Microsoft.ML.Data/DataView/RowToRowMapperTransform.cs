@@ -65,10 +65,11 @@ namespace Microsoft.ML.Data
     /// </summary>
     [BestFriend]
     internal sealed class RowToRowMapperTransform : RowToRowTransformBase, IRowToRowMapper,
-        ITransformCanSaveOnnx, ITransformCanSavePfa, ITransformTemplate
+        ITransformCanSaveOnnx, ITransformCanSavePfa, ITransformTemplate, IDisposable
     {
         private readonly IRowMapper _mapper;
         private readonly ColumnBindings _bindings;
+        private bool _disposed;
 
         // If this is not null, the transform is re-appliable without save/load.
         private readonly Func<DataViewSchema, IRowMapper> _mapperFactory;
@@ -423,6 +424,15 @@ namespace Microsoft.ML.Data
         internal ITransformer GetTransformer()
         {
             return _mapper.GetTransformer();
+        }
+
+        public void Dispose()
+        {
+            if (_disposed)
+                return;
+
+            (_mapper as IDisposable)?.Dispose();
+            _disposed = true;
         }
     }
 }

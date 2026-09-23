@@ -67,6 +67,7 @@ namespace Microsoft.ML.Data
         private void RunCore(IChannel ch)
         {
             ILegacyDataLoader loader = CreateAndSaveLoader();
+            using (loader as IDisposable)
             using (var schemaWriter = new StringWriter())
             {
                 RunOnData(schemaWriter, ImplOptions, loader);

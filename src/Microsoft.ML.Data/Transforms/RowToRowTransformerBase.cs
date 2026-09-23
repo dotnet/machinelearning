@@ -54,12 +54,13 @@ namespace Microsoft.ML.Data
         }
 
         [BestFriend]
-        private protected abstract class MapperBase : IRowMapper
+        private protected abstract class MapperBase : IRowMapper, IDisposable
         {
             protected readonly IHost Host;
             protected readonly DataViewSchema InputSchema;
             protected readonly Lazy<DataViewSchema.DetachedColumn[]> OutputColumns;
             private readonly RowToRowTransformerBase _parent;
+            private bool _disposed;
 
             protected MapperBase(IHost host, DataViewSchema inputSchema, RowToRowTransformerBase parent)
             {
@@ -117,6 +118,15 @@ namespace Microsoft.ML.Data
             private protected abstract void SaveModel(ModelSaveContext ctx);
 
             public ITransformer GetTransformer() => _parent;
+
+            public void Dispose()
+            {
+                if (_disposed)
+                    return;
+
+                (_parent as IDisposable)?.Dispose();
+                _disposed = true;
+            }
         }
     }
 }
