@@ -45,14 +45,6 @@ Other packages:
 | `Microsoft.ML.SampleUtils`       |                                                  |                                               | Preview    |         |
 
 
-## Removed GenAI packages
-
-The `Microsoft.ML.GenAI.Core`, `Microsoft.ML.GenAI.LLaMA`, `Microsoft.ML.GenAI.Mistral`, and `Microsoft.ML.GenAI.Phi` projects have been removed. Builds from this branch no longer produce these packages. Their tests, samples, and design documents have also been removed.
-
-This source change does not unlist or update existing NuGet packages, or change their support policy. Applications that use the GenAI APIs need a separate migration before they can remove those package references. Earlier source and documentation remain available in Git history.
-
-`Microsoft.ML.TorchSharp`, its GPU test setup, and `Microsoft.ML.Tokenizers.*` remain in the repository.
-
 ## Package Dependencies Diagram
 
 The following diagram shows the relationships between ML.NET packages and their external dependencies:
