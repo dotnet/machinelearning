@@ -17,7 +17,7 @@ Project Docs
 - [ML.NET Roadmap](https://github.com/dotnet/machinelearning/blob/main/README.md)
 - [ML.NET Cookbook](code/MlNetCookBook.md)
 - [ML.NET API Reference Documentation](https://docs.microsoft.com/dotnet/api/?view=ml-dotnet)
-- [GenAI Design Document](gen-ai/README.md)
+- [GenAI Package Removal](project-docs/components-and-dependencies.md#removed-genai-packages)
 
 Building from Source
 --------------------
