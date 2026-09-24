@@ -28,7 +28,7 @@ namespace Microsoft.Data.Analysis
     }
 
     /// <summary>
-    /// A DataFrame to support indexing, binary operations, sorting, selection and other APIs. This will eventually also expose an IDataView for ML.NET
+    /// A DataFrame to support indexing, binary operations, sorting, selection and other APIs.
     /// </summary>
     public partial class DataFrame
     {
