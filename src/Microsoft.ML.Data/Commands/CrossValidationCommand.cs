@@ -151,13 +151,13 @@ namespace Microsoft.ML.Data
                 ch.Warning("No input model file specified or model file did not contain a predictor. The model state cannot be initialized.");
 
             ch.Trace("Constructing data pipeline");
-            ILegacyDataLoader loader = CreateRawLoader();
+            using ILegacyDataLoader rawLoader = CreateRawLoader();
 
             // If the per-instance results are requested and there is no name column, add a GenerateNumberTransform.
             var preXf = ImplOptions.PreTransforms;
             if (!string.IsNullOrEmpty(ImplOptions.OutputDataFile))
             {
-                string name = TrainUtils.MatchNameOrDefaultOrNull(ch, loader.Schema, nameof(ImplOptions.NameColumn), ImplOptions.NameColumn, DefaultColumnNames.Name);
+                string name = TrainUtils.MatchNameOrDefaultOrNull(ch, rawLoader.Schema, nameof(ImplOptions.NameColumn), ImplOptions.NameColumn, DefaultColumnNames.Name);
                 if (name == null)
                 {
                     preXf = preXf.Concat(
@@ -175,8 +175,7 @@ namespace Microsoft.ML.Data
                         }).ToArray();
                 }
             }
-            loader = LegacyCompositeDataLoader.Create(Host, loader, preXf);
-            using ILegacyDataLoader loaderDisposer = loader;
+            using ILegacyDataLoader loader = LegacyCompositeDataLoader.Create(Host, rawLoader, preXf);
 
             ch.Trace("Binding label and features columns");
 
@@ -515,12 +514,15 @@ namespace Microsoft.ML.Data
                         {
                             ch.Trace("Constructing the validation pipeline");
                             validLoader = _getValidationDataView();
-                            var validPipe = ApplyTransformUtils.ApplyAllTransformsToData(host, _inputDataView, validLoader);
-                            validPipe = new OpaqueDataView(validPipe);
-                            validData = _applyTransformsToValidationData(host, ch, validPipe, trainData, trainPipe);
                         }
                     }
                     using IDisposable validLoaderDisposer = validLoader as IDisposable;
+                    if (validLoader != null)
+                    {
+                        var validPipe = ApplyTransformUtils.ApplyAllTransformsToData(host, _inputDataView, validLoader);
+                        validPipe = new OpaqueDataView(validPipe);
+                        validData = _applyTransformsToValidationData(host, ch, validPipe, trainData, trainPipe);
+                    }
 
                     // Train.
                     var predictor = TrainUtils.Train(host, ch, trainData, trainer, validData,

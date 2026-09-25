@@ -164,51 +164,57 @@ namespace Microsoft.ML.Data
             var data = new RoleMappedData(view, label, feature, group, weight, name, customCols);
 
             // REVIEW: Unify the code that creates validation examples in Train, TrainTest and CV commands.
-            RoleMappedData validData = null;
             ILegacyDataLoader validLoader = null;
-            if (!string.IsNullOrWhiteSpace(ImplOptions.ValidationFile))
-            {
-                if (!trainer.Info.SupportsValidation)
-                {
-                    ch.Warning("Ignoring validationFile: Trainer does not accept validation dataset.");
-                }
-                else
-                {
-                    ch.Trace("Constructing the validation pipeline");
-                    validLoader = CreateRawLoader(dataFile: ImplOptions.ValidationFile);
-                    IDataView validPipe = validLoader;
-                    validPipe = ApplyTransformUtils.ApplyAllTransformsToData(Host, view, validPipe);
-                    validData = new RoleMappedData(validPipe, data.Schema.GetColumnRoleNames());
-                }
-            }
-
-            // In addition to the training set, some trainers can accept two extra data sets, validation set and test set,
-            // in training phase. The major difference between validation set and test set is that training process may
-            // indirectly use validation set to improve the model but the learned model should totally independent of test set.
-            // Similar to validation set, the trainer can report the scores computed using test set.
-            RoleMappedData testDataUsedInTrainer = null;
             ILegacyDataLoader testLoader = null;
-            if (!string.IsNullOrWhiteSpace(ImplOptions.TestFile))
+            try
             {
-                // In contrast to the if-else block for validation above, we do not throw a warning if test file is provided
-                // because this is TrainTest command.
-                if (trainer.Info.SupportsTest)
+                RoleMappedData validData = null;
+                if (!string.IsNullOrWhiteSpace(ImplOptions.ValidationFile))
                 {
-                    ch.Trace("Constructing the test pipeline");
-                    testLoader = CreateRawLoader(dataFile: ImplOptions.TestFile);
-                    IDataView testPipeUsedInTrainer = testLoader;
-                    testPipeUsedInTrainer = ApplyTransformUtils.ApplyAllTransformsToData(Host, view, testPipeUsedInTrainer);
-                    testDataUsedInTrainer = new RoleMappedData(testPipeUsedInTrainer, data.Schema.GetColumnRoleNames());
+                    if (!trainer.Info.SupportsValidation)
+                    {
+                        ch.Warning("Ignoring validationFile: Trainer does not accept validation dataset.");
+                    }
+                    else
+                    {
+                        ch.Trace("Constructing the validation pipeline");
+                        validLoader = CreateRawLoader(dataFile: ImplOptions.ValidationFile);
+                        IDataView validPipe = validLoader;
+                        validPipe = ApplyTransformUtils.ApplyAllTransformsToData(Host, view, validPipe);
+                        validData = new RoleMappedData(validPipe, data.Schema.GetColumnRoleNames());
+                    }
                 }
+
+                // In addition to the training set, some trainers can accept two extra data sets, validation set and test set,
+                // in training phase. The major difference between validation set and test set is that training process may
+                // indirectly use validation set to improve the model but the learned model should totally independent of test set.
+                // Similar to validation set, the trainer can report the scores computed using test set.
+                RoleMappedData testDataUsedInTrainer = null;
+                if (!string.IsNullOrWhiteSpace(ImplOptions.TestFile))
+                {
+                    // In contrast to the if-else block for validation above, we do not throw a warning if test file is provided
+                    // because this is TrainTest command.
+                    if (trainer.Info.SupportsTest)
+                    {
+                        ch.Trace("Constructing the test pipeline");
+                        testLoader = CreateRawLoader(dataFile: ImplOptions.TestFile);
+                        IDataView testPipeUsedInTrainer = testLoader;
+                        testPipeUsedInTrainer = ApplyTransformUtils.ApplyAllTransformsToData(Host, view, testPipeUsedInTrainer);
+                        testDataUsedInTrainer = new RoleMappedData(testPipeUsedInTrainer, data.Schema.GetColumnRoleNames());
+                    }
+                }
+
+                var predictor = TrainUtils.Train(Host, ch, data, trainer, validData,
+                    ImplOptions.Calibrator, ImplOptions.MaxCalibrationExamples, ImplOptions.CacheData, inputPredictor, testDataUsedInTrainer);
+
+                using (var file = Host.CreateOutputFile(ImplOptions.OutputModelFile))
+                    TrainUtils.SaveModel(Host, ch, file, predictor, data, cmd);
             }
-            using ILegacyDataLoader validLoaderDisposer = validLoader;
-            using ILegacyDataLoader testLoaderDisposer = testLoader;
-
-            var predictor = TrainUtils.Train(Host, ch, data, trainer, validData,
-                ImplOptions.Calibrator, ImplOptions.MaxCalibrationExamples, ImplOptions.CacheData, inputPredictor, testDataUsedInTrainer);
-
-            using (var file = Host.CreateOutputFile(ImplOptions.OutputModelFile))
-                TrainUtils.SaveModel(Host, ch, file, predictor, data, cmd);
+            finally
+            {
+                testLoader?.Dispose();
+                validLoader?.Dispose();
+            }
         }
     }
 

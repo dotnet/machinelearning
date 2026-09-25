@@ -126,11 +126,11 @@ namespace Microsoft.ML.Model.Pfa
 
             if (string.IsNullOrEmpty(ImplOptions.InputModelFile))
             {
+                Host.CheckUserArg(ImplOptions.LoadPredictor != true, nameof(ImplOptions.LoadPredictor),
+                    "Cannot be set to true unless " + nameof(ImplOptions.InputModelFile) + " is also specified.");
                 loader = CreateLoader();
                 rawPred = null;
                 trainSchema = null;
-                Host.CheckUserArg(ImplOptions.LoadPredictor != true, nameof(ImplOptions.LoadPredictor),
-                    "Cannot be set to true unless " + nameof(ImplOptions.InputModelFile) + " is also specified.");
             }
             else
                 LoadModelObjects(ch, _loadPredictor, out rawPred, true, out trainSchema, out loader);

@@ -60,6 +60,12 @@ namespace Microsoft.ML.Data
                     ? mapper.GetParentTransformer() as IDisposable
                     : null;
             }
+
+            public void Dispose()
+            {
+                (Transform as IDisposable)?.Dispose();
+                OwnedTransformer?.Dispose();
+            }
         }
 
         public const string LoaderSignature = "PipeDataLoader";
@@ -217,61 +223,73 @@ namespace Microsoft.ML.Data
                 srcView = pipeStart = srcLoader;
 
             IDataView view = srcView;
-            using (var ch = host.Start("Transforms"))
+            var createdTransforms = new List<TransformEx>();
+            try
             {
-                int count = Utils.Size(tagData);
-                var newlyCreated = new List<TransformEx>();
-                for (int i = 0; i < count; i++)
+                using (var ch = host.Start("Transforms"))
                 {
-                    // REVIEW: this might cause silent automatic tag conflicts if the pipeline is short-circuited.
-                    // Maybe it's better to allow empty tags?
-                    var tag = tagData[i].Key;
-                    if (string.IsNullOrEmpty(tag))
-                        tag = GenerateTag(exes.Count);
-
-                    var newDataView = createTransform(host, i, view);
-                    // Append the newly created transforms to the exes list.
-                    // If the newTransform is a 'no-op' transform, i.e. equal to the original view,
-                    // the exes array will not be modified: there's no reason to record details of a no-op transform,
-                    // especially since this would overwrite the useful details of the upstream transform.
-                    newlyCreated.Clear();
-                    IDataView curDataView = newDataView;
-                    while (true)
+                    int count = Utils.Size(tagData);
+                    var newlyCreated = new List<TransformEx>();
+                    for (int i = 0; i < count; i++)
                     {
-                        var cur = curDataView as IDataTransform;
-                        if (cur == null)
-                        {
-                            // We reached all the way back to the pipe start. The exes accumulated so far are irrelevant.
-                            ch.Check(curDataView == pipeStart,
-                                "The transform has corrupted the chain (chain no longer starts with the same loader).");
-                            exes.Clear();
-                            break;
-                        }
+                        // REVIEW: this might cause silent automatic tag conflicts if the pipeline is short-circuited.
+                        // Maybe it's better to allow empty tags?
+                        var tag = tagData[i].Key;
+                        if (string.IsNullOrEmpty(tag))
+                            tag = GenerateTag(exes.Count);
 
-                        int index = exes.FindLastIndex(x => x.Transform == cur);
-                        if (index >= 0)
+                        var newDataView = createTransform(host, i, view);
+                        // Append the newly created transforms to the exes list.
+                        // If the newTransform is a 'no-op' transform, i.e. equal to the original view,
+                        // the exes array will not be modified: there's no reason to record details of a no-op transform,
+                        // especially since this would overwrite the useful details of the upstream transform.
+                        newlyCreated.Clear();
+                        IDataView curDataView = newDataView;
+                        while (true)
                         {
-                            // We found a transform in exes to attach to.
-                            if (index < exes.Count - 1)
+                            var cur = curDataView as IDataTransform;
+                            if (cur == null)
                             {
-                                // The transform short-circuited some of the existing ones, remove them.
-                                exes.RemoveRange(index + 1, exes.Count - index - 1);
+                                // We reached all the way back to the pipe start. The exes accumulated so far are irrelevant.
+                                ch.Check(curDataView == pipeStart,
+                                    "The transform has corrupted the chain (chain no longer starts with the same loader).");
+                                exes.Clear();
+                                break;
                             }
-                            break;
+
+                            int index = exes.FindLastIndex(x => x.Transform == cur);
+                            if (index >= 0)
+                            {
+                                // We found a transform in exes to attach to.
+                                if (index < exes.Count - 1)
+                                {
+                                    // The transform short-circuited some of the existing ones, remove them.
+                                    exes.RemoveRange(index + 1, exes.Count - index - 1);
+                                }
+                                break;
+                            }
+
+                            var transform = new TransformEx(tag, tagData[i].Value, cur, ownsParentTransformers);
+                            newlyCreated.Add(transform);
+                            createdTransforms.Add(transform);
+                            curDataView = cur.Source;
                         }
 
-                        newlyCreated.Add(new TransformEx(tag, tagData[i].Value, cur, ownsParentTransformers));
-                        curDataView = cur.Source;
+                        newlyCreated.Reverse();
+                        exes.AddRange(newlyCreated);
+
+                        view = newDataView;
                     }
-
-                    newlyCreated.Reverse();
-                    exes.AddRange(newlyCreated);
-
-                    view = newDataView;
                 }
-            }
 
-            return view == srcView ? srcLoader : new LegacyCompositeDataLoader(host, exes.ToArray());
+                return view == srcView ? srcLoader : new LegacyCompositeDataLoader(host, exes.ToArray());
+            }
+            catch
+            {
+                for (int i = createdTransforms.Count - 1; i >= 0; i--)
+                    createdTransforms[i].Dispose();
+                throw;
+            }
         }
 
         /// <summary>
@@ -433,10 +451,7 @@ namespace Microsoft.ML.Data
                 return;
 
             for (int i = _transforms.Length - 1; i >= 0; i--)
-            {
-                (_transforms[i].Transform as IDisposable)?.Dispose();
-                _transforms[i].OwnedTransformer?.Dispose();
-            }
+                _transforms[i].Dispose();
 
             _loader.Dispose();
             _disposed = true;

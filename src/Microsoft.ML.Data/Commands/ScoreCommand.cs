@@ -101,10 +101,11 @@ namespace Microsoft.ML.Data
 
             ch.Trace("Creating loader");
 
-            LoadModelObjects(ch, true, out var predictor, true, out var trainSchema, out var loader);
+            LoadModelObjects(ch, true, out var predictor, true, out var trainSchema, out var rawLoader);
             ch.AssertValue(predictor);
             ch.AssertValueOrNull(trainSchema);
-            ch.AssertValue(loader);
+            ch.AssertValue(rawLoader);
+            using ILegacyDataLoader rawLoaderDisposer = rawLoader;
 
             ch.Trace("Creating pipeline");
             var scorer = ImplOptions.Scorer;
@@ -113,22 +114,21 @@ namespace Microsoft.ML.Data
             ch.AssertValue(bindable);
 
             // REVIEW: We probably ought to prefer role mappings from the training schema.
-            string feat = TrainUtils.MatchNameOrDefaultOrNull(ch, loader.Schema,
+            string feat = TrainUtils.MatchNameOrDefaultOrNull(ch, rawLoader.Schema,
                 nameof(ImplOptions.FeatureColumn), ImplOptions.FeatureColumn, DefaultColumnNames.Features);
-            string group = TrainUtils.MatchNameOrDefaultOrNull(ch, loader.Schema,
+            string group = TrainUtils.MatchNameOrDefaultOrNull(ch, rawLoader.Schema,
                 nameof(ImplOptions.GroupColumn), ImplOptions.GroupColumn, DefaultColumnNames.GroupId);
             var customCols = TrainUtils.CheckAndGenerateCustomColumns(ch, ImplOptions.CustomColumns);
-            var schema = new RoleMappedSchema(loader.Schema, label: null, feature: feat, group: group, custom: customCols, opt: true);
+            var schema = new RoleMappedSchema(rawLoader.Schema, label: null, feature: feat, group: group, custom: customCols, opt: true);
             var mapper = bindable.Bind(Host, schema);
 
             if (scorer == null)
                 scorer = ScoreUtils.GetScorerComponent(Host, mapper);
 
-            loader = LegacyCompositeDataLoader.ApplyTransform(Host, loader, "Scorer", scorer.ToString(),
+            using ILegacyDataLoader scoredLoader = LegacyCompositeDataLoader.ApplyTransform(Host, rawLoader, "Scorer", scorer.ToString(),
                 (env, view) => scorer.CreateComponent(env, view, mapper, trainSchema));
 
-            loader = LegacyCompositeDataLoader.Create(Host, loader, ImplOptions.PostTransform);
-            using ILegacyDataLoader loaderDisposer = loader;
+            using ILegacyDataLoader loader = LegacyCompositeDataLoader.Create(Host, scoredLoader, ImplOptions.PostTransform);
 
             if (!string.IsNullOrWhiteSpace(ImplOptions.OutputModelFile))
             {

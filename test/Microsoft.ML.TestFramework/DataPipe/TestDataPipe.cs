@@ -20,6 +20,31 @@ namespace Microsoft.ML.RunTests
 {
     public sealed partial class TestDataPipe : TestDataPipeBase
     {
+        private sealed class DisposableTransform : IDataTransform, IDisposable
+        {
+            public IDataView Source { get; }
+            public bool IsDisposed { get; private set; }
+            public bool CanShuffle => Source.CanShuffle;
+            public DataViewSchema Schema => Source.Schema;
+
+            public DisposableTransform(IDataView source)
+            {
+                Source = source;
+            }
+
+            public long? GetRowCount() => Source.GetRowCount();
+
+            public DataViewRowCursor GetRowCursor(IEnumerable<DataViewSchema.Column> columnsNeeded, Random rand = null)
+                => Source.GetRowCursor(columnsNeeded, rand);
+
+            public DataViewRowCursor[] GetRowCursorSet(IEnumerable<DataViewSchema.Column> columnsNeeded, int n, Random rand = null)
+                => Source.GetRowCursorSet(columnsNeeded, n, rand);
+
+            void ICanSaveModel.Save(ModelSaveContext ctx) => throw new NotSupportedException();
+
+            public void Dispose() => IsDisposed = true;
+        }
+
         private static float[] _dataFloat = new float[] { -0.0f, 0,  1, -1,  2, -2, Single.NaN, Single.MinValue,
                 Single.MaxValue, Single.Epsilon, Single.NegativeInfinity, Single.PositiveInfinity };
         private static uint[] _resultsFloat = new uint[] { 16, 16, 26, 12, 22, 12, 0, 13, 8, 4, 31, 14 };
@@ -33,6 +58,31 @@ namespace Microsoft.ML.RunTests
 
         private static VBuffer<Double> _dataDoubleSparse = new VBuffer<Double>(5, 3, new double[] { -0.0, 0, 1 }, new[] { 0, 3, 4 });
         private static uint[] _resultsDoubleSparse = new uint[] { 30, 30, 30, 30, 19 };
+
+        [Fact]
+        public void CompositeDisposesCreatedTransformsWhenConstructionFails()
+        {
+            using var loader = TextLoader.Create(Env, new TextLoader.Options
+            {
+                Columns = new[] { new TextLoader.Column("Label", DataKind.Single, 0) }
+            }, new MultiFileSource(GetDataPath(TestDatasets.breastCancer.trainFilename)));
+            var tags = new[]
+            {
+                new KeyValuePair<string, string>("first", null),
+                new KeyValuePair<string, string>("second", null)
+            };
+            DisposableTransform transform = null;
+
+            Assert.Throws<InvalidOperationException>(() =>
+                LegacyCompositeDataLoader.ApplyTransforms(Env, loader, tags, (env, index, source) =>
+                {
+                    if (index == 1)
+                        throw new InvalidOperationException();
+                    return transform = new DisposableTransform(source);
+                }));
+
+            Assert.True(transform.IsDisposed);
+        }
 
         [Fact()]
         public void SavePipeLabelParsers()
