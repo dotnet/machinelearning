@@ -114,7 +114,15 @@ namespace Microsoft.ML.Data
         /// <summary>
         /// Loads data from <paramref name="connection"/> by executing <paramref name="commandText"/> into an <see cref="IDataView"/>.
         /// </summary>
-        /// <param name="connection">The database connection. The loader does not dispose this connection. Leave it open while the data view is enumerated.</param>
+        /// <remarks>
+        /// <para>
+        /// Responsibility for disposing the connection remains with the caller.
+        /// </para>
+        /// <para>
+        /// The returned <see cref="IDataView"/> will open the connection if it is not already open. If the data view has opened the connection, then it will also close it when Dispose is called.
+        /// </para>
+        /// </remarks>
+        /// <param name="connection">The database connection. The loader will not dispose this connection. Leave it open while the data view is enumerated.</param>
         /// <param name="commandText">The SQL command text to execute.</param>
         /// <returns>An <see cref="IDataView"/> representing the loaded data.</returns>
         public IDataView Load(DbConnection connection, string commandText)
