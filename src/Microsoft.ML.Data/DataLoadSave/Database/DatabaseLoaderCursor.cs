@@ -142,10 +142,10 @@ namespace Microsoft.ML.Data
                 {
                     _dataReader?.Dispose();
                     _command?.Dispose();
-                    if (_ownsConnection)
-                        _connection?.Dispose();
-                    else if (_openedConnection)
-                        _connection?.Close();
+                    if (_ownsConnection && _connection != null)
+                        _connection.Dispose();
+                    else if (_openedConnection && _connection != null)
+                        _connection.Close();
                 }
                 _disposed = true;
                 base.Dispose(disposing);
