@@ -426,7 +426,7 @@ END";
             }
             var mlContext = new MLContext(seed: 1);
             var loader = mlContext.Data.CreateDatabaseLoader(new DatabaseLoader.Column("datetime", DbType.DateTime, 0));
-            var dbConnection = new SQLiteConnection(connectionString);
+            using var dbConnection = new SQLiteConnection(connectionString);
             dbConnection.Open();
             var source = new DatabaseSource(dbConnection, "SELECT datetime FROM Datetime");
             var data = loader.Load(source);
@@ -463,8 +463,43 @@ END";
             }
             var mlContext = new MLContext(seed: 1);
             var loader = mlContext.Data.CreateDatabaseLoader(new DatabaseLoader.Column("datetime", DbType.DateTime, 0));
-            var dbConnection = new SQLiteConnection(connectionString);
+            using var dbConnection = new SQLiteConnection(connectionString);
             dbConnection.Open();
+            var data = loader.Load(dbConnection, "SELECT datetime FROM Datetime");
+            var datetimes = data.GetColumn<DateTime>("datetime").ToArray();
+            datetimes.Count().Should().Be(2);
+        }
+
+        [X86X64Fact("The SQLite un-managed code, SQLite.interop, only supports x86/x64 architectures.")]
+        public void DatabaseLoader_Load_CalledUsingDbConnection_WhenConnectionIsNotOpen_OpensConnection()
+        {
+            var connectionString = "DataSource=Dummy;Mode=Memory;Version=3;Timeout=120;Cache=Shared";
+            using (var connection = new SQLiteConnection(connectionString))
+            {
+                connection.Open();
+                using (var command = new SQLiteCommand(connection))
+                {
+                    // Make sure the table doesn't exist.
+                    command.CommandText = """
+                        BEGIN;
+                        DROP TABLE IF EXISTS Datetime;
+                        COMMIT;
+                        """;
+                    command.ExecuteNonQuery();
+
+                    command.CommandText = """
+                        BEGIN;
+                        CREATE TABLE IF NOT EXISTS Datetime (datetime Datetime NULL);
+                        INSERT INTO Datetime VALUES (NULL);
+                        INSERT INTO Datetime VALUES ('2018-01-01 00:00:00');
+                        COMMIT;
+                        """;
+                    command.ExecuteNonQuery();
+                }
+            }
+            var mlContext = new MLContext(seed: 1);
+            var loader = mlContext.Data.CreateDatabaseLoader(new DatabaseLoader.Column("datetime", DbType.DateTime, 0));
+            using var dbConnection = new SQLiteConnection(connectionString);
             var data = loader.Load(dbConnection, "SELECT datetime FROM Datetime");
             var datetimes = data.GetColumn<DateTime>("datetime").ToArray();
             datetimes.Count().Should().Be(2);

@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Data;
 using System.Data.Common;
 using System.Linq;
 using Microsoft.ML.Internal.Utilities;
@@ -65,6 +66,8 @@ namespace Microsoft.ML.Data
                         if (_source.Connection is DbConnection supplied)
                         {
                             _connection = supplied;
+                            if (_connection.State != ConnectionState.Open)
+                                _connection.Open();
                         }
                         else
                         {
