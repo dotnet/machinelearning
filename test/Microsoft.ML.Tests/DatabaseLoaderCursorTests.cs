@@ -8,12 +8,13 @@ using Xunit;
 using Xunit.Abstractions;
 using System.Data;
 using System.Data.SQLite;
+using Microsoft.ML.TestFramework.Attributes;
 
 namespace Microsoft.ML.Tests
 {
     public class DatabaseLoaderCursorTests(ITestOutputHelper output) : BaseTestClass(output)
     {
-        [Fact]
+        [X86X64Fact("The SQLite un-managed code, SQLite.interop, only supports x86/x64 architectures.")]
         public void DatabaseLoaderCursor_WhenCursorIsNotUsed_DisposeDoesNotThrow()
         {
             var mlContext = new MLContext(seed: 1);
