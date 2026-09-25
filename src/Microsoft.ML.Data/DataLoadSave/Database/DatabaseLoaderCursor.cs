@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Data;
 using System.Data.Common;
 using System.Linq;
 using Microsoft.ML.Internal.Utilities;
@@ -23,6 +24,12 @@ namespace Microsoft.ML.Data
             private readonly Delegate[] _getters;
 
             private DbConnection _connection;
+            // True when this cursor created _connection from a provider factory and must dispose it.
+            // A caller-supplied connection is left for the caller to dispose.
+            private bool _ownsConnection;
+            // If this cursor does not own the connection, it still may have opened the connection.
+            // Dispose should close the connection if it was opened by this cursor.
+            private bool _openedConnection;
             private DbCommand _command;
             private DbDataReader _dataReader;
 
@@ -59,9 +66,22 @@ namespace Microsoft.ML.Data
                 {
                     if (_connection is null)
                     {
-                        _connection = _source.ProviderFactory.CreateConnection();
-                        _connection.ConnectionString = _source.ConnectionString;
-                        _connection.Open();
+                        if (_source.Connection is DbConnection supplied)
+                        {
+                            _connection = supplied;
+                            if (_connection.State != ConnectionState.Open)
+                            {
+                                _openedConnection = true;
+                                _connection.Open();
+                            }
+                        }
+                        else
+                        {
+                            _connection = _source.ProviderFactory.CreateConnection();
+                            _ownsConnection = true;
+                            _connection.ConnectionString = _source.ConnectionString;
+                            _connection.Open();
+                        }
                     }
                     return _connection;
                 }
@@ -122,7 +142,10 @@ namespace Microsoft.ML.Data
                 {
                     _dataReader?.Dispose();
                     _command?.Dispose();
-                    _connection?.Dispose();
+                    if (_ownsConnection && _connection != null)
+                        _connection.Dispose();
+                    else if (_openedConnection && _connection != null)
+                        _connection.Close();
                 }
                 _disposed = true;
                 base.Dispose(disposing);

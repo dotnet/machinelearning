@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Data.Common;
 using System.Linq;
 using System.Reflection;
 using Microsoft.ML;
@@ -98,6 +99,34 @@ namespace Microsoft.ML.Data
         /// </summary>
         /// <param name="source">The source from which to load data.</param>
         public IDataView Load(DatabaseSource source) => new BoundLoader(this, source);
+
+        /// <summary>
+        /// Loads data from a database using <paramref name="factory"/>, <paramref name="connectionString"/>,
+        ///  and <paramref name="commandText"/> into an <see cref="IDataView"/>.
+        /// </summary>
+        /// <param name="factory">The database provider factory.</param>
+        /// <param name="connectionString">The connection string to the database.</param>
+        /// <param name="commandText">The SQL command text to execute.</param>
+        /// <returns>An <see cref="IDataView"/> representing the loaded data.</returns>
+        public IDataView Load(DbProviderFactory factory, string connectionString, string commandText)
+            => new BoundLoader(this, new DatabaseSource(factory, connectionString, commandText));
+
+        /// <summary>
+        /// Loads data from <paramref name="connection"/> by executing <paramref name="commandText"/> into an <see cref="IDataView"/>.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// Responsibility for disposing the connection remains with the caller.
+        /// </para>
+        /// <para>
+        /// The returned <see cref="IDataView"/> will open the connection if it is not already open. If the data view has opened the connection, then it will also close it when the underlying cursor is disposed (for example, when enumeration completes).
+        /// </para>
+        /// </remarks>
+        /// <param name="connection">The database connection. The loader will not dispose this connection. Leave it open while the data view is enumerated.</param>
+        /// <param name="commandText">The SQL command text to execute.</param>
+        /// <returns>An <see cref="IDataView"/> representing the loaded data.</returns>
+        public IDataView Load(DbConnection connection, string commandText)
+            => new BoundLoader(this, new DatabaseSource(connection, commandText));
 
         internal static DatabaseLoader CreateDatabaseLoader<TInput>(IHostEnvironment host)
         {
