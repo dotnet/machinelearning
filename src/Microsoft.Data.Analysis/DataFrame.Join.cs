@@ -17,9 +17,6 @@ namespace Microsoft.Data.Analysis
         Inner
     }
 
-    /// <summary>
-    /// A DataFrame to support indexing, binary operations, sorting, selection and other APIs. This will eventually also expose an IDataView for ML.NET
-    /// </summary>
     public partial class DataFrame
     {
 
