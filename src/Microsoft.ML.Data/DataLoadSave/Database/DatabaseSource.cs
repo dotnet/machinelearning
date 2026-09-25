@@ -40,7 +40,7 @@ namespace Microsoft.ML.Data
             : this(commandText, commandTimeoutInSeconds)
         {
             Contracts.CheckValue(providerFactory, nameof(providerFactory));
-            Contracts.CheckNonEmpty(connectionString, nameof(connectionString));
+            Contracts.CheckValue(connectionString, nameof(connectionString));
 
             _sourceType = DatabaseSourceType.UsingProviderFactory;
             _providerFactory = providerFactory;
