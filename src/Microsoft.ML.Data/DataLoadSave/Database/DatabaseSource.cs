@@ -83,13 +83,16 @@ namespace Microsoft.ML.Data
         /// <summary>Gets the text command to run against the data source.</summary>
         public string CommandText { get; }
 
-        /// <summary>Gets the string used to open the connection.</summary>
+        /// <summary>When using a provider factory, gets the string used to open the connection.</summary>
+        /// <remarks>Returns null when using a caller-supplied database connection.</remarks>
         public string ConnectionString => _sourceType == DatabaseSourceType.UsingProviderFactory ? _connectionString : null;
 
-        /// <summary>Gets the factory used to create the <see cref="DbConnection"/>.</summary>
+        /// <summary>When using a provider factory, gets the factory used to create the <see cref="DbConnection"/>.</summary>
+        /// <remarks>Returns null when using a caller-supplied database connection.</remarks>
         public DbProviderFactory ProviderFactory => _sourceType == DatabaseSourceType.UsingProviderFactory ? _providerFactory : null;
 
-        /// <summary>Gets the caller-supplied database connection.</summary>
+        /// <summary>When using a caller-supplied database connection, gets the connection.</summary>
+        /// <remarks>Returns null when using a provider factory.</remarks>
         public DbConnection Connection => _sourceType == DatabaseSourceType.UsingConnection ? _connection : null;
     }
 }
