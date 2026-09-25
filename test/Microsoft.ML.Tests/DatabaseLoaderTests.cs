@@ -398,7 +398,7 @@ END";
             var source = new DatabaseSource(dbConnection, "SELECT datetime FROM Datetime");
 
             var fromSource = loader.Load(source).GetColumn<DateTime>("datetime").ToArray();
-            var fromOverload = loader.Load(SQLiteFactory.Instance, connectionString, "SELECT datetime FROM Datetime").GetColumn<DateTime>("datetime").ToArray();
+            var fromOverload = loader.Load(dbConnection, "SELECT datetime FROM Datetime").GetColumn<DateTime>("datetime").ToArray();
             fromOverload.Should().Equal(fromSource);
         }
 
