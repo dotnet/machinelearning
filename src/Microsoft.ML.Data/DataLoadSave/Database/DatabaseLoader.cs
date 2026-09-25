@@ -119,7 +119,7 @@ namespace Microsoft.ML.Data
         /// Responsibility for disposing the connection remains with the caller.
         /// </para>
         /// <para>
-        /// The returned <see cref="IDataView"/> will open the connection if it is not already open. If the data view has opened the connection, then it will also close it when Dispose is called.
+        /// The returned <see cref="IDataView"/> will open the connection if it is not already open. If the data view has opened the connection, then it will also close it when the underlying cursor is disposed (for example, when enumeration completes).
         /// </para>
         /// </remarks>
         /// <param name="connection">The database connection. The loader will not dispose this connection. Leave it open while the data view is enumerated.</param>
