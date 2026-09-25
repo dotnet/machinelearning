@@ -431,7 +431,7 @@ namespace Microsoft.ML.Data
             return _mapper.GetTransformer();
         }
 
-        internal ITransformer GetTransformerForDisposal()
+        internal ITransformer GetParentTransformer()
             => (_mapper as IRowMapperWithTransformer)?.Transformer;
     }
 }

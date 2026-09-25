@@ -122,6 +122,43 @@ namespace Microsoft.ML.Tests
         }
 
         [TensorFlowFact]
+        public void DisposingLegacyCompositeWithReboundViewDoesNotDisposeTransformer()
+        {
+            var dataView = ML.Data.LoadFromEnumerable(
+                new[]
+                {
+                    new TestData
+                    {
+                        a = new[] { 1.0f, 2.0f, 3.0f, 4.0f },
+                        b = new[] { 1.0f, 2.0f, 3.0f, 4.0f }
+                    }
+                });
+
+            using var model = ML.Model.LoadTensorFlowModel("model_matmul/frozen_saved_model.pb");
+            var estimator = model.ScoreTensorFlowModel(new[] { "c" }, new[] { "a", "b" });
+            using var transformer = estimator.Fit(dataView);
+            var originalView = transformer.Transform(dataView);
+
+            var dataPath = GetOutputPath("rebound-transform-data.txt");
+            File.WriteAllText(dataPath, "1\t2\t3\t4\t1\t2\t3\t4");
+            using var loader = TextLoader.Create(Env, new TextLoader.Options
+            {
+                Columns = new[]
+                {
+                    new TextLoader.Column("a", DataKind.Single, 0, 3),
+                    new TextLoader.Column("b", DataKind.Single, 4, 7)
+                }
+            }, new MultiFileSource(dataPath));
+
+            using (LegacyCompositeDataLoader.ApplyTransform(Env, loader, null, null,
+                (env, source) => ApplyTransformUtils.ApplyTransformToData(env, (IDataTransform)originalView, source)))
+            {
+            }
+
+            ValidateTensorFlowTransformer(originalView);
+        }
+
+        [TensorFlowFact]
         public void TestOldSavingAndLoading()
         {
             var modelFile = "model_matmul/frozen_saved_model.pb";

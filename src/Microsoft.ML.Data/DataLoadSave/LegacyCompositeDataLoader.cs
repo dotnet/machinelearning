@@ -44,8 +44,10 @@ namespace Microsoft.ML.Data
             public readonly string Tag;
             public readonly string ArgsString;
             public readonly IDataTransform Transform;
+            // Set only when the parent transformer was created or loaded for this composite.
+            public readonly IDisposable OwnedTransformer;
 
-            public TransformEx(string tag, string argsString, IDataTransform transform)
+            public TransformEx(string tag, string argsString, IDataTransform transform, bool ownsTransformer = false)
             {
                 Contracts.AssertNonEmpty(tag);
                 Contracts.AssertValueOrNull(argsString);
@@ -54,6 +56,9 @@ namespace Microsoft.ML.Data
                 Tag = tag;
                 ArgsString = argsString;
                 Transform = transform;
+                OwnedTransformer = ownsTransformer && transform is RowToRowMapperTransform mapper
+                    ? mapper.GetParentTransformer() as IDisposable
+                    : null;
             }
         }
 
@@ -156,7 +161,7 @@ namespace Microsoft.ML.Data
                 }
             }
 
-            return ApplyTransformsCore(host, srcLoader, tagData,
+            return ApplyTransformsCore(host, srcLoader, tagData, ownsParentTransformers: true,
                 (env, index, data) => transformArgs[index].Value.CreateComponent(env, data));
         }
 
@@ -185,11 +190,12 @@ namespace Microsoft.ML.Data
             h.CheckValue(createTransform, nameof(createTransform));
             if (Utils.Size(tagData) == 0)
                 return srcLoader;
-            return ApplyTransformsCore(h, srcLoader, tagData, createTransform);
+            return ApplyTransformsCore(h, srcLoader, tagData, ownsParentTransformers: false, createTransform);
         }
 
         private static ILegacyDataLoader ApplyTransformsCore(IHost host, ILegacyDataLoader srcLoader,
-            KeyValuePair<string, string>[] tagData, Func<IHostEnvironment, int, IDataView, IDataView> createTransform)
+            KeyValuePair<string, string>[] tagData, bool ownsParentTransformers,
+            Func<IHostEnvironment, int, IDataView, IDataView> createTransform)
         {
             Contracts.AssertValue(host, "host");
             host.AssertValue(srcLoader, "srcLoader");
@@ -254,7 +260,7 @@ namespace Microsoft.ML.Data
                             break;
                         }
 
-                        newlyCreated.Add(new TransformEx(tag, tagData[i].Value, cur));
+                        newlyCreated.Add(new TransformEx(tag, tagData[i].Value, cur, ownsParentTransformers));
                         curDataView = cur.Source;
                     }
 
@@ -284,7 +290,8 @@ namespace Microsoft.ML.Data
             h.CheckValueOrNull(creationArgs);
             h.CheckValue(createTransform, nameof(createTransform));
             var tagData = new[] { new KeyValuePair<string, string>(tag, creationArgs) };
-            return ApplyTransformsCore(env.Register(RegistrationName), srcLoader, tagData, (e, index, data) => createTransform(e, data));
+            return ApplyTransformsCore(env.Register(RegistrationName), srcLoader, tagData, ownsParentTransformers: false,
+                (e, index, data) => createTransform(e, data));
         }
 
         /// <summary>
@@ -427,12 +434,8 @@ namespace Microsoft.ML.Data
 
             for (int i = _transforms.Length - 1; i >= 0; i--)
             {
-                var transform = _transforms[i].Transform;
-                // The view does not own its potentially shared transformer, but this composite does.
-                if (transform is RowToRowMapperTransform mapper)
-                    (mapper.GetTransformerForDisposal() as IDisposable)?.Dispose();
-                else
-                    (transform as IDisposable)?.Dispose();
+                (_transforms[i].Transform as IDisposable)?.Dispose();
+                _transforms[i].OwnedTransformer?.Dispose();
             }
 
             _loader.Dispose();
@@ -510,7 +513,7 @@ namespace Microsoft.ML.Data
             if (tagData.Count == 0)
                 return srcLoader;
 
-            return ApplyTransformsCore(host, srcLoader, tagData.ToArray(),
+            return ApplyTransformsCore(host, srcLoader, tagData.ToArray(), ownsParentTransformers: true,
                 (h, index, data) =>
                 {
                     IDataTransform xf;
