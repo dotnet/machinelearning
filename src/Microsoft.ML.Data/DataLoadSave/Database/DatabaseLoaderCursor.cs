@@ -22,7 +22,6 @@ namespace Microsoft.ML.Data
             private readonly DatabaseSource _source;
             private readonly Delegate[] _getters;
 
-            private DbConnection _connection;
             private DbCommand _command;
             private DbDataReader _dataReader;
 
@@ -53,19 +52,7 @@ namespace Microsoft.ML.Data
                 }
             }
 
-            public DbConnection Connection
-            {
-                get
-                {
-                    if (_connection is null)
-                    {
-                        _connection = _source.ProviderFactory.CreateConnection();
-                        _connection.ConnectionString = _source.ConnectionString;
-                        _connection.Open();
-                    }
-                    return _connection;
-                }
-            }
+            public DbConnection Connection => _source.Connection;
 
             public DbCommand Command
             {
@@ -122,7 +109,6 @@ namespace Microsoft.ML.Data
                 {
                     _dataReader?.Dispose();
                     _command?.Dispose();
-                    _connection?.Dispose();
                 }
                 _disposed = true;
                 base.Dispose(disposing);
