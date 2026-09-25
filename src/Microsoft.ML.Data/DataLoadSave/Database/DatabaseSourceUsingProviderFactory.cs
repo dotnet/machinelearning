@@ -9,10 +9,6 @@ namespace Microsoft.ML.Data
 {
     internal sealed class DatabaseSourceUsingProviderFactory : DatabaseSourceBase
     {
-        private bool _disposed;
-
-        private DbConnection _connection;
-
         public DatabaseSourceUsingProviderFactory(DbProviderFactory providerFactory, string connectionString, string commandText, int commandTimeoutInSeconds)
             : base(commandText, commandTimeoutInSeconds)
         {
@@ -23,32 +19,7 @@ namespace Microsoft.ML.Data
             ConnectionString = connectionString;
         }
 
-        public override DbConnection Connection
-        {
-            get
-            {
-                if (_connection is null)
-                {
-                    _connection = ProviderFactory.CreateConnection();
-                    _connection.ConnectionString = ConnectionString;
-                    _connection.Open();
-                }
-                return _connection;
-            }
-        }
-
-        public DbProviderFactory ProviderFactory { get; }
-        public string ConnectionString { get; }
-
-        protected override void Dispose(bool disposing)
-        {
-            if (_disposed) return;
-            if (disposing)
-            {
-                _connection?.Dispose();
-            }
-            _disposed = true;
-            base.Dispose(disposing);
-        }
+        public override DbProviderFactory ProviderFactory { get; }
+        public override string ConnectionString { get; }
     }
 }

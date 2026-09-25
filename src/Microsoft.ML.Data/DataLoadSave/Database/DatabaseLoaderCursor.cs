@@ -22,6 +22,10 @@ namespace Microsoft.ML.Data
             private readonly DatabaseSource _source;
             private readonly Delegate[] _getters;
 
+            private DbConnection _connection;
+            // True when this cursor created _connection from a provider factory and must dispose it.
+            // A caller-supplied connection is left for the caller to dispose.
+            private bool _ownsConnection;
             private DbCommand _command;
             private DbDataReader _dataReader;
 
@@ -52,7 +56,27 @@ namespace Microsoft.ML.Data
                 }
             }
 
-            public DbConnection Connection => _source.Connection;
+            public DbConnection Connection
+            {
+                get
+                {
+                    if (_connection is null)
+                    {
+                        if (_source.Connection is DbConnection supplied)
+                        {
+                            _connection = supplied;
+                        }
+                        else
+                        {
+                            _connection = _source.ProviderFactory.CreateConnection();
+                            _ownsConnection = true;
+                            _connection.ConnectionString = _source.ConnectionString;
+                            _connection.Open();
+                        }
+                    }
+                    return _connection;
+                }
+            }
 
             public DbCommand Command
             {
@@ -109,6 +133,8 @@ namespace Microsoft.ML.Data
                 {
                     _dataReader?.Dispose();
                     _command?.Dispose();
+                    if (_ownsConnection)
+                        _connection?.Dispose();
                 }
                 _disposed = true;
                 base.Dispose(disposing);

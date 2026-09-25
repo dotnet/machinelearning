@@ -111,6 +111,12 @@ namespace Microsoft.ML.Data
         public IDataView Load(DbProviderFactory factory, string connectionString, string commandText)
             => new BoundLoader(this, new DatabaseSource(factory, connectionString, commandText));
 
+        /// <summary>
+        /// Loads data from <paramref name="connection"/> by executing <paramref name="commandText"/> into an <see cref="IDataView"/>.
+        /// </summary>
+        /// <param name="connection">The database connection. The loader does not dispose this connection. Leave it open while the data view is enumerated.</param>
+        /// <param name="commandText">The SQL command text to execute.</param>
+        /// <returns>An <see cref="IDataView"/> representing the loaded data.</returns>
         public IDataView Load(DbConnection connection, string commandText)
             => new BoundLoader(this, new DatabaseSource(connection, commandText));
 
