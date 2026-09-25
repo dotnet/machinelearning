@@ -360,7 +360,7 @@ END";
             var source = new DatabaseSource(SQLiteFactory.Instance, connectionString, "SELECT datetime FROM Datetime");
             var data = loader.Load(source);
             var datetimes = data.GetColumn<DateTime>("datetime").ToArray();
-            datetimes.Count().Should().Be(2);
+            AssertDateTimeExpectations(datetimes);
         }
 
         [X86X64Fact("The SQLite un-managed code, SQLite.interop, only supports x86/x64 architectures.")]
@@ -394,7 +394,7 @@ END";
             var loader = mlContext.Data.CreateDatabaseLoader(new DatabaseLoader.Column("datetime", DbType.DateTime, 0));
             var data = loader.Load(SQLiteFactory.Instance, connectionString, "SELECT datetime FROM Datetime");
             var datetimes = data.GetColumn<DateTime>("datetime").ToArray();
-            datetimes.Count().Should().Be(2);
+            AssertDateTimeExpectations(datetimes);
         }
 
         [X86X64Fact("The SQLite un-managed code, SQLite.interop, only supports x86/x64 architectures.")]
@@ -431,7 +431,7 @@ END";
             var source = new DatabaseSource(dbConnection, "SELECT datetime FROM Datetime");
             var data = loader.Load(source);
             var datetimes = data.GetColumn<DateTime>("datetime").ToArray();
-            datetimes.Count().Should().Be(2);
+            AssertDateTimeExpectations(datetimes);
         }
 
         [X86X64Fact("The SQLite un-managed code, SQLite.interop, only supports x86/x64 architectures.")]
@@ -467,11 +467,11 @@ END";
             dbConnection.Open();
             var data = loader.Load(dbConnection, "SELECT datetime FROM Datetime");
             var datetimes = data.GetColumn<DateTime>("datetime").ToArray();
-            datetimes.Count().Should().Be(2);
+            AssertDateTimeExpectations(datetimes);
         }
 
         [X86X64Fact("The SQLite un-managed code, SQLite.interop, only supports x86/x64 architectures.")]
-        public void DatabaseLoader_Load_CalledUsingDbConnection_WhenConnectionIsNotOpen_OpensConnection()
+        public void DatabaseLoader_Load_CalledUsingDbConnection_WhenConnectionIsOpen_LeavesConnectionOpen()
         {
             var connectionString = "DataSource=Dummy;Mode=Memory;Version=3;Timeout=120;Cache=Shared";
             using (var connection = new SQLiteConnection(connectionString))
@@ -500,9 +500,65 @@ END";
             var mlContext = new MLContext(seed: 1);
             var loader = mlContext.Data.CreateDatabaseLoader(new DatabaseLoader.Column("datetime", DbType.DateTime, 0));
             using var dbConnection = new SQLiteConnection(connectionString);
+            dbConnection.Open();
             var data = loader.Load(dbConnection, "SELECT datetime FROM Datetime");
             var datetimes = data.GetColumn<DateTime>("datetime").ToArray();
-            datetimes.Count().Should().Be(2);
+
+            // Convert null value to DateTime.MinValue, aka 0001-01-01 00:00:00
+            // This is the default behavior of TextLoader as well.
+            Assert.Equal(ConnectionState.Open, dbConnection.State);
+            AssertDateTimeExpectations(datetimes);
+        }
+
+        [X86X64Fact("The SQLite un-managed code, SQLite.interop, only supports x86/x64 architectures.")]
+        public void DatabaseLoader_Load_CalledUsingDbConnection_WhenConnectionIsNotOpen_OpensAndClosesConnection()
+        {
+            var connectionString = "DataSource=Dummy;Mode=Memory;Version=3;Timeout=120;Cache=Shared";
+            using (var connection = new SQLiteConnection(connectionString))
+            {
+                connection.Open();
+                using (var command = new SQLiteCommand(connection))
+                {
+                    // Make sure the table doesn't exist.
+                    command.CommandText = """
+                        BEGIN;
+                        DROP TABLE IF EXISTS Datetime;
+                        COMMIT;
+                        """;
+                    command.ExecuteNonQuery();
+
+                    command.CommandText = """
+                        BEGIN;
+                        CREATE TABLE IF NOT EXISTS Datetime (datetime Datetime NULL);
+                        INSERT INTO Datetime VALUES (NULL);
+                        INSERT INTO Datetime VALUES ('2018-01-01 00:00:00');
+                        COMMIT;
+                        """;
+                    command.ExecuteNonQuery();
+                }
+            }
+            var mlContext = new MLContext(seed: 1);
+            var loader = mlContext.Data.CreateDatabaseLoader(new DatabaseLoader.Column("datetime", DbType.DateTime, 0));
+            DateTime[] datetimes;
+            using var dbConnection = new SQLiteConnection(connectionString);
+            var data = loader.Load(dbConnection, "SELECT datetime FROM Datetime");
+            datetimes = data.GetColumn<DateTime>("datetime").ToArray();
+
+            // Convert null value to DateTime.MinValue, aka 0001-01-01 00:00:00
+            // This is the default behavior of TextLoader as well.
+            Assert.Equal(ConnectionState.Closed, dbConnection.State);
+            AssertDateTimeExpectations(datetimes);
+        }
+
+        /// <summary>
+        /// Common assertion of DateTime expectations for test cases which compare overloads for functional equivalence.
+        /// </summary>
+        /// <param name="datetimes"></param>
+        private static void AssertDateTimeExpectations(DateTime[] datetimes)
+        {
+            datetimes.Length.Should().Be(2);
+            datetimes[0].Should().Be(DateTime.MinValue);
+            datetimes[1].Should().Be(new DateTime(2018, 1, 1, 0, 0, 0));
         }
 
         /// <summary>
