@@ -27,6 +27,9 @@ namespace Microsoft.ML.Data
             // True when this cursor created _connection from a provider factory and must dispose it.
             // A caller-supplied connection is left for the caller to dispose.
             private bool _ownsConnection;
+            // If this cursor does not own the connection, it still may have opened the connection.
+            // Dispose should close the connection if it was opened by this cursor.
+            private bool _openedConnection;
             private DbCommand _command;
             private DbDataReader _dataReader;
 
@@ -67,7 +70,10 @@ namespace Microsoft.ML.Data
                         {
                             _connection = supplied;
                             if (_connection.State != ConnectionState.Open)
+                            {
+                                _openedConnection = true;
                                 _connection.Open();
+                            }
                         }
                         else
                         {
@@ -138,6 +144,8 @@ namespace Microsoft.ML.Data
                     _command?.Dispose();
                     if (_ownsConnection)
                         _connection?.Dispose();
+                    else if (_openedConnection)
+                        _connection?.Close();
                 }
                 _disposed = true;
                 base.Dispose(disposing);
