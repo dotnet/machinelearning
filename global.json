@@ -3,10 +3,12 @@
     "dotnet": "11.0.100-rc.1.26420.103",
     "runtimes": {
       "dotnet": [
+        "$(DotNetRuntime100Version)",
         "$(DotNetRuntime60Version)",
         "$(DotNetRuntime80Version)"
       ],
       "dotnet/x86": [
+        "$(DotNetRuntime100Version)",
         "$(DotNetRuntime60Version)",
         "$(DotNetRuntime80Version)"
       ]
