@@ -104,8 +104,7 @@ namespace Microsoft.ML.CpuMath.UnitTests
 
                 _disableAvxAndSseEnvironmentVariables = new Dictionary<string, string>()
                 {
-                    { _disableAvx , "0" },
-                    { _disableSse , "0" }
+                    { _disableAvxAndSse, "0" }
                 };
             }
         }
