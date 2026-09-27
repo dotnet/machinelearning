@@ -31,7 +31,6 @@ namespace Microsoft.ML.CpuMath.UnitTests
         private static Dictionary<string, string> _disableAvxEnvironmentVariables;
         private static Dictionary<string, string> _disableAvxAndSseEnvironmentVariables;
         private static readonly string _disableAvx = "DOTNET_EnableAVX";
-        private static readonly string _disableSse = "DOTNET_EnableSSE";
         private static readonly string _disableAvxAndSse = "DOTNET_EnableHWIntrinsic";
         public static bool IsNetCore => Environment.Version.Major >= 5 || RuntimeInformation.FrameworkDescription.StartsWith(".NET Core", StringComparison.OrdinalIgnoreCase);
         public static bool IsNetCore2OrOlder => Environment.Version.Major == 4 && Environment.Version.Minor == 0;
