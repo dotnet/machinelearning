@@ -825,7 +825,16 @@ namespace Microsoft.ML.Trainers
         private static unsafe class Native
         {
             //To triger the loading of MKL library since SymSGD native library depends on it.
-            static Native() => ErrorMessage(0);
+            //On ARM there is no MKL: SymSgdNative bundles the small CBLAS shim it needs and no
+            //libMklImports is shipped, so skip this call (it would fail to load MklImports).
+            static Native()
+            {
+                if (RuntimeInformation.ProcessArchitecture != Architecture.Arm64 &&
+                    RuntimeInformation.ProcessArchitecture != Architecture.Arm)
+                {
+                    ErrorMessage(0);
+                }
+            }
 
             internal const string NativePath = "SymSgdNative";
             internal const string MklPath = "MklImports";
@@ -834,8 +843,8 @@ namespace Microsoft.ML.Trainers
 
             [DllImport(NativePath), SuppressUnmanagedCodeSecurity]
             private static extern void LearnAll(int totalNumInstances, int* instSizes, int** instIndices,
-                float** instValues, float* labels, bool tuneLR, ref float lr, float l2Const, float piw, float* weightVector, ref float bias,
-                int numFeatres, int numPasses, int numThreads, bool tuneNumLocIter, ref int numLocIter, float tolerance, bool needShuffle, bool shouldInitialize,
+                float** instValues, float* labels, [MarshalAs(UnmanagedType.I1)] bool tuneLR, ref float lr, float l2Const, float piw, float* weightVector, ref float bias,
+                int numFeatres, int numPasses, int numThreads, [MarshalAs(UnmanagedType.I1)] bool tuneNumLocIter, ref int numLocIter, float tolerance, [MarshalAs(UnmanagedType.I1)] bool needShuffle, [MarshalAs(UnmanagedType.I1)] bool shouldInitialize,
                 State* state, ChannelCallBack info);
 
             /// <summary>
