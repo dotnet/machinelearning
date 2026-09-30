@@ -24,6 +24,12 @@ namespace Microsoft.ML.Tokenizers
             return new ValueTask<string>(reader.ReadLineAsync());
         }
 
+        public static Task<string> ReadToEndAsync(StreamReader reader, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            return reader.ReadToEndAsync();
+        }
+
         public static async Task<Stream> GetStreamAsync(HttpClient client, string url, CancellationToken cancellationToken = default)
         {
             HttpResponseMessage response = await client.GetAsync(url, HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false);
@@ -195,4 +201,3 @@ namespace Microsoft.ML.Tokenizers
         }
     }
 }
-

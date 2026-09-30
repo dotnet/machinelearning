@@ -409,6 +409,32 @@ namespace Microsoft.ML.Tokenizers.Tests
         }
 
         [Fact]
+        public async Task CarriageReturnMergeTokenIsPreserved()
+        {
+            Dictionary<string, int> vocab = new()
+            {
+                [";"] = 0,
+                ["\r"] = 1,
+                [";\r"] = 2
+            };
+
+            byte[] vocabData = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(vocab));
+            byte[] mergesData = Encoding.UTF8.GetBytes("; \r\r\n");
+
+            using MemoryStream vocabStream = new(vocabData);
+            using MemoryStream mergesStream = new(mergesData);
+
+            BpeTokenizer bpe = BpeTokenizer.Create(vocabStream, mergesStream);
+            Assert.Equal([2], bpe.EncodeToIds(";\r", considerPreTokenization: false));
+
+            vocabStream.Position = 0;
+            mergesStream.Position = 0;
+
+            bpe = await BpeTokenizer.CreateAsync(vocabStream, mergesStream);
+            Assert.Equal([2], bpe.EncodeToIds(";\r", considerPreTokenization: false));
+        }
+
+        [Fact]
         public void TestGpt2Vocab()
         {
             Tokenizer tokenizer = GetGpt2Tokenizer();
@@ -1096,4 +1122,3 @@ namespace Microsoft.ML.Tokenizers.Tests
         }
     }
 }
-
