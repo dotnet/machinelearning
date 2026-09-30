@@ -26,6 +26,13 @@ namespace Microsoft.ML.Tokenizers
         private readonly byte[]? _normalized;
 
         /// <summary>
+        /// Optional Hugging Face tokenizer.json normalization chain applied (text -> text) before the SentencePiece
+        /// Metaspace pass, for JSON-only Unigram models whose normalizer has content-modifying steps. Null for the
+        /// common case so the existing hot path is unaffected.
+        /// </summary>
+        internal SentencePieceNormalizationStep? NormalizationChain { get; set; }
+
+        /// <summary>
         /// Creates a SentencePieceNormalizer object.
         /// </summary>
         public SentencePieceNormalizer(bool removeExtraWhiteSpaces, bool addDummyPrefix, bool escapeWhiteSpaces, bool treatWhitespaceAsSuffix, IReadOnlyDictionary<string, int>? specialTokens)
@@ -96,12 +103,53 @@ namespace Microsoft.ML.Tokenizers
             return Normalize(original.AsSpan());
         }
 
+        // Applies normalization through the byte-level path, which is the only path that consults the precompiled
+        // charsmap (the char-level path only does Metaspace/whitespace handling). Used by the JSON normalizer
+        // chain's Precompiled step, which needs the charsmap folding as a text -> text transform.
+        internal string NormalizeUtf8ToString(string text)
+        {
+            if (string.IsNullOrEmpty(text))
+            {
+                return string.Empty;
+            }
+
+            byte[] inputArray = ArrayPool<byte>.Shared.Rent(Encoding.UTF8.GetMaxByteCount(text.Length));
+            byte[]? poolArray = ArrayPool<byte>.Shared.Rent(Math.Max(64, Encoding.UTF8.GetMaxByteCount(text.Length) * 2));
+            Span<byte> normalized = poolArray;
+            try
+            {
+                int inputLength = Helpers.GetUtf8Bytes(text.AsSpan(), inputArray);
+                int length = Normalize(inputArray.AsSpan(0, inputLength), ref normalized, ref poolArray);
+                return length == 0 ? string.Empty : Encoding.UTF8.GetString(poolArray!, 0, length);
+            }
+            finally
+            {
+                ArrayPool<byte>.Shared.Return(inputArray);
+                if (poolArray is not null)
+                {
+                    ArrayPool<byte>.Shared.Return(poolArray);
+                }
+            }
+        }
+
         /// <summary>
         /// Normalize the original string according to SentencePiece normalization.
         /// </summary>
         /// <param name="original">The original string to normalize.</param>
         /// <returns>The normalized string.</returns>
         public override string Normalize(ReadOnlySpan<char> original)
+        {
+            if (NormalizationChain is not null)
+            {
+                // Chain-mode (content-modifying tokenizer.json normalizer) is an off-the-hot-path branch that runs a
+                // simple string pipeline; the intermediate string here is intentional (see SentencePieceNormalizationStep).
+                return NormalizeCore(NormalizationChain.Normalize(original.ToString()).AsSpan());
+            }
+
+            return NormalizeCore(original);
+        }
+
+        private string NormalizeCore(ReadOnlySpan<char> original)
         {
             int startIndex = 0;
             int endIndex = original.Length - 1;
@@ -333,6 +381,39 @@ namespace Microsoft.ML.Tokenizers
         }
 
         internal int Normalize(ReadOnlySpan<byte> input, ref Span<byte> normalized, ref byte[]? poolArray)
+        {
+            if (input.IsEmpty)
+            {
+                return 0;
+            }
+
+            if (NormalizationChain is not null)
+            {
+                // Chain-mode (content-modifying tokenizer.json normalizer) runs a simple string pipeline off the hot
+                // path; the one decoded string is intentional (see SentencePieceNormalizationStep). Decode the input
+                // and re-encode the result through the span-based helpers + a pooled buffer to avoid byte[] garbage.
+                string chained = NormalizationChain.Normalize(Helpers.GetString(input));
+                if (chained.Length == 0)
+                {
+                    return 0;
+                }
+
+                byte[] chainedBytes = ArrayPool<byte>.Shared.Rent(Encoding.UTF8.GetMaxByteCount(chained.Length));
+                try
+                {
+                    int chainedLength = Helpers.GetUtf8Bytes(chained.AsSpan(), chainedBytes);
+                    return NormalizeCore(chainedBytes.AsSpan(0, chainedLength), ref normalized, ref poolArray);
+                }
+                finally
+                {
+                    ArrayPool<byte>.Shared.Return(chainedBytes);
+                }
+            }
+
+            return NormalizeCore(input, ref normalized, ref poolArray);
+        }
+
+        private int NormalizeCore(ReadOnlySpan<byte> input, ref Span<byte> normalized, ref byte[]? poolArray)
         {
             if (input.IsEmpty)
             {

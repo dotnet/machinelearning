@@ -48,4 +48,4 @@ jobs:
     codeCoverage: true
     pool:
       name: NetCore-Public
-      demands: ImageOverride -equals 1es-windows-2019-open
+      demands: ImageOverride -equals 1es-windows-2022-open
