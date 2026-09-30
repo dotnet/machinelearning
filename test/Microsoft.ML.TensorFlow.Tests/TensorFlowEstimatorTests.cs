@@ -122,7 +122,7 @@ namespace Microsoft.ML.Tests
                 }));
             using var model = ML.Model.LoadTensorFlowModel(modelFile);
             var est = model.ScoreTensorFlowModel(new[] { "c" }, new[] { "a", "b" });
-            var transformer = est.Fit(dataView);
+            using var transformer = est.Fit(dataView);
             var result = transformer.Transform(dataView);
             var resultRoles = new RoleMappedData(result);
             using (var ms = new MemoryStream())
@@ -139,7 +139,17 @@ namespace Microsoft.ML.Tests
         {
             // typeof helps to load the TensorFlowTransformer type.
             Type type = typeof(TensorFlowTransformer);
-            Assert.Equal(0, Maml.Main(new[] { @"showschema loader=Text{col=a:R4:0-3 col=b:R4:0-3} xf=TFTransform{inputs=a inputs=b outputs=c modellocation={model_matmul/frozen_saved_model.pb}}" }));
+            try
+            {
+                Assert.Equal(0, Maml.Main(new[] { @"showschema loader=Text{col=a:R4:0-3 col=b:R4:0-3} xf=TFTransform{inputs=a inputs=b outputs=c modellocation={model_matmul/frozen_saved_model.pb}}" }));
+            }
+            finally
+            {
+                // The command API does not expose its legacy pipeline for disposal. Finalize its
+                // TensorFlow session before TensorFlow.NET tears down its global state.
+                GC.Collect();
+                GC.WaitForPendingFinalizers();
+            }
         }
 
         [TensorFlowFact]
@@ -159,10 +169,11 @@ namespace Microsoft.ML.Tests
             });
 
             // Note that CamelCase column names are there to match the TF graph node names.
+            using var tensorFlowModel = ML.Model.LoadTensorFlowModel(modelLocation);
             var pipe = ML.Transforms.LoadImages("Input", imageFolder, "imagePath")
                 .Append(ML.Transforms.ResizeImages("Input", imageHeight, imageWidth))
                 .Append(ML.Transforms.ExtractPixels("Input", interleavePixelColors: true))
-                .Append(ML.Model.LoadTensorFlowModel(modelLocation).ScoreTensorFlowModel("Output", "Input"));
+                .Append(tensorFlowModel.ScoreTensorFlowModel("Output", "Input"));
 
             TestEstimatorCore(pipe, data);
 
@@ -202,10 +213,11 @@ namespace Microsoft.ML.Tests
 
             // Note that CamelCase column names are there to match the TF graph node names.
             // Check and make sure save/load work correctly for the new TreatOutputAsBatched value.
+            using var unbatchedTensorFlowModel = ML.Model.LoadTensorFlowModel(modelLocation, false);
             var pipe = ML.Transforms.LoadImages("Input", imageFolder, "imagePath")
                 .Append(ML.Transforms.ResizeImages("Input", imageHeight, imageWidth))
                 .Append(ML.Transforms.ExtractPixels("Input", interleavePixelColors: true))
-                .Append(ML.Model.LoadTensorFlowModel(modelLocation, false).ScoreTensorFlowModel("Output", "Input"));
+                .Append(unbatchedTensorFlowModel.ScoreTensorFlowModel("Output", "Input"));
 
             TestEstimatorCore(pipe, data);
             using var pipelineModel = pipe.Fit(data);
@@ -217,10 +229,11 @@ namespace Microsoft.ML.Tests
 
             // Note that CamelCase column names are there to match the TF graph node names.
             // Test with TreatOutputAsBatched set to default value of true.
+            using var batchedTensorFlowModel = ML.Model.LoadTensorFlowModel(modelLocation);
             pipe = ML.Transforms.LoadImages("Input", imageFolder, "imagePath")
                 .Append(ML.Transforms.ResizeImages("Input", imageHeight, imageWidth))
                 .Append(ML.Transforms.ExtractPixels("Input", interleavePixelColors: true))
-                .Append(ML.Model.LoadTensorFlowModel(modelLocation).ScoreTensorFlowModel("Output", "Input"));
+                .Append(batchedTensorFlowModel.ScoreTensorFlowModel("Output", "Input"));
 
             TestEstimatorCore(pipe, data);
             using var pipelineModelBatched = pipe.Fit(data);
