@@ -139,17 +139,7 @@ namespace Microsoft.ML.Tests
         {
             // typeof helps to load the TensorFlowTransformer type.
             Type type = typeof(TensorFlowTransformer);
-            try
-            {
-                Assert.Equal(0, Maml.Main(new[] { @"showschema loader=Text{col=a:R4:0-3 col=b:R4:0-3} xf=TFTransform{inputs=a inputs=b outputs=c modellocation={model_matmul/frozen_saved_model.pb}}" }));
-            }
-            finally
-            {
-                // The command API does not expose its legacy pipeline for disposal. Finalize its
-                // TensorFlow session before TensorFlow.NET tears down its global state.
-                GC.Collect();
-                GC.WaitForPendingFinalizers();
-            }
+            Assert.Equal(0, Maml.Main(new[] { @"showschema loader=Text{col=a:R4:0-3 col=b:R4:0-3} xf=TFTransform{inputs=a inputs=b outputs=c modellocation={model_matmul/frozen_saved_model.pb}}" }));
         }
 
         [TensorFlowFact]

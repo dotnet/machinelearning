@@ -67,12 +67,20 @@ namespace Microsoft.ML.Data
         private void RunCore(IChannel ch)
         {
             ILegacyDataLoader loader = CreateAndSaveLoader();
-            using (var schemaWriter = new StringWriter())
+            try
             {
-                RunOnData(schemaWriter, ImplOptions, loader);
-                var str = schemaWriter.ToString();
-                ch.AssertNonEmpty(str);
-                ch.Info(str);
+                using (var schemaWriter = new StringWriter())
+                {
+                    RunOnData(schemaWriter, ImplOptions, loader);
+                    var str = schemaWriter.ToString();
+                    ch.AssertNonEmpty(str);
+                    ch.Info(str);
+                }
+            }
+            finally
+            {
+                foreach (var view in GetViewChainReversed(loader).ToArray())
+                    (view as IDisposable)?.Dispose();
             }
         }
 
