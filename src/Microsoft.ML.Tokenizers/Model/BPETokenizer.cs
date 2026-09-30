@@ -1143,7 +1143,7 @@ namespace Microsoft.ML.Tokenizers
 
             Vec<(string, string)> merges = new(1000);
 
-            // The merges.txt file tends to be about 500-600 kB, so reading it all into memory should be fine.
+            // The merges.txt file tends to be about 500 kB-3 MB, so reading it all into memory should be fine.
             string content = useAsync ?
                 await Helpers.ReadToEndAsync(reader, cancellationToken).ConfigureAwait(false) :
                 reader.ReadToEnd();
