@@ -755,5 +755,39 @@ namespace Microsoft.Data.Analysis.Tests
         //            }
         //        }
         //#endif //!NETFRAMEWORK
+
+        [Fact]
+        public void TestApply_CrossTypeConversion_CorrectValues()
+        {
+            int length = 100;
+            var byteColumn = new PrimitiveDataFrameColumn<byte>("Bytes",
+                Enumerable.Range(0, length).Select(i => (byte)(i % 256)));
+
+#pragma warning disable CS0618
+            PrimitiveDataFrameColumn<long> longColumn = byteColumn.Apply<long>(b => b.HasValue ? (long?)b.Value * 2 : null);
+#pragma warning restore CS0618
+
+            Assert.Equal(length, longColumn.Length);
+            for (int i = 0; i < length; i++)
+                Assert.Equal((long)(i % 256) * 2, longColumn[i]);
+        }
+
+        [Fact]
+        public void TestApply_CrossTypeConversion_WithNulls()
+        {
+            var byteColumn = new PrimitiveDataFrameColumn<byte>("Bytes",
+                new byte?[] { 1, null, 3, null, 5 });
+
+#pragma warning disable CS0618
+            PrimitiveDataFrameColumn<long> longColumn = byteColumn.Apply<long>(b => b.HasValue ? (long?)b.Value : null);
+#pragma warning restore CS0618
+
+            Assert.Equal(5, longColumn.Length);
+            Assert.Equal(1L, longColumn[0]);
+            Assert.Null(longColumn[1]);
+            Assert.Equal(3L, longColumn[2]);
+            Assert.Null(longColumn[3]);
+            Assert.Equal(5L, longColumn[4]);
+        }
     }
 }
