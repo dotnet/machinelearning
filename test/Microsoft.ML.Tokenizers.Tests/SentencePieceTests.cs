@@ -794,7 +794,7 @@ namespace Microsoft.ML.Tokenizers.Tests
         {
             // Laid out as T5 is: no BOS (bos_id = -1), PAD at 0, EOS at 1, UNK at 2.
             byte[] model = MakeModelProto(
-                MakeUnigramTrainerSpecWithoutBos(),
+                MakeUnigramTrainerSpec(bosId: -1, eosId: 1),
                 null,
                 MakePiece("<pad>", type: 3),
                 MakePiece("</s>", type: 3),
@@ -815,7 +815,7 @@ namespace Microsoft.ML.Tokenizers.Tests
         public void Synthetic_UnigramModel_WithoutBeginningOfSentence_RequestingItThrows()
         {
             byte[] model = MakeModelProto(
-                MakeUnigramTrainerSpecWithoutBos(),
+                MakeUnigramTrainerSpec(bosId: -1, eosId: 1),
                 null,
                 MakePiece("<pad>", type: 3),
                 MakePiece("</s>", type: 3),
@@ -823,6 +823,42 @@ namespace Microsoft.ML.Tokenizers.Tests
                 MakePiece("▁Hello", -1f));
 
             Assert.Throws<ArgumentException>(() => CreateFromSyntheticModel(model, addBos: true));
+        }
+
+        [Fact]
+        public void Synthetic_UnigramModel_WithoutEndOfSentence()
+        {
+            // No EOS (eos_id = -1): PAD at 0, BOS at 1, UNK at 2.
+            byte[] model = MakeModelProto(
+                MakeUnigramTrainerSpec(bosId: 1, eosId: -1),
+                null,
+                MakePiece("<pad>", type: 3),
+                MakePiece("<s>", type: 3),
+                MakePiece("<unk>", type: 2),
+                MakePiece("▁Hello", -1f),
+                MakePiece("▁world", -2f));
+
+            SentencePieceTokenizer tokenizer = CreateFromSyntheticModel(model, addBos: true, addEos: false);
+
+            Assert.Equal(1, tokenizer.BeginningOfSentenceId);
+            Assert.Equal(-1, tokenizer.EndOfSentenceId);
+            Assert.Equal(new[] { 1, 3, 4 }, tokenizer.EncodeToIds("Hello world"));
+            Assert.Equal(new[] { 3, 4 }, tokenizer.EncodeToIds("Hello world", addBeginningOfSentence: false, addEndOfSentence: false));
+            Assert.Equal("Hello world", tokenizer.Decode(new[] { 1, 3, 4 }));
+        }
+
+        [Fact]
+        public void Synthetic_UnigramModel_WithoutEndOfSentence_RequestingItThrows()
+        {
+            byte[] model = MakeModelProto(
+                MakeUnigramTrainerSpec(bosId: 1, eosId: -1),
+                null,
+                MakePiece("<pad>", type: 3),
+                MakePiece("<s>", type: 3),
+                MakePiece("<unk>", type: 2),
+                MakePiece("▁Hello", -1f));
+
+            Assert.Throws<ArgumentException>(() => CreateFromSyntheticModel(model, addBos: false, addEos: true));
         }
 
         // =================================================================
@@ -856,14 +892,14 @@ namespace Microsoft.ML.Tokenizers.Tests
             return w.ToArray();
         }
 
-        private static byte[] MakeUnigramTrainerSpecWithoutBos()
+        private static byte[] MakeUnigramTrainerSpec(int bosId, int eosId)
         {
             ProtobufWriter w = new();
-            w.WriteInt32Field(3, 1);   // model_type = Unigram
-            w.WriteInt32Field(40, 2);  // unk_id
-            w.WriteInt32Field(41, -1); // bos_id: no BOS
-            w.WriteInt32Field(42, 1);  // eos_id
-            w.WriteInt32Field(43, 0);  // pad_id
+            w.WriteInt32Field(3, 1);      // model_type = Unigram
+            w.WriteInt32Field(40, 2);     // unk_id
+            w.WriteInt32Field(41, bosId); // bos_id, -1 for none
+            w.WriteInt32Field(42, eosId); // eos_id, -1 for none
+            w.WriteInt32Field(43, 0);     // pad_id
             return w.ToArray();
         }
 
