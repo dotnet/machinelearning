@@ -484,6 +484,8 @@ namespace Microsoft.ML.Trainers
             env.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel(GetVersionInfo());
             var predictor = new LinearBinaryModelParameters(env, ctx);
+            // Preserve compatibility with archives that embed a calibrator inside the predictor.
+            // Current calibrated models save the predictor and calibrator as siblings in a separate wrapper.
             ICalibrator calibrator;
             ctx.LoadModelOrNull<ICalibrator, SignatureLoadModel>(env, out calibrator, @"Calibrator");
             if (calibrator == null)
