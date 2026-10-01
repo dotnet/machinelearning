@@ -267,13 +267,35 @@ namespace Microsoft.Data.Analysis
             return ret;
         }
 
-        /// <inheritdoc cref="DataFrameColumn.Clone(DataFrameColumn, bool, long)"/>
+        /// <summary>
+        /// Clones the column, selecting and ordering values according to <paramref name="mapIndices"/>.
+        /// </summary>
+        /// <param name="mapIndices">
+        /// A Boolean, <see cref="int"/>, or <see cref="long"/> column that determines which values to copy.
+        /// For a Boolean column, the value at each position selects the value at the same position when it is
+        /// <see langword="true"/>. For an integer column, each value is a zero-based index into this column;
+        /// the map order determines the result order, and repeated indices produce repeated values.
+        /// </param>
+        /// <param name="invertMapIndices">
+        /// <see langword="true"/> to process integer values in <paramref name="mapIndices"/> in reverse order;
+        /// otherwise, <see langword="false"/>. This parameter does not affect a Boolean map.
+        /// </param>
+        /// <param name="numberOfNullsToAppend">
+        /// The number of default <see cref="VBuffer{T}"/> values to append after the selected values.
+        /// </param>
+        /// <returns>A new <see cref="VBufferDataFrameColumn{T}"/>.</returns>
         public new VBufferDataFrameColumn<T> Clone(DataFrameColumn mapIndices, bool invertMapIndices, long numberOfNullsToAppend)
         {
             return (VBufferDataFrameColumn<T>)CloneImplementation(mapIndices, invertMapIndices, numberOfNullsToAppend);
         }
 
-        /// <inheritdoc cref="DataFrameColumn.Clone(long)"/>
+        /// <summary>
+        /// Clones the column.
+        /// </summary>
+        /// <param name="numberOfNullsToAppend">
+        /// The number of default <see cref="VBuffer{T}"/> values to append to the copied values.
+        /// </param>
+        /// <returns>A new <see cref="VBufferDataFrameColumn{T}"/>.</returns>
         public new VBufferDataFrameColumn<T> Clone(long numberOfNullsToAppend = 0)
         {
             return (VBufferDataFrameColumn<T>)CloneImplementation(numberOfNullsToAppend);
@@ -299,6 +321,9 @@ namespace Microsoft.Data.Analysis
                 clone = Clone();
             }
 
+            for (long i = 0; i < numberOfNullsToAppend; i++)
+                clone.Append(default);
+
             return clone;
         }
 
@@ -308,6 +333,9 @@ namespace Microsoft.Data.Analysis
 
             for (long i = 0; i < Length; i++)
                 ret[i] = this[i];
+
+            for (long i = 0; i < numberOfNullsToAppend; i++)
+                ret.Append(default);
 
             return ret;
         }
