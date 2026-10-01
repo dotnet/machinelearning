@@ -75,7 +75,7 @@ namespace Microsoft.ML.Tests
             using var engine = BuildEngine(mlContext);
 
             var inputs = Enumerable.Range(1, 5).Select(i => new InputData { Value = i * 1.5f }).ToArray();
-            var batchOutputs = inputs.Select(_ => new OutputData()).ToArray();
+            var batchOutputs = inputs.Select(input => new OutputData()).ToArray();
 
             engine.PredictBatch(inputs, batchOutputs);
 
