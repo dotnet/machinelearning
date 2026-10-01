@@ -130,7 +130,15 @@ namespace Microsoft.ML.Tests
                 TrainUtils.SaveModel(Env, Env.Start("saving"), ms, null, resultRoles);
                 ms.Position = 0;
                 var loadedView = ModelFileUtils.LoadTransforms(Env, dataView, ms);
-                ValidateTensorFlowTransformer(loadedView);
+                try
+                {
+                    ValidateTensorFlowTransformer(loadedView);
+                }
+                finally
+                {
+                    var loadedTransformer = (loadedView as RowToRowMapperTransform)?.GetTransformer();
+                    (loadedTransformer as IDisposable)?.Dispose();
+                }
             }
         }
 

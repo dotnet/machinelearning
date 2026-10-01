@@ -79,8 +79,7 @@ namespace Microsoft.ML.Data
             }
             finally
             {
-                foreach (var view in GetViewChainReversed(loader).ToArray())
-                    (view as IDisposable)?.Dispose();
+                DisposeViewChain(loader);
             }
         }
 
@@ -119,6 +118,17 @@ namespace Microsoft.ML.Data
                 yield return view;
                 var transform = view as IDataTransform;
                 view = transform?.Source;
+            }
+        }
+
+        private static void DisposeViewChain(IDataView data)
+        {
+            foreach (var view in GetViewChainReversed(data).ToArray())
+            {
+                var disposable = view is RowToRowMapperTransform mapper
+                    ? mapper.GetTransformer() as IDisposable
+                    : view as IDisposable;
+                disposable?.Dispose();
             }
         }
 
