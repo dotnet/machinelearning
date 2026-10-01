@@ -82,11 +82,11 @@
     </HelixCorrelationPayload>
 
     <HelixCorrelationPayload Include="$(BUILD_SOURCESDIRECTORY)\test\data">
-      <Destination>test\data</Destination>
+      <Destination>test/data</Destination>
     </HelixCorrelationPayload>
 
     <HelixCorrelationPayload Include="$(BUILD_SOURCESDIRECTORY)\test\BaselineOutput">
-      <Destination>test\BaselineOutput</Destination>
+      <Destination>test/BaselineOutput</Destination>
     </HelixCorrelationPayload>
   </ItemGroup>
 

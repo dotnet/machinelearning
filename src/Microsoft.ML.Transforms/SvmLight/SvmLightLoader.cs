@@ -55,9 +55,8 @@ namespace Microsoft.ML.Data
     ///
     /// The feature vector is specified through a series of key/value pairs. SVM-light
     /// requires that the keys be positive, increasing integers, except for three special keys:
-    /// cost (we interpret as Weight), qid (we interpret as GroupId) and sid (we ignore these,
-    /// but might present them as a column in the future if any of our learners implement anything
-    /// resembling slack id). The value for 'cost' is float, 'qid' is a long, and 'sid' is a long
+    /// cost (we interpret as Weight), qid (we interpret as GroupId) and sid (which we ignore).
+    /// The value for 'cost' is float, 'qid' is a long, and 'sid' is a long
     /// that must be positive. If these keys are specified multiple times, the last one wins.
     ///
     /// SVM-light, if the tail of the value is not interpretable as a number, will ignore the tail.
