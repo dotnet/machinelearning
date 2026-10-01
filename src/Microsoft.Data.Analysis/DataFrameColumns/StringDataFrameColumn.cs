@@ -275,11 +275,13 @@ namespace Microsoft.Data.Analysis
             return columnSortIndices;
         }
 
+        /// <inheritdoc cref="DataFrameColumn.Clone(DataFrameColumn, bool, long)"/>
         public new StringDataFrameColumn Clone(DataFrameColumn mapIndices, bool invertMapIndices, long numberOfNullsToAppend)
         {
             return (StringDataFrameColumn)CloneImplementation(mapIndices, invertMapIndices, numberOfNullsToAppend);
         }
 
+        /// <inheritdoc cref="DataFrameColumn.Clone(long)"/>
         public new StringDataFrameColumn Clone(long numberOfNullsToAppend = 0)
         {
             return (StringDataFrameColumn)CloneImplementation(numberOfNullsToAppend);
