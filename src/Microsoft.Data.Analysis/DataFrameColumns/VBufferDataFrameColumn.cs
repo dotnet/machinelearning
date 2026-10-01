@@ -267,11 +267,13 @@ namespace Microsoft.Data.Analysis
             return ret;
         }
 
+        /// <inheritdoc cref="DataFrameColumn.Clone(DataFrameColumn, bool, long)"/>
         public new VBufferDataFrameColumn<T> Clone(DataFrameColumn mapIndices, bool invertMapIndices, long numberOfNullsToAppend)
         {
             return (VBufferDataFrameColumn<T>)CloneImplementation(mapIndices, invertMapIndices, numberOfNullsToAppend);
         }
 
+        /// <inheritdoc cref="DataFrameColumn.Clone(long)"/>
         public new VBufferDataFrameColumn<T> Clone(long numberOfNullsToAppend = 0)
         {
             return (VBufferDataFrameColumn<T>)CloneImplementation(numberOfNullsToAppend);
