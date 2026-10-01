@@ -6,7 +6,7 @@ description: "Guidance for GitHub Copilot when working on ML.NET (dotnet/machine
 
 ## Repository Overview
 
-ML.NET is a cross-platform, open-source machine learning framework for .NET. It provides APIs for training, evaluating, and deploying ML models across classification, regression, clustering, ranking, anomaly detection, time series, recommendation, and generative AI (LLaMA, Phi, Mistral via TorchSharp).
+ML.NET is a cross-platform, open-source machine learning framework for .NET. It provides APIs for training, evaluating, and deploying ML models across classification, regression, clustering, ranking, anomaly detection, time series, and recommendation.
 
 ### Key Technologies
 
@@ -14,7 +14,7 @@ ML.NET is a cross-platform, open-source machine learning framework for .NET. It 
 - Build system: Microsoft Arcade SDK (`eng/common/`)
 - Test framework: xUnit (with `AwesomeAssertions`, `Xunit.Combinatorial`)
 - Native dependencies: MKL, OpenMP, libmf, oneDNN
-- Major dependencies: TorchSharp, ONNX Runtime, TensorFlow, LightGBM, Semantic Kernel
+- Major dependencies: TorchSharp, ONNX Runtime, TensorFlow, LightGBM
 - Central package management: `Directory.Packages.props`
 
 ## Build & Test
@@ -72,10 +72,6 @@ src/
 ├── Microsoft.ML.Recommender/       # Matrix factorization recommenders
 ├── Microsoft.ML.TimeSeries/        # Time series analysis
 ├── Microsoft.ML.Tokenizers/        # BPE/WordPiece/SentencePiece tokenizers
-├── Microsoft.ML.GenAI.Core/        # GenAI base types (CausalLM pipeline)
-├── Microsoft.ML.GenAI.LLaMA/       # LLaMA model support
-├── Microsoft.ML.GenAI.Phi/         # Phi model support
-├── Microsoft.ML.GenAI.Mistral/     # Mistral model support
 ├── Microsoft.ML.TorchSharp/        # TorchSharp-based trainers
 ├── Microsoft.ML.OnnxTransformer/   # ONNX model inference
 ├── Microsoft.ML.TensorFlow/        # TensorFlow model inference
@@ -92,7 +88,6 @@ test/
 ├── Microsoft.ML.Core.Tests/         # Core unit tests
 ├── Microsoft.ML.IntegrationTests/   # End-to-end integration tests
 ├── Microsoft.ML.Tokenizers.Tests/   # Tokenizer tests
-├── Microsoft.ML.GenAI.*.Tests/      # GenAI component tests
 └── ... (30+ test projects)
 ```
 

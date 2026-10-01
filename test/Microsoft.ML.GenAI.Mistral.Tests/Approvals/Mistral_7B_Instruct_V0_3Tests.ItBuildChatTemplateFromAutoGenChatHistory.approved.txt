@@ -1,3 +1,0 @@
-﻿[INST]You are a helpful AI assistant.
-
-Hello?[/INST]World!</s>
