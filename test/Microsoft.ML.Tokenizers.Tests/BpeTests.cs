@@ -434,6 +434,22 @@ namespace Microsoft.ML.Tokenizers.Tests
 
             bpe = await BpeTokenizer.CreateAsync(vocabStream, mergesStream);
             Assert.Equal([2], bpe.EncodeToIds(";\r", considerPreTokenization: false));
+
+            string vocabFile = Utils.CreateTemporaryFile("json");
+            string mergesFile = Utils.CreateTemporaryFile("txt");
+            try
+            {
+                File.WriteAllBytes(vocabFile, vocabData);
+                File.WriteAllBytes(mergesFile, mergesData);
+
+                bpe = BpeTokenizer.Create(new BpeOptions(vocabFile, mergesFile));
+                Assert.Equal([2], bpe.EncodeToIds(";\r", considerPreTokenization: false));
+            }
+            finally
+            {
+                Utils.DeleteFile(vocabFile);
+                Utils.DeleteFile(mergesFile);
+            }
         }
 
         [Fact]
