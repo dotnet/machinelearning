@@ -212,7 +212,9 @@ namespace Microsoft.Data.Analysis
         /// <summary>
         /// Clones the column.
         /// </summary>
-        /// <param name="numberOfNullsToAppend">The number of null values to append to the copied values.</param>
+        /// <param name="numberOfNullsToAppend">
+        /// The number of null values to append to the copied values. Columns that do not support null values append default values instead.
+        /// </param>
         /// <returns>A new <see cref="DataFrameColumn"/></returns>
         public DataFrameColumn Clone(long numberOfNullsToAppend = 0) => CloneImplementation(numberOfNullsToAppend);
 
@@ -229,7 +231,9 @@ namespace Microsoft.Data.Analysis
         /// <see langword="true"/> to process integer values in <paramref name="mapIndices"/> in reverse order;
         /// otherwise, <see langword="false"/>. This parameter does not affect a Boolean map.
         /// </param>
-        /// <param name="numberOfNullsToAppend">The number of null values to append after the selected values.</param>
+        /// <param name="numberOfNullsToAppend">
+        /// The number of null values to append after the selected values. Columns that do not support null values append default values instead.
+        /// </param>
         /// <returns>A new <see cref="DataFrameColumn"/></returns>
         public DataFrameColumn Clone(DataFrameColumn mapIndices, bool invertMapIndices = false, long numberOfNullsToAppend = 0) => CloneImplementation(mapIndices, invertMapIndices, numberOfNullsToAppend);
 
