@@ -408,8 +408,10 @@ namespace Microsoft.ML.Tokenizers.Tests
             ValidateTokenizer(bpe);
         }
 
-        [Fact]
-        public async Task CarriageReturnMergeTokenIsPreserved()
+        [Theory]
+        [InlineData("; \r\r\n")]
+        [InlineData("; \r")]
+        public async Task CarriageReturnMergeTokenIsPreserved(string merges)
         {
             Dictionary<string, int> vocab = new()
             {
@@ -419,7 +421,7 @@ namespace Microsoft.ML.Tokenizers.Tests
             };
 
             byte[] vocabData = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(vocab));
-            byte[] mergesData = Encoding.UTF8.GetBytes("; \r\r\n");
+            byte[] mergesData = Encoding.UTF8.GetBytes(merges);
 
             using MemoryStream vocabStream = new(vocabData);
             using MemoryStream mergesStream = new(mergesData);

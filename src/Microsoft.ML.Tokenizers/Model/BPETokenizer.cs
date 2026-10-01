@@ -1153,7 +1153,8 @@ namespace Microsoft.ML.Tokenizers
             while (lineStart < content.Length)
             {
                 int lineEnd = content.IndexOf('\n', lineStart);
-                if (lineEnd < 0)
+                bool hasLineTerminator = lineEnd >= 0;
+                if (!hasLineTerminator)
                 {
                     lineEnd = content.Length;
                 }
@@ -1163,7 +1164,7 @@ namespace Microsoft.ML.Tokenizers
 
                 // \n and \r\n are considered to be line terminators.
                 // But a lone \r can be token data, so only remove the one that terminates a \r\n line.
-                if (lineLength > 0 && content[lineEnd - 1] == '\r')
+                if (hasLineTerminator && lineLength > 0 && content[lineEnd - 1] == '\r')
                 {
                     lineLength--;
                 }
