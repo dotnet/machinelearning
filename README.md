@@ -45,13 +45,9 @@ Check out the [release notes](docs/release-notes) to see what's new. You can als
 First, ensure you have installed [.NET Core 2.1](https://www.microsoft.com/net/learn/get-started) or later. ML.NET also works on the .NET Framework 4.6.1 or later, but 4.7.2 or later is recommended.
 
 Once you have an app, you can install the ML.NET NuGet package from the .NET Core CLI using:
+
 ```
 dotnet add package Microsoft.ML
-```
-
-or from the NuGet Package Manager:
-```
-Install-Package Microsoft.ML
 ```
 
 Alternatively, you can add the Microsoft.ML package from within Visual Studio's NuGet package manager or via [Paket](https://github.com/fsprojects/Paket).
@@ -64,17 +60,8 @@ Daily NuGet builds of the project are also available in our Azure DevOps feed:
 
 To build ML.NET from source please visit our [developer guide](docs/project-docs/developer-guide.md).
 
+[![Build Status](https://dev.azure.com/dnceng-public/public/_apis/build/status/dotnet/machinelearning/MachineLearning-CI?branchName=main)](https://dev.azure.com/dnceng-public/public/_build/latest?definitionId=167&branchName=main)
 [![codecov](https://codecov.io/gh/dotnet/machinelearning/branch/main/graph/badge.svg?flag=production)](https://codecov.io/gh/dotnet/machinelearning)
-
-|    | Debug | Release |
-|:---|----------------:|------------------:|
-|**CentOS**|[![Build Status](https://dev.azure.com/dnceng/public/_apis/build/status/dotnet/machinelearning/MachineLearning-CI?branchName=main&jobName=Centos_x64_Net60&configuration=Centos_x64_Net60%20Debug_Build)](https://dev.azure.com/dnceng/public/_build/latest?definitionId=104&branchName=main)|[![Build Status](https://dev.azure.com/dnceng/public/_apis/build/status/dotnet/machinelearning/MachineLearning-CI?branchName=main&jobName=Centos_x64_Net60&configuration=Centos_x64_Net60%20Release_Build)](https://dev.azure.com/dnceng/public/_build/latest?definitionId=104&branchName=main)|
-|**Ubuntu**|[![Build Status](https://dev.azure.com/dnceng/public/_apis/build/status/dotnet/machinelearning/MachineLearning-CI?branchName=main&jobName=Ubuntu_x64_Net60&configuration=Ubuntu_x64_Net60%20Debug_Build)](https://dev.azure.com/dnceng/public/_build/latest?definitionId=104&branchName=main)|[![Build Status](https://dev.azure.com/dnceng/public/_apis/build/status/dotnet/machinelearning/MachineLearning-CI?branchName=main&jobName=Ubuntu_x64_Net60&configuration=Ubuntu_x64_Net60%20Release_Build)](https://dev.azure.com/dnceng/public/_build/latest?definitionId=104&branchName=main)|
-|**macOS**|[![Build Status](https://dev.azure.com/dnceng/public/_apis/build/status/dotnet/machinelearning/MachineLearning-CI?branchName=main&jobName=MacOS_x64_Net60&configuration=MacOS_x64_Net60%20Debug_Build)](https://dev.azure.com/dnceng/public/_build/latest?definitionId=104&branchName=main)|[![Build Status](https://dev.azure.com/dnceng/public/_apis/build/status/dotnet/machinelearning/MachineLearning-CI?branchName=main&jobName=MacOS_x64_Net60&configuration=MacOS_x64_Net60%20Release_Build)](https://dev.azure.com/dnceng/public/_build/latest?definitionId=104&branchName=main)|
-|**Windows x64**|[![Build Status](https://dev.azure.com/dnceng/public/_apis/build/status/dotnet/machinelearning/MachineLearning-CI?branchName=main&jobName=Windows_x64_Net60&configuration=Windows_x64_Net60%20Debug_Build)](https://dev.azure.com/dnceng/public/_build/latest?definitionId=104&branchName=main)|[![Build Status](https://dev.azure.com/dnceng/public/_apis/build/status/dotnet/machinelearning/MachineLearning-CI?branchName=main&jobName=Windows_x64_Net60&configuration=Windows_x64_Net60%20Release_Build)](https://dev.azure.com/dnceng/public/_build/latest?definitionId=104&branchName=main)|
-|**Windows FullFramework**|[![Build Status](https://dev.azure.com/dnceng/public/_apis/build/status/dotnet/machinelearning/MachineLearning-CI?branchName=main&jobName=Windows_x64_NetFx461&configuration=Windows_x64_NetFx461%20Debug_Build)](https://dev.azure.com/dnceng/public/_build/latest?definitionId=104&branchName=main)|[![Build Status](https://dev.azure.com/dnceng/public/_apis/build/status/dotnet/machinelearning/MachineLearning-CI?branchName=main&jobName=Windows_x64_NetFx461&configuration=Windows_x64_NetFx461%20Release_Build)](https://dev.azure.com/dnceng/public/_build/latest?definitionId=104&branchName=main)|
-|**Windows x86**|[![Build Status](https://dev.azure.com/dnceng/public/_apis/build/status/dotnet/machinelearning/MachineLearning-CI?branchName=main&jobName=Windows_x86_Net60&configuration=Windows_x86_Net60%20Debug_Build)](https://dev.azure.com/dnceng/public/_build/latest?definitionId=104&branchName=main)|[![Build Status](https://dev.azure.com/dnceng/public/_apis/build/status/dotnet/machinelearning/MachineLearning-CI?branchName=main&jobName=Windows_x86_Net60&configuration=Windows_x86_Net60%20Release_Build)](https://dev.azure.com/dnceng/public/_build/latest?definitionId=104&branchName=main)|
-|**Windows NetCore3.1**|[![Build Status](https://dev.azure.com/dnceng/public/_apis/build/status/dotnet/machinelearning/MachineLearning-CI?branchName=main&jobName=Windows_x64_Net60&configuration=Windows_x64_Net60%20Debug_Build)](https://dev.azure.com/dnceng/public/_build/latest?definitionId=104&branchName=main)|[![Build Status](https://dev.azure.com/dnceng/public/_apis/build/status/dotnet/machinelearning/MachineLearning-CI?branchName=main&jobName=Windows_x64_Net60&configuration=Windows_x64_Net60%20Release_Build)](https://dev.azure.com/dnceng/public/_build/latest?definitionId=104&branchName=main)|
 
 ## Release process and versioning
 
@@ -85,11 +72,6 @@ Check out the [Release Notes](docs/release-notes) to see all of the past ML.NET 
 ## Contributing
 
 We welcome contributions! Please review our [contribution guide](CONTRIBUTING.md).
-
-## Community
-
-- Join our community on [Discord](https://aka.ms/dotnet-discord).
-- Tune into the [.NET Machine Learning Community Standup](https://dotnet.microsoft.com/live/community-standup) every other Wednesday at 10AM Pacific Time.
 
 This project has adopted the code of conduct defined by the [Contributor Covenant](https://contributor-covenant.org/) to clarify expected behavior in our community.
 For more information, see the [.NET Foundation Code of Conduct](https://dotnetfoundation.org/code-of-conduct).

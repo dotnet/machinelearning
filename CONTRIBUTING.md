@@ -6,10 +6,7 @@ If you are here, it means you are interested in helping us out. A hearty welcome
 * Give us feedback and bug reports regarding the software or the documentation.
 * Improve our examples, tutorials, and documentation.
 
-## Getting started:
-
-Please join the community on Gitter [![Join the chat at https://gitter.im/dotnet/mlnet](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/dotnet/mlnet?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge). Also please make sure to take a look at the project [roadmap](ROADMAP.md).
-
+## Getting started
 
 ### Finding an issue to work on
 
@@ -31,10 +28,10 @@ An ML.NET team member will be assigned to your pull request once the continuous 
 
 All commits in a pull request will be squashed to a single commit with the original creator as author.
 
-# Contributing
+## Contributing
 
 See [Contributing](docs/project-docs/contributing.md) for information about coding styles, source structure, making pull requests, and more.
 
-# Developers
+## Developers
 
 See the [Developer Guide](docs/project-docs/developer-guide.md) for details about developing in this repo.
