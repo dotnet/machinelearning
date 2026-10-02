@@ -44,6 +44,11 @@ jobs:
         _configuration: Debug
         _config_short: D
         _includeBenchmarkData: false
+        _targetFramework: net10.0
+      Net8_Build_Debug:
+        _configuration: Debug
+        _config_short: D8
+        _includeBenchmarkData: false
         _targetFramework: net8.0
     codeCoverage: true
     pool:
