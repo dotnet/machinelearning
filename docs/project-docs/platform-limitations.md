@@ -1,7 +1,7 @@
 Platform limitations
 ======================
 
-While ML.NET is cross-platform, there are some limitations for specific operating system and architecture combinations as outlined below. The Windows, Linux, and macOS rows cover Intel/AMD architectures; the ARM64 row covers Windows, Linux, and macOS on ARM64. Apple silicon is macOS on ARM64.
+While ML.NET is cross-platform, there are some limitations for specific operating system and architecture combinations as outlined below.
 
 | Operating system and architecture | Training | Inference |
 | :- | :- | :- |
