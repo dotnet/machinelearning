@@ -5,7 +5,8 @@ While ML.NET is cross-platform, there are some limitations for specific operatin
 
 | Operating system and architecture | Training | Inference |
 | :- | :- | :- |
-| **Windows (x64 or x86)** | Yes | Yes |
+| **Windows (x64)** | Yes | Yes |
+| **Windows (x86)** | Yes, with **limitations**.</br></br>The following 64-bit-only components are not supported:<ul><li>TensorFlow-based components</li><li>LightGBM training</li><li>TorchSharp-based trainers</li></ul> | Yes, with **limitations**.</br></br>The following 64-bit-only components are not supported:<ul><li>TensorFlow-based components</li><li>TorchSharp-based models</li></ul> |
 | **Linux (x64)** | Yes | Yes |
 | **macOS (Intel x64)** | Yes | Yes |
 | **Windows, Linux or macOS (ARM64)** | Yes, with **limitations**.</br></br>The following are not supported using the native dependencies supplied by this repository:<ul><li>TensorFlow-based components</li><li>OLS</li><li>TimeSeries SSA</li><li>TimeSeries SrCNN</li><li>LightGBM</li><li>TorchSharp-based trainers</li></ul> | Yes, with **limitations**.</br></br>The following are not supported using the native dependencies supplied by this repository:<ul><li>TensorFlow-based components</li><li>TimeSeries SSA</li><li>TimeSeries SrCNN</li><li>TorchSharp-based models</li></ul> |
