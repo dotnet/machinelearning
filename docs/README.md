@@ -21,7 +21,7 @@ Project Docs
 Building from Source
 --------------------
 
-- [Building ML.NET on Linux and OS X](building/unix-instructions.md)
+- [Building ML.NET on Linux and macOS](building/unix-instructions.md)
 - [Building ML.NET on Windows](building/windows-instructions.md)
 
 Repo of Samples
