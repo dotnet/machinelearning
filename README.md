@@ -24,9 +24,9 @@ Take a look at ML.NET's [Roadmap](ROADMAP.md) to see what the team plans to work
 
 ## Operating systems and processor architectures supported by ML.NET
 
-ML.NET runs on Windows, Linux, and macOS using .NET Core, or Windows using .NET Framework.
+ML.NET runs on Windows, Linux, and macOS using .NET, or Windows using .NET Framework.
 
-ML.NET also runs on ARM64, Apple M1, and Blazor Web Assembly. However, there are some [limitations](docs/project-docs/platform-limitations.md).
+ML.NET also runs on ARM64, Apple silicon, and Blazor WebAssembly. However, there are some [limitations](docs/project-docs/platform-limitations.md).
 
 64-bit is supported on all platforms. 32-bit is supported on Windows, except for TensorFlow and LightGBM related functionality.
 
@@ -42,9 +42,9 @@ Check out the [release notes](docs/release-notes) to see what's new. You can als
 
 ## Using ML.NET packages
 
-First, ensure you have installed [.NET Core 2.1](https://www.microsoft.com/net/learn/get-started) or later. ML.NET also works on the .NET Framework 4.6.1 or later, but 4.7.2 or later is recommended.
+The main `Microsoft.ML` package targets [.NET Standard 2.0](https://learn.microsoft.com/dotnet/standard/net-standard), so it can be used by compatible .NET implementations. Some optional ML.NET packages target newer frameworks; check the target frameworks listed on the package before adding it to your application.
 
-Once you have an app, you can install the ML.NET NuGet package from the .NET Core CLI using:
+Once you have an app, you can install the ML.NET NuGet package using the .NET CLI:
 
 ```
 dotnet add package Microsoft.ML

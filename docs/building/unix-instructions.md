@@ -1,47 +1,37 @@
-Building ML.NET on Linux and macOS
-==========================================
+# Building ML.NET on Linux and macOS
+
 ## Building
 
-1. Install the prerequisites ([Linux](#user-content-linux), [macOS](#user-content-macos))
+1. Install the prerequisites described below
 2. Clone the machine learning repo `git clone --recursive https://github.com/dotnet/machinelearning.git`
 3. Navigate to the `machinelearning` directory
 4. Run `git submodule update --init` if you have not previously done so
-4. Run the build script `./build.sh`
+5. Run the build script `./build.sh`
 
 Calling the script `./build.sh` builds both the native and managed code.
 
 For more information about the different options when building, run `./build.sh -?` and look at examples in the [developer-guide](../project-docs/developer-guide.md).
 
-## Minimum Hardware Requirements
+## Minimum hardware requirements
+
 - 2GB RAM
-- x64
+- x64 or ARM64
 
 ## Prerequisites
 
-### Linux
-
-The following components are needed:
-
-* git
-* clang-3.9
-* cmake 2.8.12
-* libunwind8
-* libomp-dev
-* curl
-* All the requirements necessary to run .NET Core 3.1 applications: libssl1.0.0 (1.0.2 for Debian 9) and libicu5x (libicu55 for ubuntu 16.x, and libicu57 for ubuntu 17.x). For more information on prerequisites in different linux distributions click [here](https://docs.microsoft.com/en-us/dotnet/core/linux-prerequisites?tabs=netcore30).
-
-For example, for Ubuntu 16.x:
+Install Git and the native build dependencies for your operating system. The repository's dependency script is the source of truth for the required packages:
 
 ```sh
-sudo apt-get update
-sudo apt-get install git clang-3.9 cmake libunwind8 curl
-sudo apt-get install libssl1.0.0 libicu55
-sudo apt-get install libomp-dev
+sudo ./eng/common/native/install-dependencies.sh
 ```
 
-#### Cross compiling for ARM
+The script supports common Debian/Ubuntu, Fedora/RHEL, Azure Linux, Amazon Linux, Alpine, and macOS environments. On macOS, install Xcode command-line tools and [Homebrew](https://brew.sh/) first.
 
-Cross compilation is only supported on an Ubuntu host, 18.x and newer, and only .Net Core 3.1 or newer. You will need to install debootstrap and qemu-user-static to facilitate the process. Once they are installed you will need to build the cross compiling rootfs. We provide a script, `build-rootfs.sh`, to do this. You will also need to set the ROOTFS_DIR environment variable to the location of the rootfs you just created. The general process is as follows:
+The build scripts acquire the .NET SDK selected by `global.json`; you do not need to install that exact SDK separately.
+
+### Cross compiling for ARM
+
+Cross-compilation requires an Ubuntu host, `debootstrap`, and `qemu-user-static`. Build a root file system with the repository script, then set `ROOTFS_DIR` before building:
 
 ```sh
 sudo apt-get update
@@ -54,21 +44,4 @@ export ROOTFS_DIR=<new rootfs location>
 ./build.sh -c Release /p:TargetArchitecture=<target architecture>
 ```
 
-Note that the `<target architecture>` will usually be arm or arm64 and the `<ubuntu distro name>` is bionic for 18.04.
-
-Alternatively, use the following Docker image which contains all the software packages and configurations required to cross-compile for ARM `mcr.microsoft.com/dotnet-buildtools/prereqs:ubuntu-18.04-mlnet-cross-arm64-20210519131124-2e59a5f`.
-
-### macOS
-
-macOS 10.13 (High Sierra) or higher is needed to build dotnet/machinelearning. We are using a .NET Core 3.1 SDK to build, which supports 10.13 or higher.
-
-On macOS a few components are needed which are not provided by a default developer setup:
-* cmake 3.10.3
-* libomp
-* gettext
-* All the requirements necessary to run .NET Core 3.1 applications. To view macOS prerequisites click [here](https://docs.microsoft.com/en-us/dotnet/core/install/macos?tabs=netcore31#dependencies).
-
-One way of obtaining CMake and other required libraries is via [Homebrew](https://brew.sh):
-```sh
-$ brew update && brew install cmake libomp gettext && brew link gettext --force && brew link libomp --force
-```
+The `<target architecture>` is typically `arm` or `arm64`. Use an Ubuntu codename supported by `eng/common/cross/build-rootfs.sh`.

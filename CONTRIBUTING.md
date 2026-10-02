@@ -18,7 +18,7 @@ If there is some other area not included here where you want to contribute to, f
 
 ### Pull requests
 
-If you are new to GitHub, see the [GitHub documentation for collaborating with issues and pull requests](https://help.github.com/categories/collaborating-with-issues-and-pull-requests/).
+If you are new to GitHub, see the [GitHub documentation for contributing to projects](https://docs.github.com/get-started/exploring-projects-on-github/contributing-to-a-project).
 
 As a first time contributor, you will be invited to sign the Contributor License Agreement (CLA). Please follow the instructions of the dotnet foundation bot reviewer on your PR to sign the agreement indicating that you have appropriate rights to your contribution.
 
