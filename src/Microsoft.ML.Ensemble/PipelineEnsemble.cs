@@ -667,7 +667,7 @@ namespace Microsoft.ML.Trainers.Ensemble
                     throw env.Except("Label column of model {0} has different type than model 0", i);
 
                 var mdType = labelCol.Annotations.Schema.GetColumnOrNull(AnnotationUtils.Kinds.KeyValues)?.Type;
-                if (!mdType.Equals(keyValuesType))
+                if (!keyValuesType.Equals(mdType))
                     throw env.Except("Label column of model {0} has different key value type than model 0", i);
                 labelCol.GetKeyValues(ref curLabelNames);
                 if (!AreEqual(in labelNames, in curLabelNames))
