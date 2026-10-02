@@ -50,13 +50,13 @@ For example, the `src\Microsoft.ML.Core` directory contains the source for the `
 You can build it directly with:
 
 ```console
-dotnet build src\Microsoft.ML.Core\Microsoft.ML.Core.csproj
+dotnet build src/Microsoft.ML.Core/Microsoft.ML.Core.csproj
 ```
 
 Run its tests with:
 
 ```console
-dotnet test test\Microsoft.ML.Core.Tests\Microsoft.ML.Core.Tests.csproj
+dotnet test test/Microsoft.ML.Core.Tests/Microsoft.ML.Core.Tests.csproj
 ```
 
 **Note:** We use `build/vsts-ci.yml` to define our official build
@@ -85,7 +85,7 @@ During development, there may arise a need to update the current baseline `core_
 Steps to update `core_manifest.json` and `core_ep-list.tsv`:
 
 1. Unskip the `RegenerateEntryPointCatalog` unit test in `test/Microsoft.ML.Core.Tests/UnitTests/TestEntryPoints.cs`. This can be done by temporarily commenting out the skip attribute on the unit test for `RegenerateEntryPointCatalog` (`[Fact(Skip = "Execute this test if you want to regenerate the core_manifest and core_ep_list files")]`).
-2. Run `dotnet test test\Microsoft.ML.Core.Tests\Microsoft.ML.Core.Tests.csproj --filter FullyQualifiedName~RegenerateEntryPointCatalog` (alternatively, run the test from Visual Studio Test Explorer).
+2. Run `dotnet test test/Microsoft.ML.Core.Tests/Microsoft.ML.Core.Tests.csproj --filter FullyQualifiedName~RegenerateEntryPointCatalog` (alternatively, run the test from Visual Studio Test Explorer).
 3. Verify the changes to `core_manifest.json` and `core_ep-list.tsv` are correct.
 4. Re-enable the skip attribute on the `RegenerateEntryPointCatalog` test.
 5. Commit the updated `core_manifest.json` and `core_ep-list.tsv` files to your branch.
