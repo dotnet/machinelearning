@@ -111,11 +111,18 @@ namespace Microsoft.Data.Analysis
             var arithmetic = Arithmetic<T>.Instance;
 
             //Size of any buffer in PrimitiveColumnContainer<bool> is larger (or equal) than size of the buffers for other types
+            //Null values are only stored in the validity bitmaps, so they need to be checked as well as the data buffers
+            var hasNulls = this.NullCount > 0 || right.NullCount > 0;
+
             long index = 0;
             for (int i = 0; i < this.Buffers.Count; i++)
             {
                 var leftSpan = this.Buffers[i].ReadOnlySpan;
                 var rightSpan = right.Buffers[i].ReadOnlySpan;
+
+                //Empty validity span means that all values are valid
+                var leftValidity = this.NullCount > 0 ? this.NullBitMapBuffers[i].ReadOnlySpan : ReadOnlySpan<byte>.Empty;
+                var rightValidity = right.NullCount > 0 ? right.NullBitMapBuffers[i].ReadOnlySpan : ReadOnlySpan<byte>.Empty;
 
                 // Get correct ret Span for storing results
                 var retSpanIndex = ret.GetIndexOfBufferContainingRowIndex(index);
@@ -133,13 +140,26 @@ namespace Microsoft.Data.Analysis
                     //This will be simplified when the size of buffers of different types are done equal
                     //(not supported by classic .Net framework due to the 2 Gb limitation on array size)
 
-                    arithmetic.HandleOperation(operation, leftSpan.Slice(0, availableInRetSpan), rightSpan.Slice(0, availableInRetSpan), retSpan.Slice(retOffset));
+                    var firstRetSpan = retSpan.Slice(retOffset, availableInRetSpan);
+                    arithmetic.HandleOperation(operation, leftSpan.Slice(0, availableInRetSpan), rightSpan.Slice(0, availableInRetSpan), firstRetSpan);
 
-                    var nextRetSpan = ret.Buffers.GetOrCreateMutable(retSpanIndex + 1).Span;
+                    var nextRetSpan = ret.Buffers.GetOrCreateMutable(retSpanIndex + 1).Span.Slice(0, leftSpan.Length - availableInRetSpan);
                     arithmetic.HandleOperation(operation, leftSpan.Slice(availableInRetSpan), rightSpan.Slice(availableInRetSpan), nextRetSpan);
+
+                    if (hasNulls)
+                    {
+                        ApplyNullComparisonResults(operation, leftValidity, rightValidity, 0, firstRetSpan);
+                        ApplyNullComparisonResults(operation, leftValidity, rightValidity, availableInRetSpan, nextRetSpan);
+                    }
                 }
                 else
-                    arithmetic.HandleOperation(operation, leftSpan, rightSpan, retSpan.Slice(retOffset));
+                {
+                    var currentRetSpan = retSpan.Slice(retOffset, leftSpan.Length);
+                    arithmetic.HandleOperation(operation, leftSpan, rightSpan, currentRetSpan);
+
+                    if (hasNulls)
+                        ApplyNullComparisonResults(operation, leftValidity, rightValidity, 0, currentRetSpan);
+                }
 
                 index += leftSpan.Length;
             }
@@ -153,10 +173,14 @@ namespace Microsoft.Data.Analysis
             var arithmetic = Arithmetic<T>.Instance;
 
             //Size of any buffer in PrimitiveColumnContainer<bool> is larger (or equal) than size of the buffers for other types
+            //Null values are only stored in the validity bitmaps, so they need to be checked as well as the data buffers
+            var hasNulls = this.NullCount > 0;
+
             long index = 0;
             for (int i = 0; i < this.Buffers.Count; i++)
             {
                 var leftSpan = this.Buffers[i].ReadOnlySpan;
+                var leftValidity = hasNulls ? this.NullBitMapBuffers[i].ReadOnlySpan : ReadOnlySpan<byte>.Empty;
 
                 //Get correct ret Span for storing results
                 var retSpanIndex = ret.GetIndexOfBufferContainingRowIndex(index);
@@ -175,18 +199,85 @@ namespace Microsoft.Data.Analysis
                     //This will be simplified when the size of buffers of different types are done equal
                     //(not supported by classic .Net framework due to the 2 Gb limitation on array size)
 
-                    arithmetic.HandleOperation(operation, leftSpan.Slice(0, availableInRetSpan), right, retSpan.Slice(retOffset));
+                    var firstRetSpan = retSpan.Slice(retOffset, availableInRetSpan);
+                    arithmetic.HandleOperation(operation, leftSpan.Slice(0, availableInRetSpan), right, firstRetSpan);
 
-                    var nextRetSpan = ret.Buffers.GetOrCreateMutable(retSpanIndex + 1).Span;
+                    var nextRetSpan = ret.Buffers.GetOrCreateMutable(retSpanIndex + 1).Span.Slice(0, leftSpan.Length - availableInRetSpan);
                     arithmetic.HandleOperation(operation, leftSpan.Slice(availableInRetSpan), right, nextRetSpan);
+
+                    if (hasNulls)
+                    {
+                        //The scalar is never null
+                        ApplyNullComparisonResults(operation, leftValidity, ReadOnlySpan<byte>.Empty, 0, firstRetSpan);
+                        ApplyNullComparisonResults(operation, leftValidity, ReadOnlySpan<byte>.Empty, availableInRetSpan, nextRetSpan);
+                    }
                 }
                 else
-                    arithmetic.HandleOperation(operation, leftSpan, right, retSpan.Slice(retOffset));
+                {
+                    var currentRetSpan = retSpan.Slice(retOffset, leftSpan.Length);
+                    arithmetic.HandleOperation(operation, leftSpan, right, currentRetSpan);
+
+                    if (hasNulls)
+                        ApplyNullComparisonResults(operation, leftValidity, ReadOnlySpan<byte>.Empty, 0, currentRetSpan);
+                }
 
                 index += leftSpan.Length;
             }
 
             return ret;
+        }
+
+        /// <summary>
+        /// Overwrites the comparison results for every element where at least one side is null.
+        /// The results produced from the data buffers are meaningless for these elements, as the
+        /// data buffers hold an arbitrary value (usually default) in place of a null.
+        /// </summary>
+        /// <remarks>
+        /// Two nulls are considered equal, so for null elements:
+        ///  - null == null, null &lt;= null and null &gt;= null are true;
+        ///  - null != value and value != null are true;
+        ///  - every other comparison is false.
+        /// </remarks>
+        /// <param name="operation">The comparison operation that produced the results.</param>
+        /// <param name="leftValidity">Validity bitmap of the left side. An empty span means that all left values are valid.</param>
+        /// <param name="rightValidity">Validity bitmap of the right side. An empty span means that all right values are valid.</param>
+        /// <param name="start">Index in the validity bitmaps that corresponds to the first element of <paramref name="destination"/>.</param>
+        /// <param name="destination">Comparison results to correct.</param>
+        private static void ApplyNullComparisonResults(ComparisonOperation operation, ReadOnlySpan<byte> leftValidity, ReadOnlySpan<byte> rightValidity, int start, Span<bool> destination)
+        {
+            var leftAllValid = leftValidity.IsEmpty;
+            var rightAllValid = rightValidity.IsEmpty;
+            if (leftAllValid && rightAllValid)
+                return;
+
+            var bothNullResult = operation == ComparisonOperation.ElementwiseEquals
+                || operation == ComparisonOperation.ElementwiseLessThanOrEqual
+                || operation == ComparisonOperation.ElementwiseGreaterThanOrEqual;
+            var oneNullResult = operation == ComparisonOperation.ElementwiseNotEquals;
+
+            var end = start + destination.Length;
+            var i = start;
+            while (i < end)
+            {
+                //Skip whole bitmap bytes where both sides are valid, as the comparison results are already correct
+                if ((i & 7) == 0 && end - i >= 8)
+                {
+                    var leftByte = leftAllValid ? (byte)0xFF : leftValidity[i >> 3];
+                    var rightByte = rightAllValid ? (byte)0xFF : rightValidity[i >> 3];
+                    if ((leftByte & rightByte) == 0xFF)
+                    {
+                        i += 8;
+                        continue;
+                    }
+                }
+
+                var leftIsValid = leftAllValid || BitUtility.IsValid(leftValidity, i);
+                var rightIsValid = rightAllValid || BitUtility.IsValid(rightValidity, i);
+                if (!leftIsValid || !rightIsValid)
+                    destination[i - start] = leftIsValid == rightIsValid ? bothNullResult : oneNullResult;
+
+                i++;
+            }
         }
 
         private static void ValidityElementwiseAnd(ReadOnlySpan<byte> left, ReadOnlySpan<byte> right, Span<byte> destination)
