@@ -1,0 +1,316 @@
+<#@ template debug="false" hostspecific="false" language="C#" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ output extension=".cs" #>
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+// Generated from PrimitiveDataFrameColumn.NullComparisonTests.tt. Do not modify directly
+
+using System;
+using System.Linq;
+using System.Runtime.InteropServices;
+using Xunit;
+
+namespace Microsoft.Data.Analysis.Tests
+{
+    public partial class PrimitiveDataFrameColumnTests
+    {
+<#
+foreach (var type in Types)
+{
+    foreach (var operation in type.Operations)
+    {
+        foreach (var scenario in ColumnScenarios)
+        {
+#>
+        [Fact]
+        public void PrimitiveDataFrameColumn_<#=type.Name#>_<#=operation#>_<#=scenario.Name#>()
+        {
+<#
+            if (scenario.ValuesUnderNulls)
+            {
+#>
+            var left = CreateColumnWithValuesUnderNulls("Left", <#=ValuesArray(type, scenario.Left)#>, <#=type.Low#>);
+            var right = CreateColumnWithValuesUnderNulls("Right", <#=ValuesArray(type, scenario.Right)#>, <#=type.High#>);
+<#
+            }
+            else
+            {
+#>
+            var left = new PrimitiveDataFrameColumn<<#=type.TypeName#>>("Left", <#=ValuesArray(type, scenario.Left)#>);
+            var right = new PrimitiveDataFrameColumn<<#=type.TypeName#>>("Right", <#=ValuesArray(type, scenario.Right)#>);
+<#
+            }
+#>
+
+            var results = left.<#=operation#>(right);
+
+            AssertComparisonResults(<#=ExpectedArray(operation, scenario.Left, scenario.Right)#>, results);
+        }
+
+<#
+        }
+
+        foreach (var scenario in ScalarScenarios)
+        {
+            var scalar = scenario.Right == "L" ? type.Low : type.High;
+            var right = new string(scenario.Right[0], scenario.Left.Length);
+#>
+        [Fact]
+        public void PrimitiveDataFrameColumn_<#=type.Name#>_<#=operation#>_<#=scenario.Name#>()
+        {
+<#
+            if (scenario.ValuesUnderNulls)
+            {
+#>
+            var left = CreateColumnWithValuesUnderNulls("Left", <#=ValuesArray(type, scenario.Left)#>, <#=scalar#>);
+<#
+            }
+            else
+            {
+#>
+            var left = new PrimitiveDataFrameColumn<<#=type.TypeName#>>("Left", <#=ValuesArray(type, scenario.Left)#>);
+<#
+            }
+#>
+
+            var results = left.<#=operation#>(<#=scalar#>);
+
+            AssertComparisonResults(<#=ExpectedArray(operation, scenario.Left, right)#>, results);
+        }
+
+<#
+        }
+
+        foreach (var conversion in ScalarConversions(type))
+        {
+            foreach (var scenario in ScalarScenarios)
+            {
+                var low = scenario.Right == "L";
+                var right = new string(scenario.Right[0], scenario.Left.Length);
+#>
+        [Fact]
+        public void PrimitiveDataFrameColumn_<#=type.Name#>_<#=operation#>_<#=scenario.Name.Replace("Scalar", conversion.Name + "Scalar")#>()
+        {
+<#
+                if (scenario.ValuesUnderNulls)
+                {
+#>
+            var left = CreateColumnWithValuesUnderNulls("Left", <#=ValuesArray(type, scenario.Left)#>, <#=low ? type.Low : type.High#>);
+<#
+                }
+                else
+                {
+#>
+            var left = new PrimitiveDataFrameColumn<<#=type.TypeName#>>("Left", <#=ValuesArray(type, scenario.Left)#>);
+<#
+                }
+#>
+
+            var results = left.<#=operation#>(<#=low ? conversion.Low : conversion.High#>);
+
+            AssertComparisonResults(<#=ExpectedArray(operation, scenario.Left, right)#>, results);
+        }
+
+<#
+            }
+        }
+
+        if (type.DoubleLow != null)
+        {
+            const string left = "NNNLLLHHH";
+            const string right = "NLHNLHNLH";
+#>
+        [Fact]
+        public void PrimitiveDataFrameColumn_<#=type.Name#>_<#=operation#>_AgainstDoubleColumn_EveryNullCombination()
+        {
+            var left = new PrimitiveDataFrameColumn<<#=type.TypeName#>>("Left", <#=ValuesArray(type, left)#>);
+            var right = new PrimitiveDataFrameColumn<double>("Right", new double?[] { <#=string.Join(", ", right.Select(c => c == 'N' ? "null" : c == 'L' ? type.DoubleLow : type.DoubleHigh))#> });
+
+            var results = left.<#=operation#>(right);
+
+            AssertComparisonResults(<#=ExpectedArray(operation, left, right)#>, results);
+        }
+
+<#
+        }
+    }
+}
+#>
+        private static PrimitiveDataFrameColumn<T> CreateColumnWithValuesUnderNulls<T>(string name, T?[] values, T valueUnderNulls)
+            where T : unmanaged
+        {
+            // Build the column from Arrow formatted buffers, so that null elements are backed by a non default value
+            var data = values.Select(v => v ?? valueUnderNulls).ToArray();
+            var nullBitMap = new byte[(values.Length + 7) / 8];
+            var nullCount = 0;
+            for (var i = 0; i < values.Length; i++)
+            {
+                if (values[i].HasValue)
+                    nullBitMap[i / 8] |= (byte)(1 << (i % 8));
+                else
+                    nullCount++;
+            }
+
+            var column = new PrimitiveDataFrameColumn<T>(name, MemoryMarshal.AsBytes(data.AsSpan()).ToArray(), nullBitMap, values.Length, nullCount);
+
+            Assert.Equal(values, column.ToArray());
+            Assert.Equal(valueUnderNulls, column.GetReadOnlyDataBuffers().Single().Span[Array.IndexOf(values, null)]);
+            return column;
+        }
+
+        private static void AssertComparisonResults(bool[] expected, PrimitiveDataFrameColumn<bool> results)
+        {
+            Assert.Equal(0, results.NullCount);
+            Assert.Equal(expected, results.Select(r => r.Value).ToArray());
+        }
+    }
+}
+<#+
+    // Scenario values are described by one character per element:
+    //  N - null
+    //  L - the low value of the type
+    //  H - the high value of the type
+    class Scenario
+    {
+        public string Name;
+        public string Left;
+        public string Right;
+        public bool ValuesUnderNulls;
+    }
+
+    static readonly Scenario[] ColumnScenarios =
+    {
+        new Scenario { Name = "EveryNullCombination", Left = "NNNLLLHHH", Right = "NLHNLHNLH" },
+        // Null elements are backed by the low value on the left and the high value on the right,
+        // so treating the data buffers as the source of truth gives the wrong answer
+        new Scenario { Name = "EveryNullCombination_WithValuesUnderNulls", Left = "NNNLLLHHH", Right = "NLHNLHNLH", ValuesUnderNulls = true },
+        new Scenario { Name = "NullsOnlyOnLeft", Left = "NLHNLHNLH", Right = "LLLHHHLHL" },
+        new Scenario { Name = "NullsOnlyOnRight", Left = "LLLHHHLHL", Right = "NLHNLHNLH" },
+        // First validity byte has no nulls, second has a mixture, last one is partially used
+        new Scenario { Name = "AcrossValidityBitmapBytes", Left = "LLHHLHLH" + "NLHNNLHL" + "HNNL", Right = "LHLHLLHH" + "LNHNLLHN" + "NHNL" },
+        new Scenario { Name = "AcrossValidityBitmapBytes_WithValuesUnderNulls", Left = "LLHHLHLH" + "NLHNNLHL" + "HNNL", Right = "LHLHLLHH" + "LNHNLLHN" + "NHNL", ValuesUnderNulls = true },
+    };
+
+    // Right holds the scalar the column is compared against
+    static readonly Scenario[] ScalarScenarios =
+    {
+        new Scenario { Name = "AgainstLowScalar", Left = "NLHN", Right = "L" },
+        new Scenario { Name = "AgainstHighScalar", Left = "NLHN", Right = "H" },
+        // Null elements are backed by the same value as the scalar
+        new Scenario { Name = "AgainstLowScalar_WithValuesUnderNulls", Left = "NLHN", Right = "L", ValuesUnderNulls = true },
+        new Scenario { Name = "AgainstHighScalar_WithValuesUnderNulls", Left = "NLHN", Right = "H", ValuesUnderNulls = true },
+    };
+
+    static readonly string[] EqualityOperations = { "ElementwiseEquals", "ElementwiseNotEquals" };
+
+    static readonly string[] AllOperations =
+    {
+        "ElementwiseEquals",
+        "ElementwiseNotEquals",
+        "ElementwiseLessThan",
+        "ElementwiseLessThanOrEqual",
+        "ElementwiseGreaterThan",
+        "ElementwiseGreaterThanOrEqual",
+    };
+
+    class TypeConfiguration
+    {
+        public string Name;
+        public string TypeName;
+        public string Low;
+        public string High;
+        // Equivalent values used when comparing against a double column, null if not supported
+        public string DoubleLow;
+        public string DoubleHigh;
+        public string[] Operations = AllOperations;
+    }
+
+    static readonly TypeConfiguration[] Types =
+    {
+        new TypeConfiguration { Name = "Boolean", TypeName = "bool", Low = "false", High = "true", Operations = EqualityOperations },
+        new TypeConfiguration { Name = "Byte", TypeName = "byte", Low = "(byte)3", High = "(byte)200", DoubleLow = "3", DoubleHigh = "200" },
+        new TypeConfiguration { Name = "SByte", TypeName = "sbyte", Low = "(sbyte)-5", High = "(sbyte)7", DoubleLow = "-5", DoubleHigh = "7" },
+        new TypeConfiguration { Name = "Int16", TypeName = "short", Low = "(short)-300", High = "(short)300", DoubleLow = "-300", DoubleHigh = "300" },
+        new TypeConfiguration { Name = "UInt16", TypeName = "ushort", Low = "(ushort)3", High = "(ushort)60000", DoubleLow = "3", DoubleHigh = "60000" },
+        new TypeConfiguration { Name = "Int32", TypeName = "int", Low = "-7", High = "42", DoubleLow = "-7", DoubleHigh = "42" },
+        new TypeConfiguration { Name = "UInt32", TypeName = "uint", Low = "3u", High = "4000000000u", DoubleLow = "3", DoubleHigh = "4000000000" },
+        new TypeConfiguration { Name = "Int64", TypeName = "long", Low = "-7L", High = "5000000000L", DoubleLow = "-7", DoubleHigh = "5000000000" },
+        new TypeConfiguration { Name = "UInt64", TypeName = "ulong", Low = "3UL", High = "5000000000UL", DoubleLow = "3", DoubleHigh = "5000000000" },
+        new TypeConfiguration { Name = "Single", TypeName = "float", Low = "-1.5f", High = "2.25f", DoubleLow = "-1.5", DoubleHigh = "2.25" },
+        new TypeConfiguration { Name = "Double", TypeName = "double", Low = "-1.5", High = "2.25" },
+        new TypeConfiguration { Name = "Decimal", TypeName = "decimal", Low = "-1.5m", High = "2.25m", DoubleLow = "-1.5", DoubleHigh = "2.25" },
+        new TypeConfiguration { Name = "Char", TypeName = "char", Low = "'a'", High = "'z'" },
+        new TypeConfiguration { Name = "DateTime", TypeName = "DateTime", Low = "new DateTime(2020, 1, 1)", High = "new DateTime(2021, 6, 30)" },
+    };
+
+    // A scalar of a different type than the column, so the column has to be converted before the comparison
+    class ScalarConversion
+    {
+        public string Name;
+        public string Low;
+        public string High;
+    }
+
+    static IEnumerable<ScalarConversion> ScalarConversions(TypeConfiguration type)
+    {
+        // Compared as doubles, apart from the decimal column which converts the scalar to a decimal
+        if (type.DoubleLow != null)
+            yield return new ScalarConversion { Name = "Double", Low = type.DoubleLow + "d", High = type.DoubleHigh + "d" };
+
+        // Compared as decimals
+        if (type.DoubleLow != null && type.Name != "Decimal")
+            yield return new ScalarConversion { Name = "Decimal", Low = type.DoubleLow + "m", High = type.DoubleHigh + "m" };
+        else if (type.Name == "Double")
+            yield return new ScalarConversion { Name = "Decimal", Low = type.Low + "m", High = type.High + "m" };
+    }
+
+    string ValuesArray(TypeConfiguration type, string values)
+    {
+        return "new " + type.TypeName + "?[] { " + string.Join(", ", values.Select(c => c == 'N' ? "null" : c == 'L' ? type.Low : type.High)) + " }";
+    }
+
+    string ExpectedArray(string operation, string left, string right)
+    {
+        return "new[] { " + string.Join(", ", left.Select((l, i) => Expected(operation, l, right[i]) ? "true" : "false")) + " }";
+    }
+
+    // The expected semantics: two nulls are equal to each other, and a null is not equal to,
+    // less than or greater than any value
+    static bool Expected(string operation, char left, char right)
+    {
+        if (left == 'N' || right == 'N')
+        {
+            var bothNull = left == right;
+            switch (operation)
+            {
+                case "ElementwiseEquals":
+                case "ElementwiseLessThanOrEqual":
+                case "ElementwiseGreaterThanOrEqual":
+                    return bothNull;
+                case "ElementwiseNotEquals":
+                    return !bothNull;
+                default:
+                    return false;
+            }
+        }
+
+        var comparison = Rank(left).CompareTo(Rank(right));
+        switch (operation)
+        {
+            case "ElementwiseEquals": return comparison == 0;
+            case "ElementwiseNotEquals": return comparison != 0;
+            case "ElementwiseLessThan": return comparison < 0;
+            case "ElementwiseLessThanOrEqual": return comparison <= 0;
+            case "ElementwiseGreaterThan": return comparison > 0;
+            case "ElementwiseGreaterThanOrEqual": return comparison >= 0;
+            default: throw new System.NotSupportedException(operation);
+        }
+    }
+
+    static int Rank(char value) => value == 'L' ? 0 : 1;
+#>

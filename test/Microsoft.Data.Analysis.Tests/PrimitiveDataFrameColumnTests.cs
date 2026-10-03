@@ -11,10 +11,47 @@ using Xunit.Abstractions;
 
 namespace Microsoft.Data.Analysis.Tests
 {
-    public class PrimitiveDataFrameColumnTests : BaseTestClass
+    public partial class PrimitiveDataFrameColumnTests : BaseTestClass
     {
         public PrimitiveDataFrameColumnTests(ITestOutputHelper output) : base(output, true)
         {
+        }
+
+        [X64Fact("32-bit doesn't allow to allocate more than 2 Gb")]
+        public void PrimitiveDataFrameColumn_Int32_ElementwiseEquals_AcrossMultipleBuffers()
+        {
+            // Mirrors ReadOnlyDataFrameBuffer<int>.MaxCapacity, the number of values held by a single buffer
+            const int MaxCapacity = 0X7FEFFFFF / sizeof(int);
+
+            // Just enough elements to spill into a second buffer
+            const long count = MaxCapacity + 16L;
+            var c1 = new PrimitiveDataFrameColumn<int>("Int1", count);
+            var c2 = new PrimitiveDataFrameColumn<int>("Int2", count);
+            Assert.Equal(2, c1.GetReadOnlyDataBuffers().Count());
+
+            // Last element of the first buffer
+            c1[MaxCapacity - 1] = 42;
+            c2[MaxCapacity - 1] = 42;
+
+            // Elements of the second buffer
+            c1[MaxCapacity] = 0;
+            c1[MaxCapacity + 1] = 7;
+            c2[MaxCapacity + 1] = 7;
+            c1[MaxCapacity + 2] = 7;
+            c2[MaxCapacity + 2] = 8;
+            c2[count - 1] = 0;
+
+            var results = c1.ElementwiseEquals(c2);
+
+            Assert.Equal(count, results.Length);
+            Assert.Equal(0, results.NullCount);
+            Assert.True(results[0]);                    // null == null
+            Assert.True(results[MaxCapacity - 1]);      // 42 == 42
+            Assert.False(results[MaxCapacity]);         // 0 != null
+            Assert.True(results[MaxCapacity + 1]);      // 7 == 7
+            Assert.False(results[MaxCapacity + 2]);     // 7 != 8
+            Assert.True(results[MaxCapacity + 3]);      // null == null
+            Assert.False(results[count - 1]);           // null != 0
         }
 
         [X64Fact("32-bit doesn't allow to allocate more than 2 Gb")]
