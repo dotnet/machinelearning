@@ -332,6 +332,86 @@ namespace Microsoft.Data.Analysis.Tests
         }
 
         [Fact]
+        public void PrimitiveDataFrameColumn_Byte_ElementwiseEquals_AgainstLowDoubleScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<byte>("Left", new byte?[] { null, (byte)3, (byte)200, null });
+
+            var results = left.ElementwiseEquals(3d);
+
+            AssertComparisonResults(new[] { false, true, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Byte_ElementwiseEquals_AgainstHighDoubleScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<byte>("Left", new byte?[] { null, (byte)3, (byte)200, null });
+
+            var results = left.ElementwiseEquals(200d);
+
+            AssertComparisonResults(new[] { false, false, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Byte_ElementwiseEquals_AgainstLowDoubleScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new byte?[] { null, (byte)3, (byte)200, null }, (byte)3);
+
+            var results = left.ElementwiseEquals(3d);
+
+            AssertComparisonResults(new[] { false, true, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Byte_ElementwiseEquals_AgainstHighDoubleScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new byte?[] { null, (byte)3, (byte)200, null }, (byte)200);
+
+            var results = left.ElementwiseEquals(200d);
+
+            AssertComparisonResults(new[] { false, false, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Byte_ElementwiseEquals_AgainstLowDecimalScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<byte>("Left", new byte?[] { null, (byte)3, (byte)200, null });
+
+            var results = left.ElementwiseEquals(3m);
+
+            AssertComparisonResults(new[] { false, true, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Byte_ElementwiseEquals_AgainstHighDecimalScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<byte>("Left", new byte?[] { null, (byte)3, (byte)200, null });
+
+            var results = left.ElementwiseEquals(200m);
+
+            AssertComparisonResults(new[] { false, false, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Byte_ElementwiseEquals_AgainstLowDecimalScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new byte?[] { null, (byte)3, (byte)200, null }, (byte)3);
+
+            var results = left.ElementwiseEquals(3m);
+
+            AssertComparisonResults(new[] { false, true, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Byte_ElementwiseEquals_AgainstHighDecimalScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new byte?[] { null, (byte)3, (byte)200, null }, (byte)200);
+
+            var results = left.ElementwiseEquals(200m);
+
+            AssertComparisonResults(new[] { false, false, true, false }, results);
+        }
+
+        [Fact]
         public void PrimitiveDataFrameColumn_Byte_ElementwiseEquals_AgainstDoubleColumn_EveryNullCombination()
         {
             var left = new PrimitiveDataFrameColumn<byte>("Left", new byte?[] { null, null, null, (byte)3, (byte)3, (byte)3, (byte)200, (byte)200, (byte)200 });
@@ -444,6 +524,86 @@ namespace Microsoft.Data.Analysis.Tests
             var left = CreateColumnWithValuesUnderNulls("Left", new byte?[] { null, (byte)3, (byte)200, null }, (byte)200);
 
             var results = left.ElementwiseNotEquals((byte)200);
+
+            AssertComparisonResults(new[] { true, true, false, true }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Byte_ElementwiseNotEquals_AgainstLowDoubleScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<byte>("Left", new byte?[] { null, (byte)3, (byte)200, null });
+
+            var results = left.ElementwiseNotEquals(3d);
+
+            AssertComparisonResults(new[] { true, false, true, true }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Byte_ElementwiseNotEquals_AgainstHighDoubleScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<byte>("Left", new byte?[] { null, (byte)3, (byte)200, null });
+
+            var results = left.ElementwiseNotEquals(200d);
+
+            AssertComparisonResults(new[] { true, true, false, true }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Byte_ElementwiseNotEquals_AgainstLowDoubleScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new byte?[] { null, (byte)3, (byte)200, null }, (byte)3);
+
+            var results = left.ElementwiseNotEquals(3d);
+
+            AssertComparisonResults(new[] { true, false, true, true }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Byte_ElementwiseNotEquals_AgainstHighDoubleScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new byte?[] { null, (byte)3, (byte)200, null }, (byte)200);
+
+            var results = left.ElementwiseNotEquals(200d);
+
+            AssertComparisonResults(new[] { true, true, false, true }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Byte_ElementwiseNotEquals_AgainstLowDecimalScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<byte>("Left", new byte?[] { null, (byte)3, (byte)200, null });
+
+            var results = left.ElementwiseNotEquals(3m);
+
+            AssertComparisonResults(new[] { true, false, true, true }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Byte_ElementwiseNotEquals_AgainstHighDecimalScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<byte>("Left", new byte?[] { null, (byte)3, (byte)200, null });
+
+            var results = left.ElementwiseNotEquals(200m);
+
+            AssertComparisonResults(new[] { true, true, false, true }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Byte_ElementwiseNotEquals_AgainstLowDecimalScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new byte?[] { null, (byte)3, (byte)200, null }, (byte)3);
+
+            var results = left.ElementwiseNotEquals(3m);
+
+            AssertComparisonResults(new[] { true, false, true, true }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Byte_ElementwiseNotEquals_AgainstHighDecimalScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new byte?[] { null, (byte)3, (byte)200, null }, (byte)200);
+
+            var results = left.ElementwiseNotEquals(200m);
 
             AssertComparisonResults(new[] { true, true, false, true }, results);
         }
@@ -566,6 +726,86 @@ namespace Microsoft.Data.Analysis.Tests
         }
 
         [Fact]
+        public void PrimitiveDataFrameColumn_Byte_ElementwiseLessThan_AgainstLowDoubleScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<byte>("Left", new byte?[] { null, (byte)3, (byte)200, null });
+
+            var results = left.ElementwiseLessThan(3d);
+
+            AssertComparisonResults(new[] { false, false, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Byte_ElementwiseLessThan_AgainstHighDoubleScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<byte>("Left", new byte?[] { null, (byte)3, (byte)200, null });
+
+            var results = left.ElementwiseLessThan(200d);
+
+            AssertComparisonResults(new[] { false, true, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Byte_ElementwiseLessThan_AgainstLowDoubleScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new byte?[] { null, (byte)3, (byte)200, null }, (byte)3);
+
+            var results = left.ElementwiseLessThan(3d);
+
+            AssertComparisonResults(new[] { false, false, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Byte_ElementwiseLessThan_AgainstHighDoubleScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new byte?[] { null, (byte)3, (byte)200, null }, (byte)200);
+
+            var results = left.ElementwiseLessThan(200d);
+
+            AssertComparisonResults(new[] { false, true, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Byte_ElementwiseLessThan_AgainstLowDecimalScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<byte>("Left", new byte?[] { null, (byte)3, (byte)200, null });
+
+            var results = left.ElementwiseLessThan(3m);
+
+            AssertComparisonResults(new[] { false, false, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Byte_ElementwiseLessThan_AgainstHighDecimalScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<byte>("Left", new byte?[] { null, (byte)3, (byte)200, null });
+
+            var results = left.ElementwiseLessThan(200m);
+
+            AssertComparisonResults(new[] { false, true, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Byte_ElementwiseLessThan_AgainstLowDecimalScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new byte?[] { null, (byte)3, (byte)200, null }, (byte)3);
+
+            var results = left.ElementwiseLessThan(3m);
+
+            AssertComparisonResults(new[] { false, false, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Byte_ElementwiseLessThan_AgainstHighDecimalScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new byte?[] { null, (byte)3, (byte)200, null }, (byte)200);
+
+            var results = left.ElementwiseLessThan(200m);
+
+            AssertComparisonResults(new[] { false, true, false, false }, results);
+        }
+
+        [Fact]
         public void PrimitiveDataFrameColumn_Byte_ElementwiseLessThan_AgainstDoubleColumn_EveryNullCombination()
         {
             var left = new PrimitiveDataFrameColumn<byte>("Left", new byte?[] { null, null, null, (byte)3, (byte)3, (byte)3, (byte)200, (byte)200, (byte)200 });
@@ -678,6 +918,86 @@ namespace Microsoft.Data.Analysis.Tests
             var left = CreateColumnWithValuesUnderNulls("Left", new byte?[] { null, (byte)3, (byte)200, null }, (byte)200);
 
             var results = left.ElementwiseLessThanOrEqual((byte)200);
+
+            AssertComparisonResults(new[] { false, true, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Byte_ElementwiseLessThanOrEqual_AgainstLowDoubleScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<byte>("Left", new byte?[] { null, (byte)3, (byte)200, null });
+
+            var results = left.ElementwiseLessThanOrEqual(3d);
+
+            AssertComparisonResults(new[] { false, true, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Byte_ElementwiseLessThanOrEqual_AgainstHighDoubleScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<byte>("Left", new byte?[] { null, (byte)3, (byte)200, null });
+
+            var results = left.ElementwiseLessThanOrEqual(200d);
+
+            AssertComparisonResults(new[] { false, true, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Byte_ElementwiseLessThanOrEqual_AgainstLowDoubleScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new byte?[] { null, (byte)3, (byte)200, null }, (byte)3);
+
+            var results = left.ElementwiseLessThanOrEqual(3d);
+
+            AssertComparisonResults(new[] { false, true, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Byte_ElementwiseLessThanOrEqual_AgainstHighDoubleScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new byte?[] { null, (byte)3, (byte)200, null }, (byte)200);
+
+            var results = left.ElementwiseLessThanOrEqual(200d);
+
+            AssertComparisonResults(new[] { false, true, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Byte_ElementwiseLessThanOrEqual_AgainstLowDecimalScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<byte>("Left", new byte?[] { null, (byte)3, (byte)200, null });
+
+            var results = left.ElementwiseLessThanOrEqual(3m);
+
+            AssertComparisonResults(new[] { false, true, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Byte_ElementwiseLessThanOrEqual_AgainstHighDecimalScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<byte>("Left", new byte?[] { null, (byte)3, (byte)200, null });
+
+            var results = left.ElementwiseLessThanOrEqual(200m);
+
+            AssertComparisonResults(new[] { false, true, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Byte_ElementwiseLessThanOrEqual_AgainstLowDecimalScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new byte?[] { null, (byte)3, (byte)200, null }, (byte)3);
+
+            var results = left.ElementwiseLessThanOrEqual(3m);
+
+            AssertComparisonResults(new[] { false, true, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Byte_ElementwiseLessThanOrEqual_AgainstHighDecimalScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new byte?[] { null, (byte)3, (byte)200, null }, (byte)200);
+
+            var results = left.ElementwiseLessThanOrEqual(200m);
 
             AssertComparisonResults(new[] { false, true, true, false }, results);
         }
@@ -800,6 +1120,86 @@ namespace Microsoft.Data.Analysis.Tests
         }
 
         [Fact]
+        public void PrimitiveDataFrameColumn_Byte_ElementwiseGreaterThan_AgainstLowDoubleScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<byte>("Left", new byte?[] { null, (byte)3, (byte)200, null });
+
+            var results = left.ElementwiseGreaterThan(3d);
+
+            AssertComparisonResults(new[] { false, false, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Byte_ElementwiseGreaterThan_AgainstHighDoubleScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<byte>("Left", new byte?[] { null, (byte)3, (byte)200, null });
+
+            var results = left.ElementwiseGreaterThan(200d);
+
+            AssertComparisonResults(new[] { false, false, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Byte_ElementwiseGreaterThan_AgainstLowDoubleScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new byte?[] { null, (byte)3, (byte)200, null }, (byte)3);
+
+            var results = left.ElementwiseGreaterThan(3d);
+
+            AssertComparisonResults(new[] { false, false, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Byte_ElementwiseGreaterThan_AgainstHighDoubleScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new byte?[] { null, (byte)3, (byte)200, null }, (byte)200);
+
+            var results = left.ElementwiseGreaterThan(200d);
+
+            AssertComparisonResults(new[] { false, false, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Byte_ElementwiseGreaterThan_AgainstLowDecimalScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<byte>("Left", new byte?[] { null, (byte)3, (byte)200, null });
+
+            var results = left.ElementwiseGreaterThan(3m);
+
+            AssertComparisonResults(new[] { false, false, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Byte_ElementwiseGreaterThan_AgainstHighDecimalScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<byte>("Left", new byte?[] { null, (byte)3, (byte)200, null });
+
+            var results = left.ElementwiseGreaterThan(200m);
+
+            AssertComparisonResults(new[] { false, false, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Byte_ElementwiseGreaterThan_AgainstLowDecimalScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new byte?[] { null, (byte)3, (byte)200, null }, (byte)3);
+
+            var results = left.ElementwiseGreaterThan(3m);
+
+            AssertComparisonResults(new[] { false, false, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Byte_ElementwiseGreaterThan_AgainstHighDecimalScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new byte?[] { null, (byte)3, (byte)200, null }, (byte)200);
+
+            var results = left.ElementwiseGreaterThan(200m);
+
+            AssertComparisonResults(new[] { false, false, false, false }, results);
+        }
+
+        [Fact]
         public void PrimitiveDataFrameColumn_Byte_ElementwiseGreaterThan_AgainstDoubleColumn_EveryNullCombination()
         {
             var left = new PrimitiveDataFrameColumn<byte>("Left", new byte?[] { null, null, null, (byte)3, (byte)3, (byte)3, (byte)200, (byte)200, (byte)200 });
@@ -912,6 +1312,86 @@ namespace Microsoft.Data.Analysis.Tests
             var left = CreateColumnWithValuesUnderNulls("Left", new byte?[] { null, (byte)3, (byte)200, null }, (byte)200);
 
             var results = left.ElementwiseGreaterThanOrEqual((byte)200);
+
+            AssertComparisonResults(new[] { false, false, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Byte_ElementwiseGreaterThanOrEqual_AgainstLowDoubleScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<byte>("Left", new byte?[] { null, (byte)3, (byte)200, null });
+
+            var results = left.ElementwiseGreaterThanOrEqual(3d);
+
+            AssertComparisonResults(new[] { false, true, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Byte_ElementwiseGreaterThanOrEqual_AgainstHighDoubleScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<byte>("Left", new byte?[] { null, (byte)3, (byte)200, null });
+
+            var results = left.ElementwiseGreaterThanOrEqual(200d);
+
+            AssertComparisonResults(new[] { false, false, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Byte_ElementwiseGreaterThanOrEqual_AgainstLowDoubleScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new byte?[] { null, (byte)3, (byte)200, null }, (byte)3);
+
+            var results = left.ElementwiseGreaterThanOrEqual(3d);
+
+            AssertComparisonResults(new[] { false, true, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Byte_ElementwiseGreaterThanOrEqual_AgainstHighDoubleScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new byte?[] { null, (byte)3, (byte)200, null }, (byte)200);
+
+            var results = left.ElementwiseGreaterThanOrEqual(200d);
+
+            AssertComparisonResults(new[] { false, false, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Byte_ElementwiseGreaterThanOrEqual_AgainstLowDecimalScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<byte>("Left", new byte?[] { null, (byte)3, (byte)200, null });
+
+            var results = left.ElementwiseGreaterThanOrEqual(3m);
+
+            AssertComparisonResults(new[] { false, true, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Byte_ElementwiseGreaterThanOrEqual_AgainstHighDecimalScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<byte>("Left", new byte?[] { null, (byte)3, (byte)200, null });
+
+            var results = left.ElementwiseGreaterThanOrEqual(200m);
+
+            AssertComparisonResults(new[] { false, false, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Byte_ElementwiseGreaterThanOrEqual_AgainstLowDecimalScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new byte?[] { null, (byte)3, (byte)200, null }, (byte)3);
+
+            var results = left.ElementwiseGreaterThanOrEqual(3m);
+
+            AssertComparisonResults(new[] { false, true, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Byte_ElementwiseGreaterThanOrEqual_AgainstHighDecimalScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new byte?[] { null, (byte)3, (byte)200, null }, (byte)200);
+
+            var results = left.ElementwiseGreaterThanOrEqual(200m);
 
             AssertComparisonResults(new[] { false, false, true, false }, results);
         }
@@ -1034,6 +1514,86 @@ namespace Microsoft.Data.Analysis.Tests
         }
 
         [Fact]
+        public void PrimitiveDataFrameColumn_SByte_ElementwiseEquals_AgainstLowDoubleScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<sbyte>("Left", new sbyte?[] { null, (sbyte)-5, (sbyte)7, null });
+
+            var results = left.ElementwiseEquals(-5d);
+
+            AssertComparisonResults(new[] { false, true, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_SByte_ElementwiseEquals_AgainstHighDoubleScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<sbyte>("Left", new sbyte?[] { null, (sbyte)-5, (sbyte)7, null });
+
+            var results = left.ElementwiseEquals(7d);
+
+            AssertComparisonResults(new[] { false, false, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_SByte_ElementwiseEquals_AgainstLowDoubleScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new sbyte?[] { null, (sbyte)-5, (sbyte)7, null }, (sbyte)-5);
+
+            var results = left.ElementwiseEquals(-5d);
+
+            AssertComparisonResults(new[] { false, true, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_SByte_ElementwiseEquals_AgainstHighDoubleScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new sbyte?[] { null, (sbyte)-5, (sbyte)7, null }, (sbyte)7);
+
+            var results = left.ElementwiseEquals(7d);
+
+            AssertComparisonResults(new[] { false, false, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_SByte_ElementwiseEquals_AgainstLowDecimalScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<sbyte>("Left", new sbyte?[] { null, (sbyte)-5, (sbyte)7, null });
+
+            var results = left.ElementwiseEquals(-5m);
+
+            AssertComparisonResults(new[] { false, true, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_SByte_ElementwiseEquals_AgainstHighDecimalScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<sbyte>("Left", new sbyte?[] { null, (sbyte)-5, (sbyte)7, null });
+
+            var results = left.ElementwiseEquals(7m);
+
+            AssertComparisonResults(new[] { false, false, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_SByte_ElementwiseEquals_AgainstLowDecimalScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new sbyte?[] { null, (sbyte)-5, (sbyte)7, null }, (sbyte)-5);
+
+            var results = left.ElementwiseEquals(-5m);
+
+            AssertComparisonResults(new[] { false, true, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_SByte_ElementwiseEquals_AgainstHighDecimalScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new sbyte?[] { null, (sbyte)-5, (sbyte)7, null }, (sbyte)7);
+
+            var results = left.ElementwiseEquals(7m);
+
+            AssertComparisonResults(new[] { false, false, true, false }, results);
+        }
+
+        [Fact]
         public void PrimitiveDataFrameColumn_SByte_ElementwiseEquals_AgainstDoubleColumn_EveryNullCombination()
         {
             var left = new PrimitiveDataFrameColumn<sbyte>("Left", new sbyte?[] { null, null, null, (sbyte)-5, (sbyte)-5, (sbyte)-5, (sbyte)7, (sbyte)7, (sbyte)7 });
@@ -1146,6 +1706,86 @@ namespace Microsoft.Data.Analysis.Tests
             var left = CreateColumnWithValuesUnderNulls("Left", new sbyte?[] { null, (sbyte)-5, (sbyte)7, null }, (sbyte)7);
 
             var results = left.ElementwiseNotEquals((sbyte)7);
+
+            AssertComparisonResults(new[] { true, true, false, true }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_SByte_ElementwiseNotEquals_AgainstLowDoubleScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<sbyte>("Left", new sbyte?[] { null, (sbyte)-5, (sbyte)7, null });
+
+            var results = left.ElementwiseNotEquals(-5d);
+
+            AssertComparisonResults(new[] { true, false, true, true }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_SByte_ElementwiseNotEquals_AgainstHighDoubleScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<sbyte>("Left", new sbyte?[] { null, (sbyte)-5, (sbyte)7, null });
+
+            var results = left.ElementwiseNotEquals(7d);
+
+            AssertComparisonResults(new[] { true, true, false, true }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_SByte_ElementwiseNotEquals_AgainstLowDoubleScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new sbyte?[] { null, (sbyte)-5, (sbyte)7, null }, (sbyte)-5);
+
+            var results = left.ElementwiseNotEquals(-5d);
+
+            AssertComparisonResults(new[] { true, false, true, true }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_SByte_ElementwiseNotEquals_AgainstHighDoubleScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new sbyte?[] { null, (sbyte)-5, (sbyte)7, null }, (sbyte)7);
+
+            var results = left.ElementwiseNotEquals(7d);
+
+            AssertComparisonResults(new[] { true, true, false, true }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_SByte_ElementwiseNotEquals_AgainstLowDecimalScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<sbyte>("Left", new sbyte?[] { null, (sbyte)-5, (sbyte)7, null });
+
+            var results = left.ElementwiseNotEquals(-5m);
+
+            AssertComparisonResults(new[] { true, false, true, true }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_SByte_ElementwiseNotEquals_AgainstHighDecimalScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<sbyte>("Left", new sbyte?[] { null, (sbyte)-5, (sbyte)7, null });
+
+            var results = left.ElementwiseNotEquals(7m);
+
+            AssertComparisonResults(new[] { true, true, false, true }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_SByte_ElementwiseNotEquals_AgainstLowDecimalScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new sbyte?[] { null, (sbyte)-5, (sbyte)7, null }, (sbyte)-5);
+
+            var results = left.ElementwiseNotEquals(-5m);
+
+            AssertComparisonResults(new[] { true, false, true, true }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_SByte_ElementwiseNotEquals_AgainstHighDecimalScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new sbyte?[] { null, (sbyte)-5, (sbyte)7, null }, (sbyte)7);
+
+            var results = left.ElementwiseNotEquals(7m);
 
             AssertComparisonResults(new[] { true, true, false, true }, results);
         }
@@ -1268,6 +1908,86 @@ namespace Microsoft.Data.Analysis.Tests
         }
 
         [Fact]
+        public void PrimitiveDataFrameColumn_SByte_ElementwiseLessThan_AgainstLowDoubleScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<sbyte>("Left", new sbyte?[] { null, (sbyte)-5, (sbyte)7, null });
+
+            var results = left.ElementwiseLessThan(-5d);
+
+            AssertComparisonResults(new[] { false, false, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_SByte_ElementwiseLessThan_AgainstHighDoubleScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<sbyte>("Left", new sbyte?[] { null, (sbyte)-5, (sbyte)7, null });
+
+            var results = left.ElementwiseLessThan(7d);
+
+            AssertComparisonResults(new[] { false, true, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_SByte_ElementwiseLessThan_AgainstLowDoubleScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new sbyte?[] { null, (sbyte)-5, (sbyte)7, null }, (sbyte)-5);
+
+            var results = left.ElementwiseLessThan(-5d);
+
+            AssertComparisonResults(new[] { false, false, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_SByte_ElementwiseLessThan_AgainstHighDoubleScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new sbyte?[] { null, (sbyte)-5, (sbyte)7, null }, (sbyte)7);
+
+            var results = left.ElementwiseLessThan(7d);
+
+            AssertComparisonResults(new[] { false, true, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_SByte_ElementwiseLessThan_AgainstLowDecimalScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<sbyte>("Left", new sbyte?[] { null, (sbyte)-5, (sbyte)7, null });
+
+            var results = left.ElementwiseLessThan(-5m);
+
+            AssertComparisonResults(new[] { false, false, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_SByte_ElementwiseLessThan_AgainstHighDecimalScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<sbyte>("Left", new sbyte?[] { null, (sbyte)-5, (sbyte)7, null });
+
+            var results = left.ElementwiseLessThan(7m);
+
+            AssertComparisonResults(new[] { false, true, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_SByte_ElementwiseLessThan_AgainstLowDecimalScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new sbyte?[] { null, (sbyte)-5, (sbyte)7, null }, (sbyte)-5);
+
+            var results = left.ElementwiseLessThan(-5m);
+
+            AssertComparisonResults(new[] { false, false, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_SByte_ElementwiseLessThan_AgainstHighDecimalScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new sbyte?[] { null, (sbyte)-5, (sbyte)7, null }, (sbyte)7);
+
+            var results = left.ElementwiseLessThan(7m);
+
+            AssertComparisonResults(new[] { false, true, false, false }, results);
+        }
+
+        [Fact]
         public void PrimitiveDataFrameColumn_SByte_ElementwiseLessThan_AgainstDoubleColumn_EveryNullCombination()
         {
             var left = new PrimitiveDataFrameColumn<sbyte>("Left", new sbyte?[] { null, null, null, (sbyte)-5, (sbyte)-5, (sbyte)-5, (sbyte)7, (sbyte)7, (sbyte)7 });
@@ -1380,6 +2100,86 @@ namespace Microsoft.Data.Analysis.Tests
             var left = CreateColumnWithValuesUnderNulls("Left", new sbyte?[] { null, (sbyte)-5, (sbyte)7, null }, (sbyte)7);
 
             var results = left.ElementwiseLessThanOrEqual((sbyte)7);
+
+            AssertComparisonResults(new[] { false, true, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_SByte_ElementwiseLessThanOrEqual_AgainstLowDoubleScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<sbyte>("Left", new sbyte?[] { null, (sbyte)-5, (sbyte)7, null });
+
+            var results = left.ElementwiseLessThanOrEqual(-5d);
+
+            AssertComparisonResults(new[] { false, true, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_SByte_ElementwiseLessThanOrEqual_AgainstHighDoubleScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<sbyte>("Left", new sbyte?[] { null, (sbyte)-5, (sbyte)7, null });
+
+            var results = left.ElementwiseLessThanOrEqual(7d);
+
+            AssertComparisonResults(new[] { false, true, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_SByte_ElementwiseLessThanOrEqual_AgainstLowDoubleScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new sbyte?[] { null, (sbyte)-5, (sbyte)7, null }, (sbyte)-5);
+
+            var results = left.ElementwiseLessThanOrEqual(-5d);
+
+            AssertComparisonResults(new[] { false, true, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_SByte_ElementwiseLessThanOrEqual_AgainstHighDoubleScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new sbyte?[] { null, (sbyte)-5, (sbyte)7, null }, (sbyte)7);
+
+            var results = left.ElementwiseLessThanOrEqual(7d);
+
+            AssertComparisonResults(new[] { false, true, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_SByte_ElementwiseLessThanOrEqual_AgainstLowDecimalScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<sbyte>("Left", new sbyte?[] { null, (sbyte)-5, (sbyte)7, null });
+
+            var results = left.ElementwiseLessThanOrEqual(-5m);
+
+            AssertComparisonResults(new[] { false, true, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_SByte_ElementwiseLessThanOrEqual_AgainstHighDecimalScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<sbyte>("Left", new sbyte?[] { null, (sbyte)-5, (sbyte)7, null });
+
+            var results = left.ElementwiseLessThanOrEqual(7m);
+
+            AssertComparisonResults(new[] { false, true, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_SByte_ElementwiseLessThanOrEqual_AgainstLowDecimalScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new sbyte?[] { null, (sbyte)-5, (sbyte)7, null }, (sbyte)-5);
+
+            var results = left.ElementwiseLessThanOrEqual(-5m);
+
+            AssertComparisonResults(new[] { false, true, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_SByte_ElementwiseLessThanOrEqual_AgainstHighDecimalScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new sbyte?[] { null, (sbyte)-5, (sbyte)7, null }, (sbyte)7);
+
+            var results = left.ElementwiseLessThanOrEqual(7m);
 
             AssertComparisonResults(new[] { false, true, true, false }, results);
         }
@@ -1502,6 +2302,86 @@ namespace Microsoft.Data.Analysis.Tests
         }
 
         [Fact]
+        public void PrimitiveDataFrameColumn_SByte_ElementwiseGreaterThan_AgainstLowDoubleScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<sbyte>("Left", new sbyte?[] { null, (sbyte)-5, (sbyte)7, null });
+
+            var results = left.ElementwiseGreaterThan(-5d);
+
+            AssertComparisonResults(new[] { false, false, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_SByte_ElementwiseGreaterThan_AgainstHighDoubleScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<sbyte>("Left", new sbyte?[] { null, (sbyte)-5, (sbyte)7, null });
+
+            var results = left.ElementwiseGreaterThan(7d);
+
+            AssertComparisonResults(new[] { false, false, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_SByte_ElementwiseGreaterThan_AgainstLowDoubleScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new sbyte?[] { null, (sbyte)-5, (sbyte)7, null }, (sbyte)-5);
+
+            var results = left.ElementwiseGreaterThan(-5d);
+
+            AssertComparisonResults(new[] { false, false, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_SByte_ElementwiseGreaterThan_AgainstHighDoubleScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new sbyte?[] { null, (sbyte)-5, (sbyte)7, null }, (sbyte)7);
+
+            var results = left.ElementwiseGreaterThan(7d);
+
+            AssertComparisonResults(new[] { false, false, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_SByte_ElementwiseGreaterThan_AgainstLowDecimalScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<sbyte>("Left", new sbyte?[] { null, (sbyte)-5, (sbyte)7, null });
+
+            var results = left.ElementwiseGreaterThan(-5m);
+
+            AssertComparisonResults(new[] { false, false, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_SByte_ElementwiseGreaterThan_AgainstHighDecimalScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<sbyte>("Left", new sbyte?[] { null, (sbyte)-5, (sbyte)7, null });
+
+            var results = left.ElementwiseGreaterThan(7m);
+
+            AssertComparisonResults(new[] { false, false, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_SByte_ElementwiseGreaterThan_AgainstLowDecimalScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new sbyte?[] { null, (sbyte)-5, (sbyte)7, null }, (sbyte)-5);
+
+            var results = left.ElementwiseGreaterThan(-5m);
+
+            AssertComparisonResults(new[] { false, false, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_SByte_ElementwiseGreaterThan_AgainstHighDecimalScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new sbyte?[] { null, (sbyte)-5, (sbyte)7, null }, (sbyte)7);
+
+            var results = left.ElementwiseGreaterThan(7m);
+
+            AssertComparisonResults(new[] { false, false, false, false }, results);
+        }
+
+        [Fact]
         public void PrimitiveDataFrameColumn_SByte_ElementwiseGreaterThan_AgainstDoubleColumn_EveryNullCombination()
         {
             var left = new PrimitiveDataFrameColumn<sbyte>("Left", new sbyte?[] { null, null, null, (sbyte)-5, (sbyte)-5, (sbyte)-5, (sbyte)7, (sbyte)7, (sbyte)7 });
@@ -1614,6 +2494,86 @@ namespace Microsoft.Data.Analysis.Tests
             var left = CreateColumnWithValuesUnderNulls("Left", new sbyte?[] { null, (sbyte)-5, (sbyte)7, null }, (sbyte)7);
 
             var results = left.ElementwiseGreaterThanOrEqual((sbyte)7);
+
+            AssertComparisonResults(new[] { false, false, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_SByte_ElementwiseGreaterThanOrEqual_AgainstLowDoubleScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<sbyte>("Left", new sbyte?[] { null, (sbyte)-5, (sbyte)7, null });
+
+            var results = left.ElementwiseGreaterThanOrEqual(-5d);
+
+            AssertComparisonResults(new[] { false, true, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_SByte_ElementwiseGreaterThanOrEqual_AgainstHighDoubleScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<sbyte>("Left", new sbyte?[] { null, (sbyte)-5, (sbyte)7, null });
+
+            var results = left.ElementwiseGreaterThanOrEqual(7d);
+
+            AssertComparisonResults(new[] { false, false, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_SByte_ElementwiseGreaterThanOrEqual_AgainstLowDoubleScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new sbyte?[] { null, (sbyte)-5, (sbyte)7, null }, (sbyte)-5);
+
+            var results = left.ElementwiseGreaterThanOrEqual(-5d);
+
+            AssertComparisonResults(new[] { false, true, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_SByte_ElementwiseGreaterThanOrEqual_AgainstHighDoubleScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new sbyte?[] { null, (sbyte)-5, (sbyte)7, null }, (sbyte)7);
+
+            var results = left.ElementwiseGreaterThanOrEqual(7d);
+
+            AssertComparisonResults(new[] { false, false, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_SByte_ElementwiseGreaterThanOrEqual_AgainstLowDecimalScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<sbyte>("Left", new sbyte?[] { null, (sbyte)-5, (sbyte)7, null });
+
+            var results = left.ElementwiseGreaterThanOrEqual(-5m);
+
+            AssertComparisonResults(new[] { false, true, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_SByte_ElementwiseGreaterThanOrEqual_AgainstHighDecimalScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<sbyte>("Left", new sbyte?[] { null, (sbyte)-5, (sbyte)7, null });
+
+            var results = left.ElementwiseGreaterThanOrEqual(7m);
+
+            AssertComparisonResults(new[] { false, false, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_SByte_ElementwiseGreaterThanOrEqual_AgainstLowDecimalScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new sbyte?[] { null, (sbyte)-5, (sbyte)7, null }, (sbyte)-5);
+
+            var results = left.ElementwiseGreaterThanOrEqual(-5m);
+
+            AssertComparisonResults(new[] { false, true, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_SByte_ElementwiseGreaterThanOrEqual_AgainstHighDecimalScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new sbyte?[] { null, (sbyte)-5, (sbyte)7, null }, (sbyte)7);
+
+            var results = left.ElementwiseGreaterThanOrEqual(7m);
 
             AssertComparisonResults(new[] { false, false, true, false }, results);
         }
@@ -1736,6 +2696,86 @@ namespace Microsoft.Data.Analysis.Tests
         }
 
         [Fact]
+        public void PrimitiveDataFrameColumn_Int16_ElementwiseEquals_AgainstLowDoubleScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<short>("Left", new short?[] { null, (short)-300, (short)300, null });
+
+            var results = left.ElementwiseEquals(-300d);
+
+            AssertComparisonResults(new[] { false, true, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Int16_ElementwiseEquals_AgainstHighDoubleScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<short>("Left", new short?[] { null, (short)-300, (short)300, null });
+
+            var results = left.ElementwiseEquals(300d);
+
+            AssertComparisonResults(new[] { false, false, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Int16_ElementwiseEquals_AgainstLowDoubleScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new short?[] { null, (short)-300, (short)300, null }, (short)-300);
+
+            var results = left.ElementwiseEquals(-300d);
+
+            AssertComparisonResults(new[] { false, true, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Int16_ElementwiseEquals_AgainstHighDoubleScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new short?[] { null, (short)-300, (short)300, null }, (short)300);
+
+            var results = left.ElementwiseEquals(300d);
+
+            AssertComparisonResults(new[] { false, false, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Int16_ElementwiseEquals_AgainstLowDecimalScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<short>("Left", new short?[] { null, (short)-300, (short)300, null });
+
+            var results = left.ElementwiseEquals(-300m);
+
+            AssertComparisonResults(new[] { false, true, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Int16_ElementwiseEquals_AgainstHighDecimalScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<short>("Left", new short?[] { null, (short)-300, (short)300, null });
+
+            var results = left.ElementwiseEquals(300m);
+
+            AssertComparisonResults(new[] { false, false, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Int16_ElementwiseEquals_AgainstLowDecimalScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new short?[] { null, (short)-300, (short)300, null }, (short)-300);
+
+            var results = left.ElementwiseEquals(-300m);
+
+            AssertComparisonResults(new[] { false, true, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Int16_ElementwiseEquals_AgainstHighDecimalScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new short?[] { null, (short)-300, (short)300, null }, (short)300);
+
+            var results = left.ElementwiseEquals(300m);
+
+            AssertComparisonResults(new[] { false, false, true, false }, results);
+        }
+
+        [Fact]
         public void PrimitiveDataFrameColumn_Int16_ElementwiseEquals_AgainstDoubleColumn_EveryNullCombination()
         {
             var left = new PrimitiveDataFrameColumn<short>("Left", new short?[] { null, null, null, (short)-300, (short)-300, (short)-300, (short)300, (short)300, (short)300 });
@@ -1848,6 +2888,86 @@ namespace Microsoft.Data.Analysis.Tests
             var left = CreateColumnWithValuesUnderNulls("Left", new short?[] { null, (short)-300, (short)300, null }, (short)300);
 
             var results = left.ElementwiseNotEquals((short)300);
+
+            AssertComparisonResults(new[] { true, true, false, true }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Int16_ElementwiseNotEquals_AgainstLowDoubleScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<short>("Left", new short?[] { null, (short)-300, (short)300, null });
+
+            var results = left.ElementwiseNotEquals(-300d);
+
+            AssertComparisonResults(new[] { true, false, true, true }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Int16_ElementwiseNotEquals_AgainstHighDoubleScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<short>("Left", new short?[] { null, (short)-300, (short)300, null });
+
+            var results = left.ElementwiseNotEquals(300d);
+
+            AssertComparisonResults(new[] { true, true, false, true }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Int16_ElementwiseNotEquals_AgainstLowDoubleScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new short?[] { null, (short)-300, (short)300, null }, (short)-300);
+
+            var results = left.ElementwiseNotEquals(-300d);
+
+            AssertComparisonResults(new[] { true, false, true, true }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Int16_ElementwiseNotEquals_AgainstHighDoubleScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new short?[] { null, (short)-300, (short)300, null }, (short)300);
+
+            var results = left.ElementwiseNotEquals(300d);
+
+            AssertComparisonResults(new[] { true, true, false, true }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Int16_ElementwiseNotEquals_AgainstLowDecimalScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<short>("Left", new short?[] { null, (short)-300, (short)300, null });
+
+            var results = left.ElementwiseNotEquals(-300m);
+
+            AssertComparisonResults(new[] { true, false, true, true }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Int16_ElementwiseNotEquals_AgainstHighDecimalScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<short>("Left", new short?[] { null, (short)-300, (short)300, null });
+
+            var results = left.ElementwiseNotEquals(300m);
+
+            AssertComparisonResults(new[] { true, true, false, true }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Int16_ElementwiseNotEquals_AgainstLowDecimalScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new short?[] { null, (short)-300, (short)300, null }, (short)-300);
+
+            var results = left.ElementwiseNotEquals(-300m);
+
+            AssertComparisonResults(new[] { true, false, true, true }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Int16_ElementwiseNotEquals_AgainstHighDecimalScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new short?[] { null, (short)-300, (short)300, null }, (short)300);
+
+            var results = left.ElementwiseNotEquals(300m);
 
             AssertComparisonResults(new[] { true, true, false, true }, results);
         }
@@ -1970,6 +3090,86 @@ namespace Microsoft.Data.Analysis.Tests
         }
 
         [Fact]
+        public void PrimitiveDataFrameColumn_Int16_ElementwiseLessThan_AgainstLowDoubleScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<short>("Left", new short?[] { null, (short)-300, (short)300, null });
+
+            var results = left.ElementwiseLessThan(-300d);
+
+            AssertComparisonResults(new[] { false, false, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Int16_ElementwiseLessThan_AgainstHighDoubleScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<short>("Left", new short?[] { null, (short)-300, (short)300, null });
+
+            var results = left.ElementwiseLessThan(300d);
+
+            AssertComparisonResults(new[] { false, true, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Int16_ElementwiseLessThan_AgainstLowDoubleScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new short?[] { null, (short)-300, (short)300, null }, (short)-300);
+
+            var results = left.ElementwiseLessThan(-300d);
+
+            AssertComparisonResults(new[] { false, false, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Int16_ElementwiseLessThan_AgainstHighDoubleScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new short?[] { null, (short)-300, (short)300, null }, (short)300);
+
+            var results = left.ElementwiseLessThan(300d);
+
+            AssertComparisonResults(new[] { false, true, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Int16_ElementwiseLessThan_AgainstLowDecimalScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<short>("Left", new short?[] { null, (short)-300, (short)300, null });
+
+            var results = left.ElementwiseLessThan(-300m);
+
+            AssertComparisonResults(new[] { false, false, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Int16_ElementwiseLessThan_AgainstHighDecimalScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<short>("Left", new short?[] { null, (short)-300, (short)300, null });
+
+            var results = left.ElementwiseLessThan(300m);
+
+            AssertComparisonResults(new[] { false, true, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Int16_ElementwiseLessThan_AgainstLowDecimalScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new short?[] { null, (short)-300, (short)300, null }, (short)-300);
+
+            var results = left.ElementwiseLessThan(-300m);
+
+            AssertComparisonResults(new[] { false, false, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Int16_ElementwiseLessThan_AgainstHighDecimalScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new short?[] { null, (short)-300, (short)300, null }, (short)300);
+
+            var results = left.ElementwiseLessThan(300m);
+
+            AssertComparisonResults(new[] { false, true, false, false }, results);
+        }
+
+        [Fact]
         public void PrimitiveDataFrameColumn_Int16_ElementwiseLessThan_AgainstDoubleColumn_EveryNullCombination()
         {
             var left = new PrimitiveDataFrameColumn<short>("Left", new short?[] { null, null, null, (short)-300, (short)-300, (short)-300, (short)300, (short)300, (short)300 });
@@ -2082,6 +3282,86 @@ namespace Microsoft.Data.Analysis.Tests
             var left = CreateColumnWithValuesUnderNulls("Left", new short?[] { null, (short)-300, (short)300, null }, (short)300);
 
             var results = left.ElementwiseLessThanOrEqual((short)300);
+
+            AssertComparisonResults(new[] { false, true, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Int16_ElementwiseLessThanOrEqual_AgainstLowDoubleScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<short>("Left", new short?[] { null, (short)-300, (short)300, null });
+
+            var results = left.ElementwiseLessThanOrEqual(-300d);
+
+            AssertComparisonResults(new[] { false, true, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Int16_ElementwiseLessThanOrEqual_AgainstHighDoubleScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<short>("Left", new short?[] { null, (short)-300, (short)300, null });
+
+            var results = left.ElementwiseLessThanOrEqual(300d);
+
+            AssertComparisonResults(new[] { false, true, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Int16_ElementwiseLessThanOrEqual_AgainstLowDoubleScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new short?[] { null, (short)-300, (short)300, null }, (short)-300);
+
+            var results = left.ElementwiseLessThanOrEqual(-300d);
+
+            AssertComparisonResults(new[] { false, true, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Int16_ElementwiseLessThanOrEqual_AgainstHighDoubleScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new short?[] { null, (short)-300, (short)300, null }, (short)300);
+
+            var results = left.ElementwiseLessThanOrEqual(300d);
+
+            AssertComparisonResults(new[] { false, true, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Int16_ElementwiseLessThanOrEqual_AgainstLowDecimalScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<short>("Left", new short?[] { null, (short)-300, (short)300, null });
+
+            var results = left.ElementwiseLessThanOrEqual(-300m);
+
+            AssertComparisonResults(new[] { false, true, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Int16_ElementwiseLessThanOrEqual_AgainstHighDecimalScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<short>("Left", new short?[] { null, (short)-300, (short)300, null });
+
+            var results = left.ElementwiseLessThanOrEqual(300m);
+
+            AssertComparisonResults(new[] { false, true, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Int16_ElementwiseLessThanOrEqual_AgainstLowDecimalScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new short?[] { null, (short)-300, (short)300, null }, (short)-300);
+
+            var results = left.ElementwiseLessThanOrEqual(-300m);
+
+            AssertComparisonResults(new[] { false, true, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Int16_ElementwiseLessThanOrEqual_AgainstHighDecimalScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new short?[] { null, (short)-300, (short)300, null }, (short)300);
+
+            var results = left.ElementwiseLessThanOrEqual(300m);
 
             AssertComparisonResults(new[] { false, true, true, false }, results);
         }
@@ -2204,6 +3484,86 @@ namespace Microsoft.Data.Analysis.Tests
         }
 
         [Fact]
+        public void PrimitiveDataFrameColumn_Int16_ElementwiseGreaterThan_AgainstLowDoubleScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<short>("Left", new short?[] { null, (short)-300, (short)300, null });
+
+            var results = left.ElementwiseGreaterThan(-300d);
+
+            AssertComparisonResults(new[] { false, false, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Int16_ElementwiseGreaterThan_AgainstHighDoubleScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<short>("Left", new short?[] { null, (short)-300, (short)300, null });
+
+            var results = left.ElementwiseGreaterThan(300d);
+
+            AssertComparisonResults(new[] { false, false, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Int16_ElementwiseGreaterThan_AgainstLowDoubleScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new short?[] { null, (short)-300, (short)300, null }, (short)-300);
+
+            var results = left.ElementwiseGreaterThan(-300d);
+
+            AssertComparisonResults(new[] { false, false, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Int16_ElementwiseGreaterThan_AgainstHighDoubleScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new short?[] { null, (short)-300, (short)300, null }, (short)300);
+
+            var results = left.ElementwiseGreaterThan(300d);
+
+            AssertComparisonResults(new[] { false, false, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Int16_ElementwiseGreaterThan_AgainstLowDecimalScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<short>("Left", new short?[] { null, (short)-300, (short)300, null });
+
+            var results = left.ElementwiseGreaterThan(-300m);
+
+            AssertComparisonResults(new[] { false, false, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Int16_ElementwiseGreaterThan_AgainstHighDecimalScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<short>("Left", new short?[] { null, (short)-300, (short)300, null });
+
+            var results = left.ElementwiseGreaterThan(300m);
+
+            AssertComparisonResults(new[] { false, false, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Int16_ElementwiseGreaterThan_AgainstLowDecimalScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new short?[] { null, (short)-300, (short)300, null }, (short)-300);
+
+            var results = left.ElementwiseGreaterThan(-300m);
+
+            AssertComparisonResults(new[] { false, false, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Int16_ElementwiseGreaterThan_AgainstHighDecimalScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new short?[] { null, (short)-300, (short)300, null }, (short)300);
+
+            var results = left.ElementwiseGreaterThan(300m);
+
+            AssertComparisonResults(new[] { false, false, false, false }, results);
+        }
+
+        [Fact]
         public void PrimitiveDataFrameColumn_Int16_ElementwiseGreaterThan_AgainstDoubleColumn_EveryNullCombination()
         {
             var left = new PrimitiveDataFrameColumn<short>("Left", new short?[] { null, null, null, (short)-300, (short)-300, (short)-300, (short)300, (short)300, (short)300 });
@@ -2316,6 +3676,86 @@ namespace Microsoft.Data.Analysis.Tests
             var left = CreateColumnWithValuesUnderNulls("Left", new short?[] { null, (short)-300, (short)300, null }, (short)300);
 
             var results = left.ElementwiseGreaterThanOrEqual((short)300);
+
+            AssertComparisonResults(new[] { false, false, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Int16_ElementwiseGreaterThanOrEqual_AgainstLowDoubleScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<short>("Left", new short?[] { null, (short)-300, (short)300, null });
+
+            var results = left.ElementwiseGreaterThanOrEqual(-300d);
+
+            AssertComparisonResults(new[] { false, true, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Int16_ElementwiseGreaterThanOrEqual_AgainstHighDoubleScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<short>("Left", new short?[] { null, (short)-300, (short)300, null });
+
+            var results = left.ElementwiseGreaterThanOrEqual(300d);
+
+            AssertComparisonResults(new[] { false, false, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Int16_ElementwiseGreaterThanOrEqual_AgainstLowDoubleScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new short?[] { null, (short)-300, (short)300, null }, (short)-300);
+
+            var results = left.ElementwiseGreaterThanOrEqual(-300d);
+
+            AssertComparisonResults(new[] { false, true, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Int16_ElementwiseGreaterThanOrEqual_AgainstHighDoubleScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new short?[] { null, (short)-300, (short)300, null }, (short)300);
+
+            var results = left.ElementwiseGreaterThanOrEqual(300d);
+
+            AssertComparisonResults(new[] { false, false, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Int16_ElementwiseGreaterThanOrEqual_AgainstLowDecimalScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<short>("Left", new short?[] { null, (short)-300, (short)300, null });
+
+            var results = left.ElementwiseGreaterThanOrEqual(-300m);
+
+            AssertComparisonResults(new[] { false, true, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Int16_ElementwiseGreaterThanOrEqual_AgainstHighDecimalScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<short>("Left", new short?[] { null, (short)-300, (short)300, null });
+
+            var results = left.ElementwiseGreaterThanOrEqual(300m);
+
+            AssertComparisonResults(new[] { false, false, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Int16_ElementwiseGreaterThanOrEqual_AgainstLowDecimalScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new short?[] { null, (short)-300, (short)300, null }, (short)-300);
+
+            var results = left.ElementwiseGreaterThanOrEqual(-300m);
+
+            AssertComparisonResults(new[] { false, true, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Int16_ElementwiseGreaterThanOrEqual_AgainstHighDecimalScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new short?[] { null, (short)-300, (short)300, null }, (short)300);
+
+            var results = left.ElementwiseGreaterThanOrEqual(300m);
 
             AssertComparisonResults(new[] { false, false, true, false }, results);
         }
@@ -2438,6 +3878,86 @@ namespace Microsoft.Data.Analysis.Tests
         }
 
         [Fact]
+        public void PrimitiveDataFrameColumn_UInt16_ElementwiseEquals_AgainstLowDoubleScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<ushort>("Left", new ushort?[] { null, (ushort)3, (ushort)60000, null });
+
+            var results = left.ElementwiseEquals(3d);
+
+            AssertComparisonResults(new[] { false, true, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_UInt16_ElementwiseEquals_AgainstHighDoubleScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<ushort>("Left", new ushort?[] { null, (ushort)3, (ushort)60000, null });
+
+            var results = left.ElementwiseEquals(60000d);
+
+            AssertComparisonResults(new[] { false, false, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_UInt16_ElementwiseEquals_AgainstLowDoubleScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new ushort?[] { null, (ushort)3, (ushort)60000, null }, (ushort)3);
+
+            var results = left.ElementwiseEquals(3d);
+
+            AssertComparisonResults(new[] { false, true, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_UInt16_ElementwiseEquals_AgainstHighDoubleScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new ushort?[] { null, (ushort)3, (ushort)60000, null }, (ushort)60000);
+
+            var results = left.ElementwiseEquals(60000d);
+
+            AssertComparisonResults(new[] { false, false, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_UInt16_ElementwiseEquals_AgainstLowDecimalScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<ushort>("Left", new ushort?[] { null, (ushort)3, (ushort)60000, null });
+
+            var results = left.ElementwiseEquals(3m);
+
+            AssertComparisonResults(new[] { false, true, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_UInt16_ElementwiseEquals_AgainstHighDecimalScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<ushort>("Left", new ushort?[] { null, (ushort)3, (ushort)60000, null });
+
+            var results = left.ElementwiseEquals(60000m);
+
+            AssertComparisonResults(new[] { false, false, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_UInt16_ElementwiseEquals_AgainstLowDecimalScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new ushort?[] { null, (ushort)3, (ushort)60000, null }, (ushort)3);
+
+            var results = left.ElementwiseEquals(3m);
+
+            AssertComparisonResults(new[] { false, true, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_UInt16_ElementwiseEquals_AgainstHighDecimalScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new ushort?[] { null, (ushort)3, (ushort)60000, null }, (ushort)60000);
+
+            var results = left.ElementwiseEquals(60000m);
+
+            AssertComparisonResults(new[] { false, false, true, false }, results);
+        }
+
+        [Fact]
         public void PrimitiveDataFrameColumn_UInt16_ElementwiseEquals_AgainstDoubleColumn_EveryNullCombination()
         {
             var left = new PrimitiveDataFrameColumn<ushort>("Left", new ushort?[] { null, null, null, (ushort)3, (ushort)3, (ushort)3, (ushort)60000, (ushort)60000, (ushort)60000 });
@@ -2550,6 +4070,86 @@ namespace Microsoft.Data.Analysis.Tests
             var left = CreateColumnWithValuesUnderNulls("Left", new ushort?[] { null, (ushort)3, (ushort)60000, null }, (ushort)60000);
 
             var results = left.ElementwiseNotEquals((ushort)60000);
+
+            AssertComparisonResults(new[] { true, true, false, true }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_UInt16_ElementwiseNotEquals_AgainstLowDoubleScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<ushort>("Left", new ushort?[] { null, (ushort)3, (ushort)60000, null });
+
+            var results = left.ElementwiseNotEquals(3d);
+
+            AssertComparisonResults(new[] { true, false, true, true }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_UInt16_ElementwiseNotEquals_AgainstHighDoubleScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<ushort>("Left", new ushort?[] { null, (ushort)3, (ushort)60000, null });
+
+            var results = left.ElementwiseNotEquals(60000d);
+
+            AssertComparisonResults(new[] { true, true, false, true }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_UInt16_ElementwiseNotEquals_AgainstLowDoubleScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new ushort?[] { null, (ushort)3, (ushort)60000, null }, (ushort)3);
+
+            var results = left.ElementwiseNotEquals(3d);
+
+            AssertComparisonResults(new[] { true, false, true, true }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_UInt16_ElementwiseNotEquals_AgainstHighDoubleScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new ushort?[] { null, (ushort)3, (ushort)60000, null }, (ushort)60000);
+
+            var results = left.ElementwiseNotEquals(60000d);
+
+            AssertComparisonResults(new[] { true, true, false, true }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_UInt16_ElementwiseNotEquals_AgainstLowDecimalScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<ushort>("Left", new ushort?[] { null, (ushort)3, (ushort)60000, null });
+
+            var results = left.ElementwiseNotEquals(3m);
+
+            AssertComparisonResults(new[] { true, false, true, true }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_UInt16_ElementwiseNotEquals_AgainstHighDecimalScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<ushort>("Left", new ushort?[] { null, (ushort)3, (ushort)60000, null });
+
+            var results = left.ElementwiseNotEquals(60000m);
+
+            AssertComparisonResults(new[] { true, true, false, true }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_UInt16_ElementwiseNotEquals_AgainstLowDecimalScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new ushort?[] { null, (ushort)3, (ushort)60000, null }, (ushort)3);
+
+            var results = left.ElementwiseNotEquals(3m);
+
+            AssertComparisonResults(new[] { true, false, true, true }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_UInt16_ElementwiseNotEquals_AgainstHighDecimalScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new ushort?[] { null, (ushort)3, (ushort)60000, null }, (ushort)60000);
+
+            var results = left.ElementwiseNotEquals(60000m);
 
             AssertComparisonResults(new[] { true, true, false, true }, results);
         }
@@ -2672,6 +4272,86 @@ namespace Microsoft.Data.Analysis.Tests
         }
 
         [Fact]
+        public void PrimitiveDataFrameColumn_UInt16_ElementwiseLessThan_AgainstLowDoubleScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<ushort>("Left", new ushort?[] { null, (ushort)3, (ushort)60000, null });
+
+            var results = left.ElementwiseLessThan(3d);
+
+            AssertComparisonResults(new[] { false, false, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_UInt16_ElementwiseLessThan_AgainstHighDoubleScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<ushort>("Left", new ushort?[] { null, (ushort)3, (ushort)60000, null });
+
+            var results = left.ElementwiseLessThan(60000d);
+
+            AssertComparisonResults(new[] { false, true, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_UInt16_ElementwiseLessThan_AgainstLowDoubleScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new ushort?[] { null, (ushort)3, (ushort)60000, null }, (ushort)3);
+
+            var results = left.ElementwiseLessThan(3d);
+
+            AssertComparisonResults(new[] { false, false, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_UInt16_ElementwiseLessThan_AgainstHighDoubleScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new ushort?[] { null, (ushort)3, (ushort)60000, null }, (ushort)60000);
+
+            var results = left.ElementwiseLessThan(60000d);
+
+            AssertComparisonResults(new[] { false, true, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_UInt16_ElementwiseLessThan_AgainstLowDecimalScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<ushort>("Left", new ushort?[] { null, (ushort)3, (ushort)60000, null });
+
+            var results = left.ElementwiseLessThan(3m);
+
+            AssertComparisonResults(new[] { false, false, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_UInt16_ElementwiseLessThan_AgainstHighDecimalScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<ushort>("Left", new ushort?[] { null, (ushort)3, (ushort)60000, null });
+
+            var results = left.ElementwiseLessThan(60000m);
+
+            AssertComparisonResults(new[] { false, true, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_UInt16_ElementwiseLessThan_AgainstLowDecimalScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new ushort?[] { null, (ushort)3, (ushort)60000, null }, (ushort)3);
+
+            var results = left.ElementwiseLessThan(3m);
+
+            AssertComparisonResults(new[] { false, false, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_UInt16_ElementwiseLessThan_AgainstHighDecimalScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new ushort?[] { null, (ushort)3, (ushort)60000, null }, (ushort)60000);
+
+            var results = left.ElementwiseLessThan(60000m);
+
+            AssertComparisonResults(new[] { false, true, false, false }, results);
+        }
+
+        [Fact]
         public void PrimitiveDataFrameColumn_UInt16_ElementwiseLessThan_AgainstDoubleColumn_EveryNullCombination()
         {
             var left = new PrimitiveDataFrameColumn<ushort>("Left", new ushort?[] { null, null, null, (ushort)3, (ushort)3, (ushort)3, (ushort)60000, (ushort)60000, (ushort)60000 });
@@ -2784,6 +4464,86 @@ namespace Microsoft.Data.Analysis.Tests
             var left = CreateColumnWithValuesUnderNulls("Left", new ushort?[] { null, (ushort)3, (ushort)60000, null }, (ushort)60000);
 
             var results = left.ElementwiseLessThanOrEqual((ushort)60000);
+
+            AssertComparisonResults(new[] { false, true, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_UInt16_ElementwiseLessThanOrEqual_AgainstLowDoubleScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<ushort>("Left", new ushort?[] { null, (ushort)3, (ushort)60000, null });
+
+            var results = left.ElementwiseLessThanOrEqual(3d);
+
+            AssertComparisonResults(new[] { false, true, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_UInt16_ElementwiseLessThanOrEqual_AgainstHighDoubleScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<ushort>("Left", new ushort?[] { null, (ushort)3, (ushort)60000, null });
+
+            var results = left.ElementwiseLessThanOrEqual(60000d);
+
+            AssertComparisonResults(new[] { false, true, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_UInt16_ElementwiseLessThanOrEqual_AgainstLowDoubleScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new ushort?[] { null, (ushort)3, (ushort)60000, null }, (ushort)3);
+
+            var results = left.ElementwiseLessThanOrEqual(3d);
+
+            AssertComparisonResults(new[] { false, true, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_UInt16_ElementwiseLessThanOrEqual_AgainstHighDoubleScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new ushort?[] { null, (ushort)3, (ushort)60000, null }, (ushort)60000);
+
+            var results = left.ElementwiseLessThanOrEqual(60000d);
+
+            AssertComparisonResults(new[] { false, true, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_UInt16_ElementwiseLessThanOrEqual_AgainstLowDecimalScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<ushort>("Left", new ushort?[] { null, (ushort)3, (ushort)60000, null });
+
+            var results = left.ElementwiseLessThanOrEqual(3m);
+
+            AssertComparisonResults(new[] { false, true, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_UInt16_ElementwiseLessThanOrEqual_AgainstHighDecimalScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<ushort>("Left", new ushort?[] { null, (ushort)3, (ushort)60000, null });
+
+            var results = left.ElementwiseLessThanOrEqual(60000m);
+
+            AssertComparisonResults(new[] { false, true, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_UInt16_ElementwiseLessThanOrEqual_AgainstLowDecimalScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new ushort?[] { null, (ushort)3, (ushort)60000, null }, (ushort)3);
+
+            var results = left.ElementwiseLessThanOrEqual(3m);
+
+            AssertComparisonResults(new[] { false, true, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_UInt16_ElementwiseLessThanOrEqual_AgainstHighDecimalScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new ushort?[] { null, (ushort)3, (ushort)60000, null }, (ushort)60000);
+
+            var results = left.ElementwiseLessThanOrEqual(60000m);
 
             AssertComparisonResults(new[] { false, true, true, false }, results);
         }
@@ -2906,6 +4666,86 @@ namespace Microsoft.Data.Analysis.Tests
         }
 
         [Fact]
+        public void PrimitiveDataFrameColumn_UInt16_ElementwiseGreaterThan_AgainstLowDoubleScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<ushort>("Left", new ushort?[] { null, (ushort)3, (ushort)60000, null });
+
+            var results = left.ElementwiseGreaterThan(3d);
+
+            AssertComparisonResults(new[] { false, false, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_UInt16_ElementwiseGreaterThan_AgainstHighDoubleScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<ushort>("Left", new ushort?[] { null, (ushort)3, (ushort)60000, null });
+
+            var results = left.ElementwiseGreaterThan(60000d);
+
+            AssertComparisonResults(new[] { false, false, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_UInt16_ElementwiseGreaterThan_AgainstLowDoubleScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new ushort?[] { null, (ushort)3, (ushort)60000, null }, (ushort)3);
+
+            var results = left.ElementwiseGreaterThan(3d);
+
+            AssertComparisonResults(new[] { false, false, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_UInt16_ElementwiseGreaterThan_AgainstHighDoubleScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new ushort?[] { null, (ushort)3, (ushort)60000, null }, (ushort)60000);
+
+            var results = left.ElementwiseGreaterThan(60000d);
+
+            AssertComparisonResults(new[] { false, false, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_UInt16_ElementwiseGreaterThan_AgainstLowDecimalScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<ushort>("Left", new ushort?[] { null, (ushort)3, (ushort)60000, null });
+
+            var results = left.ElementwiseGreaterThan(3m);
+
+            AssertComparisonResults(new[] { false, false, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_UInt16_ElementwiseGreaterThan_AgainstHighDecimalScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<ushort>("Left", new ushort?[] { null, (ushort)3, (ushort)60000, null });
+
+            var results = left.ElementwiseGreaterThan(60000m);
+
+            AssertComparisonResults(new[] { false, false, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_UInt16_ElementwiseGreaterThan_AgainstLowDecimalScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new ushort?[] { null, (ushort)3, (ushort)60000, null }, (ushort)3);
+
+            var results = left.ElementwiseGreaterThan(3m);
+
+            AssertComparisonResults(new[] { false, false, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_UInt16_ElementwiseGreaterThan_AgainstHighDecimalScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new ushort?[] { null, (ushort)3, (ushort)60000, null }, (ushort)60000);
+
+            var results = left.ElementwiseGreaterThan(60000m);
+
+            AssertComparisonResults(new[] { false, false, false, false }, results);
+        }
+
+        [Fact]
         public void PrimitiveDataFrameColumn_UInt16_ElementwiseGreaterThan_AgainstDoubleColumn_EveryNullCombination()
         {
             var left = new PrimitiveDataFrameColumn<ushort>("Left", new ushort?[] { null, null, null, (ushort)3, (ushort)3, (ushort)3, (ushort)60000, (ushort)60000, (ushort)60000 });
@@ -3018,6 +4858,86 @@ namespace Microsoft.Data.Analysis.Tests
             var left = CreateColumnWithValuesUnderNulls("Left", new ushort?[] { null, (ushort)3, (ushort)60000, null }, (ushort)60000);
 
             var results = left.ElementwiseGreaterThanOrEqual((ushort)60000);
+
+            AssertComparisonResults(new[] { false, false, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_UInt16_ElementwiseGreaterThanOrEqual_AgainstLowDoubleScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<ushort>("Left", new ushort?[] { null, (ushort)3, (ushort)60000, null });
+
+            var results = left.ElementwiseGreaterThanOrEqual(3d);
+
+            AssertComparisonResults(new[] { false, true, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_UInt16_ElementwiseGreaterThanOrEqual_AgainstHighDoubleScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<ushort>("Left", new ushort?[] { null, (ushort)3, (ushort)60000, null });
+
+            var results = left.ElementwiseGreaterThanOrEqual(60000d);
+
+            AssertComparisonResults(new[] { false, false, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_UInt16_ElementwiseGreaterThanOrEqual_AgainstLowDoubleScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new ushort?[] { null, (ushort)3, (ushort)60000, null }, (ushort)3);
+
+            var results = left.ElementwiseGreaterThanOrEqual(3d);
+
+            AssertComparisonResults(new[] { false, true, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_UInt16_ElementwiseGreaterThanOrEqual_AgainstHighDoubleScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new ushort?[] { null, (ushort)3, (ushort)60000, null }, (ushort)60000);
+
+            var results = left.ElementwiseGreaterThanOrEqual(60000d);
+
+            AssertComparisonResults(new[] { false, false, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_UInt16_ElementwiseGreaterThanOrEqual_AgainstLowDecimalScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<ushort>("Left", new ushort?[] { null, (ushort)3, (ushort)60000, null });
+
+            var results = left.ElementwiseGreaterThanOrEqual(3m);
+
+            AssertComparisonResults(new[] { false, true, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_UInt16_ElementwiseGreaterThanOrEqual_AgainstHighDecimalScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<ushort>("Left", new ushort?[] { null, (ushort)3, (ushort)60000, null });
+
+            var results = left.ElementwiseGreaterThanOrEqual(60000m);
+
+            AssertComparisonResults(new[] { false, false, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_UInt16_ElementwiseGreaterThanOrEqual_AgainstLowDecimalScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new ushort?[] { null, (ushort)3, (ushort)60000, null }, (ushort)3);
+
+            var results = left.ElementwiseGreaterThanOrEqual(3m);
+
+            AssertComparisonResults(new[] { false, true, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_UInt16_ElementwiseGreaterThanOrEqual_AgainstHighDecimalScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new ushort?[] { null, (ushort)3, (ushort)60000, null }, (ushort)60000);
+
+            var results = left.ElementwiseGreaterThanOrEqual(60000m);
 
             AssertComparisonResults(new[] { false, false, true, false }, results);
         }
@@ -3140,6 +5060,86 @@ namespace Microsoft.Data.Analysis.Tests
         }
 
         [Fact]
+        public void PrimitiveDataFrameColumn_Int32_ElementwiseEquals_AgainstLowDoubleScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<int>("Left", new int?[] { null, -7, 42, null });
+
+            var results = left.ElementwiseEquals(-7d);
+
+            AssertComparisonResults(new[] { false, true, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Int32_ElementwiseEquals_AgainstHighDoubleScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<int>("Left", new int?[] { null, -7, 42, null });
+
+            var results = left.ElementwiseEquals(42d);
+
+            AssertComparisonResults(new[] { false, false, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Int32_ElementwiseEquals_AgainstLowDoubleScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new int?[] { null, -7, 42, null }, -7);
+
+            var results = left.ElementwiseEquals(-7d);
+
+            AssertComparisonResults(new[] { false, true, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Int32_ElementwiseEquals_AgainstHighDoubleScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new int?[] { null, -7, 42, null }, 42);
+
+            var results = left.ElementwiseEquals(42d);
+
+            AssertComparisonResults(new[] { false, false, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Int32_ElementwiseEquals_AgainstLowDecimalScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<int>("Left", new int?[] { null, -7, 42, null });
+
+            var results = left.ElementwiseEquals(-7m);
+
+            AssertComparisonResults(new[] { false, true, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Int32_ElementwiseEquals_AgainstHighDecimalScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<int>("Left", new int?[] { null, -7, 42, null });
+
+            var results = left.ElementwiseEquals(42m);
+
+            AssertComparisonResults(new[] { false, false, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Int32_ElementwiseEquals_AgainstLowDecimalScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new int?[] { null, -7, 42, null }, -7);
+
+            var results = left.ElementwiseEquals(-7m);
+
+            AssertComparisonResults(new[] { false, true, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Int32_ElementwiseEquals_AgainstHighDecimalScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new int?[] { null, -7, 42, null }, 42);
+
+            var results = left.ElementwiseEquals(42m);
+
+            AssertComparisonResults(new[] { false, false, true, false }, results);
+        }
+
+        [Fact]
         public void PrimitiveDataFrameColumn_Int32_ElementwiseEquals_AgainstDoubleColumn_EveryNullCombination()
         {
             var left = new PrimitiveDataFrameColumn<int>("Left", new int?[] { null, null, null, -7, -7, -7, 42, 42, 42 });
@@ -3252,6 +5252,86 @@ namespace Microsoft.Data.Analysis.Tests
             var left = CreateColumnWithValuesUnderNulls("Left", new int?[] { null, -7, 42, null }, 42);
 
             var results = left.ElementwiseNotEquals(42);
+
+            AssertComparisonResults(new[] { true, true, false, true }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Int32_ElementwiseNotEquals_AgainstLowDoubleScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<int>("Left", new int?[] { null, -7, 42, null });
+
+            var results = left.ElementwiseNotEquals(-7d);
+
+            AssertComparisonResults(new[] { true, false, true, true }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Int32_ElementwiseNotEquals_AgainstHighDoubleScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<int>("Left", new int?[] { null, -7, 42, null });
+
+            var results = left.ElementwiseNotEquals(42d);
+
+            AssertComparisonResults(new[] { true, true, false, true }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Int32_ElementwiseNotEquals_AgainstLowDoubleScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new int?[] { null, -7, 42, null }, -7);
+
+            var results = left.ElementwiseNotEquals(-7d);
+
+            AssertComparisonResults(new[] { true, false, true, true }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Int32_ElementwiseNotEquals_AgainstHighDoubleScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new int?[] { null, -7, 42, null }, 42);
+
+            var results = left.ElementwiseNotEquals(42d);
+
+            AssertComparisonResults(new[] { true, true, false, true }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Int32_ElementwiseNotEquals_AgainstLowDecimalScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<int>("Left", new int?[] { null, -7, 42, null });
+
+            var results = left.ElementwiseNotEquals(-7m);
+
+            AssertComparisonResults(new[] { true, false, true, true }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Int32_ElementwiseNotEquals_AgainstHighDecimalScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<int>("Left", new int?[] { null, -7, 42, null });
+
+            var results = left.ElementwiseNotEquals(42m);
+
+            AssertComparisonResults(new[] { true, true, false, true }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Int32_ElementwiseNotEquals_AgainstLowDecimalScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new int?[] { null, -7, 42, null }, -7);
+
+            var results = left.ElementwiseNotEquals(-7m);
+
+            AssertComparisonResults(new[] { true, false, true, true }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Int32_ElementwiseNotEquals_AgainstHighDecimalScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new int?[] { null, -7, 42, null }, 42);
+
+            var results = left.ElementwiseNotEquals(42m);
 
             AssertComparisonResults(new[] { true, true, false, true }, results);
         }
@@ -3374,6 +5454,86 @@ namespace Microsoft.Data.Analysis.Tests
         }
 
         [Fact]
+        public void PrimitiveDataFrameColumn_Int32_ElementwiseLessThan_AgainstLowDoubleScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<int>("Left", new int?[] { null, -7, 42, null });
+
+            var results = left.ElementwiseLessThan(-7d);
+
+            AssertComparisonResults(new[] { false, false, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Int32_ElementwiseLessThan_AgainstHighDoubleScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<int>("Left", new int?[] { null, -7, 42, null });
+
+            var results = left.ElementwiseLessThan(42d);
+
+            AssertComparisonResults(new[] { false, true, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Int32_ElementwiseLessThan_AgainstLowDoubleScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new int?[] { null, -7, 42, null }, -7);
+
+            var results = left.ElementwiseLessThan(-7d);
+
+            AssertComparisonResults(new[] { false, false, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Int32_ElementwiseLessThan_AgainstHighDoubleScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new int?[] { null, -7, 42, null }, 42);
+
+            var results = left.ElementwiseLessThan(42d);
+
+            AssertComparisonResults(new[] { false, true, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Int32_ElementwiseLessThan_AgainstLowDecimalScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<int>("Left", new int?[] { null, -7, 42, null });
+
+            var results = left.ElementwiseLessThan(-7m);
+
+            AssertComparisonResults(new[] { false, false, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Int32_ElementwiseLessThan_AgainstHighDecimalScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<int>("Left", new int?[] { null, -7, 42, null });
+
+            var results = left.ElementwiseLessThan(42m);
+
+            AssertComparisonResults(new[] { false, true, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Int32_ElementwiseLessThan_AgainstLowDecimalScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new int?[] { null, -7, 42, null }, -7);
+
+            var results = left.ElementwiseLessThan(-7m);
+
+            AssertComparisonResults(new[] { false, false, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Int32_ElementwiseLessThan_AgainstHighDecimalScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new int?[] { null, -7, 42, null }, 42);
+
+            var results = left.ElementwiseLessThan(42m);
+
+            AssertComparisonResults(new[] { false, true, false, false }, results);
+        }
+
+        [Fact]
         public void PrimitiveDataFrameColumn_Int32_ElementwiseLessThan_AgainstDoubleColumn_EveryNullCombination()
         {
             var left = new PrimitiveDataFrameColumn<int>("Left", new int?[] { null, null, null, -7, -7, -7, 42, 42, 42 });
@@ -3486,6 +5646,86 @@ namespace Microsoft.Data.Analysis.Tests
             var left = CreateColumnWithValuesUnderNulls("Left", new int?[] { null, -7, 42, null }, 42);
 
             var results = left.ElementwiseLessThanOrEqual(42);
+
+            AssertComparisonResults(new[] { false, true, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Int32_ElementwiseLessThanOrEqual_AgainstLowDoubleScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<int>("Left", new int?[] { null, -7, 42, null });
+
+            var results = left.ElementwiseLessThanOrEqual(-7d);
+
+            AssertComparisonResults(new[] { false, true, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Int32_ElementwiseLessThanOrEqual_AgainstHighDoubleScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<int>("Left", new int?[] { null, -7, 42, null });
+
+            var results = left.ElementwiseLessThanOrEqual(42d);
+
+            AssertComparisonResults(new[] { false, true, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Int32_ElementwiseLessThanOrEqual_AgainstLowDoubleScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new int?[] { null, -7, 42, null }, -7);
+
+            var results = left.ElementwiseLessThanOrEqual(-7d);
+
+            AssertComparisonResults(new[] { false, true, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Int32_ElementwiseLessThanOrEqual_AgainstHighDoubleScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new int?[] { null, -7, 42, null }, 42);
+
+            var results = left.ElementwiseLessThanOrEqual(42d);
+
+            AssertComparisonResults(new[] { false, true, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Int32_ElementwiseLessThanOrEqual_AgainstLowDecimalScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<int>("Left", new int?[] { null, -7, 42, null });
+
+            var results = left.ElementwiseLessThanOrEqual(-7m);
+
+            AssertComparisonResults(new[] { false, true, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Int32_ElementwiseLessThanOrEqual_AgainstHighDecimalScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<int>("Left", new int?[] { null, -7, 42, null });
+
+            var results = left.ElementwiseLessThanOrEqual(42m);
+
+            AssertComparisonResults(new[] { false, true, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Int32_ElementwiseLessThanOrEqual_AgainstLowDecimalScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new int?[] { null, -7, 42, null }, -7);
+
+            var results = left.ElementwiseLessThanOrEqual(-7m);
+
+            AssertComparisonResults(new[] { false, true, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Int32_ElementwiseLessThanOrEqual_AgainstHighDecimalScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new int?[] { null, -7, 42, null }, 42);
+
+            var results = left.ElementwiseLessThanOrEqual(42m);
 
             AssertComparisonResults(new[] { false, true, true, false }, results);
         }
@@ -3608,6 +5848,86 @@ namespace Microsoft.Data.Analysis.Tests
         }
 
         [Fact]
+        public void PrimitiveDataFrameColumn_Int32_ElementwiseGreaterThan_AgainstLowDoubleScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<int>("Left", new int?[] { null, -7, 42, null });
+
+            var results = left.ElementwiseGreaterThan(-7d);
+
+            AssertComparisonResults(new[] { false, false, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Int32_ElementwiseGreaterThan_AgainstHighDoubleScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<int>("Left", new int?[] { null, -7, 42, null });
+
+            var results = left.ElementwiseGreaterThan(42d);
+
+            AssertComparisonResults(new[] { false, false, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Int32_ElementwiseGreaterThan_AgainstLowDoubleScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new int?[] { null, -7, 42, null }, -7);
+
+            var results = left.ElementwiseGreaterThan(-7d);
+
+            AssertComparisonResults(new[] { false, false, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Int32_ElementwiseGreaterThan_AgainstHighDoubleScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new int?[] { null, -7, 42, null }, 42);
+
+            var results = left.ElementwiseGreaterThan(42d);
+
+            AssertComparisonResults(new[] { false, false, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Int32_ElementwiseGreaterThan_AgainstLowDecimalScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<int>("Left", new int?[] { null, -7, 42, null });
+
+            var results = left.ElementwiseGreaterThan(-7m);
+
+            AssertComparisonResults(new[] { false, false, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Int32_ElementwiseGreaterThan_AgainstHighDecimalScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<int>("Left", new int?[] { null, -7, 42, null });
+
+            var results = left.ElementwiseGreaterThan(42m);
+
+            AssertComparisonResults(new[] { false, false, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Int32_ElementwiseGreaterThan_AgainstLowDecimalScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new int?[] { null, -7, 42, null }, -7);
+
+            var results = left.ElementwiseGreaterThan(-7m);
+
+            AssertComparisonResults(new[] { false, false, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Int32_ElementwiseGreaterThan_AgainstHighDecimalScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new int?[] { null, -7, 42, null }, 42);
+
+            var results = left.ElementwiseGreaterThan(42m);
+
+            AssertComparisonResults(new[] { false, false, false, false }, results);
+        }
+
+        [Fact]
         public void PrimitiveDataFrameColumn_Int32_ElementwiseGreaterThan_AgainstDoubleColumn_EveryNullCombination()
         {
             var left = new PrimitiveDataFrameColumn<int>("Left", new int?[] { null, null, null, -7, -7, -7, 42, 42, 42 });
@@ -3720,6 +6040,86 @@ namespace Microsoft.Data.Analysis.Tests
             var left = CreateColumnWithValuesUnderNulls("Left", new int?[] { null, -7, 42, null }, 42);
 
             var results = left.ElementwiseGreaterThanOrEqual(42);
+
+            AssertComparisonResults(new[] { false, false, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Int32_ElementwiseGreaterThanOrEqual_AgainstLowDoubleScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<int>("Left", new int?[] { null, -7, 42, null });
+
+            var results = left.ElementwiseGreaterThanOrEqual(-7d);
+
+            AssertComparisonResults(new[] { false, true, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Int32_ElementwiseGreaterThanOrEqual_AgainstHighDoubleScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<int>("Left", new int?[] { null, -7, 42, null });
+
+            var results = left.ElementwiseGreaterThanOrEqual(42d);
+
+            AssertComparisonResults(new[] { false, false, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Int32_ElementwiseGreaterThanOrEqual_AgainstLowDoubleScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new int?[] { null, -7, 42, null }, -7);
+
+            var results = left.ElementwiseGreaterThanOrEqual(-7d);
+
+            AssertComparisonResults(new[] { false, true, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Int32_ElementwiseGreaterThanOrEqual_AgainstHighDoubleScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new int?[] { null, -7, 42, null }, 42);
+
+            var results = left.ElementwiseGreaterThanOrEqual(42d);
+
+            AssertComparisonResults(new[] { false, false, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Int32_ElementwiseGreaterThanOrEqual_AgainstLowDecimalScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<int>("Left", new int?[] { null, -7, 42, null });
+
+            var results = left.ElementwiseGreaterThanOrEqual(-7m);
+
+            AssertComparisonResults(new[] { false, true, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Int32_ElementwiseGreaterThanOrEqual_AgainstHighDecimalScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<int>("Left", new int?[] { null, -7, 42, null });
+
+            var results = left.ElementwiseGreaterThanOrEqual(42m);
+
+            AssertComparisonResults(new[] { false, false, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Int32_ElementwiseGreaterThanOrEqual_AgainstLowDecimalScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new int?[] { null, -7, 42, null }, -7);
+
+            var results = left.ElementwiseGreaterThanOrEqual(-7m);
+
+            AssertComparisonResults(new[] { false, true, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Int32_ElementwiseGreaterThanOrEqual_AgainstHighDecimalScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new int?[] { null, -7, 42, null }, 42);
+
+            var results = left.ElementwiseGreaterThanOrEqual(42m);
 
             AssertComparisonResults(new[] { false, false, true, false }, results);
         }
@@ -3842,6 +6242,86 @@ namespace Microsoft.Data.Analysis.Tests
         }
 
         [Fact]
+        public void PrimitiveDataFrameColumn_UInt32_ElementwiseEquals_AgainstLowDoubleScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<uint>("Left", new uint?[] { null, 3u, 4000000000u, null });
+
+            var results = left.ElementwiseEquals(3d);
+
+            AssertComparisonResults(new[] { false, true, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_UInt32_ElementwiseEquals_AgainstHighDoubleScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<uint>("Left", new uint?[] { null, 3u, 4000000000u, null });
+
+            var results = left.ElementwiseEquals(4000000000d);
+
+            AssertComparisonResults(new[] { false, false, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_UInt32_ElementwiseEquals_AgainstLowDoubleScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new uint?[] { null, 3u, 4000000000u, null }, 3u);
+
+            var results = left.ElementwiseEquals(3d);
+
+            AssertComparisonResults(new[] { false, true, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_UInt32_ElementwiseEquals_AgainstHighDoubleScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new uint?[] { null, 3u, 4000000000u, null }, 4000000000u);
+
+            var results = left.ElementwiseEquals(4000000000d);
+
+            AssertComparisonResults(new[] { false, false, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_UInt32_ElementwiseEquals_AgainstLowDecimalScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<uint>("Left", new uint?[] { null, 3u, 4000000000u, null });
+
+            var results = left.ElementwiseEquals(3m);
+
+            AssertComparisonResults(new[] { false, true, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_UInt32_ElementwiseEquals_AgainstHighDecimalScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<uint>("Left", new uint?[] { null, 3u, 4000000000u, null });
+
+            var results = left.ElementwiseEquals(4000000000m);
+
+            AssertComparisonResults(new[] { false, false, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_UInt32_ElementwiseEquals_AgainstLowDecimalScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new uint?[] { null, 3u, 4000000000u, null }, 3u);
+
+            var results = left.ElementwiseEquals(3m);
+
+            AssertComparisonResults(new[] { false, true, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_UInt32_ElementwiseEquals_AgainstHighDecimalScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new uint?[] { null, 3u, 4000000000u, null }, 4000000000u);
+
+            var results = left.ElementwiseEquals(4000000000m);
+
+            AssertComparisonResults(new[] { false, false, true, false }, results);
+        }
+
+        [Fact]
         public void PrimitiveDataFrameColumn_UInt32_ElementwiseEquals_AgainstDoubleColumn_EveryNullCombination()
         {
             var left = new PrimitiveDataFrameColumn<uint>("Left", new uint?[] { null, null, null, 3u, 3u, 3u, 4000000000u, 4000000000u, 4000000000u });
@@ -3954,6 +6434,86 @@ namespace Microsoft.Data.Analysis.Tests
             var left = CreateColumnWithValuesUnderNulls("Left", new uint?[] { null, 3u, 4000000000u, null }, 4000000000u);
 
             var results = left.ElementwiseNotEquals(4000000000u);
+
+            AssertComparisonResults(new[] { true, true, false, true }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_UInt32_ElementwiseNotEquals_AgainstLowDoubleScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<uint>("Left", new uint?[] { null, 3u, 4000000000u, null });
+
+            var results = left.ElementwiseNotEquals(3d);
+
+            AssertComparisonResults(new[] { true, false, true, true }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_UInt32_ElementwiseNotEquals_AgainstHighDoubleScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<uint>("Left", new uint?[] { null, 3u, 4000000000u, null });
+
+            var results = left.ElementwiseNotEquals(4000000000d);
+
+            AssertComparisonResults(new[] { true, true, false, true }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_UInt32_ElementwiseNotEquals_AgainstLowDoubleScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new uint?[] { null, 3u, 4000000000u, null }, 3u);
+
+            var results = left.ElementwiseNotEquals(3d);
+
+            AssertComparisonResults(new[] { true, false, true, true }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_UInt32_ElementwiseNotEquals_AgainstHighDoubleScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new uint?[] { null, 3u, 4000000000u, null }, 4000000000u);
+
+            var results = left.ElementwiseNotEquals(4000000000d);
+
+            AssertComparisonResults(new[] { true, true, false, true }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_UInt32_ElementwiseNotEquals_AgainstLowDecimalScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<uint>("Left", new uint?[] { null, 3u, 4000000000u, null });
+
+            var results = left.ElementwiseNotEquals(3m);
+
+            AssertComparisonResults(new[] { true, false, true, true }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_UInt32_ElementwiseNotEquals_AgainstHighDecimalScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<uint>("Left", new uint?[] { null, 3u, 4000000000u, null });
+
+            var results = left.ElementwiseNotEquals(4000000000m);
+
+            AssertComparisonResults(new[] { true, true, false, true }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_UInt32_ElementwiseNotEquals_AgainstLowDecimalScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new uint?[] { null, 3u, 4000000000u, null }, 3u);
+
+            var results = left.ElementwiseNotEquals(3m);
+
+            AssertComparisonResults(new[] { true, false, true, true }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_UInt32_ElementwiseNotEquals_AgainstHighDecimalScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new uint?[] { null, 3u, 4000000000u, null }, 4000000000u);
+
+            var results = left.ElementwiseNotEquals(4000000000m);
 
             AssertComparisonResults(new[] { true, true, false, true }, results);
         }
@@ -4076,6 +6636,86 @@ namespace Microsoft.Data.Analysis.Tests
         }
 
         [Fact]
+        public void PrimitiveDataFrameColumn_UInt32_ElementwiseLessThan_AgainstLowDoubleScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<uint>("Left", new uint?[] { null, 3u, 4000000000u, null });
+
+            var results = left.ElementwiseLessThan(3d);
+
+            AssertComparisonResults(new[] { false, false, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_UInt32_ElementwiseLessThan_AgainstHighDoubleScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<uint>("Left", new uint?[] { null, 3u, 4000000000u, null });
+
+            var results = left.ElementwiseLessThan(4000000000d);
+
+            AssertComparisonResults(new[] { false, true, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_UInt32_ElementwiseLessThan_AgainstLowDoubleScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new uint?[] { null, 3u, 4000000000u, null }, 3u);
+
+            var results = left.ElementwiseLessThan(3d);
+
+            AssertComparisonResults(new[] { false, false, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_UInt32_ElementwiseLessThan_AgainstHighDoubleScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new uint?[] { null, 3u, 4000000000u, null }, 4000000000u);
+
+            var results = left.ElementwiseLessThan(4000000000d);
+
+            AssertComparisonResults(new[] { false, true, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_UInt32_ElementwiseLessThan_AgainstLowDecimalScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<uint>("Left", new uint?[] { null, 3u, 4000000000u, null });
+
+            var results = left.ElementwiseLessThan(3m);
+
+            AssertComparisonResults(new[] { false, false, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_UInt32_ElementwiseLessThan_AgainstHighDecimalScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<uint>("Left", new uint?[] { null, 3u, 4000000000u, null });
+
+            var results = left.ElementwiseLessThan(4000000000m);
+
+            AssertComparisonResults(new[] { false, true, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_UInt32_ElementwiseLessThan_AgainstLowDecimalScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new uint?[] { null, 3u, 4000000000u, null }, 3u);
+
+            var results = left.ElementwiseLessThan(3m);
+
+            AssertComparisonResults(new[] { false, false, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_UInt32_ElementwiseLessThan_AgainstHighDecimalScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new uint?[] { null, 3u, 4000000000u, null }, 4000000000u);
+
+            var results = left.ElementwiseLessThan(4000000000m);
+
+            AssertComparisonResults(new[] { false, true, false, false }, results);
+        }
+
+        [Fact]
         public void PrimitiveDataFrameColumn_UInt32_ElementwiseLessThan_AgainstDoubleColumn_EveryNullCombination()
         {
             var left = new PrimitiveDataFrameColumn<uint>("Left", new uint?[] { null, null, null, 3u, 3u, 3u, 4000000000u, 4000000000u, 4000000000u });
@@ -4188,6 +6828,86 @@ namespace Microsoft.Data.Analysis.Tests
             var left = CreateColumnWithValuesUnderNulls("Left", new uint?[] { null, 3u, 4000000000u, null }, 4000000000u);
 
             var results = left.ElementwiseLessThanOrEqual(4000000000u);
+
+            AssertComparisonResults(new[] { false, true, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_UInt32_ElementwiseLessThanOrEqual_AgainstLowDoubleScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<uint>("Left", new uint?[] { null, 3u, 4000000000u, null });
+
+            var results = left.ElementwiseLessThanOrEqual(3d);
+
+            AssertComparisonResults(new[] { false, true, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_UInt32_ElementwiseLessThanOrEqual_AgainstHighDoubleScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<uint>("Left", new uint?[] { null, 3u, 4000000000u, null });
+
+            var results = left.ElementwiseLessThanOrEqual(4000000000d);
+
+            AssertComparisonResults(new[] { false, true, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_UInt32_ElementwiseLessThanOrEqual_AgainstLowDoubleScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new uint?[] { null, 3u, 4000000000u, null }, 3u);
+
+            var results = left.ElementwiseLessThanOrEqual(3d);
+
+            AssertComparisonResults(new[] { false, true, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_UInt32_ElementwiseLessThanOrEqual_AgainstHighDoubleScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new uint?[] { null, 3u, 4000000000u, null }, 4000000000u);
+
+            var results = left.ElementwiseLessThanOrEqual(4000000000d);
+
+            AssertComparisonResults(new[] { false, true, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_UInt32_ElementwiseLessThanOrEqual_AgainstLowDecimalScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<uint>("Left", new uint?[] { null, 3u, 4000000000u, null });
+
+            var results = left.ElementwiseLessThanOrEqual(3m);
+
+            AssertComparisonResults(new[] { false, true, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_UInt32_ElementwiseLessThanOrEqual_AgainstHighDecimalScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<uint>("Left", new uint?[] { null, 3u, 4000000000u, null });
+
+            var results = left.ElementwiseLessThanOrEqual(4000000000m);
+
+            AssertComparisonResults(new[] { false, true, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_UInt32_ElementwiseLessThanOrEqual_AgainstLowDecimalScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new uint?[] { null, 3u, 4000000000u, null }, 3u);
+
+            var results = left.ElementwiseLessThanOrEqual(3m);
+
+            AssertComparisonResults(new[] { false, true, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_UInt32_ElementwiseLessThanOrEqual_AgainstHighDecimalScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new uint?[] { null, 3u, 4000000000u, null }, 4000000000u);
+
+            var results = left.ElementwiseLessThanOrEqual(4000000000m);
 
             AssertComparisonResults(new[] { false, true, true, false }, results);
         }
@@ -4310,6 +7030,86 @@ namespace Microsoft.Data.Analysis.Tests
         }
 
         [Fact]
+        public void PrimitiveDataFrameColumn_UInt32_ElementwiseGreaterThan_AgainstLowDoubleScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<uint>("Left", new uint?[] { null, 3u, 4000000000u, null });
+
+            var results = left.ElementwiseGreaterThan(3d);
+
+            AssertComparisonResults(new[] { false, false, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_UInt32_ElementwiseGreaterThan_AgainstHighDoubleScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<uint>("Left", new uint?[] { null, 3u, 4000000000u, null });
+
+            var results = left.ElementwiseGreaterThan(4000000000d);
+
+            AssertComparisonResults(new[] { false, false, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_UInt32_ElementwiseGreaterThan_AgainstLowDoubleScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new uint?[] { null, 3u, 4000000000u, null }, 3u);
+
+            var results = left.ElementwiseGreaterThan(3d);
+
+            AssertComparisonResults(new[] { false, false, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_UInt32_ElementwiseGreaterThan_AgainstHighDoubleScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new uint?[] { null, 3u, 4000000000u, null }, 4000000000u);
+
+            var results = left.ElementwiseGreaterThan(4000000000d);
+
+            AssertComparisonResults(new[] { false, false, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_UInt32_ElementwiseGreaterThan_AgainstLowDecimalScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<uint>("Left", new uint?[] { null, 3u, 4000000000u, null });
+
+            var results = left.ElementwiseGreaterThan(3m);
+
+            AssertComparisonResults(new[] { false, false, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_UInt32_ElementwiseGreaterThan_AgainstHighDecimalScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<uint>("Left", new uint?[] { null, 3u, 4000000000u, null });
+
+            var results = left.ElementwiseGreaterThan(4000000000m);
+
+            AssertComparisonResults(new[] { false, false, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_UInt32_ElementwiseGreaterThan_AgainstLowDecimalScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new uint?[] { null, 3u, 4000000000u, null }, 3u);
+
+            var results = left.ElementwiseGreaterThan(3m);
+
+            AssertComparisonResults(new[] { false, false, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_UInt32_ElementwiseGreaterThan_AgainstHighDecimalScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new uint?[] { null, 3u, 4000000000u, null }, 4000000000u);
+
+            var results = left.ElementwiseGreaterThan(4000000000m);
+
+            AssertComparisonResults(new[] { false, false, false, false }, results);
+        }
+
+        [Fact]
         public void PrimitiveDataFrameColumn_UInt32_ElementwiseGreaterThan_AgainstDoubleColumn_EveryNullCombination()
         {
             var left = new PrimitiveDataFrameColumn<uint>("Left", new uint?[] { null, null, null, 3u, 3u, 3u, 4000000000u, 4000000000u, 4000000000u });
@@ -4422,6 +7222,86 @@ namespace Microsoft.Data.Analysis.Tests
             var left = CreateColumnWithValuesUnderNulls("Left", new uint?[] { null, 3u, 4000000000u, null }, 4000000000u);
 
             var results = left.ElementwiseGreaterThanOrEqual(4000000000u);
+
+            AssertComparisonResults(new[] { false, false, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_UInt32_ElementwiseGreaterThanOrEqual_AgainstLowDoubleScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<uint>("Left", new uint?[] { null, 3u, 4000000000u, null });
+
+            var results = left.ElementwiseGreaterThanOrEqual(3d);
+
+            AssertComparisonResults(new[] { false, true, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_UInt32_ElementwiseGreaterThanOrEqual_AgainstHighDoubleScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<uint>("Left", new uint?[] { null, 3u, 4000000000u, null });
+
+            var results = left.ElementwiseGreaterThanOrEqual(4000000000d);
+
+            AssertComparisonResults(new[] { false, false, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_UInt32_ElementwiseGreaterThanOrEqual_AgainstLowDoubleScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new uint?[] { null, 3u, 4000000000u, null }, 3u);
+
+            var results = left.ElementwiseGreaterThanOrEqual(3d);
+
+            AssertComparisonResults(new[] { false, true, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_UInt32_ElementwiseGreaterThanOrEqual_AgainstHighDoubleScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new uint?[] { null, 3u, 4000000000u, null }, 4000000000u);
+
+            var results = left.ElementwiseGreaterThanOrEqual(4000000000d);
+
+            AssertComparisonResults(new[] { false, false, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_UInt32_ElementwiseGreaterThanOrEqual_AgainstLowDecimalScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<uint>("Left", new uint?[] { null, 3u, 4000000000u, null });
+
+            var results = left.ElementwiseGreaterThanOrEqual(3m);
+
+            AssertComparisonResults(new[] { false, true, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_UInt32_ElementwiseGreaterThanOrEqual_AgainstHighDecimalScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<uint>("Left", new uint?[] { null, 3u, 4000000000u, null });
+
+            var results = left.ElementwiseGreaterThanOrEqual(4000000000m);
+
+            AssertComparisonResults(new[] { false, false, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_UInt32_ElementwiseGreaterThanOrEqual_AgainstLowDecimalScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new uint?[] { null, 3u, 4000000000u, null }, 3u);
+
+            var results = left.ElementwiseGreaterThanOrEqual(3m);
+
+            AssertComparisonResults(new[] { false, true, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_UInt32_ElementwiseGreaterThanOrEqual_AgainstHighDecimalScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new uint?[] { null, 3u, 4000000000u, null }, 4000000000u);
+
+            var results = left.ElementwiseGreaterThanOrEqual(4000000000m);
 
             AssertComparisonResults(new[] { false, false, true, false }, results);
         }
@@ -4544,6 +7424,86 @@ namespace Microsoft.Data.Analysis.Tests
         }
 
         [Fact]
+        public void PrimitiveDataFrameColumn_Int64_ElementwiseEquals_AgainstLowDoubleScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<long>("Left", new long?[] { null, -7L, 5000000000L, null });
+
+            var results = left.ElementwiseEquals(-7d);
+
+            AssertComparisonResults(new[] { false, true, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Int64_ElementwiseEquals_AgainstHighDoubleScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<long>("Left", new long?[] { null, -7L, 5000000000L, null });
+
+            var results = left.ElementwiseEquals(5000000000d);
+
+            AssertComparisonResults(new[] { false, false, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Int64_ElementwiseEquals_AgainstLowDoubleScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new long?[] { null, -7L, 5000000000L, null }, -7L);
+
+            var results = left.ElementwiseEquals(-7d);
+
+            AssertComparisonResults(new[] { false, true, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Int64_ElementwiseEquals_AgainstHighDoubleScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new long?[] { null, -7L, 5000000000L, null }, 5000000000L);
+
+            var results = left.ElementwiseEquals(5000000000d);
+
+            AssertComparisonResults(new[] { false, false, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Int64_ElementwiseEquals_AgainstLowDecimalScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<long>("Left", new long?[] { null, -7L, 5000000000L, null });
+
+            var results = left.ElementwiseEquals(-7m);
+
+            AssertComparisonResults(new[] { false, true, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Int64_ElementwiseEquals_AgainstHighDecimalScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<long>("Left", new long?[] { null, -7L, 5000000000L, null });
+
+            var results = left.ElementwiseEquals(5000000000m);
+
+            AssertComparisonResults(new[] { false, false, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Int64_ElementwiseEquals_AgainstLowDecimalScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new long?[] { null, -7L, 5000000000L, null }, -7L);
+
+            var results = left.ElementwiseEquals(-7m);
+
+            AssertComparisonResults(new[] { false, true, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Int64_ElementwiseEquals_AgainstHighDecimalScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new long?[] { null, -7L, 5000000000L, null }, 5000000000L);
+
+            var results = left.ElementwiseEquals(5000000000m);
+
+            AssertComparisonResults(new[] { false, false, true, false }, results);
+        }
+
+        [Fact]
         public void PrimitiveDataFrameColumn_Int64_ElementwiseEquals_AgainstDoubleColumn_EveryNullCombination()
         {
             var left = new PrimitiveDataFrameColumn<long>("Left", new long?[] { null, null, null, -7L, -7L, -7L, 5000000000L, 5000000000L, 5000000000L });
@@ -4656,6 +7616,86 @@ namespace Microsoft.Data.Analysis.Tests
             var left = CreateColumnWithValuesUnderNulls("Left", new long?[] { null, -7L, 5000000000L, null }, 5000000000L);
 
             var results = left.ElementwiseNotEquals(5000000000L);
+
+            AssertComparisonResults(new[] { true, true, false, true }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Int64_ElementwiseNotEquals_AgainstLowDoubleScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<long>("Left", new long?[] { null, -7L, 5000000000L, null });
+
+            var results = left.ElementwiseNotEquals(-7d);
+
+            AssertComparisonResults(new[] { true, false, true, true }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Int64_ElementwiseNotEquals_AgainstHighDoubleScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<long>("Left", new long?[] { null, -7L, 5000000000L, null });
+
+            var results = left.ElementwiseNotEquals(5000000000d);
+
+            AssertComparisonResults(new[] { true, true, false, true }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Int64_ElementwiseNotEquals_AgainstLowDoubleScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new long?[] { null, -7L, 5000000000L, null }, -7L);
+
+            var results = left.ElementwiseNotEquals(-7d);
+
+            AssertComparisonResults(new[] { true, false, true, true }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Int64_ElementwiseNotEquals_AgainstHighDoubleScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new long?[] { null, -7L, 5000000000L, null }, 5000000000L);
+
+            var results = left.ElementwiseNotEquals(5000000000d);
+
+            AssertComparisonResults(new[] { true, true, false, true }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Int64_ElementwiseNotEquals_AgainstLowDecimalScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<long>("Left", new long?[] { null, -7L, 5000000000L, null });
+
+            var results = left.ElementwiseNotEquals(-7m);
+
+            AssertComparisonResults(new[] { true, false, true, true }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Int64_ElementwiseNotEquals_AgainstHighDecimalScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<long>("Left", new long?[] { null, -7L, 5000000000L, null });
+
+            var results = left.ElementwiseNotEquals(5000000000m);
+
+            AssertComparisonResults(new[] { true, true, false, true }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Int64_ElementwiseNotEquals_AgainstLowDecimalScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new long?[] { null, -7L, 5000000000L, null }, -7L);
+
+            var results = left.ElementwiseNotEquals(-7m);
+
+            AssertComparisonResults(new[] { true, false, true, true }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Int64_ElementwiseNotEquals_AgainstHighDecimalScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new long?[] { null, -7L, 5000000000L, null }, 5000000000L);
+
+            var results = left.ElementwiseNotEquals(5000000000m);
 
             AssertComparisonResults(new[] { true, true, false, true }, results);
         }
@@ -4778,6 +7818,86 @@ namespace Microsoft.Data.Analysis.Tests
         }
 
         [Fact]
+        public void PrimitiveDataFrameColumn_Int64_ElementwiseLessThan_AgainstLowDoubleScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<long>("Left", new long?[] { null, -7L, 5000000000L, null });
+
+            var results = left.ElementwiseLessThan(-7d);
+
+            AssertComparisonResults(new[] { false, false, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Int64_ElementwiseLessThan_AgainstHighDoubleScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<long>("Left", new long?[] { null, -7L, 5000000000L, null });
+
+            var results = left.ElementwiseLessThan(5000000000d);
+
+            AssertComparisonResults(new[] { false, true, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Int64_ElementwiseLessThan_AgainstLowDoubleScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new long?[] { null, -7L, 5000000000L, null }, -7L);
+
+            var results = left.ElementwiseLessThan(-7d);
+
+            AssertComparisonResults(new[] { false, false, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Int64_ElementwiseLessThan_AgainstHighDoubleScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new long?[] { null, -7L, 5000000000L, null }, 5000000000L);
+
+            var results = left.ElementwiseLessThan(5000000000d);
+
+            AssertComparisonResults(new[] { false, true, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Int64_ElementwiseLessThan_AgainstLowDecimalScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<long>("Left", new long?[] { null, -7L, 5000000000L, null });
+
+            var results = left.ElementwiseLessThan(-7m);
+
+            AssertComparisonResults(new[] { false, false, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Int64_ElementwiseLessThan_AgainstHighDecimalScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<long>("Left", new long?[] { null, -7L, 5000000000L, null });
+
+            var results = left.ElementwiseLessThan(5000000000m);
+
+            AssertComparisonResults(new[] { false, true, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Int64_ElementwiseLessThan_AgainstLowDecimalScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new long?[] { null, -7L, 5000000000L, null }, -7L);
+
+            var results = left.ElementwiseLessThan(-7m);
+
+            AssertComparisonResults(new[] { false, false, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Int64_ElementwiseLessThan_AgainstHighDecimalScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new long?[] { null, -7L, 5000000000L, null }, 5000000000L);
+
+            var results = left.ElementwiseLessThan(5000000000m);
+
+            AssertComparisonResults(new[] { false, true, false, false }, results);
+        }
+
+        [Fact]
         public void PrimitiveDataFrameColumn_Int64_ElementwiseLessThan_AgainstDoubleColumn_EveryNullCombination()
         {
             var left = new PrimitiveDataFrameColumn<long>("Left", new long?[] { null, null, null, -7L, -7L, -7L, 5000000000L, 5000000000L, 5000000000L });
@@ -4890,6 +8010,86 @@ namespace Microsoft.Data.Analysis.Tests
             var left = CreateColumnWithValuesUnderNulls("Left", new long?[] { null, -7L, 5000000000L, null }, 5000000000L);
 
             var results = left.ElementwiseLessThanOrEqual(5000000000L);
+
+            AssertComparisonResults(new[] { false, true, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Int64_ElementwiseLessThanOrEqual_AgainstLowDoubleScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<long>("Left", new long?[] { null, -7L, 5000000000L, null });
+
+            var results = left.ElementwiseLessThanOrEqual(-7d);
+
+            AssertComparisonResults(new[] { false, true, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Int64_ElementwiseLessThanOrEqual_AgainstHighDoubleScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<long>("Left", new long?[] { null, -7L, 5000000000L, null });
+
+            var results = left.ElementwiseLessThanOrEqual(5000000000d);
+
+            AssertComparisonResults(new[] { false, true, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Int64_ElementwiseLessThanOrEqual_AgainstLowDoubleScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new long?[] { null, -7L, 5000000000L, null }, -7L);
+
+            var results = left.ElementwiseLessThanOrEqual(-7d);
+
+            AssertComparisonResults(new[] { false, true, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Int64_ElementwiseLessThanOrEqual_AgainstHighDoubleScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new long?[] { null, -7L, 5000000000L, null }, 5000000000L);
+
+            var results = left.ElementwiseLessThanOrEqual(5000000000d);
+
+            AssertComparisonResults(new[] { false, true, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Int64_ElementwiseLessThanOrEqual_AgainstLowDecimalScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<long>("Left", new long?[] { null, -7L, 5000000000L, null });
+
+            var results = left.ElementwiseLessThanOrEqual(-7m);
+
+            AssertComparisonResults(new[] { false, true, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Int64_ElementwiseLessThanOrEqual_AgainstHighDecimalScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<long>("Left", new long?[] { null, -7L, 5000000000L, null });
+
+            var results = left.ElementwiseLessThanOrEqual(5000000000m);
+
+            AssertComparisonResults(new[] { false, true, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Int64_ElementwiseLessThanOrEqual_AgainstLowDecimalScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new long?[] { null, -7L, 5000000000L, null }, -7L);
+
+            var results = left.ElementwiseLessThanOrEqual(-7m);
+
+            AssertComparisonResults(new[] { false, true, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Int64_ElementwiseLessThanOrEqual_AgainstHighDecimalScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new long?[] { null, -7L, 5000000000L, null }, 5000000000L);
+
+            var results = left.ElementwiseLessThanOrEqual(5000000000m);
 
             AssertComparisonResults(new[] { false, true, true, false }, results);
         }
@@ -5012,6 +8212,86 @@ namespace Microsoft.Data.Analysis.Tests
         }
 
         [Fact]
+        public void PrimitiveDataFrameColumn_Int64_ElementwiseGreaterThan_AgainstLowDoubleScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<long>("Left", new long?[] { null, -7L, 5000000000L, null });
+
+            var results = left.ElementwiseGreaterThan(-7d);
+
+            AssertComparisonResults(new[] { false, false, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Int64_ElementwiseGreaterThan_AgainstHighDoubleScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<long>("Left", new long?[] { null, -7L, 5000000000L, null });
+
+            var results = left.ElementwiseGreaterThan(5000000000d);
+
+            AssertComparisonResults(new[] { false, false, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Int64_ElementwiseGreaterThan_AgainstLowDoubleScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new long?[] { null, -7L, 5000000000L, null }, -7L);
+
+            var results = left.ElementwiseGreaterThan(-7d);
+
+            AssertComparisonResults(new[] { false, false, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Int64_ElementwiseGreaterThan_AgainstHighDoubleScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new long?[] { null, -7L, 5000000000L, null }, 5000000000L);
+
+            var results = left.ElementwiseGreaterThan(5000000000d);
+
+            AssertComparisonResults(new[] { false, false, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Int64_ElementwiseGreaterThan_AgainstLowDecimalScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<long>("Left", new long?[] { null, -7L, 5000000000L, null });
+
+            var results = left.ElementwiseGreaterThan(-7m);
+
+            AssertComparisonResults(new[] { false, false, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Int64_ElementwiseGreaterThan_AgainstHighDecimalScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<long>("Left", new long?[] { null, -7L, 5000000000L, null });
+
+            var results = left.ElementwiseGreaterThan(5000000000m);
+
+            AssertComparisonResults(new[] { false, false, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Int64_ElementwiseGreaterThan_AgainstLowDecimalScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new long?[] { null, -7L, 5000000000L, null }, -7L);
+
+            var results = left.ElementwiseGreaterThan(-7m);
+
+            AssertComparisonResults(new[] { false, false, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Int64_ElementwiseGreaterThan_AgainstHighDecimalScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new long?[] { null, -7L, 5000000000L, null }, 5000000000L);
+
+            var results = left.ElementwiseGreaterThan(5000000000m);
+
+            AssertComparisonResults(new[] { false, false, false, false }, results);
+        }
+
+        [Fact]
         public void PrimitiveDataFrameColumn_Int64_ElementwiseGreaterThan_AgainstDoubleColumn_EveryNullCombination()
         {
             var left = new PrimitiveDataFrameColumn<long>("Left", new long?[] { null, null, null, -7L, -7L, -7L, 5000000000L, 5000000000L, 5000000000L });
@@ -5124,6 +8404,86 @@ namespace Microsoft.Data.Analysis.Tests
             var left = CreateColumnWithValuesUnderNulls("Left", new long?[] { null, -7L, 5000000000L, null }, 5000000000L);
 
             var results = left.ElementwiseGreaterThanOrEqual(5000000000L);
+
+            AssertComparisonResults(new[] { false, false, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Int64_ElementwiseGreaterThanOrEqual_AgainstLowDoubleScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<long>("Left", new long?[] { null, -7L, 5000000000L, null });
+
+            var results = left.ElementwiseGreaterThanOrEqual(-7d);
+
+            AssertComparisonResults(new[] { false, true, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Int64_ElementwiseGreaterThanOrEqual_AgainstHighDoubleScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<long>("Left", new long?[] { null, -7L, 5000000000L, null });
+
+            var results = left.ElementwiseGreaterThanOrEqual(5000000000d);
+
+            AssertComparisonResults(new[] { false, false, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Int64_ElementwiseGreaterThanOrEqual_AgainstLowDoubleScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new long?[] { null, -7L, 5000000000L, null }, -7L);
+
+            var results = left.ElementwiseGreaterThanOrEqual(-7d);
+
+            AssertComparisonResults(new[] { false, true, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Int64_ElementwiseGreaterThanOrEqual_AgainstHighDoubleScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new long?[] { null, -7L, 5000000000L, null }, 5000000000L);
+
+            var results = left.ElementwiseGreaterThanOrEqual(5000000000d);
+
+            AssertComparisonResults(new[] { false, false, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Int64_ElementwiseGreaterThanOrEqual_AgainstLowDecimalScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<long>("Left", new long?[] { null, -7L, 5000000000L, null });
+
+            var results = left.ElementwiseGreaterThanOrEqual(-7m);
+
+            AssertComparisonResults(new[] { false, true, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Int64_ElementwiseGreaterThanOrEqual_AgainstHighDecimalScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<long>("Left", new long?[] { null, -7L, 5000000000L, null });
+
+            var results = left.ElementwiseGreaterThanOrEqual(5000000000m);
+
+            AssertComparisonResults(new[] { false, false, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Int64_ElementwiseGreaterThanOrEqual_AgainstLowDecimalScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new long?[] { null, -7L, 5000000000L, null }, -7L);
+
+            var results = left.ElementwiseGreaterThanOrEqual(-7m);
+
+            AssertComparisonResults(new[] { false, true, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Int64_ElementwiseGreaterThanOrEqual_AgainstHighDecimalScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new long?[] { null, -7L, 5000000000L, null }, 5000000000L);
+
+            var results = left.ElementwiseGreaterThanOrEqual(5000000000m);
 
             AssertComparisonResults(new[] { false, false, true, false }, results);
         }
@@ -5246,6 +8606,86 @@ namespace Microsoft.Data.Analysis.Tests
         }
 
         [Fact]
+        public void PrimitiveDataFrameColumn_UInt64_ElementwiseEquals_AgainstLowDoubleScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<ulong>("Left", new ulong?[] { null, 3UL, 5000000000UL, null });
+
+            var results = left.ElementwiseEquals(3d);
+
+            AssertComparisonResults(new[] { false, true, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_UInt64_ElementwiseEquals_AgainstHighDoubleScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<ulong>("Left", new ulong?[] { null, 3UL, 5000000000UL, null });
+
+            var results = left.ElementwiseEquals(5000000000d);
+
+            AssertComparisonResults(new[] { false, false, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_UInt64_ElementwiseEquals_AgainstLowDoubleScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new ulong?[] { null, 3UL, 5000000000UL, null }, 3UL);
+
+            var results = left.ElementwiseEquals(3d);
+
+            AssertComparisonResults(new[] { false, true, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_UInt64_ElementwiseEquals_AgainstHighDoubleScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new ulong?[] { null, 3UL, 5000000000UL, null }, 5000000000UL);
+
+            var results = left.ElementwiseEquals(5000000000d);
+
+            AssertComparisonResults(new[] { false, false, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_UInt64_ElementwiseEquals_AgainstLowDecimalScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<ulong>("Left", new ulong?[] { null, 3UL, 5000000000UL, null });
+
+            var results = left.ElementwiseEquals(3m);
+
+            AssertComparisonResults(new[] { false, true, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_UInt64_ElementwiseEquals_AgainstHighDecimalScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<ulong>("Left", new ulong?[] { null, 3UL, 5000000000UL, null });
+
+            var results = left.ElementwiseEquals(5000000000m);
+
+            AssertComparisonResults(new[] { false, false, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_UInt64_ElementwiseEquals_AgainstLowDecimalScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new ulong?[] { null, 3UL, 5000000000UL, null }, 3UL);
+
+            var results = left.ElementwiseEquals(3m);
+
+            AssertComparisonResults(new[] { false, true, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_UInt64_ElementwiseEquals_AgainstHighDecimalScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new ulong?[] { null, 3UL, 5000000000UL, null }, 5000000000UL);
+
+            var results = left.ElementwiseEquals(5000000000m);
+
+            AssertComparisonResults(new[] { false, false, true, false }, results);
+        }
+
+        [Fact]
         public void PrimitiveDataFrameColumn_UInt64_ElementwiseEquals_AgainstDoubleColumn_EveryNullCombination()
         {
             var left = new PrimitiveDataFrameColumn<ulong>("Left", new ulong?[] { null, null, null, 3UL, 3UL, 3UL, 5000000000UL, 5000000000UL, 5000000000UL });
@@ -5358,6 +8798,86 @@ namespace Microsoft.Data.Analysis.Tests
             var left = CreateColumnWithValuesUnderNulls("Left", new ulong?[] { null, 3UL, 5000000000UL, null }, 5000000000UL);
 
             var results = left.ElementwiseNotEquals(5000000000UL);
+
+            AssertComparisonResults(new[] { true, true, false, true }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_UInt64_ElementwiseNotEquals_AgainstLowDoubleScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<ulong>("Left", new ulong?[] { null, 3UL, 5000000000UL, null });
+
+            var results = left.ElementwiseNotEquals(3d);
+
+            AssertComparisonResults(new[] { true, false, true, true }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_UInt64_ElementwiseNotEquals_AgainstHighDoubleScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<ulong>("Left", new ulong?[] { null, 3UL, 5000000000UL, null });
+
+            var results = left.ElementwiseNotEquals(5000000000d);
+
+            AssertComparisonResults(new[] { true, true, false, true }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_UInt64_ElementwiseNotEquals_AgainstLowDoubleScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new ulong?[] { null, 3UL, 5000000000UL, null }, 3UL);
+
+            var results = left.ElementwiseNotEquals(3d);
+
+            AssertComparisonResults(new[] { true, false, true, true }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_UInt64_ElementwiseNotEquals_AgainstHighDoubleScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new ulong?[] { null, 3UL, 5000000000UL, null }, 5000000000UL);
+
+            var results = left.ElementwiseNotEquals(5000000000d);
+
+            AssertComparisonResults(new[] { true, true, false, true }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_UInt64_ElementwiseNotEquals_AgainstLowDecimalScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<ulong>("Left", new ulong?[] { null, 3UL, 5000000000UL, null });
+
+            var results = left.ElementwiseNotEquals(3m);
+
+            AssertComparisonResults(new[] { true, false, true, true }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_UInt64_ElementwiseNotEquals_AgainstHighDecimalScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<ulong>("Left", new ulong?[] { null, 3UL, 5000000000UL, null });
+
+            var results = left.ElementwiseNotEquals(5000000000m);
+
+            AssertComparisonResults(new[] { true, true, false, true }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_UInt64_ElementwiseNotEquals_AgainstLowDecimalScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new ulong?[] { null, 3UL, 5000000000UL, null }, 3UL);
+
+            var results = left.ElementwiseNotEquals(3m);
+
+            AssertComparisonResults(new[] { true, false, true, true }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_UInt64_ElementwiseNotEquals_AgainstHighDecimalScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new ulong?[] { null, 3UL, 5000000000UL, null }, 5000000000UL);
+
+            var results = left.ElementwiseNotEquals(5000000000m);
 
             AssertComparisonResults(new[] { true, true, false, true }, results);
         }
@@ -5480,6 +9000,86 @@ namespace Microsoft.Data.Analysis.Tests
         }
 
         [Fact]
+        public void PrimitiveDataFrameColumn_UInt64_ElementwiseLessThan_AgainstLowDoubleScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<ulong>("Left", new ulong?[] { null, 3UL, 5000000000UL, null });
+
+            var results = left.ElementwiseLessThan(3d);
+
+            AssertComparisonResults(new[] { false, false, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_UInt64_ElementwiseLessThan_AgainstHighDoubleScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<ulong>("Left", new ulong?[] { null, 3UL, 5000000000UL, null });
+
+            var results = left.ElementwiseLessThan(5000000000d);
+
+            AssertComparisonResults(new[] { false, true, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_UInt64_ElementwiseLessThan_AgainstLowDoubleScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new ulong?[] { null, 3UL, 5000000000UL, null }, 3UL);
+
+            var results = left.ElementwiseLessThan(3d);
+
+            AssertComparisonResults(new[] { false, false, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_UInt64_ElementwiseLessThan_AgainstHighDoubleScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new ulong?[] { null, 3UL, 5000000000UL, null }, 5000000000UL);
+
+            var results = left.ElementwiseLessThan(5000000000d);
+
+            AssertComparisonResults(new[] { false, true, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_UInt64_ElementwiseLessThan_AgainstLowDecimalScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<ulong>("Left", new ulong?[] { null, 3UL, 5000000000UL, null });
+
+            var results = left.ElementwiseLessThan(3m);
+
+            AssertComparisonResults(new[] { false, false, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_UInt64_ElementwiseLessThan_AgainstHighDecimalScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<ulong>("Left", new ulong?[] { null, 3UL, 5000000000UL, null });
+
+            var results = left.ElementwiseLessThan(5000000000m);
+
+            AssertComparisonResults(new[] { false, true, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_UInt64_ElementwiseLessThan_AgainstLowDecimalScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new ulong?[] { null, 3UL, 5000000000UL, null }, 3UL);
+
+            var results = left.ElementwiseLessThan(3m);
+
+            AssertComparisonResults(new[] { false, false, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_UInt64_ElementwiseLessThan_AgainstHighDecimalScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new ulong?[] { null, 3UL, 5000000000UL, null }, 5000000000UL);
+
+            var results = left.ElementwiseLessThan(5000000000m);
+
+            AssertComparisonResults(new[] { false, true, false, false }, results);
+        }
+
+        [Fact]
         public void PrimitiveDataFrameColumn_UInt64_ElementwiseLessThan_AgainstDoubleColumn_EveryNullCombination()
         {
             var left = new PrimitiveDataFrameColumn<ulong>("Left", new ulong?[] { null, null, null, 3UL, 3UL, 3UL, 5000000000UL, 5000000000UL, 5000000000UL });
@@ -5592,6 +9192,86 @@ namespace Microsoft.Data.Analysis.Tests
             var left = CreateColumnWithValuesUnderNulls("Left", new ulong?[] { null, 3UL, 5000000000UL, null }, 5000000000UL);
 
             var results = left.ElementwiseLessThanOrEqual(5000000000UL);
+
+            AssertComparisonResults(new[] { false, true, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_UInt64_ElementwiseLessThanOrEqual_AgainstLowDoubleScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<ulong>("Left", new ulong?[] { null, 3UL, 5000000000UL, null });
+
+            var results = left.ElementwiseLessThanOrEqual(3d);
+
+            AssertComparisonResults(new[] { false, true, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_UInt64_ElementwiseLessThanOrEqual_AgainstHighDoubleScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<ulong>("Left", new ulong?[] { null, 3UL, 5000000000UL, null });
+
+            var results = left.ElementwiseLessThanOrEqual(5000000000d);
+
+            AssertComparisonResults(new[] { false, true, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_UInt64_ElementwiseLessThanOrEqual_AgainstLowDoubleScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new ulong?[] { null, 3UL, 5000000000UL, null }, 3UL);
+
+            var results = left.ElementwiseLessThanOrEqual(3d);
+
+            AssertComparisonResults(new[] { false, true, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_UInt64_ElementwiseLessThanOrEqual_AgainstHighDoubleScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new ulong?[] { null, 3UL, 5000000000UL, null }, 5000000000UL);
+
+            var results = left.ElementwiseLessThanOrEqual(5000000000d);
+
+            AssertComparisonResults(new[] { false, true, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_UInt64_ElementwiseLessThanOrEqual_AgainstLowDecimalScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<ulong>("Left", new ulong?[] { null, 3UL, 5000000000UL, null });
+
+            var results = left.ElementwiseLessThanOrEqual(3m);
+
+            AssertComparisonResults(new[] { false, true, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_UInt64_ElementwiseLessThanOrEqual_AgainstHighDecimalScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<ulong>("Left", new ulong?[] { null, 3UL, 5000000000UL, null });
+
+            var results = left.ElementwiseLessThanOrEqual(5000000000m);
+
+            AssertComparisonResults(new[] { false, true, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_UInt64_ElementwiseLessThanOrEqual_AgainstLowDecimalScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new ulong?[] { null, 3UL, 5000000000UL, null }, 3UL);
+
+            var results = left.ElementwiseLessThanOrEqual(3m);
+
+            AssertComparisonResults(new[] { false, true, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_UInt64_ElementwiseLessThanOrEqual_AgainstHighDecimalScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new ulong?[] { null, 3UL, 5000000000UL, null }, 5000000000UL);
+
+            var results = left.ElementwiseLessThanOrEqual(5000000000m);
 
             AssertComparisonResults(new[] { false, true, true, false }, results);
         }
@@ -5714,6 +9394,86 @@ namespace Microsoft.Data.Analysis.Tests
         }
 
         [Fact]
+        public void PrimitiveDataFrameColumn_UInt64_ElementwiseGreaterThan_AgainstLowDoubleScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<ulong>("Left", new ulong?[] { null, 3UL, 5000000000UL, null });
+
+            var results = left.ElementwiseGreaterThan(3d);
+
+            AssertComparisonResults(new[] { false, false, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_UInt64_ElementwiseGreaterThan_AgainstHighDoubleScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<ulong>("Left", new ulong?[] { null, 3UL, 5000000000UL, null });
+
+            var results = left.ElementwiseGreaterThan(5000000000d);
+
+            AssertComparisonResults(new[] { false, false, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_UInt64_ElementwiseGreaterThan_AgainstLowDoubleScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new ulong?[] { null, 3UL, 5000000000UL, null }, 3UL);
+
+            var results = left.ElementwiseGreaterThan(3d);
+
+            AssertComparisonResults(new[] { false, false, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_UInt64_ElementwiseGreaterThan_AgainstHighDoubleScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new ulong?[] { null, 3UL, 5000000000UL, null }, 5000000000UL);
+
+            var results = left.ElementwiseGreaterThan(5000000000d);
+
+            AssertComparisonResults(new[] { false, false, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_UInt64_ElementwiseGreaterThan_AgainstLowDecimalScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<ulong>("Left", new ulong?[] { null, 3UL, 5000000000UL, null });
+
+            var results = left.ElementwiseGreaterThan(3m);
+
+            AssertComparisonResults(new[] { false, false, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_UInt64_ElementwiseGreaterThan_AgainstHighDecimalScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<ulong>("Left", new ulong?[] { null, 3UL, 5000000000UL, null });
+
+            var results = left.ElementwiseGreaterThan(5000000000m);
+
+            AssertComparisonResults(new[] { false, false, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_UInt64_ElementwiseGreaterThan_AgainstLowDecimalScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new ulong?[] { null, 3UL, 5000000000UL, null }, 3UL);
+
+            var results = left.ElementwiseGreaterThan(3m);
+
+            AssertComparisonResults(new[] { false, false, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_UInt64_ElementwiseGreaterThan_AgainstHighDecimalScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new ulong?[] { null, 3UL, 5000000000UL, null }, 5000000000UL);
+
+            var results = left.ElementwiseGreaterThan(5000000000m);
+
+            AssertComparisonResults(new[] { false, false, false, false }, results);
+        }
+
+        [Fact]
         public void PrimitiveDataFrameColumn_UInt64_ElementwiseGreaterThan_AgainstDoubleColumn_EveryNullCombination()
         {
             var left = new PrimitiveDataFrameColumn<ulong>("Left", new ulong?[] { null, null, null, 3UL, 3UL, 3UL, 5000000000UL, 5000000000UL, 5000000000UL });
@@ -5826,6 +9586,86 @@ namespace Microsoft.Data.Analysis.Tests
             var left = CreateColumnWithValuesUnderNulls("Left", new ulong?[] { null, 3UL, 5000000000UL, null }, 5000000000UL);
 
             var results = left.ElementwiseGreaterThanOrEqual(5000000000UL);
+
+            AssertComparisonResults(new[] { false, false, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_UInt64_ElementwiseGreaterThanOrEqual_AgainstLowDoubleScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<ulong>("Left", new ulong?[] { null, 3UL, 5000000000UL, null });
+
+            var results = left.ElementwiseGreaterThanOrEqual(3d);
+
+            AssertComparisonResults(new[] { false, true, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_UInt64_ElementwiseGreaterThanOrEqual_AgainstHighDoubleScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<ulong>("Left", new ulong?[] { null, 3UL, 5000000000UL, null });
+
+            var results = left.ElementwiseGreaterThanOrEqual(5000000000d);
+
+            AssertComparisonResults(new[] { false, false, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_UInt64_ElementwiseGreaterThanOrEqual_AgainstLowDoubleScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new ulong?[] { null, 3UL, 5000000000UL, null }, 3UL);
+
+            var results = left.ElementwiseGreaterThanOrEqual(3d);
+
+            AssertComparisonResults(new[] { false, true, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_UInt64_ElementwiseGreaterThanOrEqual_AgainstHighDoubleScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new ulong?[] { null, 3UL, 5000000000UL, null }, 5000000000UL);
+
+            var results = left.ElementwiseGreaterThanOrEqual(5000000000d);
+
+            AssertComparisonResults(new[] { false, false, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_UInt64_ElementwiseGreaterThanOrEqual_AgainstLowDecimalScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<ulong>("Left", new ulong?[] { null, 3UL, 5000000000UL, null });
+
+            var results = left.ElementwiseGreaterThanOrEqual(3m);
+
+            AssertComparisonResults(new[] { false, true, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_UInt64_ElementwiseGreaterThanOrEqual_AgainstHighDecimalScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<ulong>("Left", new ulong?[] { null, 3UL, 5000000000UL, null });
+
+            var results = left.ElementwiseGreaterThanOrEqual(5000000000m);
+
+            AssertComparisonResults(new[] { false, false, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_UInt64_ElementwiseGreaterThanOrEqual_AgainstLowDecimalScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new ulong?[] { null, 3UL, 5000000000UL, null }, 3UL);
+
+            var results = left.ElementwiseGreaterThanOrEqual(3m);
+
+            AssertComparisonResults(new[] { false, true, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_UInt64_ElementwiseGreaterThanOrEqual_AgainstHighDecimalScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new ulong?[] { null, 3UL, 5000000000UL, null }, 5000000000UL);
+
+            var results = left.ElementwiseGreaterThanOrEqual(5000000000m);
 
             AssertComparisonResults(new[] { false, false, true, false }, results);
         }
@@ -5948,6 +9788,86 @@ namespace Microsoft.Data.Analysis.Tests
         }
 
         [Fact]
+        public void PrimitiveDataFrameColumn_Single_ElementwiseEquals_AgainstLowDoubleScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<float>("Left", new float?[] { null, -1.5f, 2.25f, null });
+
+            var results = left.ElementwiseEquals(-1.5d);
+
+            AssertComparisonResults(new[] { false, true, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Single_ElementwiseEquals_AgainstHighDoubleScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<float>("Left", new float?[] { null, -1.5f, 2.25f, null });
+
+            var results = left.ElementwiseEquals(2.25d);
+
+            AssertComparisonResults(new[] { false, false, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Single_ElementwiseEquals_AgainstLowDoubleScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new float?[] { null, -1.5f, 2.25f, null }, -1.5f);
+
+            var results = left.ElementwiseEquals(-1.5d);
+
+            AssertComparisonResults(new[] { false, true, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Single_ElementwiseEquals_AgainstHighDoubleScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new float?[] { null, -1.5f, 2.25f, null }, 2.25f);
+
+            var results = left.ElementwiseEquals(2.25d);
+
+            AssertComparisonResults(new[] { false, false, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Single_ElementwiseEquals_AgainstLowDecimalScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<float>("Left", new float?[] { null, -1.5f, 2.25f, null });
+
+            var results = left.ElementwiseEquals(-1.5m);
+
+            AssertComparisonResults(new[] { false, true, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Single_ElementwiseEquals_AgainstHighDecimalScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<float>("Left", new float?[] { null, -1.5f, 2.25f, null });
+
+            var results = left.ElementwiseEquals(2.25m);
+
+            AssertComparisonResults(new[] { false, false, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Single_ElementwiseEquals_AgainstLowDecimalScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new float?[] { null, -1.5f, 2.25f, null }, -1.5f);
+
+            var results = left.ElementwiseEquals(-1.5m);
+
+            AssertComparisonResults(new[] { false, true, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Single_ElementwiseEquals_AgainstHighDecimalScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new float?[] { null, -1.5f, 2.25f, null }, 2.25f);
+
+            var results = left.ElementwiseEquals(2.25m);
+
+            AssertComparisonResults(new[] { false, false, true, false }, results);
+        }
+
+        [Fact]
         public void PrimitiveDataFrameColumn_Single_ElementwiseEquals_AgainstDoubleColumn_EveryNullCombination()
         {
             var left = new PrimitiveDataFrameColumn<float>("Left", new float?[] { null, null, null, -1.5f, -1.5f, -1.5f, 2.25f, 2.25f, 2.25f });
@@ -6060,6 +9980,86 @@ namespace Microsoft.Data.Analysis.Tests
             var left = CreateColumnWithValuesUnderNulls("Left", new float?[] { null, -1.5f, 2.25f, null }, 2.25f);
 
             var results = left.ElementwiseNotEquals(2.25f);
+
+            AssertComparisonResults(new[] { true, true, false, true }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Single_ElementwiseNotEquals_AgainstLowDoubleScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<float>("Left", new float?[] { null, -1.5f, 2.25f, null });
+
+            var results = left.ElementwiseNotEquals(-1.5d);
+
+            AssertComparisonResults(new[] { true, false, true, true }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Single_ElementwiseNotEquals_AgainstHighDoubleScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<float>("Left", new float?[] { null, -1.5f, 2.25f, null });
+
+            var results = left.ElementwiseNotEquals(2.25d);
+
+            AssertComparisonResults(new[] { true, true, false, true }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Single_ElementwiseNotEquals_AgainstLowDoubleScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new float?[] { null, -1.5f, 2.25f, null }, -1.5f);
+
+            var results = left.ElementwiseNotEquals(-1.5d);
+
+            AssertComparisonResults(new[] { true, false, true, true }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Single_ElementwiseNotEquals_AgainstHighDoubleScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new float?[] { null, -1.5f, 2.25f, null }, 2.25f);
+
+            var results = left.ElementwiseNotEquals(2.25d);
+
+            AssertComparisonResults(new[] { true, true, false, true }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Single_ElementwiseNotEquals_AgainstLowDecimalScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<float>("Left", new float?[] { null, -1.5f, 2.25f, null });
+
+            var results = left.ElementwiseNotEquals(-1.5m);
+
+            AssertComparisonResults(new[] { true, false, true, true }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Single_ElementwiseNotEquals_AgainstHighDecimalScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<float>("Left", new float?[] { null, -1.5f, 2.25f, null });
+
+            var results = left.ElementwiseNotEquals(2.25m);
+
+            AssertComparisonResults(new[] { true, true, false, true }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Single_ElementwiseNotEquals_AgainstLowDecimalScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new float?[] { null, -1.5f, 2.25f, null }, -1.5f);
+
+            var results = left.ElementwiseNotEquals(-1.5m);
+
+            AssertComparisonResults(new[] { true, false, true, true }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Single_ElementwiseNotEquals_AgainstHighDecimalScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new float?[] { null, -1.5f, 2.25f, null }, 2.25f);
+
+            var results = left.ElementwiseNotEquals(2.25m);
 
             AssertComparisonResults(new[] { true, true, false, true }, results);
         }
@@ -6182,6 +10182,86 @@ namespace Microsoft.Data.Analysis.Tests
         }
 
         [Fact]
+        public void PrimitiveDataFrameColumn_Single_ElementwiseLessThan_AgainstLowDoubleScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<float>("Left", new float?[] { null, -1.5f, 2.25f, null });
+
+            var results = left.ElementwiseLessThan(-1.5d);
+
+            AssertComparisonResults(new[] { false, false, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Single_ElementwiseLessThan_AgainstHighDoubleScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<float>("Left", new float?[] { null, -1.5f, 2.25f, null });
+
+            var results = left.ElementwiseLessThan(2.25d);
+
+            AssertComparisonResults(new[] { false, true, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Single_ElementwiseLessThan_AgainstLowDoubleScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new float?[] { null, -1.5f, 2.25f, null }, -1.5f);
+
+            var results = left.ElementwiseLessThan(-1.5d);
+
+            AssertComparisonResults(new[] { false, false, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Single_ElementwiseLessThan_AgainstHighDoubleScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new float?[] { null, -1.5f, 2.25f, null }, 2.25f);
+
+            var results = left.ElementwiseLessThan(2.25d);
+
+            AssertComparisonResults(new[] { false, true, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Single_ElementwiseLessThan_AgainstLowDecimalScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<float>("Left", new float?[] { null, -1.5f, 2.25f, null });
+
+            var results = left.ElementwiseLessThan(-1.5m);
+
+            AssertComparisonResults(new[] { false, false, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Single_ElementwiseLessThan_AgainstHighDecimalScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<float>("Left", new float?[] { null, -1.5f, 2.25f, null });
+
+            var results = left.ElementwiseLessThan(2.25m);
+
+            AssertComparisonResults(new[] { false, true, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Single_ElementwiseLessThan_AgainstLowDecimalScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new float?[] { null, -1.5f, 2.25f, null }, -1.5f);
+
+            var results = left.ElementwiseLessThan(-1.5m);
+
+            AssertComparisonResults(new[] { false, false, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Single_ElementwiseLessThan_AgainstHighDecimalScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new float?[] { null, -1.5f, 2.25f, null }, 2.25f);
+
+            var results = left.ElementwiseLessThan(2.25m);
+
+            AssertComparisonResults(new[] { false, true, false, false }, results);
+        }
+
+        [Fact]
         public void PrimitiveDataFrameColumn_Single_ElementwiseLessThan_AgainstDoubleColumn_EveryNullCombination()
         {
             var left = new PrimitiveDataFrameColumn<float>("Left", new float?[] { null, null, null, -1.5f, -1.5f, -1.5f, 2.25f, 2.25f, 2.25f });
@@ -6294,6 +10374,86 @@ namespace Microsoft.Data.Analysis.Tests
             var left = CreateColumnWithValuesUnderNulls("Left", new float?[] { null, -1.5f, 2.25f, null }, 2.25f);
 
             var results = left.ElementwiseLessThanOrEqual(2.25f);
+
+            AssertComparisonResults(new[] { false, true, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Single_ElementwiseLessThanOrEqual_AgainstLowDoubleScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<float>("Left", new float?[] { null, -1.5f, 2.25f, null });
+
+            var results = left.ElementwiseLessThanOrEqual(-1.5d);
+
+            AssertComparisonResults(new[] { false, true, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Single_ElementwiseLessThanOrEqual_AgainstHighDoubleScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<float>("Left", new float?[] { null, -1.5f, 2.25f, null });
+
+            var results = left.ElementwiseLessThanOrEqual(2.25d);
+
+            AssertComparisonResults(new[] { false, true, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Single_ElementwiseLessThanOrEqual_AgainstLowDoubleScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new float?[] { null, -1.5f, 2.25f, null }, -1.5f);
+
+            var results = left.ElementwiseLessThanOrEqual(-1.5d);
+
+            AssertComparisonResults(new[] { false, true, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Single_ElementwiseLessThanOrEqual_AgainstHighDoubleScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new float?[] { null, -1.5f, 2.25f, null }, 2.25f);
+
+            var results = left.ElementwiseLessThanOrEqual(2.25d);
+
+            AssertComparisonResults(new[] { false, true, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Single_ElementwiseLessThanOrEqual_AgainstLowDecimalScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<float>("Left", new float?[] { null, -1.5f, 2.25f, null });
+
+            var results = left.ElementwiseLessThanOrEqual(-1.5m);
+
+            AssertComparisonResults(new[] { false, true, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Single_ElementwiseLessThanOrEqual_AgainstHighDecimalScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<float>("Left", new float?[] { null, -1.5f, 2.25f, null });
+
+            var results = left.ElementwiseLessThanOrEqual(2.25m);
+
+            AssertComparisonResults(new[] { false, true, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Single_ElementwiseLessThanOrEqual_AgainstLowDecimalScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new float?[] { null, -1.5f, 2.25f, null }, -1.5f);
+
+            var results = left.ElementwiseLessThanOrEqual(-1.5m);
+
+            AssertComparisonResults(new[] { false, true, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Single_ElementwiseLessThanOrEqual_AgainstHighDecimalScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new float?[] { null, -1.5f, 2.25f, null }, 2.25f);
+
+            var results = left.ElementwiseLessThanOrEqual(2.25m);
 
             AssertComparisonResults(new[] { false, true, true, false }, results);
         }
@@ -6416,6 +10576,86 @@ namespace Microsoft.Data.Analysis.Tests
         }
 
         [Fact]
+        public void PrimitiveDataFrameColumn_Single_ElementwiseGreaterThan_AgainstLowDoubleScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<float>("Left", new float?[] { null, -1.5f, 2.25f, null });
+
+            var results = left.ElementwiseGreaterThan(-1.5d);
+
+            AssertComparisonResults(new[] { false, false, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Single_ElementwiseGreaterThan_AgainstHighDoubleScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<float>("Left", new float?[] { null, -1.5f, 2.25f, null });
+
+            var results = left.ElementwiseGreaterThan(2.25d);
+
+            AssertComparisonResults(new[] { false, false, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Single_ElementwiseGreaterThan_AgainstLowDoubleScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new float?[] { null, -1.5f, 2.25f, null }, -1.5f);
+
+            var results = left.ElementwiseGreaterThan(-1.5d);
+
+            AssertComparisonResults(new[] { false, false, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Single_ElementwiseGreaterThan_AgainstHighDoubleScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new float?[] { null, -1.5f, 2.25f, null }, 2.25f);
+
+            var results = left.ElementwiseGreaterThan(2.25d);
+
+            AssertComparisonResults(new[] { false, false, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Single_ElementwiseGreaterThan_AgainstLowDecimalScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<float>("Left", new float?[] { null, -1.5f, 2.25f, null });
+
+            var results = left.ElementwiseGreaterThan(-1.5m);
+
+            AssertComparisonResults(new[] { false, false, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Single_ElementwiseGreaterThan_AgainstHighDecimalScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<float>("Left", new float?[] { null, -1.5f, 2.25f, null });
+
+            var results = left.ElementwiseGreaterThan(2.25m);
+
+            AssertComparisonResults(new[] { false, false, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Single_ElementwiseGreaterThan_AgainstLowDecimalScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new float?[] { null, -1.5f, 2.25f, null }, -1.5f);
+
+            var results = left.ElementwiseGreaterThan(-1.5m);
+
+            AssertComparisonResults(new[] { false, false, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Single_ElementwiseGreaterThan_AgainstHighDecimalScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new float?[] { null, -1.5f, 2.25f, null }, 2.25f);
+
+            var results = left.ElementwiseGreaterThan(2.25m);
+
+            AssertComparisonResults(new[] { false, false, false, false }, results);
+        }
+
+        [Fact]
         public void PrimitiveDataFrameColumn_Single_ElementwiseGreaterThan_AgainstDoubleColumn_EveryNullCombination()
         {
             var left = new PrimitiveDataFrameColumn<float>("Left", new float?[] { null, null, null, -1.5f, -1.5f, -1.5f, 2.25f, 2.25f, 2.25f });
@@ -6528,6 +10768,86 @@ namespace Microsoft.Data.Analysis.Tests
             var left = CreateColumnWithValuesUnderNulls("Left", new float?[] { null, -1.5f, 2.25f, null }, 2.25f);
 
             var results = left.ElementwiseGreaterThanOrEqual(2.25f);
+
+            AssertComparisonResults(new[] { false, false, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Single_ElementwiseGreaterThanOrEqual_AgainstLowDoubleScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<float>("Left", new float?[] { null, -1.5f, 2.25f, null });
+
+            var results = left.ElementwiseGreaterThanOrEqual(-1.5d);
+
+            AssertComparisonResults(new[] { false, true, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Single_ElementwiseGreaterThanOrEqual_AgainstHighDoubleScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<float>("Left", new float?[] { null, -1.5f, 2.25f, null });
+
+            var results = left.ElementwiseGreaterThanOrEqual(2.25d);
+
+            AssertComparisonResults(new[] { false, false, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Single_ElementwiseGreaterThanOrEqual_AgainstLowDoubleScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new float?[] { null, -1.5f, 2.25f, null }, -1.5f);
+
+            var results = left.ElementwiseGreaterThanOrEqual(-1.5d);
+
+            AssertComparisonResults(new[] { false, true, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Single_ElementwiseGreaterThanOrEqual_AgainstHighDoubleScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new float?[] { null, -1.5f, 2.25f, null }, 2.25f);
+
+            var results = left.ElementwiseGreaterThanOrEqual(2.25d);
+
+            AssertComparisonResults(new[] { false, false, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Single_ElementwiseGreaterThanOrEqual_AgainstLowDecimalScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<float>("Left", new float?[] { null, -1.5f, 2.25f, null });
+
+            var results = left.ElementwiseGreaterThanOrEqual(-1.5m);
+
+            AssertComparisonResults(new[] { false, true, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Single_ElementwiseGreaterThanOrEqual_AgainstHighDecimalScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<float>("Left", new float?[] { null, -1.5f, 2.25f, null });
+
+            var results = left.ElementwiseGreaterThanOrEqual(2.25m);
+
+            AssertComparisonResults(new[] { false, false, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Single_ElementwiseGreaterThanOrEqual_AgainstLowDecimalScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new float?[] { null, -1.5f, 2.25f, null }, -1.5f);
+
+            var results = left.ElementwiseGreaterThanOrEqual(-1.5m);
+
+            AssertComparisonResults(new[] { false, true, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Single_ElementwiseGreaterThanOrEqual_AgainstHighDecimalScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new float?[] { null, -1.5f, 2.25f, null }, 2.25f);
+
+            var results = left.ElementwiseGreaterThanOrEqual(2.25m);
 
             AssertComparisonResults(new[] { false, false, true, false }, results);
         }
@@ -6650,6 +10970,46 @@ namespace Microsoft.Data.Analysis.Tests
         }
 
         [Fact]
+        public void PrimitiveDataFrameColumn_Double_ElementwiseEquals_AgainstLowDecimalScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<double>("Left", new double?[] { null, -1.5, 2.25, null });
+
+            var results = left.ElementwiseEquals(-1.5m);
+
+            AssertComparisonResults(new[] { false, true, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Double_ElementwiseEquals_AgainstHighDecimalScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<double>("Left", new double?[] { null, -1.5, 2.25, null });
+
+            var results = left.ElementwiseEquals(2.25m);
+
+            AssertComparisonResults(new[] { false, false, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Double_ElementwiseEquals_AgainstLowDecimalScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new double?[] { null, -1.5, 2.25, null }, -1.5);
+
+            var results = left.ElementwiseEquals(-1.5m);
+
+            AssertComparisonResults(new[] { false, true, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Double_ElementwiseEquals_AgainstHighDecimalScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new double?[] { null, -1.5, 2.25, null }, 2.25);
+
+            var results = left.ElementwiseEquals(2.25m);
+
+            AssertComparisonResults(new[] { false, false, true, false }, results);
+        }
+
+        [Fact]
         public void PrimitiveDataFrameColumn_Double_ElementwiseNotEquals_EveryNullCombination()
         {
             var left = new PrimitiveDataFrameColumn<double>("Left", new double?[] { null, null, null, -1.5, -1.5, -1.5, 2.25, 2.25, 2.25 });
@@ -6751,6 +11111,46 @@ namespace Microsoft.Data.Analysis.Tests
             var left = CreateColumnWithValuesUnderNulls("Left", new double?[] { null, -1.5, 2.25, null }, 2.25);
 
             var results = left.ElementwiseNotEquals(2.25);
+
+            AssertComparisonResults(new[] { true, true, false, true }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Double_ElementwiseNotEquals_AgainstLowDecimalScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<double>("Left", new double?[] { null, -1.5, 2.25, null });
+
+            var results = left.ElementwiseNotEquals(-1.5m);
+
+            AssertComparisonResults(new[] { true, false, true, true }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Double_ElementwiseNotEquals_AgainstHighDecimalScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<double>("Left", new double?[] { null, -1.5, 2.25, null });
+
+            var results = left.ElementwiseNotEquals(2.25m);
+
+            AssertComparisonResults(new[] { true, true, false, true }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Double_ElementwiseNotEquals_AgainstLowDecimalScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new double?[] { null, -1.5, 2.25, null }, -1.5);
+
+            var results = left.ElementwiseNotEquals(-1.5m);
+
+            AssertComparisonResults(new[] { true, false, true, true }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Double_ElementwiseNotEquals_AgainstHighDecimalScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new double?[] { null, -1.5, 2.25, null }, 2.25);
+
+            var results = left.ElementwiseNotEquals(2.25m);
 
             AssertComparisonResults(new[] { true, true, false, true }, results);
         }
@@ -6862,6 +11262,46 @@ namespace Microsoft.Data.Analysis.Tests
         }
 
         [Fact]
+        public void PrimitiveDataFrameColumn_Double_ElementwiseLessThan_AgainstLowDecimalScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<double>("Left", new double?[] { null, -1.5, 2.25, null });
+
+            var results = left.ElementwiseLessThan(-1.5m);
+
+            AssertComparisonResults(new[] { false, false, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Double_ElementwiseLessThan_AgainstHighDecimalScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<double>("Left", new double?[] { null, -1.5, 2.25, null });
+
+            var results = left.ElementwiseLessThan(2.25m);
+
+            AssertComparisonResults(new[] { false, true, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Double_ElementwiseLessThan_AgainstLowDecimalScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new double?[] { null, -1.5, 2.25, null }, -1.5);
+
+            var results = left.ElementwiseLessThan(-1.5m);
+
+            AssertComparisonResults(new[] { false, false, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Double_ElementwiseLessThan_AgainstHighDecimalScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new double?[] { null, -1.5, 2.25, null }, 2.25);
+
+            var results = left.ElementwiseLessThan(2.25m);
+
+            AssertComparisonResults(new[] { false, true, false, false }, results);
+        }
+
+        [Fact]
         public void PrimitiveDataFrameColumn_Double_ElementwiseLessThanOrEqual_EveryNullCombination()
         {
             var left = new PrimitiveDataFrameColumn<double>("Left", new double?[] { null, null, null, -1.5, -1.5, -1.5, 2.25, 2.25, 2.25 });
@@ -6963,6 +11403,46 @@ namespace Microsoft.Data.Analysis.Tests
             var left = CreateColumnWithValuesUnderNulls("Left", new double?[] { null, -1.5, 2.25, null }, 2.25);
 
             var results = left.ElementwiseLessThanOrEqual(2.25);
+
+            AssertComparisonResults(new[] { false, true, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Double_ElementwiseLessThanOrEqual_AgainstLowDecimalScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<double>("Left", new double?[] { null, -1.5, 2.25, null });
+
+            var results = left.ElementwiseLessThanOrEqual(-1.5m);
+
+            AssertComparisonResults(new[] { false, true, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Double_ElementwiseLessThanOrEqual_AgainstHighDecimalScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<double>("Left", new double?[] { null, -1.5, 2.25, null });
+
+            var results = left.ElementwiseLessThanOrEqual(2.25m);
+
+            AssertComparisonResults(new[] { false, true, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Double_ElementwiseLessThanOrEqual_AgainstLowDecimalScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new double?[] { null, -1.5, 2.25, null }, -1.5);
+
+            var results = left.ElementwiseLessThanOrEqual(-1.5m);
+
+            AssertComparisonResults(new[] { false, true, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Double_ElementwiseLessThanOrEqual_AgainstHighDecimalScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new double?[] { null, -1.5, 2.25, null }, 2.25);
+
+            var results = left.ElementwiseLessThanOrEqual(2.25m);
 
             AssertComparisonResults(new[] { false, true, true, false }, results);
         }
@@ -7074,6 +11554,46 @@ namespace Microsoft.Data.Analysis.Tests
         }
 
         [Fact]
+        public void PrimitiveDataFrameColumn_Double_ElementwiseGreaterThan_AgainstLowDecimalScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<double>("Left", new double?[] { null, -1.5, 2.25, null });
+
+            var results = left.ElementwiseGreaterThan(-1.5m);
+
+            AssertComparisonResults(new[] { false, false, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Double_ElementwiseGreaterThan_AgainstHighDecimalScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<double>("Left", new double?[] { null, -1.5, 2.25, null });
+
+            var results = left.ElementwiseGreaterThan(2.25m);
+
+            AssertComparisonResults(new[] { false, false, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Double_ElementwiseGreaterThan_AgainstLowDecimalScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new double?[] { null, -1.5, 2.25, null }, -1.5);
+
+            var results = left.ElementwiseGreaterThan(-1.5m);
+
+            AssertComparisonResults(new[] { false, false, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Double_ElementwiseGreaterThan_AgainstHighDecimalScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new double?[] { null, -1.5, 2.25, null }, 2.25);
+
+            var results = left.ElementwiseGreaterThan(2.25m);
+
+            AssertComparisonResults(new[] { false, false, false, false }, results);
+        }
+
+        [Fact]
         public void PrimitiveDataFrameColumn_Double_ElementwiseGreaterThanOrEqual_EveryNullCombination()
         {
             var left = new PrimitiveDataFrameColumn<double>("Left", new double?[] { null, null, null, -1.5, -1.5, -1.5, 2.25, 2.25, 2.25 });
@@ -7180,6 +11700,46 @@ namespace Microsoft.Data.Analysis.Tests
         }
 
         [Fact]
+        public void PrimitiveDataFrameColumn_Double_ElementwiseGreaterThanOrEqual_AgainstLowDecimalScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<double>("Left", new double?[] { null, -1.5, 2.25, null });
+
+            var results = left.ElementwiseGreaterThanOrEqual(-1.5m);
+
+            AssertComparisonResults(new[] { false, true, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Double_ElementwiseGreaterThanOrEqual_AgainstHighDecimalScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<double>("Left", new double?[] { null, -1.5, 2.25, null });
+
+            var results = left.ElementwiseGreaterThanOrEqual(2.25m);
+
+            AssertComparisonResults(new[] { false, false, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Double_ElementwiseGreaterThanOrEqual_AgainstLowDecimalScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new double?[] { null, -1.5, 2.25, null }, -1.5);
+
+            var results = left.ElementwiseGreaterThanOrEqual(-1.5m);
+
+            AssertComparisonResults(new[] { false, true, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Double_ElementwiseGreaterThanOrEqual_AgainstHighDecimalScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new double?[] { null, -1.5, 2.25, null }, 2.25);
+
+            var results = left.ElementwiseGreaterThanOrEqual(2.25m);
+
+            AssertComparisonResults(new[] { false, false, true, false }, results);
+        }
+
+        [Fact]
         public void PrimitiveDataFrameColumn_Decimal_ElementwiseEquals_EveryNullCombination()
         {
             var left = new PrimitiveDataFrameColumn<decimal>("Left", new decimal?[] { null, null, null, -1.5m, -1.5m, -1.5m, 2.25m, 2.25m, 2.25m });
@@ -7281,6 +11841,46 @@ namespace Microsoft.Data.Analysis.Tests
             var left = CreateColumnWithValuesUnderNulls("Left", new decimal?[] { null, -1.5m, 2.25m, null }, 2.25m);
 
             var results = left.ElementwiseEquals(2.25m);
+
+            AssertComparisonResults(new[] { false, false, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Decimal_ElementwiseEquals_AgainstLowDoubleScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<decimal>("Left", new decimal?[] { null, -1.5m, 2.25m, null });
+
+            var results = left.ElementwiseEquals(-1.5d);
+
+            AssertComparisonResults(new[] { false, true, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Decimal_ElementwiseEquals_AgainstHighDoubleScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<decimal>("Left", new decimal?[] { null, -1.5m, 2.25m, null });
+
+            var results = left.ElementwiseEquals(2.25d);
+
+            AssertComparisonResults(new[] { false, false, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Decimal_ElementwiseEquals_AgainstLowDoubleScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new decimal?[] { null, -1.5m, 2.25m, null }, -1.5m);
+
+            var results = left.ElementwiseEquals(-1.5d);
+
+            AssertComparisonResults(new[] { false, true, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Decimal_ElementwiseEquals_AgainstHighDoubleScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new decimal?[] { null, -1.5m, 2.25m, null }, 2.25m);
+
+            var results = left.ElementwiseEquals(2.25d);
 
             AssertComparisonResults(new[] { false, false, true, false }, results);
         }
@@ -7403,6 +12003,46 @@ namespace Microsoft.Data.Analysis.Tests
         }
 
         [Fact]
+        public void PrimitiveDataFrameColumn_Decimal_ElementwiseNotEquals_AgainstLowDoubleScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<decimal>("Left", new decimal?[] { null, -1.5m, 2.25m, null });
+
+            var results = left.ElementwiseNotEquals(-1.5d);
+
+            AssertComparisonResults(new[] { true, false, true, true }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Decimal_ElementwiseNotEquals_AgainstHighDoubleScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<decimal>("Left", new decimal?[] { null, -1.5m, 2.25m, null });
+
+            var results = left.ElementwiseNotEquals(2.25d);
+
+            AssertComparisonResults(new[] { true, true, false, true }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Decimal_ElementwiseNotEquals_AgainstLowDoubleScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new decimal?[] { null, -1.5m, 2.25m, null }, -1.5m);
+
+            var results = left.ElementwiseNotEquals(-1.5d);
+
+            AssertComparisonResults(new[] { true, false, true, true }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Decimal_ElementwiseNotEquals_AgainstHighDoubleScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new decimal?[] { null, -1.5m, 2.25m, null }, 2.25m);
+
+            var results = left.ElementwiseNotEquals(2.25d);
+
+            AssertComparisonResults(new[] { true, true, false, true }, results);
+        }
+
+        [Fact]
         public void PrimitiveDataFrameColumn_Decimal_ElementwiseNotEquals_AgainstDoubleColumn_EveryNullCombination()
         {
             var left = new PrimitiveDataFrameColumn<decimal>("Left", new decimal?[] { null, null, null, -1.5m, -1.5m, -1.5m, 2.25m, 2.25m, 2.25m });
@@ -7515,6 +12155,46 @@ namespace Microsoft.Data.Analysis.Tests
             var left = CreateColumnWithValuesUnderNulls("Left", new decimal?[] { null, -1.5m, 2.25m, null }, 2.25m);
 
             var results = left.ElementwiseLessThan(2.25m);
+
+            AssertComparisonResults(new[] { false, true, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Decimal_ElementwiseLessThan_AgainstLowDoubleScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<decimal>("Left", new decimal?[] { null, -1.5m, 2.25m, null });
+
+            var results = left.ElementwiseLessThan(-1.5d);
+
+            AssertComparisonResults(new[] { false, false, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Decimal_ElementwiseLessThan_AgainstHighDoubleScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<decimal>("Left", new decimal?[] { null, -1.5m, 2.25m, null });
+
+            var results = left.ElementwiseLessThan(2.25d);
+
+            AssertComparisonResults(new[] { false, true, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Decimal_ElementwiseLessThan_AgainstLowDoubleScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new decimal?[] { null, -1.5m, 2.25m, null }, -1.5m);
+
+            var results = left.ElementwiseLessThan(-1.5d);
+
+            AssertComparisonResults(new[] { false, false, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Decimal_ElementwiseLessThan_AgainstHighDoubleScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new decimal?[] { null, -1.5m, 2.25m, null }, 2.25m);
+
+            var results = left.ElementwiseLessThan(2.25d);
 
             AssertComparisonResults(new[] { false, true, false, false }, results);
         }
@@ -7637,6 +12317,46 @@ namespace Microsoft.Data.Analysis.Tests
         }
 
         [Fact]
+        public void PrimitiveDataFrameColumn_Decimal_ElementwiseLessThanOrEqual_AgainstLowDoubleScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<decimal>("Left", new decimal?[] { null, -1.5m, 2.25m, null });
+
+            var results = left.ElementwiseLessThanOrEqual(-1.5d);
+
+            AssertComparisonResults(new[] { false, true, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Decimal_ElementwiseLessThanOrEqual_AgainstHighDoubleScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<decimal>("Left", new decimal?[] { null, -1.5m, 2.25m, null });
+
+            var results = left.ElementwiseLessThanOrEqual(2.25d);
+
+            AssertComparisonResults(new[] { false, true, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Decimal_ElementwiseLessThanOrEqual_AgainstLowDoubleScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new decimal?[] { null, -1.5m, 2.25m, null }, -1.5m);
+
+            var results = left.ElementwiseLessThanOrEqual(-1.5d);
+
+            AssertComparisonResults(new[] { false, true, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Decimal_ElementwiseLessThanOrEqual_AgainstHighDoubleScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new decimal?[] { null, -1.5m, 2.25m, null }, 2.25m);
+
+            var results = left.ElementwiseLessThanOrEqual(2.25d);
+
+            AssertComparisonResults(new[] { false, true, true, false }, results);
+        }
+
+        [Fact]
         public void PrimitiveDataFrameColumn_Decimal_ElementwiseLessThanOrEqual_AgainstDoubleColumn_EveryNullCombination()
         {
             var left = new PrimitiveDataFrameColumn<decimal>("Left", new decimal?[] { null, null, null, -1.5m, -1.5m, -1.5m, 2.25m, 2.25m, 2.25m });
@@ -7754,6 +12474,46 @@ namespace Microsoft.Data.Analysis.Tests
         }
 
         [Fact]
+        public void PrimitiveDataFrameColumn_Decimal_ElementwiseGreaterThan_AgainstLowDoubleScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<decimal>("Left", new decimal?[] { null, -1.5m, 2.25m, null });
+
+            var results = left.ElementwiseGreaterThan(-1.5d);
+
+            AssertComparisonResults(new[] { false, false, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Decimal_ElementwiseGreaterThan_AgainstHighDoubleScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<decimal>("Left", new decimal?[] { null, -1.5m, 2.25m, null });
+
+            var results = left.ElementwiseGreaterThan(2.25d);
+
+            AssertComparisonResults(new[] { false, false, false, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Decimal_ElementwiseGreaterThan_AgainstLowDoubleScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new decimal?[] { null, -1.5m, 2.25m, null }, -1.5m);
+
+            var results = left.ElementwiseGreaterThan(-1.5d);
+
+            AssertComparisonResults(new[] { false, false, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Decimal_ElementwiseGreaterThan_AgainstHighDoubleScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new decimal?[] { null, -1.5m, 2.25m, null }, 2.25m);
+
+            var results = left.ElementwiseGreaterThan(2.25d);
+
+            AssertComparisonResults(new[] { false, false, false, false }, results);
+        }
+
+        [Fact]
         public void PrimitiveDataFrameColumn_Decimal_ElementwiseGreaterThan_AgainstDoubleColumn_EveryNullCombination()
         {
             var left = new PrimitiveDataFrameColumn<decimal>("Left", new decimal?[] { null, null, null, -1.5m, -1.5m, -1.5m, 2.25m, 2.25m, 2.25m });
@@ -7866,6 +12626,46 @@ namespace Microsoft.Data.Analysis.Tests
             var left = CreateColumnWithValuesUnderNulls("Left", new decimal?[] { null, -1.5m, 2.25m, null }, 2.25m);
 
             var results = left.ElementwiseGreaterThanOrEqual(2.25m);
+
+            AssertComparisonResults(new[] { false, false, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Decimal_ElementwiseGreaterThanOrEqual_AgainstLowDoubleScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<decimal>("Left", new decimal?[] { null, -1.5m, 2.25m, null });
+
+            var results = left.ElementwiseGreaterThanOrEqual(-1.5d);
+
+            AssertComparisonResults(new[] { false, true, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Decimal_ElementwiseGreaterThanOrEqual_AgainstHighDoubleScalar()
+        {
+            var left = new PrimitiveDataFrameColumn<decimal>("Left", new decimal?[] { null, -1.5m, 2.25m, null });
+
+            var results = left.ElementwiseGreaterThanOrEqual(2.25d);
+
+            AssertComparisonResults(new[] { false, false, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Decimal_ElementwiseGreaterThanOrEqual_AgainstLowDoubleScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new decimal?[] { null, -1.5m, 2.25m, null }, -1.5m);
+
+            var results = left.ElementwiseGreaterThanOrEqual(-1.5d);
+
+            AssertComparisonResults(new[] { false, true, true, false }, results);
+        }
+
+        [Fact]
+        public void PrimitiveDataFrameColumn_Decimal_ElementwiseGreaterThanOrEqual_AgainstHighDoubleScalar_WithValuesUnderNulls()
+        {
+            var left = CreateColumnWithValuesUnderNulls("Left", new decimal?[] { null, -1.5m, 2.25m, null }, 2.25m);
+
+            var results = left.ElementwiseGreaterThanOrEqual(2.25d);
 
             AssertComparisonResults(new[] { false, false, true, false }, results);
         }
