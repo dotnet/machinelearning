@@ -11,6 +11,7 @@ Project Docs
 
 - [Developer Guide](project-docs/developer-guide.md)
 - [Contributing to ML.NET](project-docs/contributing.md)
+- [Release Process](project-docs/release-process.md)
 - [Strong Name Signing](https://github.com/dotnet/runtime/blob/main/docs/project/strong-name-signing.md)
 - [Public Signing](https://github.com/dotnet/runtime/blob/main/docs/project/public-signing.md)
 - [Project NuGet Dependencies](https://github.com/dotnet/buildtools/blob/master/Documentation/project-nuget-dependencies.md)

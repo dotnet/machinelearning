@@ -36,3 +36,56 @@ The table below explains how each of the elements in our versioning schema would
 > Note: to install the preview packages via the NuGet Package Manager in Visual Studio, you must make sure to check the "Include prerelease" checkbox:
 
 ![include-prerelease](../images/include-prerelease.png)
+
+Creating a release branch
+--------------------
+
+When creating a new `release/<version>` branch:
+
+1. Create the branch from the intended commit on `main` and configure the same branch protection rules as the previous release branch.
+1. Copy the Arcade subscription from the previous release branch, changing the target branch and selecting the `.NET <version> Eng` channel associated with the new ML.NET release. Find the previous subscription ID with:
+
+   ```powershell
+   darc get-subscriptions `
+     --target-repo https://github.com/dotnet/machinelearning `
+     --target-branch release/<previous-version>
+   ```
+
+   Then create the subscription:
+
+   ```powershell
+   darc add-subscription `
+     --subscription <previous-subscription-id> `
+     --channel ".NET <dotnet-version> Eng" `
+     --target-branch release/<version> `
+     --quiet
+   ```
+
+   For example, the ML.NET 6.0 branch was configured by copying the ML.NET 5.0 subscription and moving it from `.NET 10 Eng` to `.NET 11 Eng`:
+
+   ```powershell
+   darc add-subscription `
+     --subscription af328ac1-d1ef-44a8-9377-8e059ae63cd1 `
+     --channel ".NET 11 Eng" `
+     --target-branch release/6.0 `
+     --quiet
+   ```
+
+   Merge the pull request that `darc` creates in the `maestro-configuration` repository before expecting dependency updates on the new branch.
+
+   `darc` warns when a batchable subscription has no repository merge policies. This is expected for this repository: dependency-update pull requests are not automatically merged. Do not run `darc set-repository-policies` unless auto-merge is intentionally being enabled.
+
+1. On `main`, update `eng/BranchInfo.props` for the next development cycle:
+   - Increment `MajorVersion` for stable packages.
+   - Increment `MinorVersion` for non-stable packages.
+   - Leave both `PatchVersion` values at `0`.
+
+   `PackageValidationBaselineVersion` and the Microsoft.ML.Tokenizers major version are derived from `MajorVersion` and do not normally require separate updates.
+
+1. Verify representative stable, non-stable, and tokenizer package versions:
+
+   ```powershell
+   dotnet msbuild .\src\Microsoft.ML\Microsoft.ML.csproj -nologo -getProperty:PackageVersion
+   dotnet msbuild .\src\Microsoft.ML.AutoML\Microsoft.ML.AutoML.csproj -nologo -getProperty:PackageVersion
+   dotnet msbuild .\src\Microsoft.ML.Tokenizers\Microsoft.ML.Tokenizers.csproj -nologo -getProperty:PackageVersion
+   ```
