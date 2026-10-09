@@ -50,7 +50,7 @@ namespace Microsoft.ML.NugetPackageVersionUpdater
 
         private static void UpdatePackageVersion(string projectFiles, IDictionary<string, string> latestPackageVersions)
         {
-            string packageReferencePath = "/Project/ItemGroup/PackageReference";
+            string packageVersionPath = "/Project/ItemGroup/PackageVersion";
 
             var projectFilePaths = projectFiles.Split(";".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
 
@@ -59,16 +59,16 @@ namespace Microsoft.ML.NugetPackageVersionUpdater
                 var csprojDoc = new XmlDocument();
                 csprojDoc.Load(projectFilePath);
 
-                var packageReferenceNodes = csprojDoc.DocumentElement.SelectNodes(packageReferencePath);
+                var packageVersionNodes = csprojDoc.DocumentElement.SelectNodes(packageVersionPath);
 
-                for (int i = 0; i < packageReferenceNodes.Count; i++)
+                for (int i = 0; i < packageVersionNodes.Count; i++)
                 {
-                    var packageName = packageReferenceNodes.Item(i).Attributes.GetNamedItem("Include").InnerText;
+                    var packageName = packageVersionNodes.Item(i).Attributes.GetNamedItem("Include").InnerText;
 
                     if (latestPackageVersions.ContainsKey(packageName))
                     {
                         var latestVersion = latestPackageVersions[packageName];
-                        packageReferenceNodes.Item(i).Attributes.GetNamedItem("Version").InnerText = latestVersion;
+                        packageVersionNodes.Item(i).Attributes.GetNamedItem("Version").InnerText = latestVersion;
                         Console.WriteLine($"Update packege {packageName} to version {latestVersion}.");
                     }
                     else
