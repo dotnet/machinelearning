@@ -1143,30 +1143,46 @@ namespace Microsoft.ML.Tokenizers
 
             Vec<(string, string)> merges = new(1000);
 
-            int lineNumber = 0;
-            while (true)
-            {
-                string? line = useAsync ?
-                    await Helpers.ReadLineAsync(reader, cancellationToken).ConfigureAwait(false) :
-                    reader.ReadLine();
+            // The merges.txt file tends to be about 500 kB-3 MB, so reading it all into memory should be fine.
+            string content = useAsync ?
+                await Helpers.ReadToEndAsync(reader, cancellationToken).ConfigureAwait(false) :
+                reader.ReadToEnd();
 
-                if (line is null)
+            int lineNumber = 0;
+            int lineStart = 0;
+            while (lineStart < content.Length)
+            {
+                int lineEnd = content.IndexOf('\n', lineStart);
+                bool hasLineTerminator = lineEnd >= 0;
+                if (!hasLineTerminator)
                 {
-                    break;
+                    lineEnd = content.Length;
                 }
 
                 lineNumber++;
+                int lineLength = lineEnd - lineStart;
+
+                // \n and \r\n are considered to be line terminators.
+                // But a lone \r can be token data, so only remove the one that terminates a \r\n line.
+                if (hasLineTerminator && lineLength > 0 && content[lineEnd - 1] == '\r')
+                {
+                    lineLength--;
+                }
+
+                ReadOnlySpan<char> line = content.AsSpan(lineStart, lineLength);
                 if (line.StartsWith("#version", StringComparison.Ordinal) || line.Length == 0)
                 {
+                    lineStart = lineEnd + 1;
                     continue;
                 }
 
                 int index = line.IndexOf(' ');
-                if (index < 0 || index == line.Length - 1 || line.IndexOf(' ', index + 1) >= 0)
+                if (index < 0 || index == line.Length - 1 || line[(index + 1)..].IndexOf(' ') >= 0)
                 {
                     throw new InvalidOperationException($"Invalid merger file format at line: {lineNumber}");
                 }
-                merges.Push((line.Substring(0, index), line.Substring(index + 1)));
+                merges.Push((line[..index].ToString(), line[(index + 1)..].ToString()));
+                lineStart = lineEnd + 1;
             }
 
             return merges;

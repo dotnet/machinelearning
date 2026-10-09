@@ -408,6 +408,50 @@ namespace Microsoft.ML.Tokenizers.Tests
             ValidateTokenizer(bpe);
         }
 
+        [Theory]
+        [InlineData("; \r\r\n")]
+        [InlineData("; \r")]
+        public async Task CarriageReturnMergeTokenIsPreserved(string merges)
+        {
+            Dictionary<string, int> vocab = new()
+            {
+                [";"] = 0,
+                ["\r"] = 1,
+                [";\r"] = 2
+            };
+
+            byte[] vocabData = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(vocab));
+            byte[] mergesData = Encoding.UTF8.GetBytes(merges);
+
+            using MemoryStream vocabStream = new(vocabData);
+            using MemoryStream mergesStream = new(mergesData);
+
+            BpeTokenizer bpe = BpeTokenizer.Create(vocabStream, mergesStream);
+            Assert.Equal([2], bpe.EncodeToIds(";\r", considerPreTokenization: false));
+
+            vocabStream.Position = 0;
+            mergesStream.Position = 0;
+
+            bpe = await BpeTokenizer.CreateAsync(vocabStream, mergesStream);
+            Assert.Equal([2], bpe.EncodeToIds(";\r", considerPreTokenization: false));
+
+            string vocabFile = Utils.CreateTemporaryFile("json");
+            string mergesFile = Utils.CreateTemporaryFile("txt");
+            try
+            {
+                File.WriteAllBytes(vocabFile, vocabData);
+                File.WriteAllBytes(mergesFile, mergesData);
+
+                bpe = BpeTokenizer.Create(new BpeOptions(vocabFile, mergesFile));
+                Assert.Equal([2], bpe.EncodeToIds(";\r", considerPreTokenization: false));
+            }
+            finally
+            {
+                Utils.DeleteFile(vocabFile);
+                Utils.DeleteFile(mergesFile);
+            }
+        }
+
         [Fact]
         public void TestGpt2Vocab()
         {
@@ -1096,4 +1140,3 @@ namespace Microsoft.ML.Tokenizers.Tests
         }
     }
 }
-
