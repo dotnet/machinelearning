@@ -25,15 +25,15 @@ After cloning and entering the repository, install the native build dependencies
 On Linux:
 
 ```sh
-sudo ./eng/common/native/install-dependencies.sh
+sudo ./eng/install-dependencies.sh
 ```
 
-The dependency script supports Debian/Ubuntu, Fedora/RHEL, Azure Linux, Amazon Linux, and Alpine.
+The dependency script supports Debian/Ubuntu, Fedora, Azure Linux, Amazon Linux, and Alpine. On Azure Linux, install `libomp` manually before building.
 
 On macOS, install Xcode command-line tools and [Homebrew](https://brew.sh/) first, then run:
 
 ```sh
-./eng/common/native/install-dependencies.sh
+./eng/install-dependencies.sh
 ```
 
 The build scripts acquire the .NET SDK selected by `global.json`; you do not need to install that exact SDK separately.

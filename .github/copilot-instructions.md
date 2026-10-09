@@ -32,7 +32,7 @@ build.cmd
 dotnet build src/Microsoft.ML.Core/Microsoft.ML.Core.csproj
 ```
 
-The repo uses Arcade SDK. `build.sh`/`build.cmd` wraps `eng/common/build.sh`/`eng/common/build.ps1` with `--restore --build`. On Linux, native dependencies require `eng/common/native/install-dependencies.sh`.
+The repo uses Arcade SDK. `build.sh`/`build.cmd` wraps `eng/common/build.sh`/`eng/common/build.ps1` with `--restore --build`. On Linux, native dependencies require `eng/install-dependencies.sh`.
 
 ### Test
 

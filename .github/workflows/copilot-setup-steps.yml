@@ -20,10 +20,7 @@ jobs:
           submodules: recursive
 
       - name: Install Dependencies
-        run: |
-          sudo ./eng/common/native/install-dependencies.sh && \
-          sudo apt-get install -qq -y \
-            libomp-dev
+        run: sudo ./eng/install-dependencies.sh
 
       - name: Build
         run: ./build.sh
