@@ -67,12 +67,19 @@ namespace Microsoft.ML.Data
         private void RunCore(IChannel ch)
         {
             ILegacyDataLoader loader = CreateAndSaveLoader();
-            using (var schemaWriter = new StringWriter())
+            try
             {
-                RunOnData(schemaWriter, ImplOptions, loader);
-                var str = schemaWriter.ToString();
-                ch.AssertNonEmpty(str);
-                ch.Info(str);
+                using (var schemaWriter = new StringWriter())
+                {
+                    RunOnData(schemaWriter, ImplOptions, loader);
+                    var str = schemaWriter.ToString();
+                    ch.AssertNonEmpty(str);
+                    ch.Info(str);
+                }
+            }
+            finally
+            {
+                DisposeViewChain(loader);
             }
         }
 
@@ -111,6 +118,17 @@ namespace Microsoft.ML.Data
                 yield return view;
                 var transform = view as IDataTransform;
                 view = transform?.Source;
+            }
+        }
+
+        private static void DisposeViewChain(IDataView data)
+        {
+            foreach (var view in GetViewChainReversed(data).ToArray())
+            {
+                var disposable = view is RowToRowMapperTransform mapper
+                    ? mapper.GetTransformer() as IDisposable
+                    : view as IDisposable;
+                disposable?.Dispose();
             }
         }
 
