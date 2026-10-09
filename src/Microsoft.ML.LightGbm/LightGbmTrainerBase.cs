@@ -708,10 +708,13 @@ namespace Microsoft.ML.Trainers.LightGbm
             GetMetainfo(ch, factory, out int numRow, out float[] labels, out float[] weights, out int[] groups);
 
             // Construct validation dataset.
-            Dataset dvalid = new Dataset(dtrain, numRow, labels, weights, groups);
+            Dataset dvalid = new Dataset(dtrain, numRow, labels, weights);
 
             // Push rows into dataset.
             LoadDataset(ch, factory, dvalid, numRow, LightGbmTrainerOptions.BatchSize, catMetaData);
+
+            // Apply validation groups after loading.
+            dvalid.SetGroup(groups);
 
             return dvalid;
         }
