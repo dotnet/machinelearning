@@ -18,7 +18,7 @@ dotnet add package SciSharp.TensorFlow.Redist
 
 ## GPU runtime
 
-For GPU inference, add the package for your operating system:
+For GPU-backed TensorFlow operations, including training and inference, add the package for your operating system:
 
 ```console
 # Windows
