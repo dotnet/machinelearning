@@ -220,18 +220,24 @@ namespace Microsoft.Data.Analysis
                 var sourceBuffer = Buffers[b];
                 var sourceNullBitMap = NullBitMapBuffers[b].ReadOnlySpan;
 
-                Span<TResult> mutableResultBuffer = resultContainer.Buffers.GetOrCreateMutable(b).Span;
-                Span<byte> mutableResultNullBitMapBuffer = resultContainer.NullBitMapBuffers.GetOrCreateMutable(b).Span;
-
                 for (int i = 0; i < sourceBuffer.Length; i++)
                 {
+                    // Compute the global element index across all source buffers, then map
+                    // to the correct result buffer and offset. This is necessary because
+                    // MaxCapacity = ArrayMaxSize / sizeof(T) differs between T and TResult
+                    // when their sizes differ, so buffer boundaries do not align 1:1.
+                    long globalIndex = (long)b * ReadOnlyDataFrameBuffer<T>.MaxCapacity + i;
+                    int resultBufferIndex = (int)(globalIndex / ReadOnlyDataFrameBuffer<TResult>.MaxCapacity);
+                    int indexInResultBuffer = (int)(globalIndex % ReadOnlyDataFrameBuffer<TResult>.MaxCapacity);
+
                     bool isValid = BitUtility.IsValid(sourceNullBitMap, i);
                     TResult? value = func(isValid ? sourceBuffer[i] : null);
-                    mutableResultBuffer[i] = value.GetValueOrDefault();
-                    //Actually there is a bug in the previouse line. This code will not work correctly with containers having more than 1 buffers
-                    //As buffer size for type T (sourceBuffer) is different from the size of buffer for type TResult (mutableResultBuffer) in case sizeof(T) not equal to sizeof(TResult)
-                    //TODO fix (https://github.com/dotnet/machinelearning/issues/7122)
-                    resultContainer.SetValidityBit(mutableResultNullBitMapBuffer, i, value != null);
+
+                    Span<TResult> mutableResultBuffer = resultContainer.Buffers.GetOrCreateMutable(resultBufferIndex).Span;
+                    Span<byte> mutableResultNullBitMapBuffer = resultContainer.NullBitMapBuffers.GetOrCreateMutable(resultBufferIndex).Span;
+
+                    mutableResultBuffer[indexInResultBuffer] = value.GetValueOrDefault();
+                    resultContainer.SetValidityBit(mutableResultNullBitMapBuffer, indexInResultBuffer, value != null);
                 }
             }
         }
