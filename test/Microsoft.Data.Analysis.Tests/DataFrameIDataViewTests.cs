@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -490,6 +490,57 @@ namespace Microsoft.Data.Analysis.Tests
 
             Assert.Equal(12, df.Columns.Count);
             Assert.Equal(2, df.Rows.Count);
+        }
+
+        [Fact]
+        public void TestIDataView_CanShuffleAndShuffledCursor()
+        {
+            DataFrame df = DataFrameTests.MakeDataFrameWithAllColumnTypes(100, withNulls: false);
+            IDataView dataView = df;
+
+            Assert.True(dataView.CanShuffle);
+
+            using DataViewRowCursor cursor = dataView.GetRowCursor(dataView.Schema, new Random(42));
+            var getter = cursor.GetGetter<int>(dataView.Schema["Int"]);
+
+            List<int> values = new List<int>();
+            while (cursor.MoveNext())
+            {
+                int val = default;
+                getter(ref val);
+                values.Add(val);
+            }
+
+            Assert.Equal(100, values.Count);
+            Assert.Equal(100, values.Distinct().Count());
+            Assert.NotEqual(Enumerable.Range(0, 100).ToList(), values);
+        }
+
+        [Fact]
+        public void TestIDataView_ParallelCursorSet()
+        {
+            DataFrame df = DataFrameTests.MakeDataFrameWithAllColumnTypes(100, withNulls: false);
+            IDataView dataView = df;
+
+            DataViewRowCursor[] cursors = dataView.GetRowCursorSet(dataView.Schema, 4, new Random(42));
+            Assert.Equal(4, cursors.Length);
+
+            List<int> allValues = new List<int>();
+            for (int i = 0; i < cursors.Length; i++)
+            {
+                using var cursor = cursors[i];
+                Assert.Equal(i, cursor.Batch);
+                var getter = cursor.GetGetter<int>(dataView.Schema["Int"]);
+                while (cursor.MoveNext())
+                {
+                    int val = default;
+                    getter(ref val);
+                    allValues.Add(val);
+                }
+            }
+
+            Assert.Equal(100, allValues.Count);
+            Assert.Equal(100, allValues.Distinct().Count());
         }
     }
 }
