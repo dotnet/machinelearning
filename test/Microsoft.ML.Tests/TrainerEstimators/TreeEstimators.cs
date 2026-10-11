@@ -208,6 +208,51 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             Done();
         }
 
+        [LightGBMFact]
+        public void LightGBMRankerValidationWithManyGroups()
+        {
+            var train = ML.Data.LoadFromEnumerable(GetLightGbmRankingRows(0));
+            var validation = ML.Data.LoadFromEnumerable(GetLightGbmRankingRows(10_000));
+            var trainer = ML.Ranking.Trainers.LightGbm(new LightGbmRankingTrainer.Options
+            {
+                LabelColumnName = nameof(LightGbmRankingRow.Label),
+                FeatureColumnName = nameof(LightGbmRankingRow.Features),
+                RowGroupColumnName = nameof(LightGbmRankingRow.GroupId),
+                MinimumExampleCountPerLeaf = 1,
+                NumberOfIterations = 1,
+                NumberOfLeaves = 2,
+                NumberOfThreads = 1,
+            });
+
+            trainer.Fit(train, validation);
+            Done();
+        }
+
+        private static IEnumerable<LightGbmRankingRow> GetLightGbmRankingRows(int groupIdOffset)
+        {
+            for (int group = 0; group < 5_000; ++group)
+            {
+                for (int position = 0; position < 4; ++position)
+                {
+                    yield return new LightGbmRankingRow
+                    {
+                        GroupId = (uint)(groupIdOffset + group + 1),
+                        Label = 3 - position,
+                        Features = new[] { (float)position, (float)(group % 17) },
+                    };
+                }
+            }
+        }
+
+        private sealed class LightGbmRankingRow
+        {
+            public uint GroupId { get; set; }
+            public float Label { get; set; }
+
+            [VectorType(2)]
+            public float[] Features { get; set; }
+        }
+
         /// <summary>
         /// FastTreeRegressor TrainerEstimator test
         /// </summary>
