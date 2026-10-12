@@ -98,6 +98,12 @@ If you would like to run these specific unit test(s) multiple times, do the foll
 
 These steps are demonstrated in this demonstrative [commit](https://github.com/dotnet/machinelearning/commit/2fb5f8cfcd2a81f27bc22ac6749f1ce2045e925b).
 
+### Collecting crash dumps from Unix Helix tests
+
+The Unix Helix test runner enables .NET crash dumps and JSON crash reports in `HELIX_DUMP_FOLDER`. Download the `.dmp` and `.crashreport.json` files from the failed work item's Helix artifacts. Dump-generation diagnostics are written to the console log; check these if no dump was uploaded.
+
+The JSON report contains thread stacks and can be inspected without a matching-OS debugger. For deeper native analysis, open the dump on the matching OS with the runtime and native binaries from the Helix payload.
+
 ### Running unit tests through VSTest Task & Collecting memory dumps
 
 During development, there may also arise a need to debug hanging tests. In this scenario, it can be beneficial to collect the memory dump while a given test is hanging.
