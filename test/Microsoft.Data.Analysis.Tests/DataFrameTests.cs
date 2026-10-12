@@ -767,6 +767,8 @@ namespace Microsoft.Data.Analysis.Tests
             df.Columns.Add(dateTimes);
 
             DataFrame Info = df.Info();
+            Assert.Equal(df.Columns.Count + 1, Info.Columns.Count);
+            Assert.Equal(2, Info.Rows.Count);
             DataFrameColumn infoColumn = Info.Columns[0];
             Assert.Equal("Info", infoColumn.Name);
             Assert.Equal("Length (excluding null values)", infoColumn[1]);
@@ -775,7 +777,9 @@ namespace Microsoft.Data.Analysis.Tests
             for (int i = 1; i < Info.Columns.Count; i++)
             {
                 DataFrameColumn column = Info.Columns[i];
+                Assert.Equal(df.Columns[i - 1].Name, column.Name);
                 Assert.Equal(df.Columns[i - 1].DataType.ToString(), column[0].ToString());
+                Assert.Equal((df.Columns[i - 1].Length - df.Columns[i - 1].NullCount).ToString(), column[1]);
                 Assert.Equal(2, column.Length);
             }
         }

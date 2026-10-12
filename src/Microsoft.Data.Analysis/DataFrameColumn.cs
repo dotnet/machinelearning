@@ -410,13 +410,13 @@ namespace Microsoft.Data.Analysis
         public virtual bool HasDescription() => false;
 
         /// <summary>
-        /// Returns a <see cref="StringDataFrameColumn"/> containing the DataType and Length of this column
+        /// Returns a <see cref="StringDataFrameColumn"/> containing the labeled DataType and Length (excluding null values) of this column
         /// </summary>
         public virtual StringDataFrameColumn Info()
         {
             StringDataFrameColumn dataColumn = new StringDataFrameColumn(Name, 2);
-            dataColumn[0] = DataType.ToString();
-            dataColumn[1] = (Length - NullCount).ToString();
+            dataColumn[0] = $"{Strings.DataType}: {DataType}";
+            dataColumn[1] = $"{Strings.DescriptionMethodLength}: {Length - NullCount}";
             return dataColumn;
         }
 
