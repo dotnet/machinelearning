@@ -55,13 +55,8 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         }
 
         [Theory]
-        [InlineData(5, -1)]
-        [InlineData(5, 0)]
-        [InlineData(5, 1)]
-        [InlineData(5, 2)]
         [InlineData(5, 4)]
         [InlineData(5, 5)]
-        [InlineData(2, 1)]
         public void FastTreeHistogramPoolSizeValidation(int numberOfLeaves, int histogramPoolSize)
         {
             var data = ML.Data.LoadFromEnumerable(

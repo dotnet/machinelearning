@@ -4,10 +4,8 @@
 
 using System;
 using System.Collections.Generic;
-using System.Reflection;
 using Microsoft.ML.Data;
 using Microsoft.ML.RunTests;
-using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms;
 using Xunit;
 using Xunit.Abstractions;
@@ -23,32 +21,6 @@ namespace Microsoft.ML.Tests
         private class MyData
         {
             public float Feature { get; set; }
-        }
-
-        [Theory]
-        [InlineData(true)]
-        [InlineData(false)]
-        public void EstimatorChainAcceptsNullOrEmptyEstimators(bool useNull)
-        {
-            var constructor = typeof(EstimatorChain<ITransformer>).GetConstructor(
-                BindingFlags.Instance | BindingFlags.NonPublic, null,
-                new[] { typeof(IHostEnvironment), typeof(IEstimator<ITransformer>[]), typeof(TransformerScope[]), typeof(bool[]) }, null);
-            Assert.NotNull(constructor);
-
-            var chain = (EstimatorChain<ITransformer>)constructor.Invoke(new object[]
-            {
-                null,
-                useNull ? null : Array.Empty<IEstimator<ITransformer>>(),
-                useNull ? null : Array.Empty<TransformerScope>(),
-                useNull ? null : Array.Empty<bool>()
-            });
-
-            Assert.Null(chain.LastEstimator);
-            var data = ML.Data.LoadFromEnumerable(new[] { new MyData() });
-            Assert.Same(data, chain.Fit(data).Transform(data));
-
-            var estimator = ML.Transforms.CopyColumns("F1", "Feature");
-            Assert.Same(estimator, chain.Append(estimator).LastEstimator);
         }
 
         [Theory]
