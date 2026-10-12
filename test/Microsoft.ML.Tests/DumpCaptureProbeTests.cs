@@ -23,12 +23,12 @@ namespace Microsoft.ML.Tests
         [ConditionalFact(nameof(IsMacOSHelix))]
         public void CaptureSegmentationFault()
         {
-            Console.WriteLine("Dump capture probe: intentionally raising SIGSEGV.");
-            Assert.Equal(0, Raise(11));
+            Console.WriteLine("Dump capture probe: intentionally writing to an invalid address in native memset.");
+            Memset(new IntPtr(-1), 0, new UIntPtr(1));
             throw new InvalidOperationException("The SIGSEGV probe unexpectedly returned.");
         }
 
-        [DllImport("libSystem.dylib", EntryPoint = "raise", ExactSpelling = true, CallingConvention = CallingConvention.Cdecl)]
-        private static extern int Raise(int signal);
+        [DllImport("libSystem.dylib", EntryPoint = "memset", ExactSpelling = true, CallingConvention = CallingConvention.Cdecl)]
+        private static extern IntPtr Memset(IntPtr destination, int value, UIntPtr count);
     }
 }
