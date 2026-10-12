@@ -53,6 +53,7 @@ extends:
     sdl:
       binskim:
         enabled: true
+        break: true
         scanOutputDirectoryOnly: true
       policheck:
         enabled: true
@@ -263,7 +264,8 @@ extends:
               logs: true
               manifests: true
           enableMicrobuild: true
-          enablePublishUsingPipelines: true
+          enablePublishing: true
+          publishingVersion: 4
           enableSourceIndex: true
           dependsOn:
           - Linux_x64
@@ -280,10 +282,7 @@ extends:
             - _TeamName: DotNetCore
             - _InternalBuildArgs: /p:DotNetSignType=$(_SignType)
                                   /p:TeamName=$(_TeamName)
-                                  /p:DotNetSymbolServerTokenMsdl=$(microsoft-symbol-server-pat)
-                                  /p:DotNetSymbolServerTokenSymWeb=$(symweb-symbol-server-pat)
                                   /p:OfficialBuildId=$(OfficialBuildId)
-                                  /p:DotNetPublishUsingPipelines=$true
           pool:
             name: $(DncEngInternalBuildPool)
             image: $(WindowsImage)
@@ -322,12 +321,8 @@ extends:
           dependsOn: Package
           enablePublishBuildArtifacts: true
           publishAssetsImmediately: true
-          publishUsingPipelines: true
+          publishingVersion: 4
           pool:
             name: $(DncEngInternalBuildPool)
             image: $(WindowsImage)
             os: windows
-
-    - template: /eng/common/templates-official/post-build/post-build.yml@self
-      parameters:
-        publishingInfraVersion: 3
