@@ -75,6 +75,11 @@
     <MyProjects Remove="..\test\Microsoft.ML.TensorFlow.Tests\Microsoft.ML.TensorFlow.Tests.csproj" Condition="'$(BuildArchitecture)' != 'x64'"/>
   </ItemGroup>
 
+  <ItemGroup Condition="$(HelixTargetQueues.ToLowerInvariant().Contains('osx')) and '$(BuildArchitecture)' == 'x64'">
+    <MyProjects Remove="@(MyProjects)" />
+    <MyProjects Include="..\test\Microsoft.ML.Tests\Microsoft.ML.Tests.csproj" />
+  </ItemGroup>
+
   <ItemGroup>
     <HelixCorrelationPayload Include="xunit-runner">
       <Uri>https://api.nuget.org/v3-flatcontainer/xunit.runner.console/$(XUnitRunnerVersion)/xunit.runner.console.$(XUnitRunnerVersion).nupkg</Uri>
@@ -180,6 +185,7 @@
     <ItemGroup>
       <RunCommand Condition="!$(TestTargetFramework.EndsWith('net48'))" Include="%(ProjectsWithTargetFramework.Filename)">
         <Command>dotnet exec --roll-forward Major --runtimeconfig %(ProjectsWithTargetFramework.Filename).runtimeconfig.json --depsfile %(ProjectsWithTargetFramework.Filename).deps.json $(HelixCorrelationPayloadPath)/xunit-runner/tools/netcoreapp2.0/xunit.console.dll %(ProjectsWithTargetFramework.Filename).dll -notrait Category=SkipInCI -xml testResults.xml</Command>
+        <Command Condition="$(HelixTargetQueues.ToLowerInvariant().Contains('osx')) and '$(BuildArchitecture)' == 'x64'">dotnet exec --roll-forward Major --runtimeconfig %(ProjectsWithTargetFramework.Filename).runtimeconfig.json --depsfile %(ProjectsWithTargetFramework.Filename).deps.json $(HelixCorrelationPayloadPath)/xunit-runner/tools/netcoreapp2.0/xunit.console.dll %(ProjectsWithTargetFramework.Filename).dll -class Microsoft.ML.Tests.DumpCaptureProbeTests -xml testResults.xml</Command>
         <!-- FileName is reserved so have to go with something else -->
         <Filen>%(ProjectsWithTargetFramework.Filename)</Filen>
         <TargetFrameworks>%(ProjectsWithTargetFramework.TargetFrameworks)</TargetFrameworks>
