@@ -76,7 +76,7 @@
     <TensorFlowLinuxGpuVersion>2.11.1</TensorFlowLinuxGpuVersion>
     <TorchSharpPyBridgeVersion>1.4.1</TorchSharpPyBridgeVersion>
     <AutoGenVersion>0.2.3</AutoGenVersion>
-    <SemanticKernelVersion>1.48.0</SemanticKernelVersion>
+    <SemanticKernelVersion>1.71.0</SemanticKernelVersion>
     <TorchSharpVersion>0.102.7</TorchSharpVersion>
     <LibTorchVersion>2.2.1.1</LibTorchVersion>
     <!-- Build/infrastructure Dependencies -->
@@ -118,5 +118,17 @@
     <SystemRuntimeCompilerServicesUnsafeVersion>6.1.2</SystemRuntimeCompilerServicesUnsafeVersion>
     <!-- Test dependencies -->
     <SystemDataSqlClientVersion>4.9.0</SystemDataSqlClientVersion>
+  </PropertyGroup>
+  <!-- Semantic Kernel 1.71.0 requires newer dependencies.
+       Scope those upgrades to GenAI to preserve other packages' release dependencies. -->
+  <PropertyGroup Condition="$(MSBuildProjectName.StartsWith('Microsoft.ML.GenAI.'))">
+    <MicrosoftExtensionsAIVersion>10.2.0</MicrosoftExtensionsAIVersion>
+    <MicrosoftExtensionsDependencyInjectionVersion>10.0.2</MicrosoftExtensionsDependencyInjectionVersion>
+    <MicrosoftExtensionsDependencyInjectionAbstractionsVersion>10.0.2</MicrosoftExtensionsDependencyInjectionAbstractionsVersion>
+    <SystemIOPipelinesVersion>10.0.2</SystemIOPipelinesVersion>
+    <SystemNumericsTensorsVersion>10.0.2</SystemNumericsTensorsVersion>
+    <SystemTextEncodingsWebVersion>10.0.2</SystemTextEncodingsWebVersion>
+    <SystemTextJsonVersion>10.0.2</SystemTextJsonVersion>
+    <SystemThreadingChannelsVersion>10.0.2</SystemThreadingChannelsVersion>
   </PropertyGroup>
 </Project>
