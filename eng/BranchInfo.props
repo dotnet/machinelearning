@@ -32,7 +32,7 @@
     <MinorVersion>0</MinorVersion>
     <PatchVersion>1</PatchVersion>
     <!-- Set baseline version for stable packages to check for API Compat -->
-    <PackageValidationBaselineVersion>$([MSBuild]::Subtract($(MajorVersion), 1)).0.0</PackageValidationBaselineVersion>
+    <PackageValidationBaselineVersion>$(MajorVersion).$(MinorVersion).$([MSBuild]::Subtract($(PatchVersion), 1))</PackageValidationBaselineVersion>
   </PropertyGroup>
   <PropertyGroup Condition="'$(IsStableProject)' != 'true'">
     <MajorVersion>0</MajorVersion>
