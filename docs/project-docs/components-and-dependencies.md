@@ -6,7 +6,9 @@ Microsoft.ML contains one other native library, LDANative, which is used by the 
 
 Some components that represent an algorithm or binding to another framework are factored into separate packages to allow opt-in to using those and their dependencies.
 
-ML.NET redistributes Intel MKL as Microsoft.ML.MKL.Redist in which is a minimized MKL library linked with just exports needed by ML.NET.  This component follows the support matrix of Intel MKL and is only supported on x86 and x64 architectures: linux-x64, osx-x64 (no longer supported by Intel), win-x64, and win-x86.  Similarly some components have light-up to use an Intel OneDAL implementation which is only supported on x64.
+ML.NET redistributes Intel MKL as Microsoft.ML.MKL.Redist in which is a minimized MKL library linked with just exports needed by ML.NET.  This component follows the support matrix of Intel MKL and is only supported on x86 and x64 architectures: linux-x64, osx-x64 (no longer supported by Intel), win-x64, and win-x86.  Similarly some components have light-up to use an Intel [oneAPI Data Analytics Library (oneDAL)](https://github.com/uxlfoundation/oneDAL) implementation which is only supported on x64.
+
+The oneDAL acceleration paths cover ordinary least squares regression, LBFGS logistic regression, and FastForest classification and regression. Set the `MLNET_BACKEND` environment variable to `ONEDAL` before starting the application to enable these paths; otherwise ML.NET uses its default implementations. The native interoperability layer is under `src/Native/OneDalNative`.
 
 | NuGet Package                       | Entry-Point Components                                         | Native Dependencies                            | Status   | Notes                                                                                      |
 |-------------------------------------|----------------------------------------------------------------|------------------------------------------------|----------|--------------------------------------------------------------------------------------------|
