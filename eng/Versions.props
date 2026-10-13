@@ -37,7 +37,6 @@
     <ApacheArrowVersion>14.0.2</ApacheArrowVersion>
     <GoogleProtobufVersion>3.30.2</GoogleProtobufVersion>
     <LightGBMVersion>4.6.0</LightGBMVersion>
-    <JsonSchemaNetVersion>7.3.4</JsonSchemaNetVersion>
     <MicrosoftBclHashCodeVersion>6.0.0</MicrosoftBclHashCodeVersion>
     <MicrosoftBclMemoryVersion>9.0.14</MicrosoftBclMemoryVersion>
     <MicrosoftCodeAnalysisAnalyzersVersion>3.11.0</MicrosoftCodeAnalysisAnalyzersVersion>
@@ -77,7 +76,7 @@
     <!-- Build/infrastructure Dependencies -->
     <CodecovVersion>1.12.4</CodecovVersion>
     <CoverletCollectorVersion>10.0.1</CoverletCollectorVersion>
-    <CoverletMsbuildVersion>6.0.0</CoverletMsbuildVersion>
+    <CoverletMsbuildVersion>10.1.0</CoverletMsbuildVersion>
     <MicrosoftCodeAnalysisCSharpInternalAnalyzerVersion>4.13.0</MicrosoftCodeAnalysisCSharpInternalAnalyzerVersion>
     <MicrosoftCSharpVersion>4.7.0</MicrosoftCSharpVersion>
     <ReportGeneratorVersion>4.3.6</ReportGeneratorVersion>
@@ -92,7 +91,7 @@
     <MicrosoftDotNetBuildTasksTemplatingVersion>9.0.0-beta.24212.4</MicrosoftDotNetBuildTasksTemplatingVersion>
     <MicrosoftDotNetPlatformAbstractionsVersion>5.0.0-preview.5.20278.1</MicrosoftDotNetPlatformAbstractionsVersion>
     <MicrosoftDotNetRemoteExecutorVersion>8.0.0-beta.24525.2</MicrosoftDotNetRemoteExecutorVersion>
-    <MicrosoftDotNetXUnitExtensionsVersion>12.0.0-beta.26502.2</MicrosoftDotNetXUnitExtensionsVersion>
+    <MicrosoftDotNetXUnitExtensionsVersion>12.0.0-beta.26505.2</MicrosoftDotNetXUnitExtensionsVersion>
     <MicrosoftExtensionsDependencyModelVersion>9.0.4</MicrosoftExtensionsDependencyModelVersion>
     <MicrosoftMLOnnxTestModelsVersion>0.0.6-test</MicrosoftMLOnnxTestModelsVersion>
     <MicrosoftMLTensorFlowTestModelsVersion>0.0.13-test</MicrosoftMLTensorFlowTestModelsVersion>

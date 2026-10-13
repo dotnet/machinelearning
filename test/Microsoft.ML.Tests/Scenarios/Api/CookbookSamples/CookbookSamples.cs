@@ -25,9 +25,9 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
     /// These tests don't actually test anything, other than the fact that the code compiles and
     /// doesn't throw when it is executed.
     /// </summary>
-    public sealed class CookbookSamplesDynamicApi : BaseTestClass
+    public sealed class CookbookSamples : BaseTestClass
     {
-        public CookbookSamplesDynamicApi(ITestOutputHelper output) : base(output)
+        public CookbookSamples(ITestOutputHelper output) : base(output)
         {
         }
 
@@ -58,9 +58,8 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
                 .Take(4).ToArray();
 
             // Extract the 'AllFeatures' column.
-            // This will give the entire dataset: make sure to only take several row
-            // in case the dataset is huge. The is similar to the static API, except
-            // you have to specify the column name and type.
+            // This will give the entire dataset: make sure to only take several rows
+            // in case the dataset is huge.
             var featureColumns = transformedData.GetColumn<string[]>(transformedData.Schema["AllFeatures"])
                 .Take(20).ToArray();
         }
