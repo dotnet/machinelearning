@@ -23,7 +23,6 @@
     <SystemCodeDomVersion>9.0.4</SystemCodeDomVersion>
     <SystemCollectionsImmutableVersion>9.0.4</SystemCollectionsImmutableVersion>
     <SystemConfigurationConfigurationManagerVersion>9.0.4</SystemConfigurationConfigurationManagerVersion>
-    <SystemFormatsAsn1Version>9.0.4</SystemFormatsAsn1Version>
     <SystemIOFileSystemAccessControl>5.0.0</SystemIOFileSystemAccessControl>
     <SystemIOPipelinesVersion>9.0.4</SystemIOPipelinesVersion>
     <SystemNumericsTensorsVersion>9.0.4</SystemNumericsTensorsVersion>
@@ -67,7 +66,6 @@
     <!-- TensorFlow.NET cannot be updated past 0.100.2 due to https://github.com/SciSharp/TensorFlow.NET/issues/1296, 
      and regression https://github.com/SciSharp/TensorFlow.NET/commit/a7c9a75954d219cb606042fcbfbeb1b176781d7e introduced in 0.100.4 -->
     <TensorflowDotNETVersion>0.100.2</TensorflowDotNETVersion>
-    <TensorFlowMajorVersion>2</TensorFlowMajorVersion>
     <TensorFlowVersion>2.16.0</TensorFlowVersion>
     <TensorFlowWindowsGpuVersion>2.10.3</TensorFlowWindowsGpuVersion>
     <TensorFlowLinuxGpuVersion>2.11.1</TensorFlowLinuxGpuVersion>
@@ -77,8 +75,6 @@
     <CodecovVersion>1.12.4</CodecovVersion>
     <CoverletCollectorVersion>10.0.1</CoverletCollectorVersion>
     <CoverletMsbuildVersion>10.1.0</CoverletMsbuildVersion>
-    <MicrosoftCodeAnalysisCSharpInternalAnalyzerVersion>4.13.0</MicrosoftCodeAnalysisCSharpInternalAnalyzerVersion>
-    <MicrosoftCSharpVersion>4.7.0</MicrosoftCSharpVersion>
     <ReportGeneratorVersion>4.3.6</ReportGeneratorVersion>
     <SystemCompositionVersion>9.0.4</SystemCompositionVersion>
     <!-- Test-only Dependencies -->
