@@ -167,7 +167,6 @@ GitHub Actions in `.github/workflows/`:
 | Workflow | Trigger | Purpose |
 |----------|---------|---------|
 | `copilot-setup-steps.yml` | Manual | Remote Copilot Coding Agent build environment |
-| `find-similar-issues.yml` | Issue opened | AI-powered duplicate detection for new issues |
 
 ### Prompts
 
