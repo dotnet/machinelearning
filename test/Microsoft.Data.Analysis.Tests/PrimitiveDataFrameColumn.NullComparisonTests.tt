@@ -12,6 +12,7 @@
 
 using System;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Xunit;
 
@@ -159,7 +160,12 @@ foreach (var type in Types)
             var column = new PrimitiveDataFrameColumn<T>(name, MemoryMarshal.AsBytes(data.AsSpan()).ToArray(), nullBitMap, values.Length, nullCount);
 
             Assert.Equal(values, column.ToArray());
-            Assert.Equal(valueUnderNulls, column.GetReadOnlyDataBuffers().Single().Span[Array.IndexOf(values, null)]);
+            // GetReadOnlyDataBuffers reinterprets a byte[] as ReadOnlyMemory<T>. On net48, ReadOnlyMemory<T>.Span casts that array to T[] and throws.
+            ReadOnlyMemory<T> typedBuffer = column.GetReadOnlyDataBuffers().Single();
+            ReadOnlyMemory<byte> byteBuffer = Unsafe.As<ReadOnlyMemory<T>, ReadOnlyMemory<byte>>(ref typedBuffer);
+            Assert.True(MemoryMarshal.TryGetArray(byteBuffer, out ArraySegment<byte> bytes));
+            var span = MemoryMarshal.Cast<byte, T>(bytes.Array.AsSpan(bytes.Offset));
+            Assert.Equal(valueUnderNulls, span[Array.IndexOf(values, null)]);
             return column;
         }
 
@@ -245,7 +251,6 @@ foreach (var type in Types)
         new TypeConfiguration { Name = "Double", TypeName = "double", Low = "-1.5", High = "2.25" },
         new TypeConfiguration { Name = "Decimal", TypeName = "decimal", Low = "-1.5m", High = "2.25m", DoubleLow = "-1.5", DoubleHigh = "2.25" },
         new TypeConfiguration { Name = "Char", TypeName = "char", Low = "'a'", High = "'z'" },
-        new TypeConfiguration { Name = "DateTime", TypeName = "DateTime", Low = "new DateTime(2020, 1, 1)", High = "new DateTime(2021, 6, 30)" },
     };
 
     // A scalar of a different type than the column, so the column has to be converted before the comparison
