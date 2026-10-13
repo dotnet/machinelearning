@@ -7,7 +7,7 @@
 
   <PropertyGroup>
     <MajorVersion>$([MSBuild]::Subtract($(MajorVersion), 3))</MajorVersion>
-    <PackageValidationBaselineVersion>$([MSBuild]::Subtract($(MajorVersion), 1)).0.0</PackageValidationBaselineVersion>
+    <PackageValidationBaselineVersion>$(MajorVersion).$(MinorVersion).$([MSBuild]::Subtract($(PatchVersion), 1))</PackageValidationBaselineVersion>
   </PropertyGroup>
 
 </Project>
