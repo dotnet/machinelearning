@@ -12,9 +12,9 @@
     <PreReleaseVersionLabel>preview</PreReleaseVersionLabel>
     <AssemblyVersion>1.0.0.0</AssemblyVersion>
     <!-- .NET Runtime product dependencies -->
-    <MicrosoftBclAsyncInterfacesVersion>9.0.4</MicrosoftBclAsyncInterfacesVersion>
-    <MicrosoftExtensionsDependencyInjectionVersion>9.0.4</MicrosoftExtensionsDependencyInjectionVersion>
-    <MicrosoftExtensionsDependencyInjectionAbstractionsVersion>9.0.4</MicrosoftExtensionsDependencyInjectionAbstractionsVersion>
+    <MicrosoftBclAsyncInterfacesVersion>10.0.2</MicrosoftBclAsyncInterfacesVersion>
+    <MicrosoftExtensionsDependencyInjectionVersion>10.0.2</MicrosoftExtensionsDependencyInjectionVersion>
+    <MicrosoftExtensionsDependencyInjectionAbstractionsVersion>10.0.2</MicrosoftExtensionsDependencyInjectionAbstractionsVersion>
     <MicrosoftExtensionsLoggingVersion>9.0.4</MicrosoftExtensionsLoggingVersion>
     <MicrosoftExtensionsObjectPoolVersion>9.0.4</MicrosoftExtensionsObjectPoolVersion>
     <MicrosoftExtensionsOptionsVersion>9.0.4</MicrosoftExtensionsOptionsVersion>
@@ -25,14 +25,14 @@
     <SystemConfigurationConfigurationManagerVersion>9.0.4</SystemConfigurationConfigurationManagerVersion>
     <SystemFormatsAsn1Version>9.0.4</SystemFormatsAsn1Version>
     <SystemIOFileSystemAccessControl>5.0.0</SystemIOFileSystemAccessControl>
-    <SystemIOPipelinesVersion>9.0.4</SystemIOPipelinesVersion>
-    <SystemNumericsTensorsVersion>9.0.4</SystemNumericsTensorsVersion>
+    <SystemIOPipelinesVersion>10.0.2</SystemIOPipelinesVersion>
+    <SystemNumericsTensorsVersion>10.0.2</SystemNumericsTensorsVersion>
     <SystemReflectionEmitLightweightVersion>4.7.0</SystemReflectionEmitLightweightVersion>
     <SystemReflectionEmitVersion>4.7.0</SystemReflectionEmitVersion>
     <SystemSecurityPrincipalWindows>5.0.0</SystemSecurityPrincipalWindows>
-    <SystemTextEncodingsWebVersion>9.0.4</SystemTextEncodingsWebVersion>
-    <SystemTextJsonVersion>9.0.4</SystemTextJsonVersion>
-    <SystemThreadingChannelsVersion>9.0.4</SystemThreadingChannelsVersion>
+    <SystemTextEncodingsWebVersion>10.0.2</SystemTextEncodingsWebVersion>
+    <SystemTextJsonVersion>10.0.2</SystemTextJsonVersion>
+    <SystemThreadingChannelsVersion>10.0.2</SystemThreadingChannelsVersion>
     <!-- Other product dependencies -->
     <ApacheArrowVersion>14.0.2</ApacheArrowVersion>
     <GoogleProtobufVersion>3.30.2</GoogleProtobufVersion>
@@ -46,7 +46,7 @@
     <MicrosoftDotNetInteractiveVersion>1.0.0-beta.25177.1</MicrosoftDotNetInteractiveVersion>
     <MicrosoftMLOnnxRuntimeVersion>1.23.2</MicrosoftMLOnnxRuntimeVersion>
     <MlNetMklDepsVersion>0.0.0.12</MlNetMklDepsVersion>
-    <MicrosoftExtensionsAIVersion>9.5.0</MicrosoftExtensionsAIVersion>
+    <MicrosoftExtensionsAIVersion>10.2.0</MicrosoftExtensionsAIVersion>
     <!-- runtime.native.System.Data.SqlClient.sni is not updated by dependency flow as it is not produced live anymore. -->
     <RuntimeNativeSystemDataSqlClientSniVersion>4.7.0</RuntimeNativeSystemDataSqlClientSniVersion>
     <!--
@@ -76,7 +76,7 @@
     <TensorFlowLinuxGpuVersion>2.11.1</TensorFlowLinuxGpuVersion>
     <TorchSharpPyBridgeVersion>1.4.1</TorchSharpPyBridgeVersion>
     <AutoGenVersion>0.2.3</AutoGenVersion>
-    <SemanticKernelVersion>1.48.0</SemanticKernelVersion>
+    <SemanticKernelVersion>1.71.0</SemanticKernelVersion>
     <TorchSharpVersion>0.102.7</TorchSharpVersion>
     <LibTorchVersion>2.2.1.1</LibTorchVersion>
     <!-- Build/infrastructure Dependencies -->
