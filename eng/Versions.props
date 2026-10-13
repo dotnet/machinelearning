@@ -119,7 +119,8 @@
     <!-- Test dependencies -->
     <SystemDataSqlClientVersion>4.9.0</SystemDataSqlClientVersion>
   </PropertyGroup>
-  <!-- Limit supporting dependency upgrades to GenAI projects on this release branch. -->
+  <!-- Semantic Kernel 1.71.0 addresses CVE-2026-25592 and requires newer dependencies.
+       Scope those upgrades to GenAI to preserve other packages' release dependencies. -->
   <PropertyGroup Condition="$(MSBuildProjectName.StartsWith('Microsoft.ML.GenAI.'))">
     <MicrosoftExtensionsAIVersion>10.2.0</MicrosoftExtensionsAIVersion>
     <MicrosoftExtensionsDependencyInjectionVersion>10.0.2</MicrosoftExtensionsDependencyInjectionVersion>
