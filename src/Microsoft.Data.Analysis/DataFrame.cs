@@ -223,30 +223,7 @@ namespace Microsoft.Data.Analysis
                     strColumn[1] = Strings.DescriptionMethodLength;
                     ret.Columns.Add(strColumn);
                 }
-                ret.Columns.Add(GetInfoWithoutLabels(column));
-            }
-            return ret;
-        }
-
-        private static StringDataFrameColumn GetInfoWithoutLabels(DataFrameColumn column)
-        {
-            StringDataFrameColumn info = column.Info();
-            StringDataFrameColumn ret = info;
-            string[] labels = { Strings.DataType, Strings.DescriptionMethodLength };
-
-            for (int i = 0; i < labels.Length && i < info.Length; i++)
-            {
-                string prefix = $"{labels[i]}: ";
-                string value = info[i];
-                if (value != null && value.StartsWith(prefix, StringComparison.Ordinal))
-                {
-                    // An Info override may cache its result, so only modify a copy.
-                    if (ReferenceEquals(ret, info))
-                    {
-                        ret = info.Clone();
-                    }
-                    ret[i] = value.Substring(prefix.Length);
-                }
+                ret.Columns.Add(column.Info().Columns[1]);
             }
             return ret;
         }

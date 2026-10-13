@@ -41,12 +41,18 @@ namespace Microsoft.Data.Analysis.Tests
 
         private static void AssertColumnInfo(DataFrameColumn column)
         {
-            StringDataFrameColumn info = column.Info();
+            DataFrame info = column.Info();
 
-            Assert.Equal(column.Name, info.Name);
-            Assert.Equal(2, info.Length);
-            Assert.Equal($"{Strings.DataType}: {column.DataType}", info[0]);
-            Assert.Equal($"{Strings.DescriptionMethodLength}: {column.Length - column.NullCount}", info[1]);
+            Assert.Equal(2, info.Columns.Count);
+            Assert.Equal(2, info.Rows.Count);
+            Assert.IsType<StringDataFrameColumn>(info.Columns[0]);
+            Assert.IsType<StringDataFrameColumn>(info.Columns[1]);
+            Assert.Equal("Info", info.Columns[0].Name);
+            Assert.Equal(column.Name, info.Columns[1].Name);
+            Assert.Equal(Strings.DataType, info[0, 0]);
+            Assert.Equal(Strings.DescriptionMethodLength, info[1, 0]);
+            Assert.Equal(column.DataType.ToString(), info[0, 1]);
+            Assert.Equal((column.Length - column.NullCount).ToString(), info[1, 1]);
 
             DataFrame dataFrameInfo = new DataFrame(column).Info();
 
@@ -58,6 +64,26 @@ namespace Microsoft.Data.Analysis.Tests
             Assert.Equal(Strings.DescriptionMethodLength, dataFrameInfo[1, 0]);
             Assert.Equal(column.DataType.ToString(), dataFrameInfo[0, 1]);
             Assert.Equal((column.Length - column.NullCount).ToString(), dataFrameInfo[1, 1]);
+        }
+
+        [Theory]
+        [InlineData("Info", "Info_", "Info")]
+        [InlineData("Info_", "Info", "Info_")]
+        [InlineData(null, "Info", "Column")]
+        public void TestColumnInfoWithSpecialName(string name, string labelName, string valueName)
+        {
+            var column = new Int32DataFrameColumn(name, new int[] { 1, 2, 3 });
+
+            DataFrame info = column.Info();
+
+            Assert.Equal(2, info.Columns.Count);
+            Assert.Equal(2, info.Rows.Count);
+            Assert.Equal(labelName, info.Columns[0].Name);
+            Assert.Equal(valueName, info.Columns[1].Name);
+            Assert.Equal(Strings.DataType, info[0, 0]);
+            Assert.Equal(Strings.DescriptionMethodLength, info[1, 0]);
+            Assert.Equal("System.Int32", info[0, 1]);
+            Assert.Equal("3", info[1, 1]);
         }
 
         [Fact]
@@ -75,41 +101,47 @@ namespace Microsoft.Data.Analysis.Tests
         public void TestColumnInfoOverride(bool useBaseInfo)
         {
             var column = new CustomInfoStringDataFrameColumn("Custom", useBaseInfo);
-            StringDataFrameColumn originalInfo = column.Info();
-            string[] originalValues = originalInfo.ToArray();
+            DataFrame originalInfo = column.Info();
+            string[] originalLabels = ((StringDataFrameColumn)originalInfo.Columns[0]).ToArray();
+            string[] originalValues = ((StringDataFrameColumn)originalInfo.Columns[1]).ToArray();
 
             DataFrame info = new DataFrame(column).Info();
 
             Assert.Equal("Custom", info.Columns[1].Name);
             Assert.Equal(useBaseInfo ? "System.String: custom" : "custom: type", info[0, 1]);
             Assert.Equal(useBaseInfo ? "1: custom" : null, info[1, 1]);
-            Assert.Equal(originalValues, originalInfo.ToArray());
+            Assert.Equal(Strings.DataType, info[0, 0]);
+            Assert.Equal(Strings.DescriptionMethodLength, info[1, 0]);
+            Assert.Equal(originalLabels, ((StringDataFrameColumn)originalInfo.Columns[0]).ToArray());
+            Assert.Equal(originalValues, ((StringDataFrameColumn)originalInfo.Columns[1]).ToArray());
             Assert.Same(originalInfo, column.Info());
         }
 
         private sealed class CustomInfoStringDataFrameColumn : StringDataFrameColumn
         {
             private readonly bool _useBaseInfo;
-            private StringDataFrameColumn _info;
+            private DataFrame _info;
 
             public CustomInfoStringDataFrameColumn(string name, bool useBaseInfo) : base(name, new string[] { "value" })
             {
                 _useBaseInfo = useBaseInfo;
             }
 
-            public override StringDataFrameColumn Info()
+            public override DataFrame Info()
             {
                 if (_info == null)
                 {
                     if (_useBaseInfo)
                     {
                         _info = base.Info();
-                        _info[0] += ": custom";
-                        _info[1] += ": custom";
+                        _info[0, 1] = $"{_info[0, 1]}: custom";
+                        _info[1, 1] = $"{_info[1, 1]}: custom";
                     }
                     else
                     {
-                        _info = new StringDataFrameColumn(Name, new string[] { "custom: type", null });
+                        _info = new DataFrame(
+                            new StringDataFrameColumn("Info", new string[] { "custom: label", null }),
+                            new StringDataFrameColumn(Name, new string[] { "custom: type", null }));
                     }
                 }
                 return _info;

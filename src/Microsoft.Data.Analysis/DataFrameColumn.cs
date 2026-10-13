@@ -410,14 +410,22 @@ namespace Microsoft.Data.Analysis
         public virtual bool HasDescription() => false;
 
         /// <summary>
-        /// Returns a <see cref="StringDataFrameColumn"/> containing the labeled DataType and Length (excluding null values) of this column
+        /// Returns a <see cref="DataFrame"/> containing labels and values for the DataType and Length (excluding null values) of this column
         /// </summary>
-        public virtual StringDataFrameColumn Info()
+        /// <remarks>
+        /// The first column contains labels and the second column contains values.
+        /// The label column is named "Info", or "Info_" if this column is named "Info".
+        /// The value column retains this column's name, or uses "Column" if the name is null.
+        /// </remarks>
+        public virtual DataFrame Info()
         {
-            StringDataFrameColumn dataColumn = new StringDataFrameColumn(Name, 2);
-            dataColumn[0] = $"{Strings.DataType}: {DataType}";
-            dataColumn[1] = $"{Strings.DescriptionMethodLength}: {Length - NullCount}";
-            return dataColumn;
+            StringDataFrameColumn labels = new StringDataFrameColumn(Name == "Info" ? "Info_" : "Info", 2);
+            labels[0] = Strings.DataType;
+            labels[1] = Strings.DescriptionMethodLength;
+            StringDataFrameColumn dataColumn = new StringDataFrameColumn(Name ?? "Column", 2);
+            dataColumn[0] = DataType.ToString();
+            dataColumn[1] = (Length - NullCount).ToString();
+            return new DataFrame(labels, dataColumn);
         }
 
         /// <summary>
