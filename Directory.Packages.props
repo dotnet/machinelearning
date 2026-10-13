@@ -11,7 +11,6 @@
     <!-- Product dependencies -->
     <PackageVersion Include="Apache.Arrow" Version="$(ApacheArrowVersion)" />
     <PackageVersion Include="Google.Protobuf" Version="$(GoogleProtobufVersion)" />
-    <PackageVersion Include="JsonSchema.Net" Version="$(JsonSchemaNetVersion)" />
     <PackageVersion Include="LightGBM" Version="$(LightGBMVersion)" />
     <PackageVersion Include="Microsoft.Bcl.AsyncInterfaces" Version="$(MicrosoftBclAsyncInterfacesVersion)" />
     <PackageVersion Include="Microsoft.Bcl.HashCode" Version="$(MicrosoftBclHashCodeVersion)" />
