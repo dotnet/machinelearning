@@ -12,6 +12,10 @@ The build scripts acquire the .NET SDK selected by `global.json`; you do not nee
 
 For ARM or ARM64 cross-compilation, install the corresponding Visual Studio C++ build tools.
 
+Use a current C++ toolset that supports `/guard:cast`. Windows native builds enable CastGuard with `/guard:cast /GL` and retain control flow guard with `/guard:cf`.
+
+Native builds generate compiler debug information with `/Z7` and linker PDBs with `/DEBUG`. Keep DLLs and their matching PDBs together when running BinSkim. Rebuilding ML.NET's native wrappers does not change the hardening or symbols of prebuilt Intel DLLs from dependency packages.
+
 ## Building Instructions
 
 In order to fetch dependencies which come through Git submodules the following command needs to be run before building: `git submodule update --init`.

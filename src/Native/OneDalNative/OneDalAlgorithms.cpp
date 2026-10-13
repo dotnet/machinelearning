@@ -1,6 +1,21 @@
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
 #include <cstdlib>
 #include <iostream>
-#include "daal.h"
+#include <stdexcept>
+#include "algorithms/decision_forest/decision_forest_classification_training_batch.h"
+#include "algorithms/decision_forest/decision_forest_regression_training_batch.h"
+#include "algorithms/logistic_regression/logistic_regression_predict.h"
+#include "algorithms/logistic_regression/logistic_regression_training_batch.h"
+#include "algorithms/optimization_solver/lbfgs/lbfgs_batch.h"
+#include "algorithms/optimization_solver/objective_function/cross_entropy_loss_batch.h"
+#include "algorithms/optimization_solver/objective_function/logistic_loss_batch.h"
+#include "algorithms/ridge_regression/ridge_regression_ne_model.h"
+#include "algorithms/ridge_regression/ridge_regression_training_online.h"
+#include "data_management/data/homogen_numeric_table.h"
+#include "services/env_detect.h"
 #include "../Stdafx.h"
 
 using namespace std;
@@ -9,6 +24,13 @@ using namespace daal::algorithms;
 using namespace daal::services;
 using namespace daal::data_management;
 
+int checkedSizeToInt(size_t value)
+{
+    if (value > static_cast<size_t>((std::numeric_limits<int>::max)()))
+        throw std::overflow_error("oneDAL value exceeds the supported 32-bit range.");
+
+    return static_cast<int>(value);
+}
 
 bool getVerboseVariable()
 {
@@ -89,14 +111,14 @@ public:
         if (desc.level == _previousLevel + 1 || desc.level == 0)
         {
             if (desc.level != 0)
-                _lteChild[_previousNodes[_previousLevel]] = _currentNode;
+                _lteChild[_previousNodes[_previousLevel]] = checkedSizeToInt(_currentNode);
         }
         // switch to different branch
         else
         {
-            _gtChild[_previousNodes[desc.level - 1]] = _currentNode;
+            _gtChild[_previousNodes[desc.level - 1]] = checkedSizeToInt(_currentNode);
         }
-        _splitFeature[_currentNode] = desc.featureIndex;
+        _splitFeature[_currentNode] = checkedSizeToInt(desc.featureIndex);
         _featureThreshold[_currentNode] = (FPType)desc.featureValue;
         _previousNodes[desc.level] = _currentNode;
         _previousLevel = desc.level;
@@ -222,7 +244,7 @@ int decisionForestRegressionComputeTemplate(
 
     InputDataArchive dataArch;
     trainingResult->serialize(dataArch);
-    int modelSize = dataArch.getSizeOfArchive();
+    int modelSize = checkedSizeToInt(dataArch.getSizeOfArchive());
     dataArch.copyArchiveToArray(modelPtr, modelSize);
 
     for (size_t i = 0; i < numberOfTrees; ++i)
@@ -346,14 +368,14 @@ public:
         if (desc.level == _previousLevel + 1 || desc.level == 0)
         {
             if (desc.level != 0)
-                _lteChild[_previousNodes[_previousLevel]] = _currentNode;
+                _lteChild[_previousNodes[_previousLevel]] = checkedSizeToInt(_currentNode);
         }
         // switch to different branch
         else
         {
-            _gtChild[_previousNodes[desc.level - 1]] = _currentNode;
+            _gtChild[_previousNodes[desc.level - 1]] = checkedSizeToInt(_currentNode);
         }
-        _splitFeature[_currentNode] = desc.featureIndex;
+        _splitFeature[_currentNode] = checkedSizeToInt(desc.featureIndex);
         _featureThreshold[_currentNode] = (FPType)desc.featureValue;
         _previousNodes[desc.level] = _currentNode;
         _previousLevel = desc.level;
@@ -478,7 +500,7 @@ int decisionForestClassificationComputeTemplate(
 
     InputDataArchive dataArch;
     trainingResult->serialize(dataArch);
-    int modelSize = dataArch.getSizeOfArchive();
+    int modelSize = checkedSizeToInt(dataArch.getSizeOfArchive());
     dataArch.copyArchiveToArray(modelPtr, modelSize);
 
     for (size_t i = 0; i < numberOfTrees; ++i)
