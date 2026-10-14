@@ -128,7 +128,7 @@ jobs:
           - powershell: |
               $properties = (& "$(dotnetPath)" msbuild test\run-tests.proj `
                   '-getProperty:NuGetPackageRoot,LibTorchVersion,TorchSharpVersion,LightGBMVersion' `
-                  '/p:ContinuousIntegrationBuild=true' `
+                  '/p:ContinuousIntegrationBuild=${{ parameters.codeCoverage }}' `
                   -nologo | ConvertFrom-Json).Properties
               if ($LASTEXITCODE -ne 0) {
                   exit $LASTEXITCODE
