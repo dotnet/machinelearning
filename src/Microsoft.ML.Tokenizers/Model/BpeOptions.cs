@@ -143,6 +143,14 @@ namespace Microsoft.ML.Tokenizers
         /// if true, the input text will be converted to UTF-8 bytes before encoding it.
         /// Additionally, some ASCII characters will be transformed to different characters (e.g Space character will be transformed to 'Ġ' character).
         /// </summary>
+        /// <remarks>
+        /// When this property is set to <see langword="true"/> and no pre-tokenizer is specified, the tokenizer falls
+        /// back to <c>PreTokenizer.CreateWordOrNonWord</c>, whose pattern does not cover whitespace characters. As
+        /// only the segments returned by the pre-tokenizer are encoded, whitespace is not preserved during
+        /// pre-tokenization and cannot be recovered by decoding.
+        /// To keep whitespace, set <see cref="PreTokenizer"/> to a pre-tokenizer whose pattern covers it, for example
+        /// a <see cref="RegexPreTokenizer"/> built from the GPT-2 pattern.
+        /// </remarks>
         public bool ByteLevel { get; set; }
 
         /// <summary>
