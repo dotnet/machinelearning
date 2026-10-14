@@ -12,9 +12,7 @@ The build scripts acquire the .NET SDK selected by `global.json`; you do not nee
 
 For ARM or ARM64 cross-compilation, install the corresponding Visual Studio C++ build tools.
 
-Use a current C++ toolset that supports `/guard:cast`. Windows native builds enable CastGuard with `/guard:cast /GL` and retain control flow guard with `/guard:cf`.
-
-Compiler debug metadata is generated with `/Z7` so BinSkim can verify the build settings. Keep DLLs and their matching linker PDBs together when running BinSkim.
+Use a current C++ toolset that supports `/guard:cast`.
 
 ## Building Instructions
 
