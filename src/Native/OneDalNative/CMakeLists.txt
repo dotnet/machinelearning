@@ -17,7 +17,9 @@ endif()
 include_directories(${ONEDAL_DEVEL_PATH}/include)
 
 if(WIN32)
+    add_compile_options(/wd4996)
     add_compile_options(/wd4477)
+    add_compile_options(/wd4267)
 endif()
 
 set(SOURCES OneDalAlgorithms.cpp)

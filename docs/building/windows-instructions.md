@@ -14,7 +14,7 @@ For ARM or ARM64 cross-compilation, install the corresponding Visual Studio C++ 
 
 Use a current C++ toolset that supports `/guard:cast`. Windows native builds enable CastGuard with `/guard:cast /GL` and retain control flow guard with `/guard:cf`.
 
-Native builds generate compiler debug information with `/Z7` and linker PDBs with `/DEBUG`. Keep DLLs and their matching PDBs together when running BinSkim. Rebuilding ML.NET's native wrappers does not change the hardening or symbols of prebuilt Intel DLLs from dependency packages.
+Compiler debug metadata is generated with `/Z7` so BinSkim can verify the build settings. Keep DLLs and their matching linker PDBs together when running BinSkim.
 
 ## Building Instructions
 
