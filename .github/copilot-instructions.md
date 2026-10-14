@@ -6,15 +6,15 @@ description: "Guidance for GitHub Copilot when working on ML.NET (dotnet/machine
 
 ## Repository Overview
 
-ML.NET is a cross-platform, open-source machine learning framework for .NET. It provides APIs for training, evaluating, and deploying ML models across classification, regression, clustering, ranking, anomaly detection, time series, recommendation, and generative AI (LLaMA, Phi, Mistral via TorchSharp).
+ML.NET is a cross-platform, open-source machine learning framework for .NET. It provides APIs for training, evaluating, and deploying ML models across classification, regression, clustering, ranking, anomaly detection, time series, and recommendation.
 
 ### Key Technologies
 
-- .NET SDK 10.0.100 (see `global.json`)
+- .NET SDK version selected by `global.json`
 - Build system: Microsoft Arcade SDK (`eng/common/`)
 - Test framework: xUnit (with `AwesomeAssertions`, `Xunit.Combinatorial`)
 - Native dependencies: MKL, OpenMP, libmf, oneDNN
-- Major dependencies: TorchSharp, ONNX Runtime, TensorFlow, LightGBM, Semantic Kernel
+- Major dependencies: TorchSharp, ONNX Runtime, TensorFlow, LightGBM
 - Central package management: `Directory.Packages.props`
 
 ## Build & Test
@@ -32,7 +32,7 @@ build.cmd
 dotnet build src/Microsoft.ML.Core/Microsoft.ML.Core.csproj
 ```
 
-The repo uses Arcade SDK. `build.sh`/`build.cmd` wraps `eng/common/build.sh`/`eng/common/build.ps1` with `--restore --build`. On Linux, native dependencies require `eng/common/native/install-dependencies.sh`.
+The repo uses Arcade SDK. `build.sh`/`build.cmd` wraps `eng/common/build.sh`/`eng/common/build.ps1` with `--restore --build`. On Linux, native dependencies require `eng/install-dependencies.sh`.
 
 ### Test
 
@@ -72,10 +72,6 @@ src/
 ├── Microsoft.ML.Recommender/       # Matrix factorization recommenders
 ├── Microsoft.ML.TimeSeries/        # Time series analysis
 ├── Microsoft.ML.Tokenizers/        # BPE/WordPiece/SentencePiece tokenizers
-├── Microsoft.ML.GenAI.Core/        # GenAI base types (CausalLM pipeline)
-├── Microsoft.ML.GenAI.LLaMA/       # LLaMA model support
-├── Microsoft.ML.GenAI.Phi/         # Phi model support
-├── Microsoft.ML.GenAI.Mistral/     # Mistral model support
 ├── Microsoft.ML.TorchSharp/        # TorchSharp-based trainers
 ├── Microsoft.ML.OnnxTransformer/   # ONNX model inference
 ├── Microsoft.ML.TensorFlow/        # TensorFlow model inference
@@ -92,7 +88,6 @@ test/
 ├── Microsoft.ML.Core.Tests/         # Core unit tests
 ├── Microsoft.ML.IntegrationTests/   # End-to-end integration tests
 ├── Microsoft.ML.Tokenizers.Tests/   # Tokenizer tests
-├── Microsoft.ML.GenAI.*.Tests/      # GenAI component tests
 └── ... (30+ test projects)
 ```
 
@@ -161,7 +156,7 @@ Trainers implement the `IEstimator<T>` to `ITransformer` pattern: call `Fit()` t
 
 ## CI
 
-Primary CI: Azure DevOps Pipelines (`build/vsts-ci.yml`), the official signed build. Builds run on Windows, Linux (Ubuntu 22.04), and macOS, covering both managed (.NET) and native components. Code coverage uses `coverlet.collector`. A custom internal Roslyn analyzer (`Microsoft.ML.InternalCodeAnalyzer`) runs on all test projects.
+CI uses Azure DevOps Pipelines. `.vsts-dotnet-ci.yml` defines PR validation, and `build/vsts-ci.yml` defines the official signed build. Builds run on Windows, Linux, and macOS, covering both managed (.NET) and native components. Code coverage uses `coverlet.collector`. A custom internal Roslyn analyzer (`Microsoft.ML.InternalCodeAnalyzer`) runs on all test projects.
 
 ## AI Infrastructure
 
@@ -172,7 +167,6 @@ GitHub Actions in `.github/workflows/`:
 | Workflow | Trigger | Purpose |
 |----------|---------|---------|
 | `copilot-setup-steps.yml` | Manual | Remote Copilot Coding Agent build environment |
-| `find-similar-issues.yml` | Issue opened | AI-powered duplicate detection for new issues |
 
 ### Prompts
 

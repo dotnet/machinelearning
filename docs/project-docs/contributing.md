@@ -1,7 +1,7 @@
 Contributing to Machine Learning
 ======================
 
-This document describes contribution guidelines that are specific to Machine Learning. Please read [.NET Core Guidelines](https://github.com/dotnet/coreclr/blob/master/Documentation/project-docs/contributing.md) for more general .NET Core contribution guidelines.
+This document describes contribution guidelines that are specific to ML.NET. See [.NET runtime's contributing changes guidelines](https://github.com/dotnet/runtime/blob/main/CONTRIBUTING.md#contributing-changes) for general .NET contribution guidance.
 
 Coding Style Changes
 --------------------
@@ -35,4 +35,3 @@ Merging Pull Requests (for contributors with write access)
   - The change is easier to understand as a series of focused commits. Each commit in the series must be buildable so as not to break `git bisect`.
   - Contributor is using an e-mail address other than the primary GitHub address and wants that preserved in the history. Contributor must be willing to squash
     the commits manually before acceptance.
-
