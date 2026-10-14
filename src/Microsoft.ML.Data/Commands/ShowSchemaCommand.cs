@@ -125,9 +125,18 @@ namespace Microsoft.ML.Data
         {
             foreach (var view in GetViewChainReversed(data).ToArray())
             {
-                var disposable = view is RowToRowMapperTransform mapper
-                    ? mapper.GetTransformer() as IDisposable
-                    : view as IDisposable;
+                IDisposable disposable = view as IDisposable;
+                if (view is RowToRowMapperTransform mapper)
+                {
+                    try
+                    {
+                        disposable = mapper.GetTransformer() as IDisposable;
+                    }
+                    catch (NotSupportedException)
+                    {
+                        // Some legacy row mappers, such as evaluator mappers, do not have a parent transformer.
+                    }
+                }
                 disposable?.Dispose();
             }
         }
