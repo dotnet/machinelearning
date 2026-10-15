@@ -185,11 +185,11 @@ namespace Microsoft.Data.Analysis.Tests
                 // For <= and >= comparisons, all rows in verify should be true, barring rows where both columns have null values.
                 verify = df1.Columns[df1.Columns[i].Name].ElementwiseGreaterThanOrEqual(df2.Columns[df2.Columns[i].Name]);
                 Assert.False(verify.All());
-                Assert.True(verify.Or(df1.Columns[i].ElementwiseIsNull().And(df2.Columns[i].ElementwiseIsNull())).All());
+                Assert.True(verify.Xor(df1.Columns[i].ElementwiseIsNull().And(df2.Columns[i].ElementwiseIsNull())).All());
 
                 verify = df1.Columns[df1.Columns[i].Name].ElementwiseLessThanOrEqual(df2.Columns[df2.Columns[i].Name]);
                 Assert.False(verify.All());
-                Assert.True(verify.Or(df1.Columns[i].ElementwiseIsNull().And(df2.Columns[i].ElementwiseIsNull())).All());
+                Assert.True(verify.Xor(df1.Columns[i].ElementwiseIsNull().And(df2.Columns[i].ElementwiseIsNull())).All());
 
                 verify = df1.Columns[df1.Columns[i].Name].ElementwiseGreaterThan(df2.Columns[df2.Columns[i].Name]);
                 Assert.False(verify.Any());
