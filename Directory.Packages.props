@@ -19,7 +19,6 @@
     <PackageVersion Include="Microsoft.CodeAnalysis.Analyzers" Version="$(MicrosoftCodeAnalysisAnalyzersVersion)" />
     <PackageVersion Include="Microsoft.CodeAnalysis.CSharp" Version="$(MicrosoftCodeAnalysisCSharpVersion)" />
     <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="$(MicrosoftCodeAnalysisCSharpVersion)" />
-    <PackageVersion Include="Microsoft.CSharp" Version="$(MicrosoftCSharpVersion)" />
     <PackageVersion Include="Microsoft.DotNet.Interactive" Version="$(MicrosoftDotNetInteractiveVersion)" />
     <PackageVersion Include="Microsoft.DotNet.Interactive.Formatting" Version="$(MicrosoftDotNetInteractiveVersion)" />
     <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="$(MicrosoftExtensionsDependencyInjectionVersion)" />
@@ -46,7 +45,6 @@
     <PackageVersion Include="System.Collections.Immutable" Version="$(SystemCollectionsImmutableVersion)" />
     <PackageVersion Include="System.Composition" Version="$(SystemCompositionVersion)" />
     <PackageVersion Include="System.Configuration.ConfigurationManager" Version="$(SystemConfigurationConfigurationManagerVersion)" />
-    <PackageVersion Include="System.Formats.Asn1" Version="$(SystemFormatsAsn1Version)" />
     <PackageVersion Include="System.IO.FileSystem.AccessControl" Version="$(SystemIOFileSystemAccessControl)" />
     <PackageVersion Include="System.IO.Pipelines" Version="$(SystemIOPipelinesVersion)" />
     <PackageVersion Include="System.Memory" Version="$(SystemMemoryVersion)" />
