@@ -112,7 +112,9 @@ namespace Microsoft.Data.Analysis
 
             //Size of any buffer in PrimitiveColumnContainer<bool> is larger (or equal) than size of the buffers for other types
             //Null values are only stored in the validity bitmaps, so they need to be checked as well as the data buffers
-            var hasNulls = this.NullCount > 0 || right.NullCount > 0;
+            var leftHasNulls = this.NullCount > 0;
+            var rightHasNulls = right.NullCount > 0;
+            var hasNulls = leftHasNulls || rightHasNulls;
 
             long index = 0;
             for (int i = 0; i < this.Buffers.Count; i++)
@@ -121,8 +123,8 @@ namespace Microsoft.Data.Analysis
                 var rightSpan = right.Buffers[i].ReadOnlySpan;
 
                 //Empty validity span means that all values are valid
-                var leftValidity = this.NullCount > 0 ? this.NullBitMapBuffers[i].ReadOnlySpan : ReadOnlySpan<byte>.Empty;
-                var rightValidity = right.NullCount > 0 ? right.NullBitMapBuffers[i].ReadOnlySpan : ReadOnlySpan<byte>.Empty;
+                var leftValidity = leftHasNulls ? this.NullBitMapBuffers[i].ReadOnlySpan : ReadOnlySpan<byte>.Empty;
+                var rightValidity = rightHasNulls ? right.NullBitMapBuffers[i].ReadOnlySpan : ReadOnlySpan<byte>.Empty;
 
                 // Get correct ret Span for storing results
                 var retSpanIndex = ret.GetIndexOfBufferContainingRowIndex(index);
