@@ -400,20 +400,28 @@ namespace Microsoft.Data.Analysis
         /// <summary>
         /// Returns a clone of this column.
         /// </summary>
-        /// <param name="numberOfNullsToAppend"></param>
-        /// <returns></returns>
+        /// <param name="numberOfNullsToAppend">The number of null values to append to the copied values.</param>
+        /// <returns>A new <see cref="PrimitiveDataFrameColumn{T}"/>.</returns>
         public new PrimitiveDataFrameColumn<T> Clone(long numberOfNullsToAppend = 0)
         {
             return (PrimitiveDataFrameColumn<T>)CloneImplementation(numberOfNullsToAppend);
         }
 
         /// <summary>
-        /// Returns a clone of this column.
+        /// Clones the column, selecting and ordering values according to <paramref name="mapIndices"/>.
         /// </summary>
-        /// <param name="mapIndices">A column who values are used as indices </param>
-        /// <param name="invertMapIndices"></param>
-        /// <param name="numberOfNullsToAppend"></param>
-        /// <returns></returns>
+        /// <param name="mapIndices">
+        /// A Boolean, <see cref="int"/>, or <see cref="long"/> column that determines which values to copy.
+        /// For a Boolean column, the value at each position selects the value at the same position when it is
+        /// <see langword="true"/>. For an integer column, each value is a zero-based index into this column;
+        /// the map order determines the result order, and repeated indices produce repeated values.
+        /// </param>
+        /// <param name="invertMapIndices">
+        /// <see langword="true"/> to process integer values in <paramref name="mapIndices"/> in reverse order;
+        /// otherwise, <see langword="false"/>. This parameter does not affect a Boolean map.
+        /// </param>
+        /// <param name="numberOfNullsToAppend">The number of null values to append after the selected values.</param>
+        /// <returns>A new <see cref="PrimitiveDataFrameColumn{T}"/>.</returns>
         public new PrimitiveDataFrameColumn<T> Clone(DataFrameColumn mapIndices, bool invertMapIndices = false, long numberOfNullsToAppend = 0)
         {
             return (PrimitiveDataFrameColumn<T>)CloneImplementation(mapIndices, invertMapIndices, numberOfNullsToAppend);
@@ -494,6 +502,16 @@ namespace Microsoft.Data.Analysis
             return ret;
         }
 
+        /// <summary>
+        /// Clones the column using the values in <paramref name="mapIndices"/> as zero-based indices into this column.
+        /// </summary>
+        /// <param name="mapIndices">
+        /// The indices of values to copy. Their order determines the result order, and repeated indices produce repeated values.
+        /// </param>
+        /// <param name="invertMapIndices">
+        /// <see langword="true"/> to process the indices in reverse order; otherwise, <see langword="false"/>.
+        /// </param>
+        /// <returns>A new <see cref="PrimitiveDataFrameColumn{T}"/>.</returns>
         public PrimitiveDataFrameColumn<T> Clone(PrimitiveDataFrameColumn<long> mapIndices, bool invertMapIndices = false)
         {
             if (mapIndices is null)
@@ -502,6 +520,16 @@ namespace Microsoft.Data.Analysis
             return CloneImplementation(mapIndices, invertMapIndices);
         }
 
+        /// <summary>
+        /// Clones the column using the values in <paramref name="mapIndices"/> as zero-based indices into this column.
+        /// </summary>
+        /// <param name="mapIndices">
+        /// The indices of values to copy. Their order determines the result order, and repeated indices produce repeated values.
+        /// </param>
+        /// <param name="invertMapIndices">
+        /// <see langword="true"/> to process the indices in reverse order; otherwise, <see langword="false"/>.
+        /// </param>
+        /// <returns>A new <see cref="PrimitiveDataFrameColumn{T}"/>.</returns>
         public PrimitiveDataFrameColumn<T> Clone(PrimitiveDataFrameColumn<int> mapIndices, bool invertMapIndices = false)
         {
             if (mapIndices is null)
@@ -510,6 +538,13 @@ namespace Microsoft.Data.Analysis
             return CloneImplementation(mapIndices, invertMapIndices);
         }
 
+        /// <summary>
+        /// Clones the column using the values in <paramref name="mapIndices"/> as zero-based indices into this column.
+        /// </summary>
+        /// <param name="mapIndices">
+        /// The indices of values to copy. Their enumeration order determines the result order, and repeated indices produce repeated values.
+        /// </param>
+        /// <returns>A new <see cref="PrimitiveDataFrameColumn{T}"/>.</returns>
         public PrimitiveDataFrameColumn<T> Clone(IEnumerable<long> mapIndices)
         {
             IEnumerator<long> rows = mapIndices.GetEnumerator();
@@ -525,6 +560,13 @@ namespace Microsoft.Data.Analysis
             return ret;
         }
 
+        /// <summary>
+        /// Clones the column using the values in <paramref name="mapIndices"/> as zero-based indices into this column.
+        /// </summary>
+        /// <param name="mapIndices">
+        /// The indices of values to copy. Their enumeration order determines the result order, and repeated indices produce repeated values.
+        /// </param>
+        /// <returns>A new <see cref="PrimitiveDataFrameColumn{T}"/>.</returns>
         public PrimitiveDataFrameColumn<T> Clone(IEnumerable<int> mapIndices)
         {
             return Clone(mapIndices.Select(x => (long)x));

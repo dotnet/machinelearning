@@ -12,6 +12,8 @@ The build scripts acquire the .NET SDK selected by `global.json`; you do not nee
 
 For ARM or ARM64 cross-compilation, install the corresponding Visual Studio C++ build tools.
 
+Use a current C++ toolset that supports `/guard:cast`.
+
 ## Building Instructions
 
 In order to fetch dependencies which come through Git submodules the following command needs to be run before building: `git submodule update --init`.

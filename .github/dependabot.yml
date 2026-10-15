@@ -1,6 +1,8 @@
-# Configure regular dependency updates
+# Configure routine dependency updates without unnecessarily raising consumer dependency floors.
 # Please see the documentation for all configuration options:
-# https://docs.github.com/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file
+# https://docs.github.com/en/code-security/reference/supply-chain-security/dependabot-options-reference
+# Library dependency guidance:
+# https://learn.microsoft.com/en-us/dotnet/standard/library-guidance/dependencies
 
 version: 2
 updates:
@@ -8,3 +10,83 @@ updates:
     directory: "/" # Location of package manifests
     schedule:
       interval: "weekly"
+    # Unmatched build/test-only packages retain unrestricted weekly update proposals.
+    ignore:
+      # Leave all updates to these packages to Maestro. Keep this list aligned with the active dependencies
+      # in eng/Version.Details.xml.
+      - dependency-name: "Microsoft.DotNet.Arcade.Sdk"
+      - dependency-name: "Microsoft.DotNet.Build.Tasks.Feed"
+      - dependency-name: "Microsoft.DotNet.Helix.Sdk"
+      - dependency-name: "Microsoft.DotNet.SignTool"
+      - dependency-name: "Microsoft.DotNet.XliffTasks"
+      - dependency-name: "Microsoft.DotNet.XUnitExtensions"
+      - dependency-name: "Microsoft.SymbolUploader.Build.Task"
+      # Raise shipped dependency minimums deliberately for relevant fixes, required APIs,
+      # compatibility needs or explicit support decisions, not merely because a release exists.
+      - dependency-name: "Apache.Arrow"
+        update-types: ["version-update:semver-major", "version-update:semver-minor", "version-update:semver-patch"]
+      - dependency-name: "Google.Protobuf"
+        update-types: ["version-update:semver-major", "version-update:semver-minor", "version-update:semver-patch"]
+      - dependency-name: "LightGBM"
+        update-types: ["version-update:semver-major", "version-update:semver-minor", "version-update:semver-patch"]
+      - dependency-name: "Microsoft.Bcl.*"
+        update-types: ["version-update:semver-major", "version-update:semver-minor", "version-update:semver-patch"]
+      - dependency-name: "Microsoft.CodeAnalysis"
+        update-types: ["version-update:semver-major", "version-update:semver-minor", "version-update:semver-patch"]
+      - dependency-name: "Microsoft.CodeAnalysis.CSharp"
+        update-types: ["version-update:semver-major", "version-update:semver-minor", "version-update:semver-patch"]
+      - dependency-name: "Microsoft.CodeAnalysis.CSharp.Workspaces"
+        update-types: ["version-update:semver-major", "version-update:semver-minor", "version-update:semver-patch"]
+      - dependency-name: "Microsoft.Extensions.DependencyInjection*"
+        update-types: ["version-update:semver-major", "version-update:semver-minor", "version-update:semver-patch"]
+      - dependency-name: "Microsoft.Extensions.Logging"
+        update-types: ["version-update:semver-major", "version-update:semver-minor", "version-update:semver-patch"]
+      - dependency-name: "Microsoft.Extensions.ObjectPool"
+        update-types: ["version-update:semver-major", "version-update:semver-minor", "version-update:semver-patch"]
+      - dependency-name: "Microsoft.Extensions.Options"
+        update-types: ["version-update:semver-major", "version-update:semver-minor", "version-update:semver-patch"]
+      - dependency-name: "Microsoft.ML.OnnxRuntime*"
+        update-types: ["version-update:semver-major", "version-update:semver-minor", "version-update:semver-patch"]
+      - dependency-name: "MlNetMklDeps"
+        update-types: ["version-update:semver-major", "version-update:semver-minor", "version-update:semver-patch"]
+      - dependency-name: "Newtonsoft.Json"
+        update-types: ["version-update:semver-major", "version-update:semver-minor", "version-update:semver-patch"]
+      - dependency-name: "Parquet.Net"
+        update-types: ["version-update:semver-major", "version-update:semver-minor", "version-update:semver-patch"]
+      - dependency-name: "SharpZipLib"
+        update-types: ["version-update:semver-major", "version-update:semver-minor", "version-update:semver-patch"]
+      - dependency-name: "SkiaSharp*"
+        update-types: ["version-update:semver-major", "version-update:semver-minor", "version-update:semver-patch"]
+      - dependency-name: "System.Buffers"
+        update-types: ["version-update:semver-major", "version-update:semver-minor", "version-update:semver-patch"]
+      - dependency-name: "System.CodeDom"
+        update-types: ["version-update:semver-major", "version-update:semver-minor", "version-update:semver-patch"]
+      - dependency-name: "System.Collections.Immutable"
+        update-types: ["version-update:semver-major", "version-update:semver-minor", "version-update:semver-patch"]
+      - dependency-name: "System.IO.FileSystem.AccessControl"
+        update-types: ["version-update:semver-major", "version-update:semver-minor", "version-update:semver-patch"]
+      - dependency-name: "System.IO.Pipelines"
+        update-types: ["version-update:semver-major", "version-update:semver-minor", "version-update:semver-patch"]
+      - dependency-name: "System.Memory"
+        update-types: ["version-update:semver-major", "version-update:semver-minor", "version-update:semver-patch"]
+      - dependency-name: "System.Numerics.Tensors"
+        update-types: ["version-update:semver-major", "version-update:semver-minor", "version-update:semver-patch"]
+      - dependency-name: "System.Reflection.Emit*"
+        update-types: ["version-update:semver-major", "version-update:semver-minor", "version-update:semver-patch"]
+      - dependency-name: "System.Runtime.CompilerServices.Unsafe"
+        update-types: ["version-update:semver-major", "version-update:semver-minor", "version-update:semver-patch"]
+      - dependency-name: "System.Security.Principal.Windows"
+        update-types: ["version-update:semver-major", "version-update:semver-minor", "version-update:semver-patch"]
+      - dependency-name: "System.Text.Encodings.Web"
+        update-types: ["version-update:semver-major", "version-update:semver-minor", "version-update:semver-patch"]
+      - dependency-name: "System.Text.Json"
+        update-types: ["version-update:semver-major", "version-update:semver-minor", "version-update:semver-patch"]
+      - dependency-name: "System.Threading.Channels"
+        update-types: ["version-update:semver-major", "version-update:semver-minor", "version-update:semver-patch"]
+      # TensorFlow.NET also has compatibility constraints documented in eng/Versions.props.
+      - dependency-name: "TensorFlow.NET"
+        update-types: ["version-update:semver-major", "version-update:semver-minor", "version-update:semver-patch"]
+      - dependency-name: "TorchSharp"
+        update-types: ["version-update:semver-major", "version-update:semver-minor", "version-update:semver-patch"]
+      - dependency-name: "libtorch-cpu-*"
+        update-types: ["version-update:semver-major", "version-update:semver-minor", "version-update:semver-patch"]
