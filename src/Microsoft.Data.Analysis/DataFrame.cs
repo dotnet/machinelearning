@@ -79,44 +79,68 @@ namespace Microsoft.Data.Analysis
         }
 
         /// <summary>
-        /// Returns a new DataFrame using the boolean values in <paramref name="filter"/>
+        /// Returns a new <see cref="DataFrame"/> containing the rows selected by <paramref name="filter"/>.
         /// </summary>
-        /// <param name="filter">A column of booleans</param>
+        /// <param name="filter">
+        /// A column whose value at each position selects the row at the same position.
+        /// A value of <see langword="true"/> includes the row; <see langword="false"/> or <see langword="null"/> excludes it.
+        /// If the column is shorter than this <see cref="DataFrame"/>, rows beyond the column's length are excluded.
+        /// </param>
         public DataFrame Filter(PrimitiveDataFrameColumn<bool> filter) => Clone(filter);
 
         /// <summary>
-        /// Returns a new DataFrame using the row indices in <paramref name="rowIndices"/>
+        /// Returns a new <see cref="DataFrame"/> containing the rows specified by <paramref name="rowIndices"/>.
         /// </summary>
-        /// <param name="rowIndices">A column of row indices</param>
+        /// <param name="rowIndices">
+        /// A column whose values are zero-based row indices into this <see cref="DataFrame"/>.
+        /// The values determine the order of the rows in the result, and repeated values produce repeated rows.
+        /// </param>
         public DataFrame Filter(PrimitiveDataFrameColumn<int> rowIndices) => Clone(rowIndices);
 
         /// <summary>
-        /// Returns a new DataFrame using the row indices in <paramref name="rowIndices"/>
+        /// Returns a new <see cref="DataFrame"/> containing the rows specified by <paramref name="rowIndices"/>.
         /// </summary>
-        /// <param name="rowIndices">A column of row indices</param>
+        /// <param name="rowIndices">
+        /// A column whose values are zero-based row indices into this <see cref="DataFrame"/>.
+        /// The values determine the order of the rows in the result, and repeated values produce repeated rows.
+        /// </param>
         public DataFrame Filter(PrimitiveDataFrameColumn<long> rowIndices) => Clone(rowIndices);
 
         /// <summary>
-        /// Returns a new DataFrame using the boolean values in filter
+        /// Returns a new <see cref="DataFrame"/> containing the rows selected by <paramref name="rowFilter"/>.
         /// </summary>
-        /// <param name="rowFilter">A column of booleans</param>
+        /// <param name="rowFilter">
+        /// A column whose value at each position selects the row at the same position.
+        /// A value of <see langword="true"/> includes the row; <see langword="false"/> or <see langword="null"/> excludes it.
+        /// If the column is shorter than this <see cref="DataFrame"/>, rows beyond the column's length are excluded.
+        /// </param>
         public DataFrame this[PrimitiveDataFrameColumn<bool> rowFilter] => Filter(rowFilter);
 
         /// <summary>
-        /// Returns a new DataFrame using the row indices in <paramref name="rowIndices"/>
+        /// Returns a new <see cref="DataFrame"/> containing the rows specified by <paramref name="rowIndices"/>.
         /// </summary>
-        /// <param name="rowIndices">A column of row indices</param>
+        /// <param name="rowIndices">
+        /// A column whose values are zero-based row indices into this <see cref="DataFrame"/>.
+        /// The values determine the order of the rows in the result, and repeated values produce repeated rows.
+        /// </param>
         public DataFrame this[PrimitiveDataFrameColumn<int> rowIndices] => Filter(rowIndices);
 
         /// <summary>
-        /// Returns a new DataFrame using the row indices in <paramref name="rowIndices"/>
+        /// Returns a new <see cref="DataFrame"/> containing the rows specified by <paramref name="rowIndices"/>.
         /// </summary>
-        /// <param name="rowIndices">A column of row indices</param>
+        /// <param name="rowIndices">
+        /// A column whose values are zero-based row indices into this <see cref="DataFrame"/>.
+        /// The values determine the order of the rows in the result, and repeated values produce repeated rows.
+        /// </param>
         public DataFrame this[PrimitiveDataFrameColumn<long> rowIndices] => Filter(rowIndices);
 
         /// <summary>
-        /// Returns a new DataFrame using the row indices in <paramref name="rowIndices"/>
+        /// Returns a new <see cref="DataFrame"/> containing the rows specified by <paramref name="rowIndices"/>.
         /// </summary>
+        /// <param name="rowIndices">
+        /// A collection of zero-based row indices into this <see cref="DataFrame"/>.
+        /// The enumeration order determines the order of the rows in the result, and repeated values produce repeated rows.
+        /// </param>
         public DataFrame this[IEnumerable<int> rowIndices]
         {
             get
@@ -127,8 +151,12 @@ namespace Microsoft.Data.Analysis
         }
 
         /// <summary>
-        /// Returns a new DataFrame using the row indices in <paramref name="rowIndices"/>
+        /// Returns a new <see cref="DataFrame"/> containing the rows specified by <paramref name="rowIndices"/>.
         /// </summary>
+        /// <param name="rowIndices">
+        /// A collection of zero-based row indices into this <see cref="DataFrame"/>.
+        /// The enumeration order determines the order of the rows in the result, and repeated values produce repeated rows.
+        /// </param>
         public DataFrame this[IEnumerable<long> rowIndices]
         {
             get
@@ -139,8 +167,13 @@ namespace Microsoft.Data.Analysis
         }
 
         /// <summary>
-        /// Returns a new DataFrame using the boolean values in <paramref name="rowFilter"/>
+        /// Returns a new <see cref="DataFrame"/> containing the rows selected by <paramref name="rowFilter"/>.
         /// </summary>
+        /// <param name="rowFilter">
+        /// A collection whose value at each position selects the row at the same position.
+        /// A value of <see langword="true"/> includes the row and <see langword="false"/> excludes it.
+        /// If the collection contains fewer values than this <see cref="DataFrame"/> has rows, the remaining rows are excluded.
+        /// </param>
         public DataFrame this[IEnumerable<bool> rowFilter]
         {
             get

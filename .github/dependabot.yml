@@ -10,12 +10,19 @@ updates:
     directory: "/" # Location of package manifests
     schedule:
       interval: "weekly"
-    # Raise shipped dependency minimums deliberately for relevant fixes, required APIs,
-    # compatibility needs or explicit support decisions, not merely because a release exists.
-    # Suppress all routine update types; these filters do not suppress security updates.
     # Unmatched build/test-only packages retain unrestricted weekly update proposals.
-    # Maintain this list when adding shipped or transitively pinned runtime dependencies.
     ignore:
+      # Leave all updates to these packages to Maestro. Keep this list aligned with the active dependencies
+      # in eng/Version.Details.xml.
+      - dependency-name: "Microsoft.DotNet.Arcade.Sdk"
+      - dependency-name: "Microsoft.DotNet.Build.Tasks.Feed"
+      - dependency-name: "Microsoft.DotNet.Helix.Sdk"
+      - dependency-name: "Microsoft.DotNet.SignTool"
+      - dependency-name: "Microsoft.DotNet.XliffTasks"
+      - dependency-name: "Microsoft.DotNet.XUnitExtensions"
+      - dependency-name: "Microsoft.SymbolUploader.Build.Task"
+      # Raise shipped dependency minimums deliberately for relevant fixes, required APIs,
+      # compatibility needs or explicit support decisions, not merely because a release exists.
       - dependency-name: "Apache.Arrow"
         update-types: ["version-update:semver-major", "version-update:semver-minor", "version-update:semver-patch"]
       - dependency-name: "Google.Protobuf"
