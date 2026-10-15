@@ -91,11 +91,11 @@ namespace Microsoft.Data.Analysis.Tests
         }
 
         [Fact]
-        public void TestBinaryOperationsWithColumns()
+        public void TestBinaryOperationsWithColumns_WithoutNulls()
         {
             int length = 10;
-            var df1 = MakeDataFrameWithNumericColumns(length);
-            var df2 = MakeDataFrameWithNumericColumns(length);
+            var df1 = MakeDataFrameWithNumericColumns(length, withNulls: false);
+            var df2 = MakeDataFrameWithNumericColumns(length, withNulls: false);
 
             DataFrameColumn newColumn;
             DataFrameColumn verify;
@@ -134,6 +134,62 @@ namespace Microsoft.Data.Analysis.Tests
 
                 verify = df1.Columns[df1.Columns[i].Name].ElementwiseLessThanOrEqual(df2.Columns[df2.Columns[i].Name]);
                 Assert.True(verify.All());
+
+                verify = df1.Columns[df1.Columns[i].Name].ElementwiseGreaterThan(df2.Columns[df2.Columns[i].Name]);
+                Assert.False(verify.Any());
+
+                verify = df1.Columns[df1.Columns[i].Name].ElementwiseLessThan(df2.Columns[df2.Columns[i].Name]);
+                Assert.False(verify.Any());
+            }
+        }
+
+        [Fact]
+        public void TestBinaryOperationsWithColumns_WithNulls()
+        {
+            int length = 10;
+            var df1 = MakeDataFrameWithNumericColumns(length);
+            var df2 = MakeDataFrameWithNumericColumns(length);
+
+            DataFrameColumn newColumn;
+            PrimitiveDataFrameColumn<bool> verify;
+            for (int i = 0; i < df1.Columns.Count; i++)
+            {
+                newColumn = df1.Columns[df1.Columns[i].Name] + df2.Columns[df2.Columns[i].Name];
+                verify = newColumn.ElementwiseEquals(df1.Columns[i] * 2);
+                Assert.Equal(true, verify[0]);
+
+                newColumn = df1.Columns[df1.Columns[i].Name] - df2.Columns[df2.Columns[i].Name];
+                verify = newColumn.ElementwiseEquals(0);
+                Assert.Equal(true, verify[0]);
+
+                newColumn = df1.Columns[df1.Columns[i].Name] * df2.Columns[df2.Columns[i].Name];
+                verify = newColumn.ElementwiseEquals(df1.Columns[i] * df1.Columns[i]);
+                Assert.Equal(true, verify[0]);
+
+                var df1Column = df1.Columns[i] + 1;
+                var df2Column = df2.Columns[i] + 1;
+                newColumn = df1Column / df2Column;
+                verify = newColumn.ElementwiseEquals(1);
+                Assert.Equal(true, verify[0]);
+
+                newColumn = df1Column % df2Column;
+                verify = newColumn.ElementwiseEquals(0);
+                Assert.Equal(true, verify[0]);
+
+                verify = df1.Columns[df1.Columns[i].Name].ElementwiseEquals(df2.Columns[df2.Columns[i].Name]);
+                Assert.True(verify.All());
+
+                verify = df1.Columns[df1.Columns[i].Name].ElementwiseNotEquals(df2.Columns[df2.Columns[i].Name]);
+                Assert.False(verify.Any());
+
+                // For <= and >= comparisons, all rows in verify should be true, barring rows where both columns have null values.
+                verify = df1.Columns[df1.Columns[i].Name].ElementwiseGreaterThanOrEqual(df2.Columns[df2.Columns[i].Name]);
+                Assert.False(verify.All());
+                Assert.True(verify.Or(df1.Columns[i].ElementwiseIsNull().And(df2.Columns[i].ElementwiseIsNull())).All());
+
+                verify = df1.Columns[df1.Columns[i].Name].ElementwiseLessThanOrEqual(df2.Columns[df2.Columns[i].Name]);
+                Assert.False(verify.All());
+                Assert.True(verify.Or(df1.Columns[i].ElementwiseIsNull().And(df2.Columns[i].ElementwiseIsNull())).All());
 
                 verify = df1.Columns[df1.Columns[i].Name].ElementwiseGreaterThan(df2.Columns[df2.Columns[i].Name]);
                 Assert.False(verify.Any());

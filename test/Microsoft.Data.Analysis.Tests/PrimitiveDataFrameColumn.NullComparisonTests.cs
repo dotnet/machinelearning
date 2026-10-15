@@ -825,7 +825,7 @@ namespace Microsoft.Data.Analysis.Tests
 
             var results = left.ElementwiseLessThanOrEqual(right);
 
-            AssertComparisonResults(new[] { true, false, false, false, true, true, false, false, true }, results);
+            AssertComparisonResults(new[] { false, false, false, false, true, true, false, false, true }, results);
         }
 
         [Fact]
@@ -836,7 +836,7 @@ namespace Microsoft.Data.Analysis.Tests
 
             var results = left.ElementwiseLessThanOrEqual(right);
 
-            AssertComparisonResults(new[] { true, false, false, false, true, true, false, false, true }, results);
+            AssertComparisonResults(new[] { false, false, false, false, true, true, false, false, true }, results);
         }
 
         [Fact]
@@ -869,7 +869,7 @@ namespace Microsoft.Data.Analysis.Tests
 
             var results = left.ElementwiseLessThanOrEqual(right);
 
-            AssertComparisonResults(new[] { true, true, false, true, true, false, true, true, false, false, true, true, false, true, true, false, false, false, true, true }, results);
+            AssertComparisonResults(new[] { true, true, false, true, true, false, true, true, false, false, true, false, false, true, true, false, false, false, false, true }, results);
         }
 
         [Fact]
@@ -880,7 +880,7 @@ namespace Microsoft.Data.Analysis.Tests
 
             var results = left.ElementwiseLessThanOrEqual(right);
 
-            AssertComparisonResults(new[] { true, true, false, true, true, false, true, true, false, false, true, true, false, true, true, false, false, false, true, true }, results);
+            AssertComparisonResults(new[] { true, true, false, true, true, false, true, true, false, false, true, false, false, true, true, false, false, false, false, true }, results);
         }
 
         [Fact]
@@ -1011,7 +1011,7 @@ namespace Microsoft.Data.Analysis.Tests
 
             var results = left.ElementwiseLessThanOrEqual(right);
 
-            AssertComparisonResults(new[] { true, false, false, false, true, true, false, false, true }, results);
+            AssertComparisonResults(new[] { false, false, false, false, true, true, false, false, true }, results);
         }
 
         [Fact]
@@ -1219,7 +1219,7 @@ namespace Microsoft.Data.Analysis.Tests
 
             var results = left.ElementwiseGreaterThanOrEqual(right);
 
-            AssertComparisonResults(new[] { true, false, false, false, true, false, false, true, true }, results);
+            AssertComparisonResults(new[] { false, false, false, false, true, false, false, true, true }, results);
         }
 
         [Fact]
@@ -1230,7 +1230,7 @@ namespace Microsoft.Data.Analysis.Tests
 
             var results = left.ElementwiseGreaterThanOrEqual(right);
 
-            AssertComparisonResults(new[] { true, false, false, false, true, false, false, true, true }, results);
+            AssertComparisonResults(new[] { false, false, false, false, true, false, false, true, true }, results);
         }
 
         [Fact]
@@ -1263,7 +1263,7 @@ namespace Microsoft.Data.Analysis.Tests
 
             var results = left.ElementwiseGreaterThanOrEqual(right);
 
-            AssertComparisonResults(new[] { true, false, true, true, true, true, false, true, false, false, true, true, false, true, true, false, false, false, true, true }, results);
+            AssertComparisonResults(new[] { true, false, true, true, true, true, false, true, false, false, true, false, false, true, true, false, false, false, false, true }, results);
         }
 
         [Fact]
@@ -1274,7 +1274,7 @@ namespace Microsoft.Data.Analysis.Tests
 
             var results = left.ElementwiseGreaterThanOrEqual(right);
 
-            AssertComparisonResults(new[] { true, false, true, true, true, true, false, true, false, false, true, true, false, true, true, false, false, false, true, true }, results);
+            AssertComparisonResults(new[] { true, false, true, true, true, true, false, true, false, false, true, false, false, true, true, false, false, false, false, true }, results);
         }
 
         [Fact]
@@ -1405,7 +1405,7 @@ namespace Microsoft.Data.Analysis.Tests
 
             var results = left.ElementwiseGreaterThanOrEqual(right);
 
-            AssertComparisonResults(new[] { true, false, false, false, true, false, false, true, true }, results);
+            AssertComparisonResults(new[] { false, false, false, false, true, false, false, true, true }, results);
         }
 
         [Fact]
@@ -2007,7 +2007,7 @@ namespace Microsoft.Data.Analysis.Tests
 
             var results = left.ElementwiseLessThanOrEqual(right);
 
-            AssertComparisonResults(new[] { true, false, false, false, true, true, false, false, true }, results);
+            AssertComparisonResults(new[] { false, false, false, false, true, true, false, false, true }, results);
         }
 
         [Fact]
@@ -2018,7 +2018,7 @@ namespace Microsoft.Data.Analysis.Tests
 
             var results = left.ElementwiseLessThanOrEqual(right);
 
-            AssertComparisonResults(new[] { true, false, false, false, true, true, false, false, true }, results);
+            AssertComparisonResults(new[] { false, false, false, false, true, true, false, false, true }, results);
         }
 
         [Fact]
@@ -2051,7 +2051,7 @@ namespace Microsoft.Data.Analysis.Tests
 
             var results = left.ElementwiseLessThanOrEqual(right);
 
-            AssertComparisonResults(new[] { true, true, false, true, true, false, true, true, false, false, true, true, false, true, true, false, false, false, true, true }, results);
+            AssertComparisonResults(new[] { true, true, false, true, true, false, true, true, false, false, true, false, false, true, true, false, false, false, false, true }, results);
         }
 
         [Fact]
@@ -2062,7 +2062,7 @@ namespace Microsoft.Data.Analysis.Tests
 
             var results = left.ElementwiseLessThanOrEqual(right);
 
-            AssertComparisonResults(new[] { true, true, false, true, true, false, true, true, false, false, true, true, false, true, true, false, false, false, true, true }, results);
+            AssertComparisonResults(new[] { true, true, false, true, true, false, true, true, false, false, true, false, false, true, true, false, false, false, false, true }, results);
         }
 
         [Fact]
@@ -2193,7 +2193,7 @@ namespace Microsoft.Data.Analysis.Tests
 
             var results = left.ElementwiseLessThanOrEqual(right);
 
-            AssertComparisonResults(new[] { true, false, false, false, true, true, false, false, true }, results);
+            AssertComparisonResults(new[] { false, false, false, false, true, true, false, false, true }, results);
         }
 
         [Fact]
@@ -2401,7 +2401,7 @@ namespace Microsoft.Data.Analysis.Tests
 
             var results = left.ElementwiseGreaterThanOrEqual(right);
 
-            AssertComparisonResults(new[] { true, false, false, false, true, false, false, true, true }, results);
+            AssertComparisonResults(new[] { false, false, false, false, true, false, false, true, true }, results);
         }
 
         [Fact]
@@ -2412,7 +2412,7 @@ namespace Microsoft.Data.Analysis.Tests
 
             var results = left.ElementwiseGreaterThanOrEqual(right);
 
-            AssertComparisonResults(new[] { true, false, false, false, true, false, false, true, true }, results);
+            AssertComparisonResults(new[] { false, false, false, false, true, false, false, true, true }, results);
         }
 
         [Fact]
@@ -2445,7 +2445,7 @@ namespace Microsoft.Data.Analysis.Tests
 
             var results = left.ElementwiseGreaterThanOrEqual(right);
 
-            AssertComparisonResults(new[] { true, false, true, true, true, true, false, true, false, false, true, true, false, true, true, false, false, false, true, true }, results);
+            AssertComparisonResults(new[] { true, false, true, true, true, true, false, true, false, false, true, false, false, true, true, false, false, false, false, true }, results);
         }
 
         [Fact]
@@ -2456,7 +2456,7 @@ namespace Microsoft.Data.Analysis.Tests
 
             var results = left.ElementwiseGreaterThanOrEqual(right);
 
-            AssertComparisonResults(new[] { true, false, true, true, true, true, false, true, false, false, true, true, false, true, true, false, false, false, true, true }, results);
+            AssertComparisonResults(new[] { true, false, true, true, true, true, false, true, false, false, true, false, false, true, true, false, false, false, false, true }, results);
         }
 
         [Fact]
@@ -2587,7 +2587,7 @@ namespace Microsoft.Data.Analysis.Tests
 
             var results = left.ElementwiseGreaterThanOrEqual(right);
 
-            AssertComparisonResults(new[] { true, false, false, false, true, false, false, true, true }, results);
+            AssertComparisonResults(new[] { false, false, false, false, true, false, false, true, true }, results);
         }
 
         [Fact]
@@ -3189,7 +3189,7 @@ namespace Microsoft.Data.Analysis.Tests
 
             var results = left.ElementwiseLessThanOrEqual(right);
 
-            AssertComparisonResults(new[] { true, false, false, false, true, true, false, false, true }, results);
+            AssertComparisonResults(new[] { false, false, false, false, true, true, false, false, true }, results);
         }
 
         [Fact]
@@ -3200,7 +3200,7 @@ namespace Microsoft.Data.Analysis.Tests
 
             var results = left.ElementwiseLessThanOrEqual(right);
 
-            AssertComparisonResults(new[] { true, false, false, false, true, true, false, false, true }, results);
+            AssertComparisonResults(new[] { false, false, false, false, true, true, false, false, true }, results);
         }
 
         [Fact]
@@ -3233,7 +3233,7 @@ namespace Microsoft.Data.Analysis.Tests
 
             var results = left.ElementwiseLessThanOrEqual(right);
 
-            AssertComparisonResults(new[] { true, true, false, true, true, false, true, true, false, false, true, true, false, true, true, false, false, false, true, true }, results);
+            AssertComparisonResults(new[] { true, true, false, true, true, false, true, true, false, false, true, false, false, true, true, false, false, false, false, true }, results);
         }
 
         [Fact]
@@ -3244,7 +3244,7 @@ namespace Microsoft.Data.Analysis.Tests
 
             var results = left.ElementwiseLessThanOrEqual(right);
 
-            AssertComparisonResults(new[] { true, true, false, true, true, false, true, true, false, false, true, true, false, true, true, false, false, false, true, true }, results);
+            AssertComparisonResults(new[] { true, true, false, true, true, false, true, true, false, false, true, false, false, true, true, false, false, false, false, true }, results);
         }
 
         [Fact]
@@ -3375,7 +3375,7 @@ namespace Microsoft.Data.Analysis.Tests
 
             var results = left.ElementwiseLessThanOrEqual(right);
 
-            AssertComparisonResults(new[] { true, false, false, false, true, true, false, false, true }, results);
+            AssertComparisonResults(new[] { false, false, false, false, true, true, false, false, true }, results);
         }
 
         [Fact]
@@ -3583,7 +3583,7 @@ namespace Microsoft.Data.Analysis.Tests
 
             var results = left.ElementwiseGreaterThanOrEqual(right);
 
-            AssertComparisonResults(new[] { true, false, false, false, true, false, false, true, true }, results);
+            AssertComparisonResults(new[] { false, false, false, false, true, false, false, true, true }, results);
         }
 
         [Fact]
@@ -3594,7 +3594,7 @@ namespace Microsoft.Data.Analysis.Tests
 
             var results = left.ElementwiseGreaterThanOrEqual(right);
 
-            AssertComparisonResults(new[] { true, false, false, false, true, false, false, true, true }, results);
+            AssertComparisonResults(new[] { false, false, false, false, true, false, false, true, true }, results);
         }
 
         [Fact]
@@ -3627,7 +3627,7 @@ namespace Microsoft.Data.Analysis.Tests
 
             var results = left.ElementwiseGreaterThanOrEqual(right);
 
-            AssertComparisonResults(new[] { true, false, true, true, true, true, false, true, false, false, true, true, false, true, true, false, false, false, true, true }, results);
+            AssertComparisonResults(new[] { true, false, true, true, true, true, false, true, false, false, true, false, false, true, true, false, false, false, false, true }, results);
         }
 
         [Fact]
@@ -3638,7 +3638,7 @@ namespace Microsoft.Data.Analysis.Tests
 
             var results = left.ElementwiseGreaterThanOrEqual(right);
 
-            AssertComparisonResults(new[] { true, false, true, true, true, true, false, true, false, false, true, true, false, true, true, false, false, false, true, true }, results);
+            AssertComparisonResults(new[] { true, false, true, true, true, true, false, true, false, false, true, false, false, true, true, false, false, false, false, true }, results);
         }
 
         [Fact]
@@ -3769,7 +3769,7 @@ namespace Microsoft.Data.Analysis.Tests
 
             var results = left.ElementwiseGreaterThanOrEqual(right);
 
-            AssertComparisonResults(new[] { true, false, false, false, true, false, false, true, true }, results);
+            AssertComparisonResults(new[] { false, false, false, false, true, false, false, true, true }, results);
         }
 
         [Fact]
@@ -4371,7 +4371,7 @@ namespace Microsoft.Data.Analysis.Tests
 
             var results = left.ElementwiseLessThanOrEqual(right);
 
-            AssertComparisonResults(new[] { true, false, false, false, true, true, false, false, true }, results);
+            AssertComparisonResults(new[] { false, false, false, false, true, true, false, false, true }, results);
         }
 
         [Fact]
@@ -4382,7 +4382,7 @@ namespace Microsoft.Data.Analysis.Tests
 
             var results = left.ElementwiseLessThanOrEqual(right);
 
-            AssertComparisonResults(new[] { true, false, false, false, true, true, false, false, true }, results);
+            AssertComparisonResults(new[] { false, false, false, false, true, true, false, false, true }, results);
         }
 
         [Fact]
@@ -4415,7 +4415,7 @@ namespace Microsoft.Data.Analysis.Tests
 
             var results = left.ElementwiseLessThanOrEqual(right);
 
-            AssertComparisonResults(new[] { true, true, false, true, true, false, true, true, false, false, true, true, false, true, true, false, false, false, true, true }, results);
+            AssertComparisonResults(new[] { true, true, false, true, true, false, true, true, false, false, true, false, false, true, true, false, false, false, false, true }, results);
         }
 
         [Fact]
@@ -4426,7 +4426,7 @@ namespace Microsoft.Data.Analysis.Tests
 
             var results = left.ElementwiseLessThanOrEqual(right);
 
-            AssertComparisonResults(new[] { true, true, false, true, true, false, true, true, false, false, true, true, false, true, true, false, false, false, true, true }, results);
+            AssertComparisonResults(new[] { true, true, false, true, true, false, true, true, false, false, true, false, false, true, true, false, false, false, false, true }, results);
         }
 
         [Fact]
@@ -4557,7 +4557,7 @@ namespace Microsoft.Data.Analysis.Tests
 
             var results = left.ElementwiseLessThanOrEqual(right);
 
-            AssertComparisonResults(new[] { true, false, false, false, true, true, false, false, true }, results);
+            AssertComparisonResults(new[] { false, false, false, false, true, true, false, false, true }, results);
         }
 
         [Fact]
@@ -4765,7 +4765,7 @@ namespace Microsoft.Data.Analysis.Tests
 
             var results = left.ElementwiseGreaterThanOrEqual(right);
 
-            AssertComparisonResults(new[] { true, false, false, false, true, false, false, true, true }, results);
+            AssertComparisonResults(new[] { false, false, false, false, true, false, false, true, true }, results);
         }
 
         [Fact]
@@ -4776,7 +4776,7 @@ namespace Microsoft.Data.Analysis.Tests
 
             var results = left.ElementwiseGreaterThanOrEqual(right);
 
-            AssertComparisonResults(new[] { true, false, false, false, true, false, false, true, true }, results);
+            AssertComparisonResults(new[] { false, false, false, false, true, false, false, true, true }, results);
         }
 
         [Fact]
@@ -4809,7 +4809,7 @@ namespace Microsoft.Data.Analysis.Tests
 
             var results = left.ElementwiseGreaterThanOrEqual(right);
 
-            AssertComparisonResults(new[] { true, false, true, true, true, true, false, true, false, false, true, true, false, true, true, false, false, false, true, true }, results);
+            AssertComparisonResults(new[] { true, false, true, true, true, true, false, true, false, false, true, false, false, true, true, false, false, false, false, true }, results);
         }
 
         [Fact]
@@ -4820,7 +4820,7 @@ namespace Microsoft.Data.Analysis.Tests
 
             var results = left.ElementwiseGreaterThanOrEqual(right);
 
-            AssertComparisonResults(new[] { true, false, true, true, true, true, false, true, false, false, true, true, false, true, true, false, false, false, true, true }, results);
+            AssertComparisonResults(new[] { true, false, true, true, true, true, false, true, false, false, true, false, false, true, true, false, false, false, false, true }, results);
         }
 
         [Fact]
@@ -4951,7 +4951,7 @@ namespace Microsoft.Data.Analysis.Tests
 
             var results = left.ElementwiseGreaterThanOrEqual(right);
 
-            AssertComparisonResults(new[] { true, false, false, false, true, false, false, true, true }, results);
+            AssertComparisonResults(new[] { false, false, false, false, true, false, false, true, true }, results);
         }
 
         [Fact]
@@ -5553,7 +5553,7 @@ namespace Microsoft.Data.Analysis.Tests
 
             var results = left.ElementwiseLessThanOrEqual(right);
 
-            AssertComparisonResults(new[] { true, false, false, false, true, true, false, false, true }, results);
+            AssertComparisonResults(new[] { false, false, false, false, true, true, false, false, true }, results);
         }
 
         [Fact]
@@ -5564,7 +5564,7 @@ namespace Microsoft.Data.Analysis.Tests
 
             var results = left.ElementwiseLessThanOrEqual(right);
 
-            AssertComparisonResults(new[] { true, false, false, false, true, true, false, false, true }, results);
+            AssertComparisonResults(new[] { false, false, false, false, true, true, false, false, true }, results);
         }
 
         [Fact]
@@ -5597,7 +5597,7 @@ namespace Microsoft.Data.Analysis.Tests
 
             var results = left.ElementwiseLessThanOrEqual(right);
 
-            AssertComparisonResults(new[] { true, true, false, true, true, false, true, true, false, false, true, true, false, true, true, false, false, false, true, true }, results);
+            AssertComparisonResults(new[] { true, true, false, true, true, false, true, true, false, false, true, false, false, true, true, false, false, false, false, true }, results);
         }
 
         [Fact]
@@ -5608,7 +5608,7 @@ namespace Microsoft.Data.Analysis.Tests
 
             var results = left.ElementwiseLessThanOrEqual(right);
 
-            AssertComparisonResults(new[] { true, true, false, true, true, false, true, true, false, false, true, true, false, true, true, false, false, false, true, true }, results);
+            AssertComparisonResults(new[] { true, true, false, true, true, false, true, true, false, false, true, false, false, true, true, false, false, false, false, true }, results);
         }
 
         [Fact]
@@ -5739,7 +5739,7 @@ namespace Microsoft.Data.Analysis.Tests
 
             var results = left.ElementwiseLessThanOrEqual(right);
 
-            AssertComparisonResults(new[] { true, false, false, false, true, true, false, false, true }, results);
+            AssertComparisonResults(new[] { false, false, false, false, true, true, false, false, true }, results);
         }
 
         [Fact]
@@ -5947,7 +5947,7 @@ namespace Microsoft.Data.Analysis.Tests
 
             var results = left.ElementwiseGreaterThanOrEqual(right);
 
-            AssertComparisonResults(new[] { true, false, false, false, true, false, false, true, true }, results);
+            AssertComparisonResults(new[] { false, false, false, false, true, false, false, true, true }, results);
         }
 
         [Fact]
@@ -5958,7 +5958,7 @@ namespace Microsoft.Data.Analysis.Tests
 
             var results = left.ElementwiseGreaterThanOrEqual(right);
 
-            AssertComparisonResults(new[] { true, false, false, false, true, false, false, true, true }, results);
+            AssertComparisonResults(new[] { false, false, false, false, true, false, false, true, true }, results);
         }
 
         [Fact]
@@ -5991,7 +5991,7 @@ namespace Microsoft.Data.Analysis.Tests
 
             var results = left.ElementwiseGreaterThanOrEqual(right);
 
-            AssertComparisonResults(new[] { true, false, true, true, true, true, false, true, false, false, true, true, false, true, true, false, false, false, true, true }, results);
+            AssertComparisonResults(new[] { true, false, true, true, true, true, false, true, false, false, true, false, false, true, true, false, false, false, false, true }, results);
         }
 
         [Fact]
@@ -6002,7 +6002,7 @@ namespace Microsoft.Data.Analysis.Tests
 
             var results = left.ElementwiseGreaterThanOrEqual(right);
 
-            AssertComparisonResults(new[] { true, false, true, true, true, true, false, true, false, false, true, true, false, true, true, false, false, false, true, true }, results);
+            AssertComparisonResults(new[] { true, false, true, true, true, true, false, true, false, false, true, false, false, true, true, false, false, false, false, true }, results);
         }
 
         [Fact]
@@ -6133,7 +6133,7 @@ namespace Microsoft.Data.Analysis.Tests
 
             var results = left.ElementwiseGreaterThanOrEqual(right);
 
-            AssertComparisonResults(new[] { true, false, false, false, true, false, false, true, true }, results);
+            AssertComparisonResults(new[] { false, false, false, false, true, false, false, true, true }, results);
         }
 
         [Fact]
@@ -6735,7 +6735,7 @@ namespace Microsoft.Data.Analysis.Tests
 
             var results = left.ElementwiseLessThanOrEqual(right);
 
-            AssertComparisonResults(new[] { true, false, false, false, true, true, false, false, true }, results);
+            AssertComparisonResults(new[] { false, false, false, false, true, true, false, false, true }, results);
         }
 
         [Fact]
@@ -6746,7 +6746,7 @@ namespace Microsoft.Data.Analysis.Tests
 
             var results = left.ElementwiseLessThanOrEqual(right);
 
-            AssertComparisonResults(new[] { true, false, false, false, true, true, false, false, true }, results);
+            AssertComparisonResults(new[] { false, false, false, false, true, true, false, false, true }, results);
         }
 
         [Fact]
@@ -6779,7 +6779,7 @@ namespace Microsoft.Data.Analysis.Tests
 
             var results = left.ElementwiseLessThanOrEqual(right);
 
-            AssertComparisonResults(new[] { true, true, false, true, true, false, true, true, false, false, true, true, false, true, true, false, false, false, true, true }, results);
+            AssertComparisonResults(new[] { true, true, false, true, true, false, true, true, false, false, true, false, false, true, true, false, false, false, false, true }, results);
         }
 
         [Fact]
@@ -6790,7 +6790,7 @@ namespace Microsoft.Data.Analysis.Tests
 
             var results = left.ElementwiseLessThanOrEqual(right);
 
-            AssertComparisonResults(new[] { true, true, false, true, true, false, true, true, false, false, true, true, false, true, true, false, false, false, true, true }, results);
+            AssertComparisonResults(new[] { true, true, false, true, true, false, true, true, false, false, true, false, false, true, true, false, false, false, false, true }, results);
         }
 
         [Fact]
@@ -6921,7 +6921,7 @@ namespace Microsoft.Data.Analysis.Tests
 
             var results = left.ElementwiseLessThanOrEqual(right);
 
-            AssertComparisonResults(new[] { true, false, false, false, true, true, false, false, true }, results);
+            AssertComparisonResults(new[] { false, false, false, false, true, true, false, false, true }, results);
         }
 
         [Fact]
@@ -7129,7 +7129,7 @@ namespace Microsoft.Data.Analysis.Tests
 
             var results = left.ElementwiseGreaterThanOrEqual(right);
 
-            AssertComparisonResults(new[] { true, false, false, false, true, false, false, true, true }, results);
+            AssertComparisonResults(new[] { false, false, false, false, true, false, false, true, true }, results);
         }
 
         [Fact]
@@ -7140,7 +7140,7 @@ namespace Microsoft.Data.Analysis.Tests
 
             var results = left.ElementwiseGreaterThanOrEqual(right);
 
-            AssertComparisonResults(new[] { true, false, false, false, true, false, false, true, true }, results);
+            AssertComparisonResults(new[] { false, false, false, false, true, false, false, true, true }, results);
         }
 
         [Fact]
@@ -7173,7 +7173,7 @@ namespace Microsoft.Data.Analysis.Tests
 
             var results = left.ElementwiseGreaterThanOrEqual(right);
 
-            AssertComparisonResults(new[] { true, false, true, true, true, true, false, true, false, false, true, true, false, true, true, false, false, false, true, true }, results);
+            AssertComparisonResults(new[] { true, false, true, true, true, true, false, true, false, false, true, false, false, true, true, false, false, false, false, true }, results);
         }
 
         [Fact]
@@ -7184,7 +7184,7 @@ namespace Microsoft.Data.Analysis.Tests
 
             var results = left.ElementwiseGreaterThanOrEqual(right);
 
-            AssertComparisonResults(new[] { true, false, true, true, true, true, false, true, false, false, true, true, false, true, true, false, false, false, true, true }, results);
+            AssertComparisonResults(new[] { true, false, true, true, true, true, false, true, false, false, true, false, false, true, true, false, false, false, false, true }, results);
         }
 
         [Fact]
@@ -7315,7 +7315,7 @@ namespace Microsoft.Data.Analysis.Tests
 
             var results = left.ElementwiseGreaterThanOrEqual(right);
 
-            AssertComparisonResults(new[] { true, false, false, false, true, false, false, true, true }, results);
+            AssertComparisonResults(new[] { false, false, false, false, true, false, false, true, true }, results);
         }
 
         [Fact]
@@ -7917,7 +7917,7 @@ namespace Microsoft.Data.Analysis.Tests
 
             var results = left.ElementwiseLessThanOrEqual(right);
 
-            AssertComparisonResults(new[] { true, false, false, false, true, true, false, false, true }, results);
+            AssertComparisonResults(new[] { false, false, false, false, true, true, false, false, true }, results);
         }
 
         [Fact]
@@ -7928,7 +7928,7 @@ namespace Microsoft.Data.Analysis.Tests
 
             var results = left.ElementwiseLessThanOrEqual(right);
 
-            AssertComparisonResults(new[] { true, false, false, false, true, true, false, false, true }, results);
+            AssertComparisonResults(new[] { false, false, false, false, true, true, false, false, true }, results);
         }
 
         [Fact]
@@ -7961,7 +7961,7 @@ namespace Microsoft.Data.Analysis.Tests
 
             var results = left.ElementwiseLessThanOrEqual(right);
 
-            AssertComparisonResults(new[] { true, true, false, true, true, false, true, true, false, false, true, true, false, true, true, false, false, false, true, true }, results);
+            AssertComparisonResults(new[] { true, true, false, true, true, false, true, true, false, false, true, false, false, true, true, false, false, false, false, true }, results);
         }
 
         [Fact]
@@ -7972,7 +7972,7 @@ namespace Microsoft.Data.Analysis.Tests
 
             var results = left.ElementwiseLessThanOrEqual(right);
 
-            AssertComparisonResults(new[] { true, true, false, true, true, false, true, true, false, false, true, true, false, true, true, false, false, false, true, true }, results);
+            AssertComparisonResults(new[] { true, true, false, true, true, false, true, true, false, false, true, false, false, true, true, false, false, false, false, true }, results);
         }
 
         [Fact]
@@ -8103,7 +8103,7 @@ namespace Microsoft.Data.Analysis.Tests
 
             var results = left.ElementwiseLessThanOrEqual(right);
 
-            AssertComparisonResults(new[] { true, false, false, false, true, true, false, false, true }, results);
+            AssertComparisonResults(new[] { false, false, false, false, true, true, false, false, true }, results);
         }
 
         [Fact]
@@ -8311,7 +8311,7 @@ namespace Microsoft.Data.Analysis.Tests
 
             var results = left.ElementwiseGreaterThanOrEqual(right);
 
-            AssertComparisonResults(new[] { true, false, false, false, true, false, false, true, true }, results);
+            AssertComparisonResults(new[] { false, false, false, false, true, false, false, true, true }, results);
         }
 
         [Fact]
@@ -8322,7 +8322,7 @@ namespace Microsoft.Data.Analysis.Tests
 
             var results = left.ElementwiseGreaterThanOrEqual(right);
 
-            AssertComparisonResults(new[] { true, false, false, false, true, false, false, true, true }, results);
+            AssertComparisonResults(new[] { false, false, false, false, true, false, false, true, true }, results);
         }
 
         [Fact]
@@ -8355,7 +8355,7 @@ namespace Microsoft.Data.Analysis.Tests
 
             var results = left.ElementwiseGreaterThanOrEqual(right);
 
-            AssertComparisonResults(new[] { true, false, true, true, true, true, false, true, false, false, true, true, false, true, true, false, false, false, true, true }, results);
+            AssertComparisonResults(new[] { true, false, true, true, true, true, false, true, false, false, true, false, false, true, true, false, false, false, false, true }, results);
         }
 
         [Fact]
@@ -8366,7 +8366,7 @@ namespace Microsoft.Data.Analysis.Tests
 
             var results = left.ElementwiseGreaterThanOrEqual(right);
 
-            AssertComparisonResults(new[] { true, false, true, true, true, true, false, true, false, false, true, true, false, true, true, false, false, false, true, true }, results);
+            AssertComparisonResults(new[] { true, false, true, true, true, true, false, true, false, false, true, false, false, true, true, false, false, false, false, true }, results);
         }
 
         [Fact]
@@ -8497,7 +8497,7 @@ namespace Microsoft.Data.Analysis.Tests
 
             var results = left.ElementwiseGreaterThanOrEqual(right);
 
-            AssertComparisonResults(new[] { true, false, false, false, true, false, false, true, true }, results);
+            AssertComparisonResults(new[] { false, false, false, false, true, false, false, true, true }, results);
         }
 
         [Fact]
@@ -9099,7 +9099,7 @@ namespace Microsoft.Data.Analysis.Tests
 
             var results = left.ElementwiseLessThanOrEqual(right);
 
-            AssertComparisonResults(new[] { true, false, false, false, true, true, false, false, true }, results);
+            AssertComparisonResults(new[] { false, false, false, false, true, true, false, false, true }, results);
         }
 
         [Fact]
@@ -9110,7 +9110,7 @@ namespace Microsoft.Data.Analysis.Tests
 
             var results = left.ElementwiseLessThanOrEqual(right);
 
-            AssertComparisonResults(new[] { true, false, false, false, true, true, false, false, true }, results);
+            AssertComparisonResults(new[] { false, false, false, false, true, true, false, false, true }, results);
         }
 
         [Fact]
@@ -9143,7 +9143,7 @@ namespace Microsoft.Data.Analysis.Tests
 
             var results = left.ElementwiseLessThanOrEqual(right);
 
-            AssertComparisonResults(new[] { true, true, false, true, true, false, true, true, false, false, true, true, false, true, true, false, false, false, true, true }, results);
+            AssertComparisonResults(new[] { true, true, false, true, true, false, true, true, false, false, true, false, false, true, true, false, false, false, false, true }, results);
         }
 
         [Fact]
@@ -9154,7 +9154,7 @@ namespace Microsoft.Data.Analysis.Tests
 
             var results = left.ElementwiseLessThanOrEqual(right);
 
-            AssertComparisonResults(new[] { true, true, false, true, true, false, true, true, false, false, true, true, false, true, true, false, false, false, true, true }, results);
+            AssertComparisonResults(new[] { true, true, false, true, true, false, true, true, false, false, true, false, false, true, true, false, false, false, false, true }, results);
         }
 
         [Fact]
@@ -9285,7 +9285,7 @@ namespace Microsoft.Data.Analysis.Tests
 
             var results = left.ElementwiseLessThanOrEqual(right);
 
-            AssertComparisonResults(new[] { true, false, false, false, true, true, false, false, true }, results);
+            AssertComparisonResults(new[] { false, false, false, false, true, true, false, false, true }, results);
         }
 
         [Fact]
@@ -9493,7 +9493,7 @@ namespace Microsoft.Data.Analysis.Tests
 
             var results = left.ElementwiseGreaterThanOrEqual(right);
 
-            AssertComparisonResults(new[] { true, false, false, false, true, false, false, true, true }, results);
+            AssertComparisonResults(new[] { false, false, false, false, true, false, false, true, true }, results);
         }
 
         [Fact]
@@ -9504,7 +9504,7 @@ namespace Microsoft.Data.Analysis.Tests
 
             var results = left.ElementwiseGreaterThanOrEqual(right);
 
-            AssertComparisonResults(new[] { true, false, false, false, true, false, false, true, true }, results);
+            AssertComparisonResults(new[] { false, false, false, false, true, false, false, true, true }, results);
         }
 
         [Fact]
@@ -9537,7 +9537,7 @@ namespace Microsoft.Data.Analysis.Tests
 
             var results = left.ElementwiseGreaterThanOrEqual(right);
 
-            AssertComparisonResults(new[] { true, false, true, true, true, true, false, true, false, false, true, true, false, true, true, false, false, false, true, true }, results);
+            AssertComparisonResults(new[] { true, false, true, true, true, true, false, true, false, false, true, false, false, true, true, false, false, false, false, true }, results);
         }
 
         [Fact]
@@ -9548,7 +9548,7 @@ namespace Microsoft.Data.Analysis.Tests
 
             var results = left.ElementwiseGreaterThanOrEqual(right);
 
-            AssertComparisonResults(new[] { true, false, true, true, true, true, false, true, false, false, true, true, false, true, true, false, false, false, true, true }, results);
+            AssertComparisonResults(new[] { true, false, true, true, true, true, false, true, false, false, true, false, false, true, true, false, false, false, false, true }, results);
         }
 
         [Fact]
@@ -9679,7 +9679,7 @@ namespace Microsoft.Data.Analysis.Tests
 
             var results = left.ElementwiseGreaterThanOrEqual(right);
 
-            AssertComparisonResults(new[] { true, false, false, false, true, false, false, true, true }, results);
+            AssertComparisonResults(new[] { false, false, false, false, true, false, false, true, true }, results);
         }
 
         [Fact]
@@ -10281,7 +10281,7 @@ namespace Microsoft.Data.Analysis.Tests
 
             var results = left.ElementwiseLessThanOrEqual(right);
 
-            AssertComparisonResults(new[] { true, false, false, false, true, true, false, false, true }, results);
+            AssertComparisonResults(new[] { false, false, false, false, true, true, false, false, true }, results);
         }
 
         [Fact]
@@ -10292,7 +10292,7 @@ namespace Microsoft.Data.Analysis.Tests
 
             var results = left.ElementwiseLessThanOrEqual(right);
 
-            AssertComparisonResults(new[] { true, false, false, false, true, true, false, false, true }, results);
+            AssertComparisonResults(new[] { false, false, false, false, true, true, false, false, true }, results);
         }
 
         [Fact]
@@ -10325,7 +10325,7 @@ namespace Microsoft.Data.Analysis.Tests
 
             var results = left.ElementwiseLessThanOrEqual(right);
 
-            AssertComparisonResults(new[] { true, true, false, true, true, false, true, true, false, false, true, true, false, true, true, false, false, false, true, true }, results);
+            AssertComparisonResults(new[] { true, true, false, true, true, false, true, true, false, false, true, false, false, true, true, false, false, false, false, true }, results);
         }
 
         [Fact]
@@ -10336,7 +10336,7 @@ namespace Microsoft.Data.Analysis.Tests
 
             var results = left.ElementwiseLessThanOrEqual(right);
 
-            AssertComparisonResults(new[] { true, true, false, true, true, false, true, true, false, false, true, true, false, true, true, false, false, false, true, true }, results);
+            AssertComparisonResults(new[] { true, true, false, true, true, false, true, true, false, false, true, false, false, true, true, false, false, false, false, true }, results);
         }
 
         [Fact]
@@ -10467,7 +10467,7 @@ namespace Microsoft.Data.Analysis.Tests
 
             var results = left.ElementwiseLessThanOrEqual(right);
 
-            AssertComparisonResults(new[] { true, false, false, false, true, true, false, false, true }, results);
+            AssertComparisonResults(new[] { false, false, false, false, true, true, false, false, true }, results);
         }
 
         [Fact]
@@ -10675,7 +10675,7 @@ namespace Microsoft.Data.Analysis.Tests
 
             var results = left.ElementwiseGreaterThanOrEqual(right);
 
-            AssertComparisonResults(new[] { true, false, false, false, true, false, false, true, true }, results);
+            AssertComparisonResults(new[] { false, false, false, false, true, false, false, true, true }, results);
         }
 
         [Fact]
@@ -10686,7 +10686,7 @@ namespace Microsoft.Data.Analysis.Tests
 
             var results = left.ElementwiseGreaterThanOrEqual(right);
 
-            AssertComparisonResults(new[] { true, false, false, false, true, false, false, true, true }, results);
+            AssertComparisonResults(new[] { false, false, false, false, true, false, false, true, true }, results);
         }
 
         [Fact]
@@ -10719,7 +10719,7 @@ namespace Microsoft.Data.Analysis.Tests
 
             var results = left.ElementwiseGreaterThanOrEqual(right);
 
-            AssertComparisonResults(new[] { true, false, true, true, true, true, false, true, false, false, true, true, false, true, true, false, false, false, true, true }, results);
+            AssertComparisonResults(new[] { true, false, true, true, true, true, false, true, false, false, true, false, false, true, true, false, false, false, false, true }, results);
         }
 
         [Fact]
@@ -10730,7 +10730,7 @@ namespace Microsoft.Data.Analysis.Tests
 
             var results = left.ElementwiseGreaterThanOrEqual(right);
 
-            AssertComparisonResults(new[] { true, false, true, true, true, true, false, true, false, false, true, true, false, true, true, false, false, false, true, true }, results);
+            AssertComparisonResults(new[] { true, false, true, true, true, true, false, true, false, false, true, false, false, true, true, false, false, false, false, true }, results);
         }
 
         [Fact]
@@ -10861,7 +10861,7 @@ namespace Microsoft.Data.Analysis.Tests
 
             var results = left.ElementwiseGreaterThanOrEqual(right);
 
-            AssertComparisonResults(new[] { true, false, false, false, true, false, false, true, true }, results);
+            AssertComparisonResults(new[] { false, false, false, false, true, false, false, true, true }, results);
         }
 
         [Fact]
@@ -11310,7 +11310,7 @@ namespace Microsoft.Data.Analysis.Tests
 
             var results = left.ElementwiseLessThanOrEqual(right);
 
-            AssertComparisonResults(new[] { true, false, false, false, true, true, false, false, true }, results);
+            AssertComparisonResults(new[] { false, false, false, false, true, true, false, false, true }, results);
         }
 
         [Fact]
@@ -11321,7 +11321,7 @@ namespace Microsoft.Data.Analysis.Tests
 
             var results = left.ElementwiseLessThanOrEqual(right);
 
-            AssertComparisonResults(new[] { true, false, false, false, true, true, false, false, true }, results);
+            AssertComparisonResults(new[] { false, false, false, false, true, true, false, false, true }, results);
         }
 
         [Fact]
@@ -11354,7 +11354,7 @@ namespace Microsoft.Data.Analysis.Tests
 
             var results = left.ElementwiseLessThanOrEqual(right);
 
-            AssertComparisonResults(new[] { true, true, false, true, true, false, true, true, false, false, true, true, false, true, true, false, false, false, true, true }, results);
+            AssertComparisonResults(new[] { true, true, false, true, true, false, true, true, false, false, true, false, false, true, true, false, false, false, false, true }, results);
         }
 
         [Fact]
@@ -11365,7 +11365,7 @@ namespace Microsoft.Data.Analysis.Tests
 
             var results = left.ElementwiseLessThanOrEqual(right);
 
-            AssertComparisonResults(new[] { true, true, false, true, true, false, true, true, false, false, true, true, false, true, true, false, false, false, true, true }, results);
+            AssertComparisonResults(new[] { true, true, false, true, true, false, true, true, false, false, true, false, false, true, true, false, false, false, false, true }, results);
         }
 
         [Fact]
@@ -11602,7 +11602,7 @@ namespace Microsoft.Data.Analysis.Tests
 
             var results = left.ElementwiseGreaterThanOrEqual(right);
 
-            AssertComparisonResults(new[] { true, false, false, false, true, false, false, true, true }, results);
+            AssertComparisonResults(new[] { false, false, false, false, true, false, false, true, true }, results);
         }
 
         [Fact]
@@ -11613,7 +11613,7 @@ namespace Microsoft.Data.Analysis.Tests
 
             var results = left.ElementwiseGreaterThanOrEqual(right);
 
-            AssertComparisonResults(new[] { true, false, false, false, true, false, false, true, true }, results);
+            AssertComparisonResults(new[] { false, false, false, false, true, false, false, true, true }, results);
         }
 
         [Fact]
@@ -11646,7 +11646,7 @@ namespace Microsoft.Data.Analysis.Tests
 
             var results = left.ElementwiseGreaterThanOrEqual(right);
 
-            AssertComparisonResults(new[] { true, false, true, true, true, true, false, true, false, false, true, true, false, true, true, false, false, false, true, true }, results);
+            AssertComparisonResults(new[] { true, false, true, true, true, true, false, true, false, false, true, false, false, true, true, false, false, false, false, true }, results);
         }
 
         [Fact]
@@ -11657,7 +11657,7 @@ namespace Microsoft.Data.Analysis.Tests
 
             var results = left.ElementwiseGreaterThanOrEqual(right);
 
-            AssertComparisonResults(new[] { true, false, true, true, true, true, false, true, false, false, true, true, false, true, true, false, false, false, true, true }, results);
+            AssertComparisonResults(new[] { true, false, true, true, true, true, false, true, false, false, true, false, false, true, true, false, false, false, false, true }, results);
         }
 
         [Fact]
@@ -12219,7 +12219,7 @@ namespace Microsoft.Data.Analysis.Tests
 
             var results = left.ElementwiseLessThanOrEqual(right);
 
-            AssertComparisonResults(new[] { true, false, false, false, true, true, false, false, true }, results);
+            AssertComparisonResults(new[] { false, false, false, false, true, true, false, false, true }, results);
         }
 
         [Fact]
@@ -12230,7 +12230,7 @@ namespace Microsoft.Data.Analysis.Tests
 
             var results = left.ElementwiseLessThanOrEqual(right);
 
-            AssertComparisonResults(new[] { true, false, false, false, true, true, false, false, true }, results);
+            AssertComparisonResults(new[] { false, false, false, false, true, true, false, false, true }, results);
         }
 
         [Fact]
@@ -12263,7 +12263,7 @@ namespace Microsoft.Data.Analysis.Tests
 
             var results = left.ElementwiseLessThanOrEqual(right);
 
-            AssertComparisonResults(new[] { true, true, false, true, true, false, true, true, false, false, true, true, false, true, true, false, false, false, true, true }, results);
+            AssertComparisonResults(new[] { true, true, false, true, true, false, true, true, false, false, true, false, false, true, true, false, false, false, false, true }, results);
         }
 
         [Fact]
@@ -12274,7 +12274,7 @@ namespace Microsoft.Data.Analysis.Tests
 
             var results = left.ElementwiseLessThanOrEqual(right);
 
-            AssertComparisonResults(new[] { true, true, false, true, true, false, true, true, false, false, true, true, false, true, true, false, false, false, true, true }, results);
+            AssertComparisonResults(new[] { true, true, false, true, true, false, true, true, false, false, true, false, false, true, true, false, false, false, false, true }, results);
         }
 
         [Fact]
@@ -12365,7 +12365,7 @@ namespace Microsoft.Data.Analysis.Tests
 
             var results = left.ElementwiseLessThanOrEqual(right);
 
-            AssertComparisonResults(new[] { true, false, false, false, true, true, false, false, true }, results);
+            AssertComparisonResults(new[] { false, false, false, false, true, true, false, false, true }, results);
         }
 
         [Fact]
@@ -12533,7 +12533,7 @@ namespace Microsoft.Data.Analysis.Tests
 
             var results = left.ElementwiseGreaterThanOrEqual(right);
 
-            AssertComparisonResults(new[] { true, false, false, false, true, false, false, true, true }, results);
+            AssertComparisonResults(new[] { false, false, false, false, true, false, false, true, true }, results);
         }
 
         [Fact]
@@ -12544,7 +12544,7 @@ namespace Microsoft.Data.Analysis.Tests
 
             var results = left.ElementwiseGreaterThanOrEqual(right);
 
-            AssertComparisonResults(new[] { true, false, false, false, true, false, false, true, true }, results);
+            AssertComparisonResults(new[] { false, false, false, false, true, false, false, true, true }, results);
         }
 
         [Fact]
@@ -12577,7 +12577,7 @@ namespace Microsoft.Data.Analysis.Tests
 
             var results = left.ElementwiseGreaterThanOrEqual(right);
 
-            AssertComparisonResults(new[] { true, false, true, true, true, true, false, true, false, false, true, true, false, true, true, false, false, false, true, true }, results);
+            AssertComparisonResults(new[] { true, false, true, true, true, true, false, true, false, false, true, false, false, true, true, false, false, false, false, true }, results);
         }
 
         [Fact]
@@ -12588,7 +12588,7 @@ namespace Microsoft.Data.Analysis.Tests
 
             var results = left.ElementwiseGreaterThanOrEqual(right);
 
-            AssertComparisonResults(new[] { true, false, true, true, true, true, false, true, false, false, true, true, false, true, true, false, false, false, true, true }, results);
+            AssertComparisonResults(new[] { true, false, true, true, true, true, false, true, false, false, true, false, false, true, true, false, false, false, false, true }, results);
         }
 
         [Fact]
@@ -12679,7 +12679,7 @@ namespace Microsoft.Data.Analysis.Tests
 
             var results = left.ElementwiseGreaterThanOrEqual(right);
 
-            AssertComparisonResults(new[] { true, false, false, false, true, false, false, true, true }, results);
+            AssertComparisonResults(new[] { false, false, false, false, true, false, false, true, true }, results);
         }
 
         [Fact]
@@ -13008,7 +13008,7 @@ namespace Microsoft.Data.Analysis.Tests
 
             var results = left.ElementwiseLessThanOrEqual(right);
 
-            AssertComparisonResults(new[] { true, false, false, false, true, true, false, false, true }, results);
+            AssertComparisonResults(new[] { false, false, false, false, true, true, false, false, true }, results);
         }
 
         [Fact]
@@ -13019,7 +13019,7 @@ namespace Microsoft.Data.Analysis.Tests
 
             var results = left.ElementwiseLessThanOrEqual(right);
 
-            AssertComparisonResults(new[] { true, false, false, false, true, true, false, false, true }, results);
+            AssertComparisonResults(new[] { false, false, false, false, true, true, false, false, true }, results);
         }
 
         [Fact]
@@ -13052,7 +13052,7 @@ namespace Microsoft.Data.Analysis.Tests
 
             var results = left.ElementwiseLessThanOrEqual(right);
 
-            AssertComparisonResults(new[] { true, true, false, true, true, false, true, true, false, false, true, true, false, true, true, false, false, false, true, true }, results);
+            AssertComparisonResults(new[] { true, true, false, true, true, false, true, true, false, false, true, false, false, true, true, false, false, false, false, true }, results);
         }
 
         [Fact]
@@ -13063,7 +13063,7 @@ namespace Microsoft.Data.Analysis.Tests
 
             var results = left.ElementwiseLessThanOrEqual(right);
 
-            AssertComparisonResults(new[] { true, true, false, true, true, false, true, true, false, false, true, true, false, true, true, false, false, false, true, true }, results);
+            AssertComparisonResults(new[] { true, true, false, true, true, false, true, true, false, false, true, false, false, true, true, false, false, false, false, true }, results);
         }
 
         [Fact]
@@ -13220,7 +13220,7 @@ namespace Microsoft.Data.Analysis.Tests
 
             var results = left.ElementwiseGreaterThanOrEqual(right);
 
-            AssertComparisonResults(new[] { true, false, false, false, true, false, false, true, true }, results);
+            AssertComparisonResults(new[] { false, false, false, false, true, false, false, true, true }, results);
         }
 
         [Fact]
@@ -13231,7 +13231,7 @@ namespace Microsoft.Data.Analysis.Tests
 
             var results = left.ElementwiseGreaterThanOrEqual(right);
 
-            AssertComparisonResults(new[] { true, false, false, false, true, false, false, true, true }, results);
+            AssertComparisonResults(new[] { false, false, false, false, true, false, false, true, true }, results);
         }
 
         [Fact]
@@ -13264,7 +13264,7 @@ namespace Microsoft.Data.Analysis.Tests
 
             var results = left.ElementwiseGreaterThanOrEqual(right);
 
-            AssertComparisonResults(new[] { true, false, true, true, true, true, false, true, false, false, true, true, false, true, true, false, false, false, true, true }, results);
+            AssertComparisonResults(new[] { true, false, true, true, true, true, false, true, false, false, true, false, false, true, true, false, false, false, false, true }, results);
         }
 
         [Fact]
@@ -13275,7 +13275,7 @@ namespace Microsoft.Data.Analysis.Tests
 
             var results = left.ElementwiseGreaterThanOrEqual(right);
 
-            AssertComparisonResults(new[] { true, false, true, true, true, true, false, true, false, false, true, true, false, true, true, false, false, false, true, true }, results);
+            AssertComparisonResults(new[] { true, false, true, true, true, true, false, true, false, false, true, false, false, true, true, false, false, false, false, true }, results);
         }
 
         [Fact]

@@ -233,9 +233,8 @@ namespace Microsoft.Data.Analysis
         /// data buffers hold an arbitrary value (usually default) in place of a null.
         /// </summary>
         /// <remarks>
-        /// Two nulls are considered equal, so for null elements:
-        ///  - null == null, null &lt;= null and null &gt;= null are true;
-        ///  - null != value and value != null are true;
+        /// Null comparisons follow the C# language specification, so for null elements:
+        ///  - null == null, null != value and value != null are true;
         ///  - every other comparison is false.
         /// </remarks>
         /// <param name="operation">The comparison operation that produced the results.</param>
@@ -250,9 +249,7 @@ namespace Microsoft.Data.Analysis
             if (leftAllValid && rightAllValid)
                 return;
 
-            var bothNullResult = operation == ComparisonOperation.ElementwiseEquals
-                || operation == ComparisonOperation.ElementwiseLessThanOrEqual
-                || operation == ComparisonOperation.ElementwiseGreaterThanOrEqual;
+            var bothNullResult = operation == ComparisonOperation.ElementwiseEquals;
             var oneNullResult = operation == ComparisonOperation.ElementwiseNotEquals;
 
             var end = start + destination.Length;

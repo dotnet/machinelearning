@@ -294,8 +294,6 @@ foreach (var type in Types)
             switch (operation)
             {
                 case "ElementwiseEquals":
-                case "ElementwiseLessThanOrEqual":
-                case "ElementwiseGreaterThanOrEqual":
                     return bothNull;
                 case "ElementwiseNotEquals":
                     return !bothNull;
