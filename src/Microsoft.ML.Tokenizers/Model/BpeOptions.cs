@@ -116,6 +116,15 @@ namespace Microsoft.ML.Tokenizers
         /// <summary>
         /// Gets or sets the optional pre-tokenizer to split the input text into tokens before encoding it.
         /// </summary>
+        /// <remarks>
+        /// When not specified, the tokenizer uses <see cref="PreTokenizer.CreateWordOrNonWord"/>,
+        /// which discards whitespace regardless of the <see cref="ByteLevel"/> setting. Each segment is encoded
+        /// independently, so BPE merges do not cross segment boundaries. Discarded whitespace cannot be recovered
+        /// by decoding.
+        /// To preserve whitespace during pre-tokenization, specify a pre-tokenizer that includes it in the returned
+        /// segments. Choose pre-tokenization rules that match the model, such as a <see cref="RegexPreTokenizer"/>
+        /// using the GPT-2 pattern for models that use those rules.
+        /// </remarks>
         public PreTokenizer? PreTokenizer { get; set; }
 
         /// <summary>
@@ -143,14 +152,6 @@ namespace Microsoft.ML.Tokenizers
         /// if true, the input text will be converted to UTF-8 bytes before encoding it.
         /// Additionally, some ASCII characters will be transformed to different characters (e.g Space character will be transformed to 'Ġ' character).
         /// </summary>
-        /// <remarks>
-        /// When this property is set to <see langword="true"/> and no pre-tokenizer is specified, the tokenizer falls
-        /// back to <c>PreTokenizer.CreateWordOrNonWord</c>, whose pattern does not cover whitespace characters. As
-        /// only the segments returned by the pre-tokenizer are encoded, whitespace is not preserved during
-        /// pre-tokenization and cannot be recovered by decoding.
-        /// To keep whitespace, set <see cref="PreTokenizer"/> to a pre-tokenizer whose pattern covers it, for example
-        /// a <see cref="RegexPreTokenizer"/> built from the GPT-2 pattern.
-        /// </remarks>
         public bool ByteLevel { get; set; }
 
         /// <summary>
