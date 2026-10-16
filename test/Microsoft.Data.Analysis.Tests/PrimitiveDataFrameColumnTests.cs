@@ -440,6 +440,20 @@ namespace Microsoft.Data.Analysis.Tests
         }
 
         [Fact]
+        public void TestColumnCloneWithEnumerableIndicesLongerThanColumn()
+        {
+            var column = new Int32DataFrameColumn("Int column", values: new[] { 10, 20 });
+            var longIndicesMap = new long[] { 0, 1, 0 };
+            var intIndicesMap = new int[] { 1, 0, 1 };
+
+            PrimitiveDataFrameColumn<int> longIndicesClone = column.Clone(longIndicesMap);
+            PrimitiveDataFrameColumn<int> intIndicesClone = column.Clone(intIndicesMap);
+
+            Assert.Equal(new int?[] { 10, 20, 10 }, longIndicesClone);
+            Assert.Equal(new int?[] { 20, 10, 20 }, intIndicesClone);
+        }
+
+        [Fact]
         public void TestNullableColumnCloneWithIndicesMapAndSmallerSize()
         {
             //Arrange
