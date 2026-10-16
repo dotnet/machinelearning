@@ -167,6 +167,16 @@ GitHub Actions in `.github/workflows/`:
 | Workflow | Trigger | Purpose |
 |----------|---------|---------|
 | `copilot-setup-steps.yml` | Manual | Remote Copilot Coding Agent build environment |
+| `labeler-train.yml` | Manual | Download issues, train a staged area-label model, and test it together or separately |
+| `labeler-promote.yml` | Manual | Promote a staged issues model to `ACTIVE`, backing up any current active model |
+| `labeler-predict-issues.yml` | Manual | Predict issue area labels; dry-run defaults to `true` |
+| `labeler-cache-retention.yml` | Manual | Restore the issues model cache to prevent inactivity eviction |
+
+The labeler workflows are issues-only and pin `dotnet/issue-labeler` actions to the v2.2.0 release commit. Training and testing use the `area-` prefix without label exclusions, including `area-GenAI`. The provisional prediction threshold defaults to `0.15` and the maximum label count defaults to `1`; `ISSUE_LABELER_PREDICTION_THRESHOLD_ISSUES` / `ISSUE_LABELER_PREDICTION_THRESHOLD` and `ISSUE_LABELER_MAX_LABELS_ISSUES` / `ISSUE_LABELER_MAX_LABELS` variables can override these defaults. The fallback label is `needs-area-label`.
+
+Once installed, dispatch all labeler workflows from the default branch so their branch-scoped caches are shared. Evaluate a staged model before promotion; use the same cache suffix across separate download, train, and test dispatches, and a fresh suffix for each new training run or promotion backup. Reserve `ACTIVE` for promotion, not a training or backup suffix. Cache entries cannot be overwritten.
+
+Automatic issue-open prediction and scheduled retention are intentionally not enabled during onboarding. After the first `ACTIVE` promotion, restore the active cache manually within GitHub's seven-day inactivity window until scheduled retention is deliberately enabled.
 
 ### Prompts
 
