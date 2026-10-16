@@ -51,10 +51,20 @@ jobs:
             _configuration: Debug
             _config_short: D
             _includeBenchmarkData: false
-            _targetFramework: net8.0
+            _targetFramework: net10.0
           Release_Build:
             _configuration: Release
             _config_short: R
+            _includeBenchmarkData: true
+            _targetFramework: net10.0
+          Net8_Debug_Build:
+            _configuration: Debug
+            _config_short: D8
+            _includeBenchmarkData: false
+            _targetFramework: net8.0
+          Net8_Release_Build:
+            _configuration: Release
+            _config_short: R8
             _includeBenchmarkData: true
             _targetFramework: net8.0
         ${{ if ne(parameters.customMatrixes, '') }}:
