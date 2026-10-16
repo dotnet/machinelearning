@@ -1241,7 +1241,8 @@ namespace Microsoft.ML.Tokenizers
                     return other.Score.CompareTo(Score);
                 }
 
-                return other.Left.CompareTo(Left);
+                // Of the pairs with the same score, the leftmost merges first, as in SentencePiece
+                return Left.CompareTo(other.Left);
             }
 
             public override int GetHashCode()
