@@ -161,6 +161,38 @@ namespace Microsoft.ML
             return result;
         }
 
+        /// <summary>
+        /// Runs the prediction pipeline on a batch of examples, writing results into a
+        /// pre-allocated <paramref name="predictions"/> array.
+        /// Use this overload in throughput-sensitive scenarios to avoid per-call allocation:
+        /// pass a reusable array of <typeparamref name="TDst"/> instances and each element is
+        /// filled in-place without creating new objects. Tracked by issue #6422.
+        /// </summary>
+        /// <param name="examples">The examples to score. Must be non-null.</param>
+        /// <param name="predictions">
+        /// Pre-allocated output array. Every element must be a non-null <typeparamref name="TDst"/>
+        /// instance. Must have length &gt;= <paramref name="count"/>. Results are written in-place.
+        /// </param>
+        /// <param name="count">
+        /// Number of items to process from the start of <paramref name="examples"/>.
+        /// Negative value means use the full length of <paramref name="examples"/>.
+        /// </param>
+        public void PredictBatch(TSrc[] examples, TDst[] predictions, int count = -1)
+        {
+            Contracts.CheckValue(examples, nameof(examples));
+            Contracts.CheckValue(predictions, nameof(predictions));
+            if (count < 0)
+                count = examples.Length;
+            Contracts.Check(count <= examples.Length, "count must not exceed examples.Length");
+            Contracts.Check(count <= predictions.Length, "count must not exceed predictions.Length");
+
+            for (int i = 0; i < count; i++)
+            {
+                ExtractValues(examples[i]);
+                FillValues(predictions[i]);
+            }
+        }
+
         [BestFriend]
         private protected void ExtractValues(TSrc example) => _inputRow.ExtractValues(example);
 
