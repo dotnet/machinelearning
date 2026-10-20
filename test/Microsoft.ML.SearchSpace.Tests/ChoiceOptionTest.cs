@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using FluentAssertions;
 using Microsoft.ML.SearchSpace.Option;
 using Xunit;
 using Xunit.Abstractions;
@@ -19,46 +18,46 @@ namespace Microsoft.ML.SearchSpace.Tests
         public void Choice_option_sampling_from_uniform_space_test()
         {
             var option = new ChoiceOption("a", "b", "c");
-            option.SampleFromFeatureSpace(new[] { 0.0 }).AsType<string>().Should().Be("a");
-            option.SampleFromFeatureSpace(new[] { 0.33 }).AsType<string>().Should().Be("a");
-            option.SampleFromFeatureSpace(new[] { 0.34 }).AsType<string>().Should().Be("b");
-            option.SampleFromFeatureSpace(new[] { 0.66 }).AsType<string>().Should().Be("b");
-            option.SampleFromFeatureSpace(new[] { 0.67 }).AsType<string>().Should().Be("c");
-            option.SampleFromFeatureSpace(new[] { 0.97 }).AsType<string>().Should().Be("c");
-            option.SampleFromFeatureSpace(new[] { 0.999999999 }).AsType<string>().Should().Be("c");
-            option.SampleFromFeatureSpace(new[] { 1.0 }).AsType<string>().Should().Be("c");
+            Assert.Equal("a", option.SampleFromFeatureSpace(new[] { 0.0 }).AsType<string>());
+            Assert.Equal("a", option.SampleFromFeatureSpace(new[] { 0.33 }).AsType<string>());
+            Assert.Equal("b", option.SampleFromFeatureSpace(new[] { 0.34 }).AsType<string>());
+            Assert.Equal("b", option.SampleFromFeatureSpace(new[] { 0.66 }).AsType<string>());
+            Assert.Equal("c", option.SampleFromFeatureSpace(new[] { 0.67 }).AsType<string>());
+            Assert.Equal("c", option.SampleFromFeatureSpace(new[] { 0.97 }).AsType<string>());
+            Assert.Equal("c", option.SampleFromFeatureSpace(new[] { 0.999999999 }).AsType<string>());
+            Assert.Equal("c", option.SampleFromFeatureSpace(new[] { 1.0 }).AsType<string>());
         }
 
         [Fact]
         public void Choice_option_with_one_value_sampling_from_uniform_space_test()
         {
             var option = new ChoiceOption("a");
-            option.SampleFromFeatureSpace(new[] { 0.0 }).AsType<string>().Should().Be("a");
-            option.SampleFromFeatureSpace(new[] { 0.99 }).AsType<string>().Should().Be("a");
+            Assert.Equal("a", option.SampleFromFeatureSpace(new[] { 0.0 }).AsType<string>());
+            Assert.Equal("a", option.SampleFromFeatureSpace(new[] { 0.99 }).AsType<string>());
         }
 
         [Fact]
         public void Choice_option_mapping_to_uniform_space_test()
         {
             var option = new ChoiceOption("a", "b", "c");
-            option.MappingToFeatureSpace(Parameter.FromString("a"))[0].Should().BeApproximately(0, 1e-5);
-            option.MappingToFeatureSpace(Parameter.FromString("b"))[0].Should().BeApproximately(0.333333, 1e-5);
-            option.MappingToFeatureSpace(Parameter.FromString("c"))[0].Should().BeApproximately(0.666666, 1e-5);
+            Assert.Equal(0, option.MappingToFeatureSpace(Parameter.FromString("a"))[0], tolerance: 1e-5);
+            Assert.Equal(0.333333, option.MappingToFeatureSpace(Parameter.FromString("b"))[0], tolerance: 1e-5);
+            Assert.Equal(0.666666, option.MappingToFeatureSpace(Parameter.FromString("c"))[0], tolerance: 1e-5);
 
             option = new ChoiceOption("a", "b", "c", "d");
             var parameter = option.SampleFromFeatureSpace(new[] { 0.5 });
-            parameter.AsType<string>().Should().Be("c");
-            option.MappingToFeatureSpace(parameter).Should().Equal(0.5);
+            Assert.Equal("c", parameter.AsType<string>());
+            Assert.Equal(new[] { 0.5 }, option.MappingToFeatureSpace(parameter));
         }
 
         [Fact]
         public void Choice_option_dimension_should_be_0_if_contains_only_one_value()
         {
             var option = new ChoiceOption("b");
-            option.FeatureSpaceDim.Should().Be(0);
-            option.Default.Should().BeEquivalentTo(System.Array.Empty<double>());
-            option.SampleFromFeatureSpace(new double[0]).AsType<string>().Should().Be("b");
-            option.MappingToFeatureSpace(Parameter.FromString("b")).Should().BeEmpty();
+            Assert.Equal(0, option.FeatureSpaceDim);
+            Assert.Empty(option.Default);
+            Assert.Equal("b", option.SampleFromFeatureSpace(new double[0]).AsType<string>());
+            Assert.Empty(option.MappingToFeatureSpace(Parameter.FromString("b")));
         }
 
         [Fact]
@@ -67,7 +66,7 @@ namespace Microsoft.ML.SearchSpace.Tests
             var searchSpace = new SearchSpace();
             searchSpace["choice"] = new ChoiceOption(1, 2, 3);
             var parameter = searchSpace.SampleFromFeatureSpace(new[] { 0.5 });
-            parameter["choice"].AsType<int>().Should().Be(2);
+            Assert.Equal(2, parameter["choice"].AsType<int>());
         }
     }
 }

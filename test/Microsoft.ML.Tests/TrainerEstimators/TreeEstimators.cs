@@ -19,7 +19,6 @@ using Microsoft.ML.Trainers.FastTree;
 using Microsoft.ML.Trainers.LightGbm;
 using Microsoft.ML.Transforms;
 using Xunit;
-using FluentAssertions;
 using System.IO;
 
 namespace Microsoft.ML.Tests.TrainerEstimators
@@ -1083,7 +1082,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             };
 
             var action = () => estimator.Fit(dataView);
-            action.Should().Throw<OperationCanceledException>();
+            Assert.ThrowsAny<OperationCanceledException>(action);
         }
 
         [LightGBMFact]
@@ -1137,7 +1136,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 }));
 
             var action = () => trainer.Fit(dataView);
-            action.Should().Throw<OperationCanceledException>();
+            Assert.ThrowsAny<OperationCanceledException>(action);
         }
 
         [LightGBMFact]
@@ -1165,7 +1164,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 }));
 
             var action = () => trainer.Fit(dataView);
-            action.Should().Throw<OperationCanceledException>();
+            Assert.ThrowsAny<OperationCanceledException>(action);
         }
     }
 }

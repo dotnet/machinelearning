@@ -8,7 +8,6 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading;
-using FluentAssertions;
 using Microsoft.ML.AutoML.CodeGen;
 using Microsoft.ML.SearchSpace;
 using Microsoft.ML.SearchSpace.Tuner;
@@ -53,8 +52,8 @@ namespace Microsoft.ML.AutoML.Test
                     trialSettings.Parameter = param;
                     var option = param.AsType<LbfgsOption>();
 
-                    option.L1Regularization.Should().BeInRange(0.03125f, 32768.0f);
-                    option.L2Regularization.Should().BeInRange(0.03125f, 32768.0f);
+                    Assert.InRange(option.L1Regularization, 0.03125f, 32768.0f);
+                    Assert.InRange(option.L2Regularization, 0.03125f, 32768.0f);
 
                     tuner.Update(new TrialResult()
                     {
@@ -84,8 +83,8 @@ namespace Microsoft.ML.AutoML.Test
                 trialSettings.Parameter = param;
                 var option = param.AsType<LbfgsOption>();
 
-                option.L1Regularization.Should().BeInRange(0.03125f, 32768.0f);
-                option.L2Regularization.Should().BeInRange(0.03125f, 32768.0f);
+                Assert.InRange(option.L1Regularization, 0.03125f, 32768.0f);
+                Assert.InRange(option.L2Regularization, 0.03125f, 32768.0f);
 
                 tuner.Update(new TrialResult()
                 {
@@ -95,8 +94,8 @@ namespace Microsoft.ML.AutoML.Test
                 });
             }
 
-            tuner.Candidates.Count.Should().Be(0);
-            tuner.Histories.Count.Should().Be(0);
+            Assert.Empty(tuner.Candidates);
+            Assert.Empty(tuner.Histories);
         }
 
         [Fact]
@@ -138,8 +137,8 @@ namespace Microsoft.ML.AutoML.Test
             var nextParameterFromNewCfo = newCfo.Propose(trialSettings);
             var lseParameterFromNewCfo = nextParameterFromNewCfo.AsType<LSE3DSearchSpace>();
             var lossFromNewCfo = -LSE3D(lseParameterFromNewCfo.X, lseParameterFromNewCfo.Y, lseParameterFromNewCfo.Z);
-            lastResult.Loss.Should().BeApproximately(-10.1537, 1e-3);
-            lossFromNewCfo.Should().BeApproximately(-11.0986, 0.01);
+            Assert.Equal(-10.1537, lastResult.Loss, tolerance: 1e-3);
+            Assert.Equal(-11.0986, lossFromNewCfo, tolerance: 0.01);
         }
 
         [Fact]
@@ -157,7 +156,7 @@ namespace Microsoft.ML.AutoML.Test
             var y = param.Y;
             var z = param.Z;
 
-            (x * x + y * y + z * z).Should().Be(0);
+            Assert.Equal(0.0, x * x + y * y + z * z);
         }
 
         [Fact]
@@ -280,7 +279,7 @@ namespace Microsoft.ML.AutoML.Test
 
                 // 10.5 is the best metric from random tuner
                 // and the other tuners should achieve better metric comparing with random tuner.
-                bestMetric.Should().BeGreaterThanOrEqualTo(10.5);
+                Assert.True(bestMetric >= 10.5);
             }
         }
 
@@ -331,7 +330,7 @@ namespace Microsoft.ML.AutoML.Test
                 }
 
                 Output.WriteLine($"best metric: {bestLoss}");
-                bestLoss.Should().BeLessThan(-7);
+                Assert.True(bestLoss < -7);
             }
         }
 
@@ -380,7 +379,7 @@ namespace Microsoft.ML.AutoML.Test
 
                 // 6.1 is the best metric from random tuner.
                 // and we assume that other tuners should achieve better result than random tuner
-                bestMetric.Should().BeLessThan(6.1);
+                Assert.True(bestMetric < 6.1);
             }
         }
 
@@ -394,7 +393,7 @@ namespace Microsoft.ML.AutoML.Test
             var usCulture = new CultureInfo("en-US", false);
             Thread.CurrentThread.CurrentCulture = usCulture;
 
-            Thread.CurrentThread.CurrentCulture.NumberFormat.NumberDecimalSeparator.Should().Be(".");
+            Assert.Equal(".", Thread.CurrentThread.CurrentCulture.NumberFormat.NumberDecimalSeparator);
             for (int i = 0; i != 100; ++i)
             {
                 var trialSettings = new TrialSettings()
@@ -402,12 +401,12 @@ namespace Microsoft.ML.AutoML.Test
                     TrialId = i,
                 };
                 var param = cfo.Propose(trialSettings).AsType<LSE3DSearchSpace>();
-                param.X.Should().BeInRange(-10, 10);
+                Assert.InRange(param.X, -10.0, 10.0);
             }
 
             var frCulture = new CultureInfo("fr-FR", false);
             Thread.CurrentThread.CurrentCulture = frCulture;
-            Thread.CurrentThread.CurrentCulture.NumberFormat.NumberDecimalSeparator.Should().Be(",");
+            Assert.Equal(",", Thread.CurrentThread.CurrentCulture.NumberFormat.NumberDecimalSeparator);
             for (int i = 0; i != 100; ++i)
             {
                 var trialSettings = new TrialSettings()
@@ -415,7 +414,7 @@ namespace Microsoft.ML.AutoML.Test
                     TrialId = i,
                 };
                 var param = cfo.Propose(trialSettings).AsType<LSE3DSearchSpace>();
-                param.X.Should().BeInRange(-10, 10);
+                Assert.InRange(param.X, -10.0, 10.0);
             }
 
             Thread.CurrentThread.CurrentCulture = originalCuture;

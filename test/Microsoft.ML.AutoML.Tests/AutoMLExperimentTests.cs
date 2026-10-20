@@ -10,7 +10,6 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using FluentAssertions;
 using Microsoft.Data.Analysis;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.ML.AutoML.CodeGen;
@@ -56,7 +55,7 @@ namespace Microsoft.ML.AutoML.Test
 
             var runExperimentAction = async () => await experiment.RunAsync(cts.Token);
 
-            await runExperimentAction.Should().ThrowExactlyAsync<TimeoutException>();
+            await Assert.ThrowsAsync<TimeoutException>(runExperimentAction);
         }
 
         [Fact]
@@ -85,7 +84,7 @@ namespace Microsoft.ML.AutoML.Test
                       .SetMaximumMemoryUsageInMegaByte(0.01);
 
             var runExperimentAction = async () => await experiment.RunAsync();
-            await runExperimentAction.Should().ThrowExactlyAsync<TimeoutException>();
+            await Assert.ThrowsAsync<TimeoutException>(runExperimentAction);
         }
 
         [LightGBMFact]
@@ -112,7 +111,7 @@ namespace Microsoft.ML.AutoML.Test
                     .SetMaximumMemoryUsageInMegaByte(10);
 
             var runExperimentAction = async () => await experiment.RunAsync();
-            await runExperimentAction.Should().ThrowExactlyAsync<TimeoutException>();
+            await Assert.ThrowsAsync<TimeoutException>(runExperimentAction);
         }
 
         [Fact]
@@ -143,9 +142,9 @@ namespace Microsoft.ML.AutoML.Test
             var res = await experiment.RunAsync(cts.Token);
 
             stopWatch.Stop();
-            stopWatch.ElapsedMilliseconds.Should().BeLessThanOrEqualTo(5000);
-            cts.IsCancellationRequested.Should().BeTrue();
-            res.Metric.Should().BeGreaterThan(0);
+            Assert.True(stopWatch.ElapsedMilliseconds <= 5000);
+            Assert.True(cts.IsCancellationRequested);
+            Assert.True(res.Metric > 0);
         }
 
         [Fact]
@@ -174,8 +173,8 @@ namespace Microsoft.ML.AutoML.Test
             cts.CancelAfter(100 * 1000);
 
             var res = await experiment.RunAsync(cts.Token);
-            res.Metric.Should().BeGreaterThan(0);
-            cts.IsCancellationRequested.Should().BeFalse();
+            Assert.True(res.Metric > 0);
+            Assert.False(cts.IsCancellationRequested);
             cts.Dispose();
         }
 
@@ -202,7 +201,7 @@ namespace Microsoft.ML.AutoML.Test
                 }
             };
             await experiment.RunAsync();
-            runModelCounts.Should().Be(5);
+            Assert.Equal(5, runModelCounts);
         }
 
 
@@ -228,7 +227,7 @@ namespace Microsoft.ML.AutoML.Test
                     .SetMaxModelToExplore(1);
 
             var result = await experiment.RunAsync();
-            result.Metric.Should().BeGreaterThan(0.8);
+            Assert.True(result.Metric > 0.8);
         }
 
         [Fact(Skip = "skip in CI build")]
@@ -253,7 +252,7 @@ namespace Microsoft.ML.AutoML.Test
                     .SetMaxModelToExplore(100);
 
             var result = await experiment.RunAsync();
-            result.Metric.Should().BeGreaterThan(0.8);
+            Assert.True(result.Metric > 0.8);
         }
 
         [Fact]
@@ -278,7 +277,7 @@ namespace Microsoft.ML.AutoML.Test
                     .SetMaxModelToExplore(1);
 
             var result = await experiment.RunAsync();
-            result.Metric.Should().BeGreaterThan(0.8);
+            Assert.True(result.Metric > 0.8);
         }
 
         [Fact]
@@ -305,7 +304,7 @@ namespace Microsoft.ML.AutoML.Test
                     .SetMaxModelToExplore(1);
 
             var result = await experiment.RunAsync();
-            result.Metric.Should().BeGreaterThan(0.8);
+            Assert.True(result.Metric > 0.8);
         }
 
         [Fact]
@@ -332,7 +331,7 @@ namespace Microsoft.ML.AutoML.Test
                     .SetMaxModelToExplore(1);
 
             var result = await experiment.RunAsync();
-            result.Metric.Should().BeGreaterThan(0.8);
+            Assert.True(result.Metric > 0.8);
         }
 
         [Fact]
@@ -359,7 +358,7 @@ namespace Microsoft.ML.AutoML.Test
                     .SetMaxModelToExplore(1);
 
             var result = await experiment.RunAsync();
-            result.Metric.Should().BeGreaterThan(0.5);
+            Assert.True(result.Metric > 0.5);
 
             // test subsamping
             experiment = context.Auto().CreateExperiment();
@@ -368,9 +367,9 @@ namespace Microsoft.ML.AutoML.Test
                     .SetPipeline(pipeline)
                     .SetMaxModelToExplore(1);
             result = await experiment.RunAsync();
-            result.Metric.Should().BeGreaterThan(0.5);
-            result.TrialSettings.Parameter[nameof(TrainValidateDatasetManager)]["TrainValidateDatasetSubsamplingKey"]
-                .AsType<float>().Should().Be(0.1f);
+            Assert.True(result.Metric > 0.5);
+            Assert.Equal(0.1f, result.TrialSettings.Parameter[nameof(TrainValidateDatasetManager)]["TrainValidateDatasetSubsamplingKey"]
+                .AsType<float>());
         }
 
         [Fact]
@@ -389,7 +388,7 @@ namespace Microsoft.ML.AutoML.Test
                     .SetMaxModelToExplore(1);
 
             var result = await experiment.RunAsync();
-            result.Metric.Should().BeGreaterThan(0.5);
+            Assert.True(result.Metric > 0.5);
         }
 
         [Fact]
@@ -408,8 +407,8 @@ namespace Microsoft.ML.AutoML.Test
                     .SetMaxModelToExplore(1);
 
             var result = await experiment.RunAsync();
-            result.Metric.Should().BeGreaterThan(0.2);
-            result.Metric.Should().BeLessThan(0.5);
+            Assert.True(result.Metric > 0.2);
+            Assert.True(result.Metric < 0.5);
         }
 
         [Fact]
@@ -418,12 +417,12 @@ namespace Microsoft.ML.AutoML.Test
             var context = new MLContext();
             var experiment = context.Auto().CreateExperiment();
             var settings = experiment.ServiceCollection.BuildServiceProvider().GetRequiredService<AutoMLExperiment.AutoMLExperimentSettings>();
-            settings.Seed.Should().BeNull();
+            Assert.Null(settings.Seed);
 
             context = new MLContext(1);
             experiment = context.Auto().CreateExperiment();
             settings = experiment.ServiceCollection.BuildServiceProvider().GetRequiredService<AutoMLExperiment.AutoMLExperimentSettings>();
-            settings.Seed.Should().Be(1);
+            Assert.Equal(1, settings.Seed);
         }
     }
 
