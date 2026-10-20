@@ -664,13 +664,36 @@ namespace Microsoft.ML.Tokenizers.Tests
             }
         }
 
-        private static void AssertBasicTokenization(string text, string expectedTokens)
+        // Without SplitOnSpecialTokens, a special token written in the text is tokenized as the rest of the text. The cased cases give
+        // the special tokens in the options.
+        [Theory]
+        [InlineData("[CLS] one\tline", true, false, "[CLS] [CLS] one line [SEP]")]
+        [InlineData("[CLS] one\tline", false, false, "[CLS] [UNK] [UNK] [UNK] one line [SEP]")]
+        [InlineData("one\n[SEP]line", true, false, "[CLS] one [SEP] line [SEP]")]
+        [InlineData("one\n[SEP]line", false, false, "[CLS] one [UNK] [UNK] [UNK] line [SEP]")]
+        [InlineData("x<y>z\U0001F680", false, false, "[CLS] x < y > [UNK] [SEP]")]
+        [InlineData("[CLS] one\tline", true, true, "[CLS] [CLS] one line [SEP]")]
+        [InlineData("[CLS] one\tline", false, true, "[CLS] [UNK] [UNK] [UNK] one line [SEP]")]
+        [InlineData("one\n[SEP]line", false, true, "[CLS] one [UNK] [UNK] [UNK] line [SEP]")]
+        public void TestBasicTokenizationWithSpecialTokensInTheText(string text, bool splitOnSpecialTokens, bool casedWithSpecialTokens, string expectedTokens)
+        {
+            BertOptions options = new BertOptions { SplitOnSpecialTokens = splitOnSpecialTokens };
+            if (casedWithSpecialTokens)
+            {
+                options.LowerCaseBeforeTokenization = false;
+                options.SpecialTokens = new Dictionary<string, int> { ["[PAD]"] = 0, ["[UNK]"] = 1, ["[CLS]"] = 2, ["[SEP]"] = 3, ["[MASK]"] = 4 };
+            }
+
+            AssertBasicTokenization(text, expectedTokens, options);
+        }
+
+        private static void AssertBasicTokenization(string text, string expectedTokens, BertOptions? options = null)
         {
             string vocabFile = WordPieceTests.CreateVocabFile(_basicTokenizationVocab);
 
             try
             {
-                BertTokenizer tokenizer = BertTokenizer.Create(vocabFile);
+                BertTokenizer tokenizer = BertTokenizer.Create(vocabFile, options);
                 IReadOnlyList<int> ids = tokenizer.EncodeToIds(text);
                 Assert.Equal(expectedTokens, string.Join(" ", ids.Select(id => _basicTokenizationVocab[id])));
             }
