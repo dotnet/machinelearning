@@ -100,6 +100,19 @@ namespace Microsoft.ML.Tokenizers
                     continue;
                 }
 
+                // The pre-tokenizer matches punctuation on UTF-16 code units: a punctuation character outside the Basic Multilingual
+                // Plane is set apart here, as BERT splits every punctuation character into a token of its own.
+                if (inc > 0 && IsPunctuation(category))
+                {
+                    AddChar(ref buffer, ref index, ' ');
+                    AddChar(ref buffer, ref index, c);
+                    AddChar(ref buffer, ref index, original[i + 1]);
+                    AddChar(ref buffer, ref index, ' ');
+
+                    i += inc;
+                    continue;
+                }
+
                 if (_individuallyTokenizeCjk && IsCjkChar(codePoint))
                 {
                     AddChar(ref buffer, ref index, ' ');
@@ -177,6 +190,12 @@ namespace Microsoft.ML.Tokenizers
             chars.CopyTo(buffer.AsSpan(index));
             index += chars.Length;
         }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static bool IsPunctuation(UnicodeCategory category) =>
+            category is UnicodeCategory.ConnectorPunctuation or UnicodeCategory.DashPunctuation or UnicodeCategory.OpenPunctuation or
+                UnicodeCategory.ClosePunctuation or UnicodeCategory.InitialQuotePunctuation or UnicodeCategory.FinalQuotePunctuation or
+                UnicodeCategory.OtherPunctuation;
 
         /// <summary>
         /// Checks whether CP is the codepoint of a CJK character.

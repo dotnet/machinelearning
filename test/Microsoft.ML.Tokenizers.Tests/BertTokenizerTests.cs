@@ -634,6 +634,7 @@ namespace Microsoft.ML.Tokenizers.Tests
         [InlineData("\U0001F680", "[CLS] [UNK] [SEP]")]
         [InlineData("zero\u200Bwidth", "[CLS] zero ##width [SEP]")]
         [InlineData("one\u0378line", "[CLS] [UNK] [SEP]")]
+        [InlineData("one\U00010100line", "[CLS] one [UNK] line [SEP]")]
         public void TestSymbolsAreKept(string text, string expectedTokens)
         {
             AssertBasicTokenization(text, expectedTokens);
