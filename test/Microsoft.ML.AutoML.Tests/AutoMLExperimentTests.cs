@@ -53,9 +53,7 @@ namespace Microsoft.ML.AutoML.Test
                 }
             };
 
-            var runExperimentAction = async () => await experiment.RunAsync(cts.Token);
-
-            await Assert.ThrowsAsync<TimeoutException>(runExperimentAction);
+            await Assert.ThrowsAsync<TimeoutException>(() => experiment.RunAsync(cts.Token));
         }
 
         [Fact]
@@ -83,8 +81,7 @@ namespace Microsoft.ML.AutoML.Test
                       .SetTuner<RandomSearchTuner>()
                       .SetMaximumMemoryUsageInMegaByte(0.01);
 
-            var runExperimentAction = async () => await experiment.RunAsync();
-            await Assert.ThrowsAsync<TimeoutException>(runExperimentAction);
+            await Assert.ThrowsAsync<TimeoutException>(() => experiment.RunAsync());
         }
 
         [LightGBMFact]
@@ -110,8 +107,7 @@ namespace Microsoft.ML.AutoML.Test
                     .SetTrainingTimeInSeconds(10)
                     .SetMaximumMemoryUsageInMegaByte(10);
 
-            var runExperimentAction = async () => await experiment.RunAsync();
-            await Assert.ThrowsAsync<TimeoutException>(runExperimentAction);
+            await Assert.ThrowsAsync<TimeoutException>(() => experiment.RunAsync());
         }
 
         [Fact]

@@ -1081,8 +1081,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 }
             };
 
-            var action = () => estimator.Fit(dataView);
-            Assert.ThrowsAny<OperationCanceledException>(action);
+            Assert.ThrowsAny<OperationCanceledException>(() => estimator.Fit(dataView));
         }
 
         [LightGBMFact]
@@ -1135,8 +1134,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                     UseCategoricalSplit = true
                 }));
 
-            var action = () => trainer.Fit(dataView);
-            Assert.ThrowsAny<OperationCanceledException>(action);
+            Assert.ThrowsAny<OperationCanceledException>(() => trainer.Fit(dataView));
         }
 
         [LightGBMFact]
@@ -1163,8 +1161,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                     UseCategoricalSplit = true
                 }));
 
-            var action = () => trainer.Fit(dataView);
-            Assert.ThrowsAny<OperationCanceledException>(action);
+            Assert.ThrowsAny<OperationCanceledException>(() => trainer.Fit(dataView));
         }
     }
 }
