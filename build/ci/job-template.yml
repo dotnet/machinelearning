@@ -126,14 +126,15 @@ jobs:
       - ${{ if eq(parameters.innerLoop, 'false') }}:
         - ${{ if and(eq(parameters.runSpecific, 'false'), eq(parameters.useVSTestTask, 'false')) }}:
           - powershell: |
-              $properties = (& "$(dotnetPath)" msbuild test\run-tests.proj `
+              $propertyJson = & "$(dotnetPath)" msbuild test\run-tests.proj `
                   '-getProperty:NuGetPackageRoot,LibTorchVersion,TorchSharpVersion,LightGBMVersion' `
                   '/p:ContinuousIntegrationBuild=${{ parameters.codeCoverage }}' `
-                  -nologo | ConvertFrom-Json).Properties
+                  -nologo
               if ($LASTEXITCODE -ne 0) {
                   exit $LASTEXITCODE
               }
 
+              $properties = ($propertyJson | ConvertFrom-Json).Properties
               $packageRoot = $properties.NuGetPackageRoot
               $env:PATH += ";${packageRoot}libtorch-cpu-win-x64\$($properties.LibTorchVersion)\runtimes\win-x64\native"
               $env:PATH += ";${packageRoot}torchsharp\$($properties.TorchSharpVersion)\runtimes\win-x64\native"
