@@ -493,6 +493,15 @@ namespace Microsoft.Data {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to {0} and {1} must be different when both DataFrames contain a column called &apos;{2}&apos;.
+        /// </summary>
+        internal static string SuffixesMustBeDifferent {
+            get {
+                return ResourceManager.GetString("SuffixesMustBeDifferent", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Value name &apos;{0}&apos; matches an existing column name.
         /// </summary>
         internal static string ValueNameAlreadyExists {

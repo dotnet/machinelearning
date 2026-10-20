@@ -1,0 +1,53 @@
+# Keep prediction manual-only until the staged model has been evaluated.
+name: "Labeler: Predict (Issues)"
+
+on:
+  workflow_dispatch:
+    inputs:
+      issues:
+        description: "Issue numbers (comma-separated list of ranges)."
+        required: true
+      dry_run:
+        description: "Output predictions without applying labels."
+        required: false
+        type: boolean
+        default: true
+      cache_key:
+        description: "Model cache suffix to restore. Use a staged suffix to evaluate before promotion."
+        required: true
+        default: "ACTIVE"
+
+permissions: {}
+
+env:
+  LABEL_PREFIX: "area-"
+  THRESHOLD: ${{ vars.ISSUE_LABELER_PREDICTION_THRESHOLD_ISSUES || vars.ISSUE_LABELER_PREDICTION_THRESHOLD || '0.15' }}
+  DEFAULT_LABEL: "needs-area-label"
+  MAX_LABELS: ${{ vars.ISSUE_LABELER_MAX_LABELS_ISSUES || vars.ISSUE_LABELER_MAX_LABELS || '1' }}
+
+jobs:
+  predict-issue-label:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      - name: "Restore issues model from cache"
+        id: restore-model
+        uses: dotnet/issue-labeler/restore@160b6b1e1e8d36da09beb34ef1e4806d2c0520a3 # v2.2.0
+        with:
+          type: "issues"
+          fail-on-cache-miss: true
+          cache_key: ${{ inputs.cache_key }}
+
+      - name: "Predict issue labels"
+        if: ${{ steps.restore-model.outputs.cache-hit == 'true' }}
+        uses: dotnet/issue-labeler/predict@160b6b1e1e8d36da09beb34ef1e4806d2c0520a3 # v2.2.0
+        with:
+          issues: ${{ inputs.issues }}
+          label_prefix: ${{ env.LABEL_PREFIX }}
+          threshold: ${{ env.THRESHOLD }}
+          default_label: ${{ env.DEFAULT_LABEL }}
+          dry_run: ${{ inputs.dry_run }}
+          max_labels: ${{ env.MAX_LABELS }}
+        env:
+          GITHUB_TOKEN: ${{ github.token }}

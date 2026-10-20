@@ -34,7 +34,9 @@ namespace Microsoft.Extensions.ML
 
         /// <inheritdoc />
         public override PredictionEngine<TData, TPrediction> Create() =>
-            _mlContext.Model.CreatePredictionEngine<TData, TPrediction>(_model);
+            _mlContext.Model.CreatePredictionEngine<TData, TPrediction>(
+                _model,
+                new PredictionEngineOptions { OwnsTransformer = false });
 
         /// <inheritdoc />
         public override bool Return(PredictionEngine<TData, TPrediction> obj) => true;

@@ -1,0 +1,26 @@
+# Runs on PRs where the main pipelines are skipped (build-excluded paths),
+# so Build Analysis receives a build.completed event and reports green
+# instead of hanging.
+trigger: none
+pr:
+  autoCancel: true
+  branches:
+    include:
+    - main
+    - feature/*
+    - release/*
+  paths:
+    include:
+    - '**.md'
+    - .github/*
+    - docs/*
+    - LICENSE
+    - THIRD-PARTY-NOTICES.TXT
+
+jobs:
+  - job: Report_Green
+    pool: server
+    steps:
+    - task: Delay@1
+      inputs:
+        delayForMinutes: '0'

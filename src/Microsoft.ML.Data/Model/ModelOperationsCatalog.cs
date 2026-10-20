@@ -142,6 +142,7 @@ namespace Microsoft.ML
         /// <param name="inputSchema">Will contain the input schema for the model. If the model was saved without
         /// any description of the input, there will be no input schema. In this case this can be <see langword="null"/>.</param>
         /// <returns>The loaded model.</returns>
+        /// <remarks>Only load models from trusted sources. Loading models from untrusted sources is a security risk.</remarks>
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
@@ -201,6 +202,7 @@ namespace Microsoft.ML
         /// <param name="inputSchema">Will contain the input schema for the model. If the model was saved without
         /// any description of the input, there will be no input schema. In this case this can be <see langword="null"/>.</param>
         /// <returns>The loaded model.</returns>
+        /// <remarks>Only load models from trusted sources. Loading models from untrusted sources is a security risk.</remarks>
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
@@ -255,6 +257,7 @@ namespace Microsoft.ML
         /// this method will throw an exception. The scenario where no loader is stored in the stream should
         /// be handled instead using the <see cref="Load(Stream, out DataViewSchema)"/> method.</param>
         /// <returns>The transformer model from the model stream.</returns>
+        /// <remarks>Only load models from trusted sources. Loading models from untrusted sources is a security risk.</remarks>
         public ITransformer LoadWithDataLoader(Stream stream, out IDataLoader<IMultiStreamSource> loader)
         {
             _env.CheckValue(stream, nameof(stream));
@@ -283,6 +286,7 @@ namespace Microsoft.ML
         /// this method will throw an exception. The scenario where no loader is stored in the stream should
         /// be handled instead using the <see cref="Load(Stream, out DataViewSchema)"/> method.</param>
         /// <returns>The transformer model from the model file.</returns>
+        /// <remarks>Only load models from trusted sources. Loading models from untrusted sources is a security risk.</remarks>
         public ITransformer LoadWithDataLoader(string filePath, out IDataLoader<IMultiStreamSource> loader)
         {
             _env.CheckNonEmpty(filePath, nameof(filePath));

@@ -8,8 +8,6 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using Microsoft.ML.Data;
-using Microsoft.ML.Internal.Utilities;
-using Microsoft.ML.Runtime;
 using Microsoft.ML.TensorFlow;
 using Microsoft.ML.TestFramework;
 using Microsoft.ML.TestFramework.Attributes;
@@ -61,7 +59,6 @@ namespace Microsoft.ML.TensorFlow.Scenarios
     {
         private readonly string _fullImagesetFolderPath;
         private readonly string _finalImagesFolderName;
-        private string _timeOutOldValue;
         private MLContext _mlContext = new MLContext(seed: 1);
 
         public TensorFlowScenariosTests(ITestOutputHelper output) : base(output)
@@ -75,19 +72,6 @@ namespace Microsoft.ML.TensorFlow.Scenarios
 
             _fullImagesetFolderPath = Path.Combine(
                 imagesDownloadFolderPath, _finalImagesFolderName);
-        }
-
-        protected override void Initialize()
-        {
-            // set timeout to 3 minutes, download sometimes will stuck so set smaller timeout to fail fast and retry download
-            _timeOutOldValue = Environment.GetEnvironmentVariable(ResourceManagerUtils.TimeoutEnvVariable);
-            Environment.SetEnvironmentVariable(ResourceManagerUtils.TimeoutEnvVariable, (3 * 60 * 1000).ToString());
-        }
-
-        protected override void Cleanup()
-        {
-            // set back timeout value
-            Environment.SetEnvironmentVariable(ResourceManagerUtils.TimeoutEnvVariable, _timeOutOldValue);
         }
 
         private class TestData
@@ -146,10 +130,11 @@ namespace Microsoft.ML.TensorFlow.Scenarios
                     }
             }, new MultiFileSource(dataFile));
 
+            using var tensorFlowModel = _mlContext.Model.LoadTensorFlowModel(modelLocation);
             var pipeEstimator = new ImageLoadingEstimator(_mlContext, imageFolder, ("ImageReal", "ImagePath"))
                     .Append(new ImageResizingEstimator(_mlContext, "ImageCropped", imageHeight, imageWidth, "ImageReal"))
                     .Append(new ImagePixelExtractingEstimator(_mlContext, "Input", "ImageCropped", interleavePixelColors: true))
-                    .Append(_mlContext.Model.LoadTensorFlowModel(modelLocation).ScoreTensorFlowModel("Output", "Input"))
+                    .Append(tensorFlowModel.ScoreTensorFlowModel("Output", "Input"))
                     .Append(new ColumnConcatenatingEstimator(_mlContext, "Features", "Output"))
                     .Append(new ValueToKeyMappingEstimator(_mlContext, "Label"))
                     .AppendCacheCheckpoint(_mlContext)
@@ -666,8 +651,9 @@ namespace Microsoft.ML.TensorFlow.Scenarios
             var trainData = reader.Load(GetDataPath(TestDatasets.mnistTiny28.trainFilename));
             var testData = reader.Load(GetDataPath(TestDatasets.mnistOneClass.testFilename));
 
+            using var tensorFlowModel = _mlContext.Model.LoadTensorFlowModel("mnist_model/frozen_saved_model.pb");
             var pipe = _mlContext.Transforms.CopyColumns("reshape_input", "Placeholder")
-                .Append(_mlContext.Model.LoadTensorFlowModel("mnist_model/frozen_saved_model.pb").ScoreTensorFlowModel(new[] { "Softmax", "dense/Relu" }, new[] { "Placeholder", "reshape_input" }))
+                .Append(tensorFlowModel.ScoreTensorFlowModel(new[] { "Softmax", "dense/Relu" }, new[] { "Placeholder", "reshape_input" }))
                 .Append(_mlContext.Transforms.Concatenate("Features", "Softmax", "dense/Relu"))
                 .Append(_mlContext.MulticlassClassification.Trainers.LightGbm("Label", "Features"));
 
@@ -890,8 +876,9 @@ namespace Microsoft.ML.TensorFlow.Scenarios
             var trainData = reader.Load(GetDataPath(TestDatasets.mnistTiny28.trainFilename));
             var testData = reader.Load(GetDataPath(TestDatasets.mnistOneClass.testFilename));
 
+            using var tensorFlowModel = _mlContext.Model.LoadTensorFlowModel("mnist_model");
             var pipe = _mlContext.Transforms.CopyColumns("reshape_input", "Placeholder")
-                .Append(_mlContext.Model.LoadTensorFlowModel("mnist_model").ScoreTensorFlowModel(new[] { "Softmax", "dense/Relu" }, new[] { "Placeholder", "reshape_input" }))
+                .Append(tensorFlowModel.ScoreTensorFlowModel(new[] { "Softmax", "dense/Relu" }, new[] { "Placeholder", "reshape_input" }))
                 .Append(_mlContext.Transforms.Concatenate("Features", new[] { "Softmax", "dense/Relu" }))
                 .Append(_mlContext.MulticlassClassification.Trainers.LightGbm("Label", "Features"));
 
@@ -1156,10 +1143,11 @@ namespace Microsoft.ML.TensorFlow.Scenarios
                     }
             }, new MultiFileSource(dataFile));
 
+            using var tensorFlowModel = _mlContext.Model.LoadTensorFlowModel(modelLocation);
             var pipeEstimator = new ImageLoadingEstimator(_mlContext, imageFolder, ("ImageReal", "ImagePath"))
                     .Append(new ImageResizingEstimator(_mlContext, "ImageCropped", imageHeight, imageWidth, "ImageReal"))
                     .Append(new ImagePixelExtractingEstimator(_mlContext, "Input", "ImageCropped", interleavePixelColors: true))
-                    .Append(_mlContext.Model.LoadTensorFlowModel(modelLocation).ScoreTensorFlowModel("Output", "Input"))
+                    .Append(tensorFlowModel.ScoreTensorFlowModel("Output", "Input"))
                     .Append(new ColumnConcatenatingEstimator(_mlContext, "Features", "Output"))
                     .Append(new ValueToKeyMappingEstimator(_mlContext, "Label"))
                     .AppendCacheCheckpoint(_mlContext)
@@ -1289,7 +1277,8 @@ namespace Microsoft.ML.TensorFlow.Scenarios
             // For explanation on how was the `sentiment_model` created 
             // c.f. https://github.com/dotnet/machinelearning-testdata/blob/master/Microsoft.ML.TensorFlow.TestModels/sentiment_model/README.md
             string modelLocation = @"sentiment_model";
-            using var pipelineModel = _mlContext.Model.LoadTensorFlowModel(modelLocation).ScoreTensorFlowModel(new[] { "Prediction/Softmax" }, new[] { "Features" })
+            using var tensorFlowModel = _mlContext.Model.LoadTensorFlowModel(modelLocation);
+            using var pipelineModel = tensorFlowModel.ScoreTensorFlowModel(new[] { "Prediction/Softmax" }, new[] { "Features" })
                 .Append(_mlContext.Transforms.CopyColumns("Prediction", "Prediction/Softmax"))
                 .Fit(dataView);
             using var tfEnginePipe = _mlContext.Model.CreatePredictionEngine<TensorFlowSentiment, TensorFlowSentiment>(pipelineModel);
@@ -1952,7 +1941,7 @@ namespace Microsoft.ML.TensorFlow.Scenarios
         {
             string fileName = "flower_photos_tiny_set_for_unit_tests.zip";
             string filenameAlias = "FPTSUT"; // FPTSUT = flower photos tiny set for unit tests
-            string url = "datasets/flower_photos_tiny_set_for_unit_test.zip";
+            string url = "https://mlpublicassets.blob.core.windows.net/assets/datasets/flower_photos_tiny_set_for_unit_tests.zip";
 
             Download(url, imagesDownloadFolder, fileName);
             UnZip(Path.Combine(imagesDownloadFolder, fileName), imagesDownloadFolder);
@@ -1965,7 +1954,7 @@ namespace Microsoft.ML.TensorFlow.Scenarios
         public string DownloadBadImageSet(string imagesDownloadFolder)
         {
             string fileName = "CatsVsDogs_tiny_for_unit_tests.zip";
-            string url = "datasets/CatsVsDogs_tiny_for_unit_tests.zip";
+            string url = "https://mlpublicassets.blob.core.windows.net/assets/datasets/CatsVsDogs_tiny_for_unit_tests.zip";
 
             Download(url, imagesDownloadFolder, fileName);
             UnZip(Path.Combine(imagesDownloadFolder, fileName), imagesDownloadFolder);
@@ -1985,20 +1974,7 @@ namespace Microsoft.ML.TensorFlow.Scenarios
             if (File.Exists(relativeFilePath))
                 return false;
 
-            int timeout = 10 * 60 * 1000;
-            using (var ch = (_mlContext as IHostEnvironment).Start("Ensuring image files are present."))
-            {
-                var ensureModel = ResourceManagerUtils.Instance.EnsureResourceAsync(_mlContext, ch, url, destFileName, destDir, timeout);
-                ensureModel.Wait();
-                var errorResult = ResourceManagerUtils.GetErrorMessage(out var errorMessage, ensureModel.Result);
-                if (errorResult != null)
-                {
-                    var directory = Path.GetDirectoryName(errorResult.FileName);
-                    var name = Path.GetFileName(errorResult.FileName);
-                    throw ch.Except($"{errorMessage}\nImage file could not be downloaded!");
-                }
-            }
-
+            TestDownloadUtils.DownloadFile(url, relativeFilePath, TimeSpan.FromMinutes(3));
             return true;
         }
 

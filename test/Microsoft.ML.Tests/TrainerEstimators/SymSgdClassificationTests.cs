@@ -13,7 +13,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 {
     public partial class TrainerEstimators
     {
-        [NativeDependencyFact("MklImports")]
+        [NativeDependencyFact("SymSgdNative")]
         public void TestEstimatorSymSgdClassificationTrainer()
         {
             (var pipe, var dataView) = GetBinaryClassificationPipeline();
@@ -27,7 +27,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             Done();
         }
 
-        [NativeDependencyFact("MklImports")]
+        [NativeDependencyFact("SymSgdNative")]
         public void TestEstimatorSymSgdInitPredictor()
         {
             (var pipe, var dataView) = GetBinaryClassificationPipeline();

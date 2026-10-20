@@ -1,51 +1,33 @@
-## Using TensorFlow based APIs
-In order to run any TensorFlow based ML.Net APIs you must first add a NuGet dependency
-on the TensorFlow redist library. There are currently two versions you can use. One which is
-compiled for GPU support, and one which has CPU support only.
+# Using TensorFlow-based APIs
 
-### CPU only
-CPU based TensorFlow is currently supported on:
-* Linux
-* MacOS
-* Windows
+`Microsoft.ML.TensorFlow` provides the ML.NET integration APIs but does not include the native TensorFlow runtime. Add exactly one TensorFlow redistributable package to your application.
 
-To get TensorFlow working on the CPU only all that is to take a NuGet dependency on
-SciSharp.TensorFlow.Redist v1.14.0
+## CPU runtime
 
-### GPU support
-GPU based TensorFlow is currently supported on:
-* Windows
-* Linux
-As of now TensorFlow does not support running on GPUs for MacOS, so we cannot support this currently.
+The CPU runtime supports:
 
-#### Prerequisites
-You must have at least one CUDA compatible GPU, for a list of compatible GPUs see
-[Nvidia's Guide](https://developer.nvidia.com/cuda-gpus).
+* Windows x64
+* Linux x64
+* macOS x64
 
-Install [CUDA v10.1](https://developer.nvidia.com/cuda-10.1-download-archive-update2) and [CUDNN v7.6.4](https://developer.nvidia.com/rdp/cudnn-download).
+Add the cross-platform runtime package:
 
-Make sure you install CUDA v10.1, not any other newer version.
-After downloading CUDNN v7.6.4 .zip file and unpacking it, you need to do the following steps:
+```console
+dotnet add package SciSharp.TensorFlow.Redist
+```
 
-`copy <CUDNN_zip_files_path>\cuda\bin\cudnn64_7.dll to <YOUR_DRIVE>\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v10.1\bin`
+## GPU runtime
 
-For C/C++ development:
+For GPU-backed TensorFlow operations, including training and inference, add the package for your operating system:
 
-`Copy <CUDNN_zip_files_path>\cuda\ include\cudnn.h to <YOUR_DRIVE>\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v10.1\include`
+```console
+# Windows
+dotnet add package SciSharp.TensorFlow.Redist-Windows-GPU
 
-`Copy <CUDNN_zip_files_path>\cuda\lib\x64\cudnn.lib to <YOUR_DRIVE>\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v10.1\lib\x64`
+# Linux
+dotnet add package SciSharp.TensorFlow.Redist-Linux-GPU
+```
 
-For further details in cuDNN you can follow the [cuDNN Installation guide](https://docs.nvidia.com/deeplearning/sdk/cudnn-install/index.html#installwindows).
+The GPU packages require compatible NVIDIA drivers, CUDA, and cuDNN installations. Follow the requirements published for the specific redistributable package version you select and the current [cuDNN installation guide](https://docs.nvidia.com/deeplearning/cudnn/installation/latest/).
 
-#### Usage
-To use TensorFlow with GPU support take a NuGet dependency on the following package depending on your OS:
-
-* Windows -> SciSharp.TensorFlow.Redist-Windows-GPU
-* Linux -> SciSharp.TensorFlow.Redist-Linux-GPU
-
-No code modification should be necessary to leverage the GPU for TensorFlow operations.
-
-#### Troubleshooting
-If you are not able to use your GPU after adding the GPU based TensorFlow NuGet,
-make sure that there is only a dependency on the GPU based version. If you have
-a dependency on both NuGets, the CPU based TensorFlow will run instead.
+Do not reference both CPU and GPU redistributable packages in the same application. If both are present, the CPU runtime can be loaded instead of the GPU runtime.

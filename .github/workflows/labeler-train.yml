@@ -1,0 +1,105 @@
+# Train and test a staged issues model.
+name: "Labeler: Training"
+
+on:
+  workflow_dispatch:
+    inputs:
+      steps:
+        description: "Training Steps"
+        type: choice
+        required: true
+        default: "All"
+        options:
+          - "All"
+          - "Download Data"
+          - "Train Model"
+          - "Test Model"
+      cache_key_suffix:
+        description: "Staged data/model cache suffix. Use a fresh suffix for each training run."
+        required: true
+        default: "staged"
+
+permissions: {}
+
+env:
+  CACHE_KEY: ${{ inputs.cache_key_suffix }}
+  LABEL_PREFIX: "area-"
+  THRESHOLD_ISSUES: ${{ vars.ISSUE_LABELER_PREDICTION_THRESHOLD_ISSUES || vars.ISSUE_LABELER_PREDICTION_THRESHOLD || '0.15' }}
+
+jobs:
+  download-issues:
+    if: ${{ contains(fromJSON('["All", "Download Data"]'), inputs.steps) }}
+    runs-on: ubuntu-latest
+    permissions:
+      issues: read
+    steps:
+      - name: "Download Issues"
+        uses: dotnet/issue-labeler/download@160b6b1e1e8d36da09beb34ef1e4806d2c0520a3 # v2.2.0
+        with:
+          type: "issues"
+          cache_key: ${{ env.CACHE_KEY }}
+          label_prefix: ${{ env.LABEL_PREFIX }}
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+
+  check-issues-data:
+    if: ${{ always() && contains(fromJSON('["All", "Train Model", "Test Model"]'), inputs.steps) && contains(fromJSON('["success", "skipped"]'), needs.download-issues.result) }}
+    runs-on: ubuntu-latest
+    permissions: {}
+    needs: download-issues
+    outputs:
+      has_training_data: ${{ steps.check.outputs.has_training_data }}
+    steps:
+      - name: "Restore Issue Data from Cache"
+        uses: actions/cache/restore@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+        with:
+          path: labeler-cache/issues-data.tsv
+          key: issue-labeler/data/issues/${{ env.CACHE_KEY }}
+          fail-on-cache-miss: true
+
+      - name: "Check Issue Training Data"
+        id: check
+        shell: bash
+        run: |
+          line_count=$(wc -l < labeler-cache/issues-data.tsv)
+          if [[ "$line_count" -lt 10 ]]; then
+            echo "::error::Issue training requires at least 10 TSV lines; found $line_count."
+            echo "> [!CAUTION]" >> "$GITHUB_STEP_SUMMARY"
+            echo "> Issue training requires at least 10 TSV lines; found $line_count." >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
+          echo "has_training_data=true" >> "$GITHUB_OUTPUT"
+
+  train-issues:
+    if: ${{ always() && contains(fromJSON('["All", "Train Model"]'), inputs.steps) && needs.check-issues-data.outputs.has_training_data == 'true' && contains(fromJSON('["success", "skipped"]'), needs.download-issues.result) }}
+    runs-on: ubuntu-latest
+    permissions: {}
+    needs:
+      - download-issues
+      - check-issues-data
+    steps:
+      - name: "Train Model for Issues"
+        uses: dotnet/issue-labeler/train@160b6b1e1e8d36da09beb34ef1e4806d2c0520a3 # v2.2.0
+        with:
+          type: "issues"
+          data_cache_key: ${{ env.CACHE_KEY }}
+          model_cache_key: ${{ env.CACHE_KEY }}
+
+  test-issues:
+    if: ${{ always() && contains(fromJSON('["All", "Test Model"]'), inputs.steps) && needs.check-issues-data.outputs.has_training_data == 'true' && contains(fromJSON('["success", "skipped"]'), needs.train-issues.result) }}
+    runs-on: ubuntu-latest
+    permissions:
+      issues: read
+    needs:
+      - check-issues-data
+      - train-issues
+    steps:
+      - name: "Test Model for Issues"
+        uses: dotnet/issue-labeler/test@160b6b1e1e8d36da09beb34ef1e4806d2c0520a3 # v2.2.0
+        with:
+          type: "issues"
+          cache_key: ${{ env.CACHE_KEY }}
+          label_prefix: ${{ env.LABEL_PREFIX }}
+          threshold: ${{ env.THRESHOLD_ISSUES }}
+        env:
+          GITHUB_TOKEN: ${{ github.token }}

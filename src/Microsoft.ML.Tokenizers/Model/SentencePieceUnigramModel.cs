@@ -8,6 +8,7 @@ using System.Buffers;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -22,6 +23,8 @@ namespace Microsoft.ML.Tokenizers
         private readonly DoubleArrayTrie _trie;
         private readonly float _minScore;
         private readonly float _maxScore;
+        private readonly (int Id, string Token)[] _prefixTokens;
+        private readonly (int Id, string Token)[] _suffixTokens;
         private const float UnkPenalty = 10.0f;
 
         public SentencePieceUnigramModel(ModelProto modelProto, bool addBos, bool addEos, IReadOnlyDictionary<string, int>? specialTokens = null) : base(modelProto, addBos, addEos, specialTokens)
@@ -91,6 +94,278 @@ namespace Microsoft.ML.Tokenizers
                 _vocab[modelProto.TrainerSpec.PadPiece] = modelProto.TrainerSpec.PadId;
                 _vocabReverse[modelProto.TrainerSpec.PadId] = (modelProto.TrainerSpec.PadPiece, 0f, ModelProto.Types.SentencePiece.Types.Type.Control);
             }
+
+            _prefixTokens = DefaultAffix(BeginningOfSentenceId, BeginningOfSentenceToken);
+            _suffixTokens = DefaultAffix(EndOfSentenceId, EndOfSentenceToken);
+        }
+
+        // Constructor that builds a Unigram model directly from a list of (piece, score) pairs.
+        // BOS, EOS, and PAD tokens are identified by their names ("<s>", "</s>", "<pad>") in the vocab;
+        // if not found by name, they are treated as absent (id = -1) to avoid misidentifying real pieces.
+        internal SentencePieceUnigramModel(
+            IReadOnlyList<(string Piece, float Score)> pieces,
+            int unkId,
+            bool addBos,
+            bool addEos,
+            ReadOnlySpan<byte> precompiledCharsmap,
+            bool addDummyPrefix,
+            bool escapeWhiteSpaces,
+            bool treatWhitespaceAsSuffix,
+            bool removeExtraWhitespaces,
+            bool byteFallback,
+            IReadOnlyDictionary<string, int>? specialTokens)
+            : this(pieces, unkId, addBos, addEos, precompiledCharsmap, addDummyPrefix, escapeWhiteSpaces,
+                   treatWhitespaceAsSuffix, removeExtraWhitespaces, byteFallback, specialTokens,
+                   CheckSpecialId(addBos, FindSpecialTokenId(ValidateVocab(pieces, unkId), "<s>"), "addBeginningOfSentence"),
+                   CheckSpecialId(addEos, FindSpecialTokenId(pieces, "</s>"), "addEndOfSentence"),
+                   FindSpecialTokenId(pieces, "<pad>"), prefixTokens: null, suffixTokens: null)
+        {
+        }
+
+        // Constructor that builds a Unigram model with explicit prefix/suffix special-token lists, for example
+        // resolved from a tokenizer.json post_processor template. addBeginningOfSentence gates the prefix list
+        // and addEndOfSentence gates the suffix list; an empty list is allowed (no tokens are emitted).
+        internal SentencePieceUnigramModel(
+            IReadOnlyList<(string Piece, float Score)> pieces,
+            int unkId,
+            bool addBos,
+            bool addEos,
+            ReadOnlySpan<byte> precompiledCharsmap,
+            bool addDummyPrefix,
+            bool escapeWhiteSpaces,
+            bool treatWhitespaceAsSuffix,
+            bool removeExtraWhitespaces,
+            bool byteFallback,
+            IReadOnlyDictionary<string, int>? specialTokens,
+            IReadOnlyList<(int Id, string Token)> prefixTokens,
+            IReadOnlyList<(int Id, string Token)> suffixTokens,
+            int padId)
+            : this(pieces, unkId, addBos, addEos, precompiledCharsmap, addDummyPrefix, escapeWhiteSpaces,
+                   treatWhitespaceAsSuffix, removeExtraWhitespaces, byteFallback, specialTokens,
+                   FirstId(prefixTokens), FirstId(suffixTokens), padId, prefixTokens, suffixTokens)
+        {
+        }
+
+        private SentencePieceUnigramModel(
+            IReadOnlyList<(string Piece, float Score)> pieces,
+            int unkId,
+            bool addBos,
+            bool addEos,
+            ReadOnlySpan<byte> precompiledCharsmap,
+            bool addDummyPrefix,
+            bool escapeWhiteSpaces,
+            bool treatWhitespaceAsSuffix,
+            bool removeExtraWhitespaces,
+            bool byteFallback,
+            IReadOnlyDictionary<string, int>? specialTokens,
+            int bosId, int eosId, int padId,
+            IReadOnlyList<(int Id, string Token)>? prefixTokens,
+            IReadOnlyList<(int Id, string Token)>? suffixTokens)
+            : base(addBos, addEos,
+                   bosId >= 0 && bosId < GetPieceCount(pieces) ? pieces[bosId].Piece : "<s>", bosId,
+                   eosId >= 0 && eosId < GetPieceCount(pieces) ? pieces[eosId].Piece : "</s>", eosId,
+                   GetPieceAtIndex(pieces, unkId), unkId,
+                   addDummyPrefix, escapeWhiteSpaces, treatWhitespaceAsSuffix, byteFallback,
+                   precompiledCharsmap, removeExtraWhitespaces, specialTokens)
+        {
+            Debug.Assert(pieces is not null);
+
+            _vocab = new SortedDictionary<string, int>(OrdinalUtf8StringComparer.Instance);
+            _vocabReverse = new (string Piece, float Score, ModelProto.Types.SentencePiece.Types.Type Type)[pieces!.Count];
+            _minScore = float.MaxValue;
+            _maxScore = float.MinValue;
+
+            // Control tokens (BOS/EOS/PAD plus any caller- or added_tokens-supplied special tokens) are kept
+            // out of the trie so normal segmentation never produces them; they are re-inserted afterwards.
+            HashSet<int> controlIds = new HashSet<int>();
+            AddControlId(controlIds, bosId);
+            AddControlId(controlIds, eosId);
+            AddControlId(controlIds, padId);
+            if (specialTokens is not null)
+            {
+                foreach (int specialId in specialTokens.Values)
+                {
+                    AddControlId(controlIds, specialId);
+                }
+            }
+
+            for (int i = 0; i < pieces.Count; i++)
+            {
+                var (piece, score) = pieces[i];
+                if (i == unkId)
+                {
+                    _vocabReverse[i] = (piece, score, ModelProto.Types.SentencePiece.Types.Type.Unknown);
+                }
+                else if (controlIds.Contains(i))
+                {
+                    _vocabReverse[i] = (piece, score, ModelProto.Types.SentencePiece.Types.Type.Control);
+                }
+                else
+                {
+                    _vocabReverse[i] = (piece, score, ModelProto.Types.SentencePiece.Types.Type.Normal);
+                    _vocab.Add(piece, i);
+                    _minScore = Math.Min(_minScore, score);
+                    _maxScore = Math.Max(_maxScore, score);
+                }
+            }
+
+            if (ByteFallback)
+            {
+                // Byte fallback requires a contiguous block of the 256 byte pieces <0x00>..<0xFF>; encode/decode map a
+                // byte value to ByteCodeToIdOffset + value. Validate it (the proto path relies on the same layout) and
+                // set MaxByteId from <0xFF> so byte ids are recognized on decode, rather than misencoding silently.
+                ByteCodeToIdOffset = _vocab.TryGetValue("<0x00>", out int id) ? id : MaxByteId;
+                if (!_vocab.ContainsKey("<0x00>") || !_vocab.TryGetValue("<0xFF>", out int maxByteId) || maxByteId - ByteCodeToIdOffset != 0xFF)
+                {
+                    throw new InvalidDataException("The tokenizer.json model enables byte_fallback but does not contain a contiguous <0x00>..<0xFF> byte-piece block required to represent it.");
+                }
+
+                MaxByteId = maxByteId;
+                OneByteUtf8EncodingMaxId = ByteCodeToIdOffset + 0x7F;
+                MaxIdByteFallbackId = ByteCodeToIdOffset + 0xFF;
+            }
+            // When byte fallback is disabled the byte offsets stay at 0 so decode treats no ids as byte pieces, even
+            // if the vocab happens to contain <0xNN> entries (otherwise normal low ids would be dropped as bytes).
+
+            _trie = new DoubleArrayTrie(_vocab);
+
+            // Re-insert the unknown token into the vocab maps after the trie is built so it maps like a regular token.
+            // A negative unkId means the model has no unknown token (byte fallback covers OOV), so there is nothing to
+            // re-insert in that case.
+            if (unkId >= 0)
+            {
+                string unkToken = pieces[unkId].Piece;
+                _vocab[unkToken] = unkId;
+                _vocabReverse[unkId] = (unkToken, 0f, ModelProto.Types.SentencePiece.Types.Type.Unknown);
+            }
+
+            foreach (int controlId in controlIds)
+            {
+                if (controlId == unkId)
+                {
+                    continue; // unk is classified Unknown above; don't downgrade it to Control.
+                }
+
+                if (controlId >= 0 && controlId < pieces.Count)
+                {
+                    string piece = pieces[controlId].Piece;
+                    _vocab[piece] = controlId;
+                    _vocabReverse[controlId] = (piece, 0f, ModelProto.Types.SentencePiece.Types.Type.Control);
+                }
+            }
+
+            _prefixTokens = prefixTokens is not null ? ToAffixArray(prefixTokens) : DefaultAffix(BeginningOfSentenceId, BeginningOfSentenceToken);
+            _suffixTokens = suffixTokens is not null ? ToAffixArray(suffixTokens) : DefaultAffix(EndOfSentenceId, EndOfSentenceToken);
+        }
+
+        private static (int Id, string Token)[] DefaultAffix(int id, string token)
+            => id >= 0 ? new[] { (id, token) } : Array.Empty<(int, string)>();
+
+        private static (int Id, string Token)[] ToAffixArray(IReadOnlyList<(int Id, string Token)> tokens)
+        {
+            var array = new (int Id, string Token)[tokens.Count];
+            for (int i = 0; i < tokens.Count; i++)
+            {
+                array[i] = tokens[i];
+            }
+
+            return array;
+        }
+
+        private static int FirstId(IReadOnlyList<(int Id, string Token)> tokens) => tokens.Count > 0 ? tokens[0].Id : -1;
+
+        private void AddPrefixTokens(List<EncodedToken> tokens)
+        {
+            foreach (var (id, token) in _prefixTokens)
+            {
+                tokens.Add(new EncodedToken(id, token, new Range(0, 0)));
+            }
+        }
+
+        private void AddSuffixTokens(List<EncodedToken> tokens, int offset)
+        {
+            foreach (var (id, token) in _suffixTokens)
+            {
+                tokens.Add(new EncodedToken(id, token, new Range(offset, offset)));
+            }
+        }
+
+        private static void AddControlId(HashSet<int> set, int id)
+        {
+            if (id >= 0)
+            {
+                set.Add(id);
+            }
+        }
+
+        private static int GetPieceCount(IReadOnlyList<(string Piece, float Score)>? pieces)
+            => pieces?.Count ?? 0;
+
+        private static string GetPieceAtIndex(IReadOnlyList<(string Piece, float Score)>? pieces, int index)
+        {
+            if (pieces is null)
+            {
+                throw new ArgumentNullException("vocab");
+            }
+
+            // A negative index means the model has no unknown token (HF permits a null unk_id). Return a cosmetic
+            // default token that is never emitted (OOV is handled by byte fallback in that configuration).
+            if (index < 0)
+            {
+                return "<unk>";
+            }
+
+            if (index >= pieces.Count)
+            {
+                throw new ArgumentOutOfRangeException("unkId", "unkId must be a valid index in the vocabulary.");
+            }
+
+            return pieces[index].Piece;
+        }
+
+        // Validates pieces is not null and unkId is in range; returns pieces unchanged.
+        private static IReadOnlyList<(string Piece, float Score)> ValidateVocab(
+            IReadOnlyList<(string Piece, float Score)>? pieces, int unkId)
+        {
+            if (pieces is null)
+            {
+                throw new ArgumentNullException("vocab");
+            }
+
+            if ((uint)unkId >= (uint)pieces.Count)
+            {
+                throw new ArgumentOutOfRangeException("unkId", "unkId must be a valid index in the vocabulary.");
+            }
+
+            return pieces;
+        }
+
+        // Finds a special token by name; returns -1 if not found.
+        private static int FindSpecialTokenId(IReadOnlyList<(string Piece, float Score)>? pieces, string tokenName)
+        {
+            if (pieces is null)
+            {
+                return -1;
+            }
+
+            for (int i = 0; i < pieces.Count; i++)
+            {
+                if (pieces[i].Piece == tokenName)
+                {
+                    return i;
+                }
+            }
+
+            return -1;
+        }
+
+        private static int CheckSpecialId(bool required, int id, string paramName)
+        {
+            if (required && id < 0)
+            {
+                throw new ArgumentException($"The vocabulary does not contain the required special token.", paramName);
+            }
+            return id;
         }
 
         public override IReadOnlyDictionary<string, int> Vocabulary => new ReadOnlyDictionary<string, int>(_vocab);
@@ -218,7 +493,7 @@ namespace Microsoft.ML.Tokenizers
 
             if (addBeginningOfSentence)
             {
-                tokens.Add(new EncodedToken(BeginningOfSentenceId, BeginningOfSentenceToken, new Range(0, 0)));
+                AddPrefixTokens(tokens);
             }
 
             int currentOffset = 0;
@@ -250,7 +525,7 @@ namespace Microsoft.ML.Tokenizers
 
             if (addEndOfSentence)
             {
-                tokens.Add(new EncodedToken(EndOfSentenceId, EndOfSentenceToken, new Range(progressOffset, progressOffset)));
+                AddSuffixTokens(tokens, progressOffset);
             }
 
             normalizedText = normalizedString.AsSpan().Slice(0, normalizedStringIndex).ToString();
@@ -268,7 +543,7 @@ namespace Microsoft.ML.Tokenizers
         {
             if (addBeginningOfSentence)
             {
-                tokens.Add(new EncodedToken(BeginningOfSentenceId, BeginningOfSentenceToken, new Range(0, 0)));
+                AddPrefixTokens(tokens);
             }
 
             int progressOffset = 0;
@@ -278,7 +553,7 @@ namespace Microsoft.ML.Tokenizers
 
             if (addEndOfSentence)
             {
-                tokens.Add(new EncodedToken(EndOfSentenceId, EndOfSentenceToken, new Range(progressOffset, progressOffset)));
+                AddSuffixTokens(tokens, progressOffset);
             }
 
             normalizedText = normalizedString.AsSpan().Slice(0, normalizedStringIndex).ToString();
@@ -571,12 +846,15 @@ namespace Microsoft.ML.Tokenizers
 
             if (addBeginningOfSentence)
             {
-                ids.Add(BeginningOfSentenceId);
-                if (maxTokenCount == 1)
+                foreach (var (id, _) in _prefixTokens)
                 {
-                    normalizedText = null;
-                    charsConsumed = 0;
-                    return ids; // done. no more space for anything else.
+                    ids.Add(id);
+                    if (ids.Count >= maxTokenCount)
+                    {
+                        normalizedText = null;
+                        charsConsumed = 0;
+                        return ids; // done. no more space for anything else.
+                    }
                 }
             }
 
@@ -595,9 +873,17 @@ namespace Microsoft.ML.Tokenizers
                 EncodeToIdsWithoutSpecialTokens(textToEncode, considerNormalization, ids, buffer, ref normalizedString, out normalizedText, out charsConsumed, maxTokenCount);
             }
 
-            if (addEndOfSentence && ids.Count < maxTokenCount)
+            if (addEndOfSentence)
             {
-                ids.Add(EndOfSentenceId);
+                foreach (var (id, _) in _suffixTokens)
+                {
+                    if (ids.Count >= maxTokenCount)
+                    {
+                        break;
+                    }
+
+                    ids.Add(id);
+                }
             }
 
             if (normalizedString is not null)
@@ -841,7 +1127,7 @@ namespace Microsoft.ML.Tokenizers
 
             if (maxTokenCount == int.MaxValue)
             {
-                Debug.Assert(unknownTokensCount == 0 && unknownTokensTracking is null);
+                Debug.Assert(ByteFallback || (unknownTokensCount == 0 && unknownTokensTracking is null));
 
                 if (ByteFallback && unknownTokensCount > 0)
                 {
@@ -960,13 +1246,15 @@ namespace Microsoft.ML.Tokenizers
 
             if (addBeginningOfSentence)
             {
-                tokenCount++;
-
-                if (maxTokenCount == 1)
+                foreach (var _ in _prefixTokens)
                 {
-                    normalizedText = null;
-                    charsConsumed = 0;
-                    return tokenCount;
+                    tokenCount++;
+                    if (tokenCount >= maxTokenCount)
+                    {
+                        normalizedText = null;
+                        charsConsumed = 0;
+                        return tokenCount;
+                    }
                 }
             }
 
@@ -987,7 +1275,15 @@ namespace Microsoft.ML.Tokenizers
 
             if (addEndOfSentence && tokenCount < maxTokenCount)
             {
-                tokenCount++;
+                foreach (var _ in _suffixTokens)
+                {
+                    if (tokenCount >= maxTokenCount)
+                    {
+                        break;
+                    }
+
+                    tokenCount++;
+                }
             }
 
             if (normalizedString is not null)
@@ -1228,12 +1524,14 @@ namespace Microsoft.ML.Tokenizers
 
             if (addEndOfSentence)
             {
-                tokenCount++;
-
-                if (maxTokenCount == 1)
+                foreach (var _ in _suffixTokens)
                 {
-                    normalizedText = null;
-                    return textToEncode.Length;
+                    tokenCount++;
+                    if (tokenCount >= maxTokenCount)
+                    {
+                        normalizedText = null;
+                        return textToEncode.Length;
+                    }
                 }
             }
 
@@ -1256,7 +1554,15 @@ namespace Microsoft.ML.Tokenizers
 
             if (addBeginningOfSentence && tokenCount < maxTokenCount)
             {
-                tokenCount++;
+                foreach (var _ in _prefixTokens)
+                {
+                    if (tokenCount >= maxTokenCount)
+                    {
+                        break;
+                    }
+
+                    tokenCount++;
+                }
             }
 
             ArrayPool<int>.Shared.Return(buffer);
