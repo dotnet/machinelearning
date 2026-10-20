@@ -16,6 +16,12 @@ Within that set, we have additionally marked issues which are good candidates fo
   
 If there is some other area not included here where you want to contribute to, first open an issue to describe the problem you are trying to solve and state that you're willing to contribute a fix for it. We will then discuss in that issue, if this is an issue we would like addressed and the best approach to solve it.
 
+### Public API changes
+
+Every public API addition, modification, or removal must be proposed and explicitly approved in a GitHub issue **before implementation or opening an implementation pull request**. This includes protected APIs available to consumers through inheritance and APIs in preview or experimental packages.
+
+Follow the [API review process](docs/project-docs/api-review-process.md) to prepare a proposal, discuss it with maintainers, and obtain a recorded approval with the `api-approved` label. Linking an issue alone is not approval; `api-suggestion` and `api-ready-for-review` do not authorise implementation. Link the approval comment in the eventual pull request and implement the approved design.
+
 ### Pull requests
 
 If you are new to GitHub, see the [GitHub documentation for contributing to projects](https://docs.github.com/get-started/exploring-projects-on-github/contributing-to-a-project).
