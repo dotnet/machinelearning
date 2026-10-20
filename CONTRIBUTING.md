@@ -18,7 +18,7 @@ If there is some other area not included here where you want to contribute to, f
 
 ### Public API changes
 
-Except in preview or experimental packages, every public API addition, modification, or removal must be proposed and explicitly approved in a GitHub issue **before implementation or opening an implementation pull request**. This includes protected APIs available to consumers through inheritance.
+Every public API addition, modification, or removal must be proposed and explicitly approved in a GitHub issue **before implementation or opening an implementation pull request**. This includes protected APIs available to consumers through inheritance and APIs in preview or experimental packages.
 
 For changes requiring review, follow the [API review process](docs/project-docs/api-review-process.md) to prepare a proposal, discuss it with maintainers, and obtain a recorded approval with the `api-approved` label. Linking an issue alone is not approval; `api-suggestion` and `api-ready-for-review` do not authorise implementation. Link the approval comment in the eventual pull request and implement the approved design.
 

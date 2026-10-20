@@ -7,7 +7,7 @@ assignees: ''
 
 ---
 
-Public API changes outside preview or experimental packages require approval in an issue before implementation or an implementation pull request. Please follow the [API review process](https://github.com/dotnet/machinelearning/blob/main/docs/project-docs/api-review-process.md). Maintainers record approval and apply `api-approved` after review.
+Every public API change requires approval in an issue before implementation or an implementation pull request. Please follow the [API review process](https://github.com/dotnet/machinelearning/blob/main/docs/project-docs/api-review-process.md). Maintainers record approval and apply `api-approved` after review.
 
 ### Background and motivation
 

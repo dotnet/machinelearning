@@ -1,14 +1,12 @@
 # API review process
 
-Except in preview or experimental packages, every public API change in a package built from this repository must first be proposed and explicitly approved in a GitHub issue. Obtain approval **before implementing the change or opening an implementation pull request**. This applies to maintainers, external contributors, and coding agents alike.
+Every public API change in a package built from this repository must first be proposed and explicitly approved in a GitHub issue. Obtain approval **before implementing the change or opening an implementation pull request**. This applies to maintainers, external contributors, and coding agents alike.
 
 This process follows the [dotnet/runtime API review process](https://github.com/dotnet/runtime/blob/main/docs/project/api-review-process.md), with ML.NET maintainers responsible for arranging reviews and recording decisions for this repository.
 
 ## Which changes require review?
 
-Review is required for externally accessible types and members, including protected members available to consumers through inheritance, across all packages built from this repository, except preview and experimental packages.
-
-This exemption applies at package level. Individual preview or experimental APIs in other packages still require review. Changes in exempt packages still follow the normal [contribution guidelines](contributing.md).
+Review is required for externally accessible types and members, including protected members available to consumers through inheritance, across all packages built from this repository, including preview and experimental packages.
 
 Changes requiring approval include:
 

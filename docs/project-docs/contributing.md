@@ -16,7 +16,7 @@ Pull Requests
 -------------
 
 * **DO** submit all code changes via pull requests (PRs) rather than through a direct commit. PRs will be reviewed and potentially merged by the repo maintainers after a peer review that includes at least one maintainer.
-* **DO** obtain approval for public API changes outside preview or experimental packages in an issue labelled `api-approved` before implementing them or opening a PR. Follow the [API review process](api-review-process.md), link the approval comment in your PR, and implement the approved design.
+* **DO** obtain approval for every public API change in an issue labelled `api-approved` before implementing it or opening a PR. Follow the [API review process](api-review-process.md), link the approval comment in your PR, and implement the approved design.
 * **DO** give PRs short-but-descriptive names (for example, "Improve code coverage for System.Console by 10%", not "Fix #1234")
 * **DO** refer to any relevant issues, and include [keywords](https://help.github.com/articles/closing-issues-via-commit-messages/) that automatically close issues when the PR is merged.
 * **DO** tag any users that should know about and/or review the change.
