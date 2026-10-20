@@ -1,12 +1,14 @@
 # API review process
 
-Every public API change in a package built from this repository must first be proposed and explicitly approved in a GitHub issue. Obtain approval **before implementing the change or opening an implementation pull request**. This applies to maintainers, external contributors, and coding agents alike.
+Except in preview or experimental packages, every public API change in a package built from this repository must first be proposed and explicitly approved in a GitHub issue. Obtain approval **before implementing the change or opening an implementation pull request**. This applies to maintainers, external contributors, and coding agents alike.
 
 This process follows the [dotnet/runtime API review process](https://github.com/dotnet/runtime/blob/main/docs/project/api-review-process.md), with ML.NET maintainers responsible for arranging reviews and recording decisions for this repository.
 
 ## Which changes require review?
 
 Review is required for externally accessible types and members, including protected members available to consumers through inheritance, across all packages built from this repository, except preview and experimental packages.
+
+This exemption applies at package level. Individual preview or experimental APIs in other packages still require review. Changes in exempt packages still follow the normal [contribution guidelines](contributing.md).
 
 Changes requiring approval include:
 
@@ -30,7 +32,7 @@ The proposal should contain:
 
 Keep the current proposal in the opening issue description as discussion progresses. Note significant revisions so reviewers can distinguish the latest design from earlier versions.
 
-Exploratory prototypes can help assess a design, but are not approval to proceed with implementation. Keep such work in your own fork or as a draft while the proposal is under review.
+Exploratory prototypes can help assess a design, but are not approval to proceed with implementation. Keep such work in your own fork while the proposal is under review. Any draft PRs should also target your own fork, not `dotnet/machinelearning`.
 
 ## Review and approval
 
@@ -51,7 +53,7 @@ Breaking changes must also be identified with `breaking-change`. The issue must 
 
 ## Implementation and pull requests
 
-After the issue is marked `api-approved` and any approval conditions are met:
+For changes requiring review, wait until the issue is marked `api-approved` and any approval conditions are met, then:
 
 1. Implement the approved API shape and behaviour.
 2. Include the necessary tests, XML documentation, usage samples, and any affected API or test baselines.
@@ -59,4 +61,4 @@ After the issue is marked `api-approved` and any approval conditions are met:
 
 If implementation reveals a need to change the approved API, update the proposal and ask the maintainer to move it out of `api-approved` for further review. Obtain renewed approval in the issue before implementing the revised design. The earlier approval covers only the design that was reviewed.
 
-Maintainers must confirm that the pull request matches the current approved design before merging. Pull requests opened before API approval may be deferred or closed until review is complete. Passing CI or updating a baseline does not grant API approval, and API approval does not replace normal code review.
+Maintainers must confirm that pull requests containing API changes requiring review match the current approved design before merging. Such pull requests may be deferred or closed if opened before API approval. Passing CI or updating a baseline does not grant API approval, and API approval does not replace normal code review.

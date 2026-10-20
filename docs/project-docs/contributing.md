@@ -16,7 +16,7 @@ Pull Requests
 -------------
 
 * **DO** submit all code changes via pull requests (PRs) rather than through a direct commit. PRs will be reviewed and potentially merged by the repo maintainers after a peer review that includes at least one maintainer.
-* **DO** obtain approval for every public API change in an issue labelled `api-approved` before implementing it or opening a PR. Follow the [API review process](api-review-process.md), link the approval comment in your PR, and implement the approved design.
+* **DO** obtain approval for public API changes outside preview or experimental packages in an issue labelled `api-approved` before implementing them or opening a PR. Follow the [API review process](api-review-process.md), link the approval comment in your PR, and implement the approved design.
 * **DO** give PRs short-but-descriptive names (for example, "Improve code coverage for System.Console by 10%", not "Fix #1234")
 * **DO** refer to any relevant issues, and include [keywords](https://help.github.com/articles/closing-issues-via-commit-messages/) that automatically close issues when the PR is merged.
 * **DO** tag any users that should know about and/or review the change.
@@ -29,7 +29,7 @@ Pull Requests
 Merging Pull Requests (for contributors with write access)
 ----------------------------------------------------------
 
-* **DO** confirm that any public API change matches the approved design and that the linked issue contains the recorded approval and the `api-approved` label before merging.
+* **DO** confirm that any public API change requiring review matches the approved design and that the linked issue contains the recorded approval and the `api-approved` label before merging.
 * **DO** use ["Squash and Merge"](https://github.com/blog/2141-squash-your-commits) by default for individual contributions unless requested by the PR author.
   Do so, even if the PR contains only one commit. It creates a simpler history than "Create a Merge Commit".
   Reasons that PR authors may request "Merge and Commit" may include (but are not limited to):

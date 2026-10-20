@@ -95,9 +95,9 @@ test/
 
 ### Public API changes
 
-Every public API addition, modification, or removal requires prior maintainer approval recorded in a GitHub issue labelled `api-approved`. This includes protected APIs available to consumers through inheritance and APIs in preview or experimental packages. Follow the [API review process](../docs/project-docs/api-review-process.md) before implementing the change or opening an implementation PR.
+Except in preview or experimental packages, every public API addition, modification, or removal requires prior maintainer approval recorded in a GitHub issue labelled `api-approved`. This includes protected APIs available to consumers through inheritance. For changes requiring review, follow the [API review process](../docs/project-docs/api-review-process.md) before implementing the change or opening an implementation PR.
 
-If approval is missing, prepare a proposal for review rather than implementing the API change. Do not treat a linked issue, `api-ready-for-review`, or a PR approval as API approval. Link the approval comment in the PR, implement the approved design, and obtain renewed issue approval if that design changes.
+If a change requires review and approval is missing, prepare a proposal for review rather than implementing the API change. Do not treat a linked issue, `api-ready-for-review`, or a PR approval as API approval. Link the approval comment in the PR, implement the approved design, and obtain renewed issue approval if that design changes.
 
 ### Code Style
 
