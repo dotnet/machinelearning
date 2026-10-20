@@ -619,7 +619,7 @@ namespace Microsoft.ML.Tokenizers.Tests
         [InlineData("one\u2028line", "[CLS] one line [SEP]")]
         public void TestWhiteSpaceControlCharactersSplitWords(string text, string expectedTokens)
         {
-            AssertBasicTokenization(text, expectedTokens);
+            AssertTokens(text, expectedTokens);
         }
 
         [Theory]
@@ -637,7 +637,7 @@ namespace Microsoft.ML.Tokenizers.Tests
         [InlineData("one\U00010100line", "[CLS] one [UNK] line [SEP]")]
         public void TestSymbolsAreKept(string text, string expectedTokens)
         {
-            AssertBasicTokenization(text, expectedTokens);
+            AssertTokens(text, expectedTokens);
         }
 
         [Fact]
@@ -684,10 +684,21 @@ namespace Microsoft.ML.Tokenizers.Tests
                 options.SpecialTokens = new Dictionary<string, int> { ["[PAD]"] = 0, ["[UNK]"] = 1, ["[CLS]"] = 2, ["[SEP]"] = 3, ["[MASK]"] = 4 };
             }
 
-            AssertBasicTokenization(text, expectedTokens, options);
+            AssertTokens(text, expectedTokens, options);
         }
 
-        private static void AssertBasicTokenization(string text, string expectedTokens, BertOptions? options = null)
+        // Without the basic tokenization, the text is not normalized and is split at whitespace only.
+        [Theory]
+        [InlineData("one\tline", "[CLS] one line [SEP]")]
+        [InlineData("a+b = c", "[CLS] [UNK] = c [SEP]")]
+        [InlineData("costs $5", "[CLS] costs [UNK] [SEP]")]
+        [InlineData("One line", "[CLS] [UNK] line [SEP]")]
+        public void TestWithoutBasicTokenization(string text, string expectedTokens)
+        {
+            AssertTokens(text, expectedTokens, new BertOptions { ApplyBasicTokenization = false });
+        }
+
+        private static void AssertTokens(string text, string expectedTokens, BertOptions? options = null)
         {
             string vocabFile = WordPieceTests.CreateVocabFile(_basicTokenizationVocab);
 
