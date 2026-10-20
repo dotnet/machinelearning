@@ -36,7 +36,7 @@ namespace Microsoft.ML.Data
             _host = env?.Register(nameof(EstimatorChain<TLastTransformer>));
             _estimators = estimators ?? new IEstimator<ITransformer>[0];
             _scopes = scopes ?? new TransformerScope[0];
-            LastEstimator = estimators.LastOrDefault() as IEstimator<TLastTransformer>;
+            LastEstimator = _estimators.LastOrDefault() as IEstimator<TLastTransformer>;
             _needCacheAfter = needCacheAfter ?? new bool[0];
 
             Contracts.Assert((_host != null) == _needCacheAfter.Any(x => x));
