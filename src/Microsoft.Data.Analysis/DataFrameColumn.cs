@@ -210,18 +210,26 @@ namespace Microsoft.Data.Analysis
         protected internal virtual void Resize(long length) => throw new NotImplementedException();
 
         /// <summary>
-        /// Clone column to produce a copy
+        /// Clones the column.
         /// </summary>
-        /// <param name="numberOfNullsToAppend"></param>
+        /// <param name="numberOfNullsToAppend">The number of null values to append to the copied values.</param>
         /// <returns>A new <see cref="DataFrameColumn"/></returns>
         public DataFrameColumn Clone(long numberOfNullsToAppend = 0) => CloneImplementation(numberOfNullsToAppend);
 
         /// <summary>
-        /// Clone column to produce a copy potentially changing the order of values by supplying mapIndices and an invert flag
+        /// Clones the column, selecting and ordering values according to <paramref name="mapIndices"/>.
         /// </summary>
-        /// <param name="mapIndices"></param>
-        /// <param name="invertMapIndices"></param>
-        /// <param name="numberOfNullsToAppend"></param>
+        /// <param name="mapIndices">
+        /// A Boolean, <see cref="int"/>, or <see cref="long"/> column that determines which values to copy.
+        /// For a Boolean column, the value at each position selects the value at the same position when it is
+        /// <see langword="true"/>. For an integer column, each value is a zero-based index into this column;
+        /// the map order determines the result order, and repeated indices produce repeated values.
+        /// </param>
+        /// <param name="invertMapIndices">
+        /// <see langword="true"/> to process integer values in <paramref name="mapIndices"/> in reverse order;
+        /// otherwise, <see langword="false"/>. This parameter does not affect a Boolean map.
+        /// </param>
+        /// <param name="numberOfNullsToAppend">The number of null values to append after the selected values.</param>
         /// <returns>A new <see cref="DataFrameColumn"/></returns>
         public DataFrameColumn Clone(DataFrameColumn mapIndices, bool invertMapIndices = false, long numberOfNullsToAppend = 0) => CloneImplementation(mapIndices, invertMapIndices, numberOfNullsToAppend);
 
