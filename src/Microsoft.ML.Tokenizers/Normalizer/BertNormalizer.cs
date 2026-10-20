@@ -59,9 +59,18 @@ namespace Microsoft.ML.Tokenizers
                     inc = 1;
                 }
 
+                // BERT counts '\t', '\n' and '\r' as whitespace, although they are control characters.
+                if (c is '\t' or '\n' or '\r')
+                {
+                    AddChar(ref buffer, ref index, ' ');
+                    continue;
+                }
+
                 UnicodeCategory category = CharUnicodeInfo.GetUnicodeCategory(original, i);
 
-                if (category == UnicodeCategory.Control)
+                // The other control characters are removed, with the format and private-use characters, as the text cleaning of BERT
+                // does. Characters not assigned in Unicode are kept, for the model to map them to its unknown token.
+                if (category is UnicodeCategory.Control or UnicodeCategory.Format or UnicodeCategory.PrivateUse or UnicodeCategory.Surrogate)
                 {
                     i += inc;
                     continue;

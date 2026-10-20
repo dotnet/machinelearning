@@ -7,6 +7,7 @@ using System.Buffers;
 using System.Collections.Generic;
 using System.Diagnostics.Tracing;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -593,6 +594,84 @@ namespace Microsoft.ML.Tokenizers.Tests
                 Assert.Equal(OperationStatus.Done, status);
                 Assert.Equal(ids1Span.Length, written);
                 Assert.Equal(new int[] { 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1 }, ids1Span.ToArray());
+            }
+            finally
+            {
+                File.Delete(vocabFile);
+            }
+        }
+        // The vocabulary of the tests of the basic tokenization; the expected tokens are those of Hugging Face tokenizers 0.23.3
+        // (BertWordPieceTokenizer, lowercase) with the same vocabulary.
+        private static readonly string[] _basicTokenizationVocab =
+        [
+            "[PAD]", "[UNK]", "[CLS]", "[SEP]", "[MASK]", "one", "line", "##line", "note", "book", "notebook", "costs", "$", "5", "+",
+            "tax", "=", "6", "a", "b", "c", "<", ">", "|", "~", "^", "`", "°c", "©", "2026", "great", "product", "x", "y", "z", "_",
+            "zero", "##width", "d", "e"
+        ];
+
+        [Theory]
+        [InlineData("one\nline", "[CLS] one line [SEP]")]
+        [InlineData("one\tline", "[CLS] one line [SEP]")]
+        [InlineData("one\rline", "[CLS] one line [SEP]")]
+        [InlineData("one\r\nline", "[CLS] one line [SEP]")]
+        [InlineData("one \nline", "[CLS] one line [SEP]")]
+        [InlineData("note\nbook", "[CLS] note book [SEP]")]
+        [InlineData("one\u2028line", "[CLS] one line [SEP]")]
+        public void TestWhiteSpaceControlCharactersSplitWords(string text, string expectedTokens)
+        {
+            AssertBasicTokenization(text, expectedTokens);
+        }
+
+        [Theory]
+        [InlineData("costs $5 + tax = $6", "[CLS] costs $ 5 + tax = $ 6 [SEP]")]
+        [InlineData("a+b=c", "[CLS] a + b = c [SEP]")]
+        [InlineData("x<y>z", "[CLS] x < y > z [SEP]")]
+        [InlineData("a|b~c^d`e", "[CLS] a | b ~ c ^ d ` e [SEP]")]
+        [InlineData("a_b", "[CLS] a _ b [SEP]")]
+        [InlineData("5 °C", "[CLS] 5 °c [SEP]")]
+        [InlineData("© 2026", "[CLS] © 2026 [SEP]")]
+        [InlineData("\U0001F4AF great product \U0001F44D", "[CLS] [UNK] great product [UNK] [SEP]")]
+        [InlineData("\U0001F680", "[CLS] [UNK] [SEP]")]
+        [InlineData("zero\u200Bwidth", "[CLS] zero ##width [SEP]")]
+        [InlineData("one\u0378line", "[CLS] [UNK] [SEP]")]
+        public void TestSymbolsAreKept(string text, string expectedTokens)
+        {
+            AssertBasicTokenization(text, expectedTokens);
+        }
+
+        [Fact]
+        public void TestWhiteSpaceControlCharactersOffsets()
+        {
+            string vocabFile = WordPieceTests.CreateVocabFile(_basicTokenizationVocab);
+
+            try
+            {
+                BertTokenizer tokenizer = BertTokenizer.Create(vocabFile);
+                var tokens = tokenizer.EncodeToTokens("one\tline\none", out string? normalizedText);
+                Assert.Equal("one line one", normalizedText);
+                Assert.Equal(
+                    [
+                        new EncodedToken(5, "one", new Range(0, 3)),
+                        new EncodedToken(6, "line", new Range(4, 8)),
+                        new EncodedToken(5, "one", new Range(9, 12))
+                    ],
+                    tokens);
+            }
+            finally
+            {
+                File.Delete(vocabFile);
+            }
+        }
+
+        private static void AssertBasicTokenization(string text, string expectedTokens)
+        {
+            string vocabFile = WordPieceTests.CreateVocabFile(_basicTokenizationVocab);
+
+            try
+            {
+                BertTokenizer tokenizer = BertTokenizer.Create(vocabFile);
+                IReadOnlyList<int> ids = tokenizer.EncodeToIds(text);
+                Assert.Equal(expectedTokens, string.Join(" ", ids.Select(id => _basicTokenizationVocab[id])));
             }
             finally
             {

@@ -806,7 +806,7 @@ namespace Microsoft.ML.Tokenizers
 
             // We set the PreTokenizer here using the normalized special tokens dict (if relevant), and therefore we can 
             // keep the not-normalized special tokens dict in the options passed to the WordPieceTokenizer.
-            options.PreTokenizer ??= options.ApplyBasicTokenization ? PreTokenizer.CreateWordOrPunctuation(options.SplitOnSpecialTokens ? specialTokensDict : null) : PreTokenizer.CreateWhiteSpace();
+            options.PreTokenizer ??= options.ApplyBasicTokenization ? PreTokenizer.CreateBertBasic(options.SplitOnSpecialTokens ? specialTokensDict : null) : PreTokenizer.CreateWhiteSpace();
 
             return new BertTokenizer(vocab, vocabReverse, options);
         }
