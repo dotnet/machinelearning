@@ -41,7 +41,6 @@ jobs:
         with:
           type: "issues"
           fail-on-cache-miss: true
-          quiet: true
           cache_key: ${{ github.event.inputs.cache_key || 'ACTIVE' }}
 
       - name: "Predict issue labels"
