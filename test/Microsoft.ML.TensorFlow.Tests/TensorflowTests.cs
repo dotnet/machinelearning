@@ -60,10 +60,9 @@ namespace Microsoft.ML.TensorFlow.Scenarios
     {
         private static bool IsTensorFlowSupported => new TensorFlowFactAttribute().Skip == null;
 
-        private static bool IsNotLinuxX64Helix =>
+        private static bool IsNotLinuxX64 =>
             !(RuntimeInformation.IsOSPlatform(OSPlatform.Linux)
-                && RuntimeInformation.ProcessArchitecture == Architecture.X64
-                && Environment.GetEnvironmentVariable("HELIX_CORRELATION_ID") != null);
+                && RuntimeInformation.ProcessArchitecture == Architecture.X64);
 
         private readonly string _fullImagesetFolderPath;
         private readonly string _finalImagesFolderName;
@@ -1589,11 +1588,7 @@ namespace Microsoft.ML.TensorFlow.Scenarios
             (trainedModel as IDisposable)?.Dispose();
         }
 
-#if NET8_0 && !DEBUG
-        [ConditionalFact(nameof(IsNotLinuxX64Helix), nameof(IsTensorFlowSupported))] // https://github.com/dotnet/machinelearning/issues/7836
-#else
-        [TensorFlowFact]
-#endif
+        [ConditionalFact(nameof(IsNotLinuxX64), nameof(IsTensorFlowSupported))] // https://github.com/dotnet/machinelearning/issues/7836
         public void TensorFlowImageClassificationWithExponentialLRScheduling()
         {
             TensorFlowImageClassificationWithLRScheduling(new ExponentialLRDecay(), 50);
@@ -1839,11 +1834,7 @@ namespace Microsoft.ML.TensorFlow.Scenarios
             (trainedModel as IDisposable)?.Dispose();
         }
 
-#if NET8_0 && DEBUG
-        [ConditionalFact(nameof(IsNotLinuxX64Helix), nameof(IsTensorFlowSupported))] // https://github.com/dotnet/machinelearning/issues/7836
-#else
-        [TensorFlowFact]
-#endif
+        [ConditionalFact(nameof(IsNotLinuxX64), nameof(IsTensorFlowSupported))] // https://github.com/dotnet/machinelearning/issues/7836
         public void TensorFlowImageClassificationBadImages()
         {
             string imagesDownloadFolderPath = Path.Combine(TensorFlowScenariosTestsFixture.assetsPath, "inputs",
