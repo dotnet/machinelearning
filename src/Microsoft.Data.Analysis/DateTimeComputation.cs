@@ -221,8 +221,10 @@ namespace Microsoft.Data.Analysis
 
         public void Max(PrimitiveColumnContainer<DateTime> column, IEnumerable<long> rows, out DateTime? ret)
         {
-            ret = default;
+            var maxDate = DateTime.MinValue;
+            bool hasMaxValue = false;
             var readOnlySpan = column.Buffers[0].ReadOnlySpan;
+            var bitmapSpan = column.NullBitMapBuffers[0].ReadOnlySpan;
             long minRange = 0;
             long maxRange = ReadOnlyDataFrameBuffer<DateTime>.MaxCapacity;
             long maxCapacity = maxRange;
@@ -234,18 +236,26 @@ namespace Microsoft.Data.Analysis
                 {
                     int bufferIndex = (int)(row / maxCapacity);
                     readOnlySpan = column.Buffers[bufferIndex].ReadOnlySpan;
+                    bitmapSpan = column.NullBitMapBuffers[bufferIndex].ReadOnlySpan;
                     minRange = checked(bufferIndex * maxCapacity);
                     maxRange = checked((bufferIndex + 1) * maxCapacity);
                 }
                 row -= minRange;
 
+                //Check if bit is not set (value is null) - skip
+                if (!BitUtility.IsValid(bitmapSpan, (int)row))
+                    continue;
+
                 var val = readOnlySpan[(int)row];
 
-                if (val > ret)
+                if (!hasMaxValue || val > maxDate)
                 {
-                    ret = val;
+                    maxDate = val;
+                    hasMaxValue = true;
                 }
             }
+
+            ret = hasMaxValue ? maxDate : null;
         }
 
         public void Min(PrimitiveColumnContainer<DateTime> column, out DateTime? ret)
@@ -279,8 +289,10 @@ namespace Microsoft.Data.Analysis
 
         public void Min(PrimitiveColumnContainer<DateTime> column, IEnumerable<long> rows, out DateTime? ret)
         {
-            ret = default;
+            var minDate = DateTime.MaxValue;
+            bool hasMinValue = false;
             var readOnlySpan = column.Buffers[0].ReadOnlySpan;
+            var bitmapSpan = column.NullBitMapBuffers[0].ReadOnlySpan;
             long minRange = 0;
             long maxRange = ReadOnlyDataFrameBuffer<DateTime>.MaxCapacity;
             long maxCapacity = maxRange;
@@ -292,18 +304,26 @@ namespace Microsoft.Data.Analysis
                 {
                     int bufferIndex = (int)(row / maxCapacity);
                     readOnlySpan = column.Buffers[bufferIndex].ReadOnlySpan;
+                    bitmapSpan = column.NullBitMapBuffers[bufferIndex].ReadOnlySpan;
                     minRange = checked(bufferIndex * maxCapacity);
                     maxRange = checked((bufferIndex + 1) * maxCapacity);
                 }
                 row -= minRange;
 
+                //Check if bit is not set (value is null) - skip
+                if (!BitUtility.IsValid(bitmapSpan, (int)row))
+                    continue;
+
                 var val = readOnlySpan[(int)row];
 
-                if (val < ret)
+                if (!hasMinValue || val < minDate)
                 {
-                    ret = val;
+                    minDate = val;
+                    hasMinValue = true;
                 }
             }
+
+            ret = hasMinValue ? minDate : null;
         }
 
         public void Product(PrimitiveColumnContainer<DateTime> column, out DateTime? ret)
