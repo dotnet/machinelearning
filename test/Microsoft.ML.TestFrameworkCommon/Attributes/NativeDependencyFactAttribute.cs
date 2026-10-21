@@ -2,8 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Runtime.InteropServices;
+using Microsoft.ML.TestFrameworkCommon;
 using Microsoft.ML.TestFrameworkCommon.Attributes;
-using Microsoft.ML.TestFrameworkCommon.Utility;
+using NativeLibrary = Microsoft.ML.TestFrameworkCommon.Utility.NativeLibrary;
 
 namespace Microsoft.ML.TestFramework.Attributes
 {
@@ -20,8 +22,10 @@ namespace Microsoft.ML.TestFramework.Attributes
         protected override bool IsEnvironmentSupported()
         {
             // Starting to drop native support for X64 OSX since intel no longer makes them.
-            if (System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(System.Runtime.InteropServices.OSPlatform.OSX) && System.Runtime.InteropServices.RuntimeInformation.ProcessArchitecture == System.Runtime.InteropServices.Architecture.X64)
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX) && RuntimeInformation.ProcessArchitecture == Architecture.X64)
                 return false;
+            if (TestCommon.RequireNativeDependencies && _library == "MklImports")
+                return RuntimeInformation.ProcessArchitecture == Architecture.X86 || RuntimeInformation.ProcessArchitecture == Architecture.X64;
             return NativeLibrary.NativeLibraryExists(_library);
         }
     }

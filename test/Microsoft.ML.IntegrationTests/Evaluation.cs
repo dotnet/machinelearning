@@ -4,10 +4,12 @@
 
 using Microsoft.ML.Data;
 using Microsoft.ML.IntegrationTests.Datasets;
+using Microsoft.ML.TestFramework.Attributes;
 using Microsoft.ML.TestFrameworkCommon;
 using Microsoft.ML.TestFrameworkCommon.Attributes;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Trainers.FastTree;
+using Microsoft.ML.Trainers.LightGbm;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -104,6 +106,28 @@ namespace Microsoft.ML.IntegrationTests
             var metrics = mlContext.BinaryClassification.Evaluate(scoredData);
 
             // Check that the metrics returned are valid.
+            Common.AssertMetrics(metrics);
+        }
+
+        /// <summary>
+        /// Train and evaluate a binary classifier using LightGBM's native backend.
+        /// </summary>
+        [X64Fact("The LightGBM dependency supplies x64 native assets only.")]
+        public void TrainAndEvaluateLightGbm()
+        {
+            var mlContext = new MLContext(seed: 1);
+            var data = mlContext.Data.LoadFromTextFile<TweetSentiment>(
+                TestCommon.GetDataPath(DataDir, TestDatasets.Sentiment.trainFilename),
+                hasHeader: TestDatasets.Sentiment.fileHasHeader,
+                separatorChar: TestDatasets.Sentiment.fileSeparator);
+            var pipeline = mlContext.Transforms.Text.FeaturizeText("Features", "SentimentText")
+                .Append(mlContext.BinaryClassification.Trainers.LightGbm(new LightGbmBinaryTrainer.Options
+                {
+                    NumberOfIterations = 20,
+                    NumberOfThreads = 1
+                }));
+            var model = pipeline.Fit(data);
+            var metrics = mlContext.BinaryClassification.Evaluate(model.Transform(data));
             Common.AssertMetrics(metrics);
         }
 

@@ -7,7 +7,7 @@
     <PublicSign>false</PublicSign>
     <IsPackable>false</IsPackable>
     <!-- NU1605 is because the dependencies are automatically updated via a script at runtime -->
-    <NoWarn>$(NoWarn);NU1605</NoWarn>
+    <NoWarn Condition="'$(PublishedPackageVersions)' == ''">$(NoWarn);NU1605</NoWarn>
   </PropertyGroup>
 
   <Import Project="..\NightlyBuildDependency.props" />
@@ -16,7 +16,7 @@
     <Compile Include="..\Microsoft.ML.IntegrationTests\**\*.cs" />
   </ItemGroup>
 
-  <ItemGroup>
+  <ItemGroup Condition="'$(PublishedPackageVersions)' == ''">
     <NativeAssemblyReference Include="CpuMathNative" />
     <NativeAssemblyReference Include="FastTreeNative" />
     <NativeAssemblyReference Include="MatrixFactorizationNative" />
@@ -34,7 +34,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.ML.OnnxRuntime" />
-    <PackageReference Include="System.Collections.Immutable" />
+    <PackageReference Include="System.Collections.Immutable" Condition="'$(PublishedPackageVersions)' == ''" />
   </ItemGroup>
 
 </Project>
