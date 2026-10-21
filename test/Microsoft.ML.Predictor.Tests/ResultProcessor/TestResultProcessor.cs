@@ -4,6 +4,7 @@
 
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using Xunit;
 using Xunit.Abstractions;
@@ -20,6 +21,37 @@ namespace Microsoft.ML.RunTests
 
         public TestResultProcessor(ITestOutputHelper helper) : base(helper)
         {
+        }
+
+        [Theory]
+        [InlineData("absolute")]
+        [InlineData("with spaces")]
+        [InlineData("with {braces}")]
+        [InlineData("with {unmatched brace")]
+        public void ResultProcessorWithAbsolutePaths(string directory)
+        {
+            string outputDirectory = Path.Combine(SubDirectory, directory);
+            string[] commands = { "TrainTest", "CV" };
+            string[] inputPaths = new string[commands.Length];
+            for (int i = 0; i < commands.Length; i++)
+            {
+                string name = $"LogisticRegression-norm-{commands[i]}-breast-cancer-out.txt";
+                inputPaths[i] = DeleteOutputPath(outputDirectory, name);
+                File.Copy(GetBaselinePath("LogisticRegression", name), inputPaths[i]);
+            }
+
+            string outputPath = DeleteOutputPath(outputDirectory, "results-rp.txt");
+            RunResultProcessorTest(inputPaths, outputPath, null);
+
+            Assert.True(File.Exists(outputPath));
+            string[] lines = File.ReadAllLines(outputPath).Where(line => !string.IsNullOrWhiteSpace(line)).ToArray();
+            Assert.Equal(4, lines.Length);
+            Assert.Equal("LogisticRegression", lines[0]);
+            Assert.Contains("Accuracy", lines[1]);
+            for (int i = 0; i < inputPaths.Length; i++)
+                Assert.Contains(inputPaths[i], lines[i + 2]);
+
+            Done();
         }
 
         // Worker method for running the tests

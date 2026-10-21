@@ -1,7 +1,10 @@
-# Keep retention manual-only until the first ACTIVE model has been promoted.
+# Regularly restore the ACTIVE issues model to prevent cache eviction.
 name: "Labeler: Cache Retention"
 
 on:
+  schedule:
+    - cron: "36 4 * * *"
+
   workflow_dispatch:
     inputs:
       cache_key:
@@ -12,10 +15,11 @@ on:
 permissions: {}
 
 env:
-  CACHE_KEY: ${{ inputs.cache_key }}
+  CACHE_KEY: ${{ github.event.inputs.cache_key || 'ACTIVE' }}
 
 jobs:
   restore-cache:
+    if: ${{ github.event_name == 'workflow_dispatch' || !github.event.repository.fork }}
     runs-on: ubuntu-latest
     permissions: {}
     strategy:
