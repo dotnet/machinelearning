@@ -10,7 +10,11 @@ updates:
     directory: "/" # Location of package manifests
     schedule:
       interval: "weekly"
-    # Unmatched build/test-only packages retain unrestricted weekly update proposals.
+    # The nightly pipeline updates these placeholders before testing.
+    exclude-paths:
+      - "test/NightlyBuildDependency.props"
+      - "test/TestFrameworkDependency.props"
+    # Other unmatched build/test-only packages retain unrestricted weekly update proposals.
     ignore:
       # Leave all updates to these packages to Maestro. Keep this list aligned with the active dependencies
       # in eng/Version.Details.xml.
