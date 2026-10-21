@@ -17,6 +17,7 @@
   </ItemGroup>
 
   <ItemGroup Condition="'$(PublishedPackageVersions)' == ''">
+    <Compile Remove="PackageNativeDependenciesTests.cs" />
     <NativeAssemblyReference Include="CpuMathNative" />
     <NativeAssemblyReference Include="FastTreeNative" />
     <NativeAssemblyReference Include="MatrixFactorizationNative" />

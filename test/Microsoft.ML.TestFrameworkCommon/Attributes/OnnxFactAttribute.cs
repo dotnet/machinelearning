@@ -31,10 +31,6 @@ namespace Microsoft.ML.TestFrameworkCommon.Attributes
             Environment.Is64BitProcess
             && (!RuntimeInformation.IsOSPlatform(OSPlatform.Linux)
                 || AttributeHelpers.CheckLibcVersionGreaterThanMinimum(new Version(2, 23)))
-            && (TestCommon.RequireNativeDependencies
-                ? RuntimeInformation.ProcessArchitecture == Architecture.X64
-                    || RuntimeInformation.ProcessArchitecture == Architecture.Arm64
-                    || (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && RuntimeInformation.ProcessArchitecture == Architecture.X86)
-                : Utility.NativeLibrary.NativeLibraryExists("onnxruntime"));
+            && Utility.NativeLibrary.NativeLibraryExists("onnxruntime");
     }
 }

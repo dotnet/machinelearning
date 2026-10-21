@@ -60,8 +60,6 @@ namespace Microsoft.ML.TestFrameworkCommon
         /// </summary>
         public const string TestDataDirEnvVariable = "ML_TEST_DATADIR";
 
-        internal static bool RequireNativeDependencies => Environment.GetEnvironmentVariable("ML_TEST_REQUIRE_NATIVE") == "1";
-
         public static string GetRepoRoot()
         {
             string directory = Environment.GetEnvironmentVariable(TestDataDirEnvVariable);

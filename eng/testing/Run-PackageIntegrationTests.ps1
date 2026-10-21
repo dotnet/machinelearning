@@ -93,7 +93,6 @@ function Invoke-Dotnet([string[]]$Arguments) {
 $environment = @{
   NUGET_PACKAGES = (Join-Path $working 'packages')
   ML_TEST_DATADIR = $repository
-  ML_TEST_REQUIRE_NATIVE = '1'
   DOTNET_ADDITIONAL_DEPS = $null
   DOTNET_SHARED_STORE = $null
 }

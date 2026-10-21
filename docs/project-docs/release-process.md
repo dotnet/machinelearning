@@ -108,8 +108,9 @@ $selection = Join-Path ([IO.Path]::GetTempPath()) 'mlnet-selected-build.json'
 
 The runner supplies exact package versions to both the nightly project and its
 test helper. It disables repository-native copying and uses fresh build outputs
-and a fresh package cache. On supported platforms, missing native dependencies
-fail tests instead of skipping them.
+and a fresh package cache. Package-only checks require the ONNX and MKL native
+libraries on supported platforms. The shared integration tests keep their normal
+capability-based skips.
 
 Use `-Filter` to select tests, or `-WorkingDirectory` to choose an empty directory
 outside the checkout. Logs, resolved packages, and TRX results are retained in its
