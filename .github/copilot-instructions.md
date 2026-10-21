@@ -12,7 +12,7 @@ ML.NET is a cross-platform, open-source machine learning framework for .NET. It 
 
 - .NET SDK version selected by `global.json`
 - Build system: Microsoft Arcade SDK (`eng/common/`)
-- Test framework: xUnit (with `AwesomeAssertions`, `Xunit.Combinatorial`)
+- Test framework: xUnit (with `Xunit.Combinatorial`)
 - Native dependencies: MKL, OpenMP, libmf, oneDNN
 - Major dependencies: TorchSharp, ONNX Runtime, TensorFlow, LightGBM
 - Central package management: `Directory.Packages.props`
@@ -136,7 +136,7 @@ public class MyFeatureTests : TestDataPipeBase
 
 Name test classes as `{Feature}Tests`, test methods as PascalCase descriptive names (e.g., `RandomizedPcaTrainerBaselineTest`). Do not use `Test_` prefixes or `_Should_` patterns.
 
-Use `Assert.*` (xUnit) or `AwesomeAssertions` for fluent assertions. Do not use `Assert.That` (NUnit style).
+Use the built-in `Assert.*` (xUnit) assertions. Do not use `Assert.That` (NUnit style) or additional assertion libraries.
 
 Test data: use `Microsoft.ML.TestDatabases` package or files in `test/data/`, referenced via `GetDataPath("filename")` from the base class. Baseline output comparison uses files in `test/BaselineOutput/`. Update baselines carefully since they are the source of truth for output format stability.
 
