@@ -113,4 +113,4 @@ fail tests instead of skipping them.
 
 Use `-Filter` to select tests, or `-WorkingDirectory` to choose an empty directory
 outside the checkout. Logs, resolved packages, and TRX results are retained in its
-`diagnostics` folder. This is local-only. CI configuration is unchanged.
+`diagnostics` folder.
