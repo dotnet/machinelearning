@@ -2,7 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Linq;
+using System.Runtime.InteropServices;
 using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.TestFramework.Attributes;
@@ -13,7 +15,16 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 {
     public partial class TrainerEstimators
     {
-        [NativeDependencyFact("SymSgdNative")]
+        private static bool IsSymSgdClassificationSupported =>
+#if NET8_0
+            !(RuntimeInformation.IsOSPlatform(OSPlatform.Linux)
+                && RuntimeInformation.ProcessArchitecture == Architecture.Arm
+                && Environment.GetEnvironmentVariable("HELIX_CORRELATION_ID") != null)
+            &&
+#endif
+            new NativeDependencyFactAttribute("SymSgdNative").Skip == null;
+
+        [ConditionalFact(nameof(IsSymSgdClassificationSupported))] // https://github.com/dotnet/machinelearning/issues/7837
         public void TestEstimatorSymSgdClassificationTrainer()
         {
             (var pipe, var dataView) = GetBinaryClassificationPipeline();

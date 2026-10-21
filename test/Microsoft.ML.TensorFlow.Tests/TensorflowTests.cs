@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Runtime.InteropServices;
 using Microsoft.ML.Data;
 using Microsoft.ML.TensorFlow;
 using Microsoft.ML.TestFramework;
@@ -57,6 +58,13 @@ namespace Microsoft.ML.TensorFlow.Scenarios
 
     public sealed class TensorFlowScenariosTests : BaseTestClass, IClassFixture<TensorFlowScenariosTestsFixture>
     {
+        private static bool IsTensorFlowSupported => new TensorFlowFactAttribute().Skip == null;
+
+        private static bool IsNotLinuxX64Helix =>
+            !(RuntimeInformation.IsOSPlatform(OSPlatform.Linux)
+                && RuntimeInformation.ProcessArchitecture == Architecture.X64
+                && Environment.GetEnvironmentVariable("HELIX_CORRELATION_ID") != null);
+
         private readonly string _fullImagesetFolderPath;
         private readonly string _finalImagesFolderName;
         private MLContext _mlContext = new MLContext(seed: 1);
@@ -1581,7 +1589,11 @@ namespace Microsoft.ML.TensorFlow.Scenarios
             (trainedModel as IDisposable)?.Dispose();
         }
 
+#if NET8_0 && !DEBUG
+        [ConditionalFact(nameof(IsNotLinuxX64Helix), nameof(IsTensorFlowSupported))] // https://github.com/dotnet/machinelearning/issues/7836
+#else
         [TensorFlowFact]
+#endif
         public void TensorFlowImageClassificationWithExponentialLRScheduling()
         {
             TensorFlowImageClassificationWithLRScheduling(new ExponentialLRDecay(), 50);
@@ -1827,7 +1839,11 @@ namespace Microsoft.ML.TensorFlow.Scenarios
             (trainedModel as IDisposable)?.Dispose();
         }
 
+#if NET8_0 && DEBUG
+        [ConditionalFact(nameof(IsNotLinuxX64Helix), nameof(IsTensorFlowSupported))] // https://github.com/dotnet/machinelearning/issues/7836
+#else
         [TensorFlowFact]
+#endif
         public void TensorFlowImageClassificationBadImages()
         {
             string imagesDownloadFolderPath = Path.Combine(TensorFlowScenariosTestsFixture.assetsPath, "inputs",
