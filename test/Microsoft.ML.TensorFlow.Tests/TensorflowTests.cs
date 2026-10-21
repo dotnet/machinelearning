@@ -58,11 +58,11 @@ namespace Microsoft.ML.TensorFlow.Scenarios
 
     public sealed class TensorFlowScenariosTests : BaseTestClass, IClassFixture<TensorFlowScenariosTestsFixture>
     {
-        private static bool IsTensorFlowSupported => new TensorFlowFactAttribute().Skip == null;
-
-        private static bool IsNotLinuxX64 =>
+        // Image-classification training exceeds Linux x64 CI memory limits: https://github.com/dotnet/machinelearning/issues/7836
+        private static bool IsTensorFlowImageClassificationSupported =>
             !(RuntimeInformation.IsOSPlatform(OSPlatform.Linux)
-                && RuntimeInformation.ProcessArchitecture == Architecture.X64);
+                && RuntimeInformation.ProcessArchitecture == Architecture.X64)
+            && new TensorFlowFactAttribute().Skip == null;
 
         private readonly string _fullImagesetFolderPath;
         private readonly string _finalImagesFolderName;
@@ -1392,7 +1392,7 @@ namespace Microsoft.ML.TensorFlow.Scenarios
             transformer.Dispose();
         }
 
-        [TensorFlowFact]
+        [ConditionalFact(nameof(IsTensorFlowImageClassificationSupported))]
         public void TensorFlowImageClassificationDefault()
         {
             //Load all the original images info
@@ -1463,7 +1463,7 @@ namespace Microsoft.ML.TensorFlow.Scenarios
             return (trainSetBottleneckCachedValuesFileName, validationSetBottleneckCachedValuesFileName, workspacePath, isReuse);
         }
 
-        [TensorFlowTheory]
+        [ConditionalTheory(nameof(IsTensorFlowImageClassificationSupported))]
         [InlineData(ImageClassificationTrainer.Architecture.ResnetV2101)]
         [InlineData(ImageClassificationTrainer.Architecture.MobilenetV2)]
         [InlineData(ImageClassificationTrainer.Architecture.ResnetV250)]
@@ -1588,13 +1588,13 @@ namespace Microsoft.ML.TensorFlow.Scenarios
             (trainedModel as IDisposable)?.Dispose();
         }
 
-        [ConditionalFact(nameof(IsNotLinuxX64), nameof(IsTensorFlowSupported))] // https://github.com/dotnet/machinelearning/issues/7836
+        [ConditionalFact(nameof(IsTensorFlowImageClassificationSupported))]
         public void TensorFlowImageClassificationWithExponentialLRScheduling()
         {
             TensorFlowImageClassificationWithLRScheduling(new ExponentialLRDecay(), 50);
         }
 
-        [TensorFlowFact]
+        [ConditionalFact(nameof(IsTensorFlowImageClassificationSupported))]
         public void TensorFlowImageClassificationWithPolynomialLRScheduling()
         {
             TensorFlowImageClassificationWithLRScheduling(new PolynomialLRDecay(), 50);
@@ -1752,7 +1752,7 @@ namespace Microsoft.ML.TensorFlow.Scenarios
             predictionEngine.Dispose();
         }
 
-        [TensorFlowTheory]
+        [ConditionalTheory(nameof(IsTensorFlowImageClassificationSupported))]
         [InlineData(ImageClassificationTrainer.EarlyStoppingMetric.Accuracy)]
         [InlineData(ImageClassificationTrainer.EarlyStoppingMetric.Loss)]
         public void TensorFlowImageClassificationEarlyStopping(ImageClassificationTrainer.EarlyStoppingMetric earlyStoppingMetric)
@@ -1834,7 +1834,7 @@ namespace Microsoft.ML.TensorFlow.Scenarios
             (trainedModel as IDisposable)?.Dispose();
         }
 
-        [ConditionalFact(nameof(IsNotLinuxX64), nameof(IsTensorFlowSupported))] // https://github.com/dotnet/machinelearning/issues/7836
+        [ConditionalFact(nameof(IsTensorFlowImageClassificationSupported))]
         public void TensorFlowImageClassificationBadImages()
         {
             string imagesDownloadFolderPath = Path.Combine(TensorFlowScenariosTestsFixture.assetsPath, "inputs",

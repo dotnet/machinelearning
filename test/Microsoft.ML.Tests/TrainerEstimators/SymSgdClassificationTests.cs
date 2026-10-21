@@ -33,7 +33,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             Done();
         }
 
-        [NativeDependencyFact("SymSgdNative")]
+        [ConditionalFact(nameof(IsSymSgdClassificationSupported))] // https://github.com/dotnet/machinelearning/issues/7837
         public void TestEstimatorSymSgdInitPredictor()
         {
             (var pipe, var dataView) = GetBinaryClassificationPipeline();
