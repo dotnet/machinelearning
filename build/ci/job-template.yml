@@ -3,6 +3,7 @@
 parameters:
   name: ''
   architecture: x64
+  rootfsDir: ''
   buildScript: ''
   pool: {}
   customMatrixes: ''
@@ -37,8 +38,8 @@ jobs:
         spaceValue: ' '
       ${{ if eq(parameters.buildScript, './build.sh') }}:
         spaceValue: '%20'
-      ${{ if and(contains(parameters.pool.demands, 'ubuntu'), contains(parameters.name, 'cross')) }}:
-        ROOTFS_DIR: '/crossrootfs/${{ parameters.architecture }}'
+      ${{ if ne(parameters.rootfsDir, '') }}:
+        ROOTFS_DIR: ${{ parameters.rootfsDir }}
       ${{ if eq(parameters.codeCoverage, 'true') }}:
         hardLink: ''
       ${{ if eq(parameters.codeCoverage, 'false') }}:

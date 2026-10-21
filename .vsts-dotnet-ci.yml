@@ -53,6 +53,7 @@ jobs:
   parameters:
     architecture: arm
     name: Ubuntu_x64_cross_arm
+    rootfsDir: '/crossrootfs/arm'
     buildScript: ./build.sh
     container: UbuntuCrossArmContainer
     customMatrixes:
@@ -76,6 +77,7 @@ jobs:
   parameters:
     architecture: arm64
     name: Ubuntu_x64_cross_arm64
+    rootfsDir: '/crossrootfs/arm64'
     buildScript: ./build.sh
     container: UbuntuCrossArm64Container
     customMatrixes:
