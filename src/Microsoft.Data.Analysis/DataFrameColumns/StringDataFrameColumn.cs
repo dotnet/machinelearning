@@ -223,7 +223,7 @@ namespace Microsoft.Data.Analysis
                 }
                 // TODO: Refactor the sort routine to also work with IList?
                 string[] array = buffer.ToArray();
-                IntrospectiveSort(array, array.Length, sortIndices, comparer);
+                IntrospectiveSort(array, array.Length, sortIndices, comparer, ascending);
                 bufferSortIndices.Add(sortIndices);
             }
             // Simple merge sort to build the full column's sort indices
