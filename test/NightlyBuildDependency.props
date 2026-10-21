@@ -5,7 +5,7 @@
     <PackageVersion Include="Microsoft.ML" Version="5.0.1" />
     <PackageVersion Include="Microsoft.ML.Ensemble" Version="0.23.1" />
     <PackageVersion Include="Microsoft.ML.EntryPoints" Version="0.22.0-preview.24378.1" />
-    <PackageVersion Include="Microsoft.ML.FastTree" Version="4.0.0-preview.24378.1" />
+    <PackageVersion Include="Microsoft.ML.FastTree" Version="5.0.1" />
     <PackageVersion Include="Microsoft.ML.LightGbm" Version="4.0.0-preview.24378.1" />
     <PackageVersion Include="Microsoft.ML.Mkl.Components" Version="4.0.0-preview.24378.1" />
     <PackageVersion Include="Microsoft.ML.OnnxConverter" Version="0.22.0-preview.24378.1" />
