@@ -27,7 +27,7 @@ jobs:
     cancelTimeoutInMinutes: 10
     variables:
       dotnetPath: $(Build.SourcesDirectory)/.dotnet/dotnet
-      nugetFeed: https://pkgs.dev.azure.com/dnceng/public/_packaging/MachineLearning/nuget/v3/index.json
+      nugetFeed: https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-libraries/nuget/v3/index.json
       nightlyBuildProjPath: $(Build.SourcesDirectory)/test/Microsoft.ML.NightlyBuild.Tests/Microsoft.ML.NightlyBuild.Tests.csproj
       nightlyBuildRunPath: $(Build.SourcesDirectory)/artifacts/bin/Microsoft.ML.NightlyBuild.Tests/$(_configuration)/$(_targetFramework)
       runNightlyBuildProj: $(Build.SourcesDirectory)/test/run-night-build-tests.proj
@@ -99,7 +99,7 @@ jobs:
     - ${{ if eq(parameters.nightlyBuild, 'true') }}:
       - script: $(dotnetPath) restore $(nightlyBuildProjPath)
         displayName: Restore nightly build project
-      - script: $(dotnetPath) list $(nightlyBuildProjPath) package --source $(nugetFeed) --outdated > $(versionFilePath)
+      - script: $(dotnetPath) list $(nightlyBuildProjPath) package --source $(nugetFeed) --outdated --include-prerelease > $(versionFilePath)
         displayName: List latest package versions
       - script: $(dotnetPath) run --project $(packageUpdaterProjPath)
         displayName: Update package versions for nightly build
