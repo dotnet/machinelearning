@@ -13,8 +13,7 @@ updates:
     # Other unmatched build/test-only packages retain unrestricted weekly update proposals.
     ignore:
       # Nightly runs refresh these test placeholders before testing. Maintain usable baseline
-      # versions for initial restore/manual use. These ignores also suppress security-update PRs
-      # for these IDs, but do not disable Dependabot alerts.
+      # versions for initial restore/manual use.
       - dependency-name: "Microsoft.ML"
       - dependency-name: "Microsoft.ML.Ensemble"
       - dependency-name: "Microsoft.ML.EntryPoints"
