@@ -10,12 +10,21 @@ updates:
     directory: "/" # Location of package manifests
     schedule:
       interval: "weekly"
-    # The nightly pipeline updates these placeholders before testing.
-    exclude-paths:
-      - "test/NightlyBuildDependency.props"
-      - "test/TestFrameworkDependency.props"
     # Other unmatched build/test-only packages retain unrestricted weekly update proposals.
     ignore:
+      # Nightly runs refresh these test placeholders before testing. Maintain usable baseline
+      # versions for initial restore/manual use. These ignores also suppress security-update PRs
+      # for these IDs, but do not disable Dependabot alerts.
+      - dependency-name: "Microsoft.ML"
+      - dependency-name: "Microsoft.ML.Ensemble"
+      - dependency-name: "Microsoft.ML.EntryPoints"
+      - dependency-name: "Microsoft.ML.FastTree"
+      - dependency-name: "Microsoft.ML.LightGbm"
+      - dependency-name: "Microsoft.ML.Mkl.Components"
+      - dependency-name: "Microsoft.ML.OnnxConverter"
+      - dependency-name: "Microsoft.ML.OnnxTransformer"
+      - dependency-name: "Microsoft.ML.Parquet"
+      - dependency-name: "Microsoft.ML.Recommender"
       # Leave all updates to these packages to Maestro. Keep this list aligned with the active dependencies
       # in eng/Version.Details.xml.
       - dependency-name: "Microsoft.DotNet.Arcade.Sdk"
