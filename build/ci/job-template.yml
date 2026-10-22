@@ -39,8 +39,9 @@ jobs:
         spaceValue: '%20'
       ${{ if and(contains(parameters.pool.demands, 'ubuntu'), contains(parameters.name, 'cross')) }}:
         ROOTFS_DIR: '/crossrootfs/${{ parameters.architecture }}'
+      # Coverlet rewrites assemblies and PDBs; keep coverage outputs independent of obj files.
       ${{ if eq(parameters.codeCoverage, 'true') }}:
-        hardLink: ''
+        hardLink: '/p:CreateHardLinksForCopyFilesToOutputDirectoryIfPossible=False /p:CreateHardLinksForCopyLocalIfPossible=False'
       ${{ if eq(parameters.codeCoverage, 'false') }}:
         hardLink: '/p:CreateHardLinksForCopyLocalIfPossible=True'
       testTargetFramework: '/p:TestTargetFramework=$(_targetFramework)'
@@ -73,7 +74,7 @@ jobs:
     - ${{ if and( eq(parameters.nightlyBuild, 'true'), eq(parameters.pool.vmImage, 'ubuntu-18.04')) }}:
       - bash: echo "##vso[task.setvariable variable=LD_LIBRARY_PATH]$(nightlyBuildRunPath):$LD_LIBRARY_PATH"
         displayName: Set LD_LIBRARY_PATH for Ubuntu and CentOS to locate Native shared library in current running path
-    - script: ${{ parameters.buildScript }} -configuration $(_configuration) /p:TargetArchitecture=${{ parameters.architecture }} /p:Coverage=${{ parameters.codeCoverage }} $(testTargetFramework) /p:CreateHardLinksForCopyFilesToOutputDirectoryIfPossible=True $(hardLink)
+    - script: ${{ parameters.buildScript }} -configuration $(_configuration) /p:TargetArchitecture=${{ parameters.architecture }} /p:Coverage=${{ parameters.codeCoverage }} $(testTargetFramework) $(hardLink)
       displayName: Build
     - ${{ if eq(parameters.pool.vmImage, 'macOS-10.15') }}:
       - task: Bash@3
