@@ -139,7 +139,7 @@ namespace Microsoft.ML.TextAnalytics
             Contracts.Check(numVocab >= 0);
             Contracts.Check(tableSize >= 0);
             Contracts.Check(aliasTableSize >= 0);
-            LdaInterface.AllocateModelMemory(_engine, numVocab, numTopic, tableSize, aliasTableSize);
+            LdaInterface.AllocateModelMemory(_engine, numTopic, numVocab, tableSize, aliasTableSize);
         }
 
         public void AllocateDataMemory(int docNum, long corpusSize)

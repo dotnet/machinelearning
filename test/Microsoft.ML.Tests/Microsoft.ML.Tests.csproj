@@ -52,7 +52,6 @@
     <PackageReference Include="Microsoft.ML.TestModels" />
     <PackageReference Include="System.Data.SqlClient" />
     <PackageReference Include="Microsoft.ML.OnnxRuntime" />
-    <PackageReference Include="AwesomeAssertions" />
     <PackageReference Include="System.Data.SQLite.Core" />
   </ItemGroup>
 

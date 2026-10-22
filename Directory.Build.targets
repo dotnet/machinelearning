@@ -30,10 +30,11 @@
 		</ItemGroup>
 
     <ItemGroup Condition="'$(TargetArchitecture)' == 'arm64' Or '$(TargetArchitecture)' == 'arm'">
+      <!-- Remove native libraries that are unavailable on ARM. SymSgdNative is intentionally
+           not removed because it is built with its self-contained CBLAS shim on ARM. -->
       <NativeAssemblyReference Remove="MklImports"/>
       <NativeAssemblyReference Remove="CpuMathNative"/>
       <NativeAssemblyReference Remove="FastTreeNative"/>
-      <NativeAssemblyReference Remove="SymSgdNative"/>
       <NativeAssemblyReference Remove="MklProxyNative"/>
       <NativeAssemblyReference Remove="libiomp5md"/>
     </ItemGroup>

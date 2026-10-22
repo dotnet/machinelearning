@@ -210,18 +210,26 @@ namespace Microsoft.Data.Analysis
         protected internal virtual void Resize(long length) => throw new NotImplementedException();
 
         /// <summary>
-        /// Clone column to produce a copy
+        /// Clones the column.
         /// </summary>
-        /// <param name="numberOfNullsToAppend"></param>
+        /// <param name="numberOfNullsToAppend">The number of null values to append to the copied values.</param>
         /// <returns>A new <see cref="DataFrameColumn"/></returns>
         public DataFrameColumn Clone(long numberOfNullsToAppend = 0) => CloneImplementation(numberOfNullsToAppend);
 
         /// <summary>
-        /// Clone column to produce a copy potentially changing the order of values by supplying mapIndices and an invert flag
+        /// Clones the column, selecting and ordering values according to <paramref name="mapIndices"/>.
         /// </summary>
-        /// <param name="mapIndices"></param>
-        /// <param name="invertMapIndices"></param>
-        /// <param name="numberOfNullsToAppend"></param>
+        /// <param name="mapIndices">
+        /// A Boolean, <see cref="int"/>, or <see cref="long"/> column that determines which values to copy.
+        /// For a Boolean column, the value at each position selects the value at the same position when it is
+        /// <see langword="true"/>. For an integer column, each value is a zero-based index into this column;
+        /// the map order determines the result order, and repeated indices produce repeated values.
+        /// </param>
+        /// <param name="invertMapIndices">
+        /// <see langword="true"/> to process integer values in <paramref name="mapIndices"/> in reverse order;
+        /// otherwise, <see langword="false"/>. This parameter does not affect a Boolean map.
+        /// </param>
+        /// <param name="numberOfNullsToAppend">The number of null values to append after the selected values.</param>
         /// <returns>A new <see cref="DataFrameColumn"/></returns>
         public DataFrameColumn Clone(DataFrameColumn mapIndices, bool invertMapIndices = false, long numberOfNullsToAppend = 0) => CloneImplementation(mapIndices, invertMapIndices, numberOfNullsToAppend);
 
@@ -480,6 +488,13 @@ namespace Microsoft.Data.Analysis
             if (putNullValuesLast)
                 i -= columnNullIndices.Length;
 
+            // Equal values must be consumed in row order. Descending output is filled backwards.
+            var bufferIndexComparer = Comparer<ValueTuple<int, int>>.Create((left, right) => ascending
+                ? right.Item2.CompareTo(left.Item2)
+                : left.Item2.CompareTo(right.Item2));
+            foreach (List<ValueTuple<int, int>> bufferIndices in heapOfValueAndListOfTupleOfSortAndBufferIndex.Values)
+                bufferIndices.Sort(bufferIndexComparer);
+
             while (heapOfValueAndListOfTupleOfSortAndBufferIndex.Count > 0)
             {
                 KeyValuePair<T, List<ValueTuple<int, int>>> minElement = heapOfValueAndListOfTupleOfSortAndBufferIndex.ElementAt(0);
@@ -508,7 +523,16 @@ namespace Microsoft.Data.Analysis
                     T nextValue = nextValueAndBufferSortIndex.value;
                     if (nextValue != null)
                     {
-                        heapOfValueAndListOfTupleOfSortAndBufferIndex.Add(nextValue, new List<ValueTuple<int, int>>() { (nextValueAndBufferSortIndex.bufferSortIndex, bufferIndex) });
+                        var nextEntry = (nextValueAndBufferSortIndex.bufferSortIndex, bufferIndex);
+                        if (heapOfValueAndListOfTupleOfSortAndBufferIndex.TryGetValue(nextValue, out List<ValueTuple<int, int>> bufferIndices))
+                        {
+                            int insertionIndex = ~bufferIndices.BinarySearch(nextEntry, bufferIndexComparer);
+                            bufferIndices.Insert(insertionIndex, nextEntry);
+                        }
+                        else
+                        {
+                            heapOfValueAndListOfTupleOfSortAndBufferIndex.Add(nextValue, new List<ValueTuple<int, int>>() { nextEntry });
+                        }
                     }
                 }
             }
@@ -539,17 +563,25 @@ namespace Microsoft.Data.Analysis
             ReadOnlySpan<T> span,
             int length,
             Span<int> sortIndices,
-            IComparer<T> comparer)
+            IComparer<T> comparer,
+            bool ascending = true)
         {
             var depthLimit = 2 * FloorLog2PlusOne(length);
-            IntroSortRecursive(span, 0, length - 1, depthLimit, sortIndices, comparer);
+            IntroSortRecursive(span, 0, length - 1, depthLimit, sortIndices, comparer, ascending);
+        }
+
+        private static int CompareSortIndices<T>(ReadOnlySpan<T> span, int left, int right, IComparer<T> comparer, bool ascending)
+        {
+            int result = comparer.Compare(span[left], span[right]);
+            return result != 0 ? result : ascending ? left.CompareTo(right) : right.CompareTo(left);
         }
 
         internal static void IntroSortRecursive<T>(
             ReadOnlySpan<T> span,
             int lo, int hi, int depthLimit,
             Span<int> sortIndices,
-            IComparer<T> comparer)
+            IComparer<T> comparer,
+            bool ascending = true)
         {
             Debug.Assert(comparer != null);
             Debug.Assert(lo >= 0);
@@ -565,30 +597,30 @@ namespace Microsoft.Data.Analysis
                     }
                     if (partitionSize == 2)
                     {
-                        Sort2(span, lo, hi, sortIndices, comparer);
+                        Sort2(span, lo, hi, sortIndices, comparer, ascending);
                         return;
                     }
                     if (partitionSize == 3)
                     {
-                        Sort3(span, lo, hi - 1, hi, sortIndices, comparer);
+                        Sort3(span, lo, hi - 1, hi, sortIndices, comparer, ascending);
                         return;
                     }
 
-                    InsertionSort(span, lo, hi, sortIndices, comparer);
+                    InsertionSort(span, lo, hi, sortIndices, comparer, ascending);
                     return;
                 }
 
                 if (depthLimit == 0)
                 {
-                    HeapSort(span, lo, hi, sortIndices, comparer);
+                    HeapSort(span, lo, hi, sortIndices, comparer, ascending);
                     return;
                 }
                 depthLimit--;
 
                 // We should never reach here, unless > 3 elements due to partition size
-                int p = PickPivotAndPartition(span, lo, hi, sortIndices, comparer);
+                int p = PickPivotAndPartition(span, lo, hi, sortIndices, comparer, ascending);
                 // Note we've already partitioned around the pivot and do not have to move the pivot again.
-                IntroSortRecursive(span, p + 1, hi, depthLimit, sortIndices, comparer);
+                IntroSortRecursive(span, p + 1, hi, depthLimit, sortIndices, comparer, ascending);
                 hi = p - 1;
             }
         }
@@ -596,7 +628,8 @@ namespace Microsoft.Data.Analysis
         private static int PickPivotAndPartition<TKey, TComparer>(
             ReadOnlySpan<TKey> span, int lo, int hi,
             Span<int> sortIndices,
-            TComparer comparer)
+            TComparer comparer,
+            bool ascending)
             where TComparer : IComparer<TKey>
         {
             Debug.Assert(comparer != null);
@@ -607,9 +640,9 @@ namespace Microsoft.Data.Analysis
             int middle = (int)(((uint)hi + (uint)lo) >> 1);
 
             // Sort lo, mid and hi appropriately, then pick mid as the pivot.
-            Sort3(span, lo, middle, hi, sortIndices, comparer);
+            Sort3(span, lo, middle, hi, sortIndices, comparer, ascending);
 
-            TKey pivot = span[sortIndices[middle]];
+            int pivot = sortIndices[middle];
 
             int left = lo;
             int right = hi - 1;
@@ -618,16 +651,16 @@ namespace Microsoft.Data.Analysis
 
             while (left < right)
             {
-                while (left < (hi - 1) && comparer.Compare(span[sortIndices[++left]], pivot) < 0)
+                while (left < (hi - 1) && CompareSortIndices(span, sortIndices[++left], pivot, comparer, ascending) < 0)
                     ;
                 // Check if bad comparable/comparer
-                if (left == (hi - 1) && comparer.Compare(span[sortIndices[left]], pivot) < 0)
+                if (left == (hi - 1) && CompareSortIndices(span, sortIndices[left], pivot, comparer, ascending) < 0)
                     throw new ArgumentException("Bad comparer");
 
-                while (right > lo && comparer.Compare(pivot, span[sortIndices[--right]]) < 0)
+                while (right > lo && CompareSortIndices(span, pivot, sortIndices[--right], comparer, ascending) < 0)
                     ;
                 // Check if bad comparable/comparer
-                if (right == lo && comparer.Compare(pivot, span[sortIndices[right]]) < 0)
+                if (right == lo && CompareSortIndices(span, pivot, sortIndices[right], comparer, ascending) < 0)
                     throw new ArgumentException("Bad comparer");
 
                 if (left >= right)
@@ -654,7 +687,8 @@ namespace Microsoft.Data.Analysis
         private static void HeapSort<TKey, TComparer>(
             ReadOnlySpan<TKey> span, int lo, int hi,
             Span<int> sortIndices,
-            TComparer comparer)
+            TComparer comparer,
+            bool ascending)
             where TComparer : IComparer<TKey>
         {
             Debug.Assert(comparer != null);
@@ -664,19 +698,20 @@ namespace Microsoft.Data.Analysis
             int n = hi - lo + 1;
             for (int i = n / 2; i >= 1; --i)
             {
-                DownHeap(span, i, n, lo, sortIndices, comparer);
+                DownHeap(span, i, n, lo, sortIndices, comparer, ascending);
             }
             for (int i = n; i > 1; --i)
             {
                 Swap(ref sortIndices[lo], ref sortIndices[lo + i - 1]);
-                DownHeap(span, 1, i - 1, lo, sortIndices, comparer);
+                DownHeap(span, 1, i - 1, lo, sortIndices, comparer, ascending);
             }
         }
 
         private static void DownHeap<TKey, TComparer>(
             ReadOnlySpan<TKey> span, int i, int n, int lo,
             Span<int> sortIndices,
-            TComparer comparer)
+            TComparer comparer,
+            bool ascending)
             where TComparer : IComparer<TKey>
         {
             // Max Heap
@@ -684,19 +719,18 @@ namespace Microsoft.Data.Analysis
             Debug.Assert(lo >= 0);
 
             int di = sortIndices[lo - 1 + i];
-            TKey d = span[di];
             var nHalf = n / 2;
             while (i <= nHalf)
             {
                 int child = i << 1;
 
                 if (child < n &&
-                    comparer.Compare(span[sortIndices[lo + child - 1]], span[sortIndices[lo + child]]) < 0)
+                    CompareSortIndices(span, sortIndices[lo + child - 1], sortIndices[lo + child], comparer, ascending) < 0)
                 {
                     ++child;
                 }
 
-                if (!(comparer.Compare(d, span[sortIndices[lo + child - 1]]) < 0))
+                if (!(CompareSortIndices(span, di, sortIndices[lo + child - 1], comparer, ascending) < 0))
                     break;
 
                 sortIndices[lo + i - 1] = sortIndices[lo + child - 1];
@@ -709,7 +743,8 @@ namespace Microsoft.Data.Analysis
         private static void InsertionSort<TKey, TComparer>(
             ReadOnlySpan<TKey> span, int lo, int hi,
             Span<int> sortIndices,
-            TComparer comparer)
+            TComparer comparer,
+            bool ascending)
             where TComparer : IComparer<TKey>
         {
             Debug.Assert(lo >= 0);
@@ -718,16 +753,15 @@ namespace Microsoft.Data.Analysis
             for (int i = lo; i < hi; ++i)
             {
                 int j = i;
-                var t = span[sortIndices[j + 1]];
                 var ti = sortIndices[j + 1];
-                if (j >= lo && comparer.Compare(t, span[sortIndices[j]]) < 0)
+                if (j >= lo && CompareSortIndices(span, ti, sortIndices[j], comparer, ascending) < 0)
                 {
                     do
                     {
                         sortIndices[j + 1] = sortIndices[j];
                         --j;
                     }
-                    while (j >= lo && comparer.Compare(t, span[sortIndices[j]]) < 0);
+                    while (j >= lo && CompareSortIndices(span, ti, sortIndices[j], comparer, ascending) < 0);
 
                     sortIndices[j + 1] = ti;
                 }
@@ -737,21 +771,23 @@ namespace Microsoft.Data.Analysis
         private static void Sort3<TKey, TComparer>(
             ReadOnlySpan<TKey> span, int i, int j, int k,
             Span<int> sortIndices,
-            TComparer comparer)
+            TComparer comparer,
+            bool ascending)
             where TComparer : IComparer<TKey>
         {
-            Sort2(span, i, j, sortIndices, comparer);
-            Sort2(span, i, k, sortIndices, comparer);
-            Sort2(span, j, k, sortIndices, comparer);
+            Sort2(span, i, j, sortIndices, comparer, ascending);
+            Sort2(span, i, k, sortIndices, comparer, ascending);
+            Sort2(span, j, k, sortIndices, comparer, ascending);
         }
 
         private static void Sort2<TKey>(
             ReadOnlySpan<TKey> span, int i, int j,
             Span<int> sortIndices,
-            IComparer<TKey> comparer)
+            IComparer<TKey> comparer,
+            bool ascending)
         {
             Debug.Assert(i != j);
-            if (comparer.Compare(span[sortIndices[i]], span[sortIndices[j]]) > 0)
+            if (CompareSortIndices(span, sortIndices[i], sortIndices[j], comparer, ascending) > 0)
             {
                 int temp = sortIndices[i];
                 sortIndices[i] = sortIndices[j];

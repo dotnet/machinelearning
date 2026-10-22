@@ -11,7 +11,6 @@ using System.Text.Json.Serialization;
 using ApprovalTests;
 using ApprovalTests.Namers;
 using ApprovalTests.Reporters;
-using FluentAssertions;
 using Microsoft.ML.AutoML.CodeGen;
 using Microsoft.ML.TestFramework;
 using Xunit;
@@ -49,8 +48,8 @@ namespace Microsoft.ML.AutoML.Test
 
             var pipeline = new SweepableEstimatorPipeline();
             pipeline = pipeline.Append(e1).Append(e2);
-            pipeline.ToString().Should().Be("Concatenate=>ConvertType");
-            pipeline.SearchSpace.FeatureSpaceDim.Should().Be(0);
+            Assert.Equal("Concatenate=>ConvertType", pipeline.ToString());
+            Assert.Equal(0, pipeline.SearchSpace.FeatureSpaceDim);
         }
 
         [Fact]
@@ -64,9 +63,9 @@ namespace Microsoft.ML.AutoML.Test
             var pipeline = new MultiModelPipeline();
 
             pipeline = pipeline.Append(e1, e2).AppendOrSkip(e3, e4);
-            pipeline.Schema.ToString().Should().Be("(e0 + e1) * (e2 + e3 + Nil)");
-            pipeline.BuildSweepableEstimatorPipeline("e0 * e2").ToString().Should().Be("Concatenate=>ApplyOnnxModel");
-            pipeline.BuildSweepableEstimatorPipeline("e1 * Nil").ToString().Should().Be("ConvertType");
+            Assert.Equal("(e0 + e1) * (e2 + e3 + Nil)", pipeline.Schema.ToString());
+            Assert.Equal("Concatenate=>ApplyOnnxModel", pipeline.BuildSweepableEstimatorPipeline("e0 * e2").ToString());
+            Assert.Equal("ConvertType", pipeline.BuildSweepableEstimatorPipeline("e1 * Nil").ToString());
         }
 
         [Fact]
@@ -86,14 +85,14 @@ namespace Microsoft.ML.AutoML.Test
 
             pipeline1 = pipeline1.Append(pipeline2);
 
-            pipeline1.Schema.ToString().Should().Be("(e0 + e1 * e2) * (e3 * (e4 + e5) + e6)");
+            Assert.Equal("(e0 + e1 * e2) * (e3 * (e4 + e5) + e6)", pipeline1.Schema.ToString());
         }
 
         [Fact]
         public void SweepableEstimatorPipeline_search_space_test()
         {
             var pipeline = CreateSweepbaleEstimatorPipeline();
-            pipeline.SearchSpace.FeatureSpaceDim.Should().Be(15);
+            Assert.Equal(15, pipeline.SearchSpace.FeatureSpaceDim);
 
             // TODO
             // verify other properties in search space.
@@ -105,11 +104,11 @@ namespace Microsoft.ML.AutoML.Test
             var multiModelPipeline = CreateMultiModelPipeline();
             var pipelines = multiModelPipeline.PipelineIds;
 
-            pipelines.Should().BeEquivalentTo("e0 * e3 * e4", "e1 * e2 * e3 * e4", "e0 * Nil * e4", "e1 * e2 * Nil * e4", "Nil * e3 * e4", "e0 * e3 * e5", "e1 * e2 * e3 * e5", "e0 * Nil * e5", "e1 * e2 * Nil * e5", "Nil * e3 * e5", "Nil * Nil * e4", "Nil * Nil * e5");
+            Assert.Equivalent(new[] { "e0 * e3 * e4", "e1 * e2 * e3 * e4", "e0 * Nil * e4", "e1 * e2 * Nil * e4", "Nil * e3 * e4", "e0 * e3 * e5", "e1 * e2 * e3 * e5", "e0 * Nil * e5", "e1 * e2 * Nil * e5", "Nil * e3 * e5", "Nil * Nil * e4", "Nil * Nil * e5" }, pipelines, strict: true);
             var singleModelPipeline = multiModelPipeline.BuildSweepableEstimatorPipeline(pipelines[0]);
-            singleModelPipeline.ToString().Should().Be("ReplaceMissingValues=>Concatenate=>LightGbmBinary");
+            Assert.Equal("ReplaceMissingValues=>Concatenate=>LightGbmBinary", singleModelPipeline.ToString());
             singleModelPipeline = multiModelPipeline.BuildSweepableEstimatorPipeline(pipelines[2]);
-            singleModelPipeline.ToString().Should().Be("ReplaceMissingValues=>LightGbmBinary");
+            Assert.Equal("ReplaceMissingValues=>LightGbmBinary", singleModelPipeline.ToString());
         }
 
         [Fact]
