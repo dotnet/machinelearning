@@ -2,10 +2,10 @@
   <ItemGroup>
     <!-- Versions below are just placeholder, will be updated during nighly build pipeline to latest package version
     -->
-    <PackageVersion Include="Microsoft.ML" Version="6.0.0-preview.26513.4" />
+    <PackageVersion Include="Microsoft.ML" Version="6.0.0-preview.26521.7" />
     <PackageVersion Include="Microsoft.ML.Ensemble" Version="0.24.0-preview.26513.4" />
     <PackageVersion Include="Microsoft.ML.EntryPoints" Version="0.24.0-preview.26513.4" />
-    <PackageVersion Include="Microsoft.ML.FastTree" Version="6.0.0-preview.26513.4" />
+    <PackageVersion Include="Microsoft.ML.FastTree" Version="6.0.0-preview.26521.7" />
     <PackageVersion Include="Microsoft.ML.LightGbm" Version="6.0.0-preview.26513.4" />
     <PackageVersion Include="Microsoft.ML.Mkl.Components" Version="6.0.0-preview.26513.4" />
     <PackageVersion Include="Microsoft.ML.OnnxConverter" Version="0.24.0-preview.26513.4" />
