@@ -10,7 +10,6 @@ using System.Text;
 using ApprovalTests;
 using ApprovalTests.Namers;
 using ApprovalTests.Reporters;
-using FluentAssertions;
 using Microsoft.ML.AutoML.CodeGen;
 using Microsoft.ML.TestFramework;
 using Xunit;
@@ -54,28 +53,28 @@ namespace Microsoft.ML.AutoML.Test
             var csvTrialResultManager = new CsvTrialResultManager(tempFilePath, lgbmSearchSpace);
 
             // the tempFile is empty, so GetAllTrialResults should be 0;
-            csvTrialResultManager.GetAllTrialResults().Count().Should().Be(0);
+            Assert.Empty(csvTrialResultManager.GetAllTrialResults());
 
             // Add trialResults to csvTrialResultManager, the # of trials should be 10.
             foreach (var trialResult in trialResults)
             {
                 csvTrialResultManager.AddOrUpdateTrialResult(trialResult);
             }
-            csvTrialResultManager.GetAllTrialResults().Count().Should().Be(10);
+            Assert.Equal(10, csvTrialResultManager.GetAllTrialResults().Count());
 
             // if repeated trial added, csvTrialResultManager should update the existing trial.
             foreach (var trialResult in trialResults)
             {
                 csvTrialResultManager.AddOrUpdateTrialResult(trialResult);
             }
-            csvTrialResultManager.GetAllTrialResults().Count().Should().Be(10);
+            Assert.Equal(10, csvTrialResultManager.GetAllTrialResults().Count());
 
             // save as csv test
             csvTrialResultManager.Save();
 
             // reload test.
             csvTrialResultManager = new CsvTrialResultManager(tempFilePath, lgbmSearchSpace);
-            csvTrialResultManager.GetAllTrialResults().Count().Should().Be(10);
+            Assert.Equal(10, csvTrialResultManager.GetAllTrialResults().Count());
 
             var fileContent = File.ReadAllText(tempFilePath);
 

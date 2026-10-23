@@ -7,7 +7,6 @@
   <ItemGroup>
     <PackageReference Include="ApprovalTests" />
     <PackageReference Include="System.Data.SqlClient" />
-    <PackageReference Include="AwesomeAssertions" />
   </ItemGroup>
 
   <ItemGroup>

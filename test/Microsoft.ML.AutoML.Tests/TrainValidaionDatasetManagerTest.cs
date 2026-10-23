@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using FluentAssertions;
 using Microsoft.ML.AutoML.Test;
 using Microsoft.ML.SearchSpace;
 using Microsoft.ML.TestFramework;
@@ -32,7 +31,7 @@ namespace Microsoft.ML.AutoML.Test
             var trainData = textLoader.Load(dataPath);
 
             var trainDataLength = DatasetDimensionsUtil.CountRows(trainData, ulong.MaxValue);
-            trainDataLength.Should().Be(500);
+            Assert.Equal(500UL, trainDataLength);
 
             var trainValidationDatasetManager = new TrainValidateDatasetManager(trainData, trainData, "SubSampleKey");
 
@@ -46,7 +45,7 @@ namespace Microsoft.ML.AutoML.Test
 
             var subSampleTrainData = trainValidationDatasetManager.LoadTrainDataset(context, setting);
             var subSampleTrainDataLength = DatasetDimensionsUtil.CountRows(subSampleTrainData, ulong.MaxValue);
-            subSampleTrainDataLength.Should().Be(150);
+            Assert.Equal(150UL, subSampleTrainDataLength);
         }
     }
 }

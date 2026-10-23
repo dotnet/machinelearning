@@ -1,0 +1,35 @@
+# Regularly restore the ACTIVE issues model to prevent cache eviction.
+name: "Labeler: Cache Retention"
+
+on:
+  schedule:
+    - cron: "36 4 * * *"
+
+  workflow_dispatch:
+    inputs:
+      cache_key:
+        description: "Model cache suffix to restore."
+        required: true
+        default: "ACTIVE"
+
+permissions: {}
+
+env:
+  CACHE_KEY: ${{ github.event.inputs.cache_key || 'ACTIVE' }}
+
+jobs:
+  restore-cache:
+    if: ${{ github.event_name == 'workflow_dispatch' || !github.event.repository.fork }}
+    runs-on: ubuntu-latest
+    permissions: {}
+    strategy:
+      fail-fast: false
+      matrix:
+        type: ["issues"]
+    steps:
+      - name: "Restore issues model from cache"
+        uses: dotnet/issue-labeler/restore@160b6b1e1e8d36da09beb34ef1e4806d2c0520a3 # v2.2.0
+        with:
+          type: ${{ matrix.type }}
+          cache_key: ${{ env.CACHE_KEY }}
+          fail-on-cache-miss: true

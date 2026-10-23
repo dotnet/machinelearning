@@ -1,0 +1,29 @@
+# Promote a staged issues model to ACTIVE, backing up any current ACTIVE model.
+name: "Labeler: Promotion"
+
+on:
+  workflow_dispatch:
+    inputs:
+      staged_key:
+        description: "Staged model cache suffix to promote to ACTIVE."
+        required: true
+        default: "staged"
+      backup_key:
+        description: "Cache suffix for backing up the current ACTIVE model. Use a fresh suffix for each promotion."
+        required: false
+        default: "backup"
+
+permissions: {}
+
+jobs:
+  promote-issues:
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+    steps:
+      - name: "Promote Model for Issues"
+        uses: dotnet/issue-labeler/promote@160b6b1e1e8d36da09beb34ef1e4806d2c0520a3 # v2.2.0
+        with:
+          type: "issues"
+          staged_key: ${{ inputs.staged_key }}
+          backup_key: ${{ inputs.backup_key }}

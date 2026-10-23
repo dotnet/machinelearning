@@ -11,7 +11,6 @@ using System.Text.Json.Serialization;
 using ApprovalTests;
 using ApprovalTests.Namers;
 using ApprovalTests.Reporters;
-using FluentAssertions;
 using Microsoft.ML.AutoML.CodeGen;
 using Microsoft.ML.TestFramework;
 using Xunit;
@@ -50,7 +49,7 @@ namespace Microsoft.ML.AutoML.Test
             var estimator = context.Transforms.Concatenate("output", "input");
             var pipeline = estimator.Append(SweepableEstimatorFactory.CreateFastForestBinary(new FastForestOption()));
 
-            pipeline.Should().BeOfType<SweepablePipeline>();
+            Assert.IsType<SweepablePipeline>(pipeline);
         }
 
         [Fact]
@@ -59,7 +58,7 @@ namespace Microsoft.ML.AutoML.Test
             var estimator = SweepableEstimatorFactory.CreateFastForestBinary(new FastForestOption());
             var pipeline = estimator.Append(estimator);
 
-            pipeline.Should().BeOfType<SweepablePipeline>();
+            Assert.IsType<SweepablePipeline>(pipeline);
         }
 
         [Fact]
@@ -69,7 +68,7 @@ namespace Microsoft.ML.AutoML.Test
             var estimator = SweepableEstimatorFactory.CreateFastForestBinary(new FastForestOption());
             var pipeline = estimator.Append(context.Transforms.Concatenate("output", "input"));
 
-            pipeline.Should().BeOfType<SweepablePipeline>();
+            Assert.IsType<SweepablePipeline>(pipeline);
         }
 
         [Fact]
@@ -188,7 +187,7 @@ namespace Microsoft.ML.AutoML.Test
             var pipeline = estimator.Append(SweepableEstimatorFactory.CreateFastForestBinary(new FastForestOption()), SweepableEstimatorFactory.CreateFastForestBinary(new FastForestOption()));
             pipeline = pipeline.Append(context.Transforms.CopyColumns("output", "input"));
 
-            pipeline.Should().BeOfType<SweepablePipeline>();
+            Assert.IsType<SweepablePipeline>(pipeline);
             var json = JsonSerializer.Serialize(pipeline, _jsonSerializerOptions);
             Approvals.Verify(json);
         }
