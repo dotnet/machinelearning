@@ -232,6 +232,51 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             Done();
         }
 
+        [Theory]
+        [InlineData(0)]
+        [InlineData(-1)]
+        [InlineData(1)]
+        public void LightGbmConstantTreeConversion(int leafValue)
+        {
+            var ensemble = Booster.GetModel(null,
+                $"Tree=0\nnum_leaves=1\nnum_cat=0\nleaf_value={leafValue}\n\n");
+            var tree = new RegressionTree(ensemble.GetTreeAt(0));
+
+            Assert.All(tree.LeafValues, value => Assert.Equal((double)leafValue, value));
+            Done();
+        }
+
+        [LightGBMFact]
+        public void LightGbmRankerConstantModel()
+        {
+            var data = ML.Data.LoadFromEnumerable(Enumerable.Range(0, 20)
+                .Select(i => new LightGbmRankingRow
+                {
+                    GroupId = (uint)(i / 4 + 1),
+                    Label = 0,
+                    Features = new[] { (float)(i % 4), (float)(i / 4) },
+                }));
+            var trainer = ML.Ranking.Trainers.LightGbm(new LightGbmRankingTrainer.Options
+            {
+                MinimumExampleCountPerLeaf = 1,
+                NumberOfIterations = 1,
+                NumberOfLeaves = 2,
+                NumberOfThreads = 1,
+            });
+
+            var model = trainer.Fit(data);
+            var scores = model.Transform(data).GetColumn<float>("Score").ToArray();
+            Assert.Equal(20, scores.Length);
+            Assert.All(scores, score => Assert.Equal(0f, score));
+
+            using var stream = new MemoryStream();
+            ML.Model.Save(model, data.Schema, stream);
+            stream.Position = 0;
+            var loadedModel = ML.Model.Load(stream, out _);
+            Assert.Equal(scores, loadedModel.Transform(data).GetColumn<float>("Score").ToArray());
+            Done();
+        }
+
         [LightGBMFact]
         public void LightGBMRankerValidationWithManyGroups()
         {
