@@ -30,11 +30,21 @@ namespace Microsoft.Data.Analysis
 <#      if (method.IsNumeric && type.TypeName == "char") continue; #>
         public static DataFrame operator <#=method.Operator#>(DataFrame df, <#=type.TypeName#> value)
         {
+            if (df == null)
+            {
+                throw new ArgumentNullException(nameof(df));
+            }
+
             return df.<#=method.MethodName#>(value);
         }
 
         public static DataFrame operator <#=method.Operator#>(<#=type.TypeName#> value, DataFrame df)
         {
+            if (df == null)
+            {
+                throw new ArgumentNullException(nameof(df));
+            }
+
             return df.Reverse<#=method.MethodName#>(value);
         }
 
@@ -43,6 +53,11 @@ namespace Microsoft.Data.Analysis
 <# } else if (method.MethodType == MethodType.BinaryInt) {#>
         public static DataFrame operator <#=method.Operator#>(DataFrame df, int value)
         {
+            if (df == null)
+            {
+                throw new ArgumentNullException(nameof(df));
+            }
+
             return df.<#=method.MethodName#>(value);
         }
 
