@@ -4,29 +4,11 @@
     <TargetFrameworks>netstandard2.0;net8.0</TargetFrameworks>
     <IsPackable>true</IsPackable>
     <PackageDescription>ML.NET AutoML: Optimizes an ML pipeline for your dataset, by automatically locating the best feature engineering, model, and hyperparameters</PackageDescription>
-    <!--
-      1591: Documentation warnings
-      NU5100: Warning that gets triggered because a .dll is not placed under lib folder on package. This is by design as we want AutoML Interactive to be under interactive-extensions folder.
-       -->
-    <NoWarn>$(NoWarn);1591;NU5100</NoWarn>
-    <TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage);AddAutoMLInteractiveToInteractiveExtensionsFolder</TargetsForTfmSpecificContentInPackage>
+    <NoWarn>$(NoWarn);1591</NoWarn>
 
     <!-- Remove once we have resolved the TorchSharp issue. -->
     <ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>None</ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>
   </PropertyGroup>
-
-  <!-- The following properties are set to package AutoML Interactive with the AutoML nuget package. If AutoML Interactive undergoes TFM or dependency changes, we need to update the TargetFramework passed in below-->
-  <Target Name="AddAutoMLInteractiveToInteractiveExtensionsFolder">
-    <MSBuild Projects="./../Microsoft.ML.AutoML.Interactive/Microsoft.ML.AutoML.Interactive.csproj" Targets="_GetBuildOutputFilesWithTfm" Properties="TargetFramework=net8.0">
-      <!-- Manually hardcoding the TargetFramework to net8.0 as that is the one that AutoML Interactive targets -->
-      <Output TaskParameter="TargetOutputs" ItemName="_ItemsToIncludeForInteractive" />
-    </MSBuild>
-
-    <ItemGroup>
-      <_ItemsToIncludeForInteractive Update="@(_ItemsToIncludeForInteractive)" PackagePath="interactive-extensions/dotnet" />
-      <TfmSpecificPackageFile Include="@(_ItemsToIncludeForInteractive)" />
-    </ItemGroup>
-  </Target>
 
   <ItemGroup>
     <ProjectReference Include="..\..\tools-local\Microsoft.ML.AutoML.SourceGenerator\Microsoft.ML.AutoML.SourceGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
