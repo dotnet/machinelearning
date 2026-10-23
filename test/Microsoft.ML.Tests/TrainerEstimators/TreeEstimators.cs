@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.ML.Calibrators;
@@ -444,6 +445,49 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 var data = pipe.Fit(dataView).Transform(dataView).Preview();
                 TestEstimatorCore(pipe, dataView);
             }
+            Done();
+        }
+
+        [Theory]
+        [InlineData("multiclass")]
+        [InlineData("multiclassova")]
+        public void LightGbmMulticlassIgnoresZeroConstantTrees(string objective)
+        {
+            var leafValues = new[] { 1, 0, -1, 0, 0, 0 };
+            var modelText = $"max_feature_idx={_columnNumber - 1}\nobjective={objective} num_class:3\n\n"
+                + string.Concat(leafValues.Select((value, index) =>
+                    $"Tree={index}\nnum_leaves=1\nnum_cat=0\nleaf_value={value}\n\n"))
+                + "parameters:\n[categorical_feature: ]\nend of parameters\n";
+            using var modelStream = new MemoryStream(Encoding.UTF8.GetBytes(modelText));
+            var data = ML.Data.LoadFromEnumerable(new[]
+            {
+                new GbmExample { Features = new float[_columnNumber] },
+            });
+
+            var model = ML.MulticlassClassification.Trainers.LightGbm(modelStream).Fit(data);
+            Assert.Equal(3, model.Model.SubModelParameters.Length);
+            for (int classId = 0; classId < 3; classId++)
+            {
+                var predictor = Assert.IsType<FeatureWeightsCalibratedModelParameters<LightGbmBinaryModelParameters, PlattCalibrator>>(
+                    model.Model.SubModelParameters[classId]);
+                var trees = predictor.SubModel.TrainedTreeEnsemble.Trees;
+                if (leafValues[classId] == 0)
+                    Assert.Empty(trees);
+                else
+                    Assert.All(Assert.Single(trees).LeafValues, value => Assert.Equal((double)leafValues[classId], value));
+            }
+
+            var scores = model.Transform(data).GetColumn<float[]>("Score").Single();
+            Assert.Equal(3, scores.Length);
+            Assert.True(scores[0] > scores[1]);
+            Assert.True(scores[1] > scores[2]);
+            Assert.Equal(1f, scores.Sum(), 6);
+
+            using var stream = new MemoryStream();
+            ML.Model.Save(model, data.Schema, stream);
+            stream.Position = 0;
+            var loadedModel = ML.Model.Load(stream, out _);
+            Assert.Equal(scores, loadedModel.Transform(data).GetColumn<float[]>("Score").Single());
             Done();
         }
 

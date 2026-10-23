@@ -196,9 +196,10 @@ namespace Microsoft.ML.Trainers.LightGbm
             var res = new InternalTreeEnsemble();
             for (int i = classID; i < TrainedEnsemble.NumTrees; i += _numberOfClassesIncludingNan)
             {
-                // Ignore dummy trees.
-                if (TrainedEnsemble.GetTreeAt(i).NumLeaves > 1)
-                    res.AddTree(TrainedEnsemble.GetTreeAt(i));
+                // Ignore trees that do not contribute to the score.
+                var tree = TrainedEnsemble.GetTreeAt(i);
+                if (tree.LeafValues.Any(value => value != 0))
+                    res.AddTree(tree);
             }
             return res;
         }
