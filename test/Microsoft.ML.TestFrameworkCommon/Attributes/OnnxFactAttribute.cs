@@ -14,7 +14,7 @@ namespace Microsoft.ML.TestFrameworkCommon.Attributes
     /// </summary>
     public sealed class OnnxFactAttribute : EnvironmentSpecificFactAttribute
     {
-        public OnnxFactAttribute() : base("Onnx is not supported on Linux with libc < v2.23")
+        public OnnxFactAttribute() : base("Onnx is 64-bit only and is not supported on Linux with libc < v2.23")
         {
         }
 
@@ -24,8 +24,12 @@ namespace Microsoft.ML.TestFrameworkCommon.Attributes
             return IsOnnxRuntimeSupported;
         }
 
+        /// <summary>
+        /// Whether the current process supports the native ONNX Runtime package.
+        /// </summary>
         public static bool IsOnnxRuntimeSupported { get; } =
-            (!RuntimeInformation.IsOSPlatform(OSPlatform.Linux)
+            Environment.Is64BitProcess
+            && (!RuntimeInformation.IsOSPlatform(OSPlatform.Linux)
                 || AttributeHelpers.CheckLibcVersionGreaterThanMinimum(new Version(2, 23)))
             && Utility.NativeLibrary.NativeLibraryExists("onnxruntime");
     }

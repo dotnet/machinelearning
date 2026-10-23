@@ -19,7 +19,6 @@ using Microsoft.ML.Trainers.FastTree;
 using Microsoft.ML.Trainers.LightGbm;
 using Microsoft.ML.Transforms;
 using Xunit;
-using FluentAssertions;
 using System.IO;
 
 namespace Microsoft.ML.Tests.TrainerEstimators
@@ -52,6 +51,31 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var transformedDataView = pipe.Fit(dataView).Transform(dataView);
             var model = trainer.Fit(transformedDataView, transformedDataView);
             Done();
+        }
+
+        [Theory]
+        [InlineData(5, 4)]
+        [InlineData(5, 5)]
+        public void FastTreeHistogramPoolSizeValidation(int numberOfLeaves, int histogramPoolSize)
+        {
+            var data = ML.Data.LoadFromEnumerable(
+                SamplesUtils.DatasetUtils.GenerateBinaryLabelFloatFeatureVectorFloatWeightSamples(100).ToList());
+            var trainer = ML.BinaryClassification.Trainers.FastTree(new FastTreeBinaryTrainer.Options
+            {
+                NumberOfThreads = 1,
+                NumberOfTrees = 1,
+                NumberOfLeaves = numberOfLeaves,
+                HistogramPoolSize = histogramPoolSize,
+                MinimumExampleCountPerLeaf = 1,
+            });
+
+            if (numberOfLeaves > 2 && histogramPoolSize > numberOfLeaves - 1)
+            {
+                var exception = Assert.Throws<InvalidOperationException>(() => trainer.Fit(data));
+                Assert.Contains("Histogram pool size (ps) must be at most numLeaves - 1.", exception.Message);
+            }
+            else
+                Assert.NotNull(trainer.Fit(data));
         }
 
         [LightGBMFact]
@@ -1082,8 +1106,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 }
             };
 
-            var action = () => estimator.Fit(dataView);
-            action.Should().Throw<OperationCanceledException>();
+            Assert.ThrowsAny<OperationCanceledException>(() => estimator.Fit(dataView));
         }
 
         [LightGBMFact]
@@ -1136,8 +1159,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                     UseCategoricalSplit = true
                 }));
 
-            var action = () => trainer.Fit(dataView);
-            action.Should().Throw<OperationCanceledException>();
+            Assert.ThrowsAny<OperationCanceledException>(() => trainer.Fit(dataView));
         }
 
         [LightGBMFact]
@@ -1164,8 +1186,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                     UseCategoricalSplit = true
                 }));
 
-            var action = () => trainer.Fit(dataView);
-            action.Should().Throw<OperationCanceledException>();
+            Assert.ThrowsAny<OperationCanceledException>(() => trainer.Fit(dataView));
         }
     }
 }
