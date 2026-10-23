@@ -91,7 +91,7 @@ extends:
             ArtifactName: pkgassets
         steps:
         # Only build native assets to avoid conflicts.
-        - script: ./build.sh -configuration $(BuildConfig) -projects $(Build.SourcesDirectory)/src/Native/Native.proj /p:TargetArchitecture=x64 /p:CopyPackageAssets=true
+        - script: ./build.sh --ci -configuration $(BuildConfig) -projects $(Build.SourcesDirectory)/src/Native/Native.proj /p:TargetArchitecture=x64 /p:CopyPackageAssets=true
           displayName: Build Native Assets
 
       ################################################################################
@@ -111,7 +111,7 @@ extends:
             ArtifactName: pkgassets
         steps:
         # Only build native assets to avoid conflicts.
-        - script: ./build.sh -configuration $(BuildConfig) -projects $(Build.SourcesDirectory)/src/Native/Native.proj /p:TargetArchitecture=arm /p:CopyPackageAssets=true
+        - script: ./build.sh --ci -configuration $(BuildConfig) -projects $(Build.SourcesDirectory)/src/Native/Native.proj /p:TargetArchitecture=arm /p:CopyPackageAssets=true
           displayName: Build Native Assets
 
       ################################################################################
@@ -131,7 +131,7 @@ extends:
             ArtifactName: pkgassets
         steps:
         # Only build native assets to avoid conflicts.
-        - script: ./build.sh -configuration $(BuildConfig) -projects $(Build.SourcesDirectory)/src/Native/Native.proj /p:TargetArchitecture=arm64 /p:CopyPackageAssets=true
+        - script: ./build.sh --ci -configuration $(BuildConfig) -projects $(Build.SourcesDirectory)/src/Native/Native.proj /p:TargetArchitecture=arm64 /p:CopyPackageAssets=true
           displayName: Build Native Assets
 
       ################################################################################
@@ -151,7 +151,7 @@ extends:
             $(Build.SourcesDirectory)/eng/install-dependencies.sh osx
           displayName: Install build dependencies
         # Only build native assets to avoid conflicts.
-        - script: ./build.sh -projects $(Build.SourcesDirectory)/src/Native/Native.proj -configuration $(BuildConfig) /p:TargetArchitecture=x64 /p:CopyPackageAssets=true
+        - script: ./build.sh --ci -projects $(Build.SourcesDirectory)/src/Native/Native.proj -configuration $(BuildConfig) /p:TargetArchitecture=x64 /p:CopyPackageAssets=true
           displayName: Build Native Assets
 
       ################################################################################
@@ -171,7 +171,7 @@ extends:
             $(Build.SourcesDirectory)/eng/install-dependencies.sh osx
           displayName: Install build dependencies
         # Only build native assets to avoid conflicts.
-        - script: ./build.sh -projects $(Build.SourcesDirectory)/src/Native/Native.proj -configuration $(BuildConfig) /p:TargetArchitecture=arm64 /p:CopyPackageAssets=true
+        - script: ./build.sh --ci -projects $(Build.SourcesDirectory)/src/Native/Native.proj -configuration $(BuildConfig) /p:TargetArchitecture=arm64 /p:CopyPackageAssets=true
           displayName: Build Native Assets
 
       ################################################################################
@@ -188,7 +188,7 @@ extends:
             ArtifactName: pkgassets
         steps:
         # Only build native assets to avoid conflicts.
-        - script: ./build.cmd -projects $(Build.SourcesDirectory)/src/Native/Native.proj -configuration $(BuildConfig) /p:TargetArchitecture=arm64 /p:CopyPackageAssets=true
+        - script: ./build.cmd -ci -projects $(Build.SourcesDirectory)/src/Native/Native.proj -configuration $(BuildConfig) /p:TargetArchitecture=arm64 /p:CopyPackageAssets=true
           displayName: Build Native Assets
 
         # Terminate all dotnet build processes.
@@ -211,7 +211,7 @@ extends:
             ArtifactName: pkgassets
         steps:
         # Only build native assets to avoid conflicts.
-        - script: ./build.cmd -projects $(Build.SourcesDirectory)/src/Native/Native.proj -configuration $(BuildConfig) /p:TargetArchitecture=x86 /p:CopyPackageAssets=true
+        - script: ./build.cmd -ci -projects $(Build.SourcesDirectory)/src/Native/Native.proj -configuration $(BuildConfig) /p:TargetArchitecture=x86 /p:CopyPackageAssets=true
           displayName: Build Native Assets
 
         # Terminate all dotnet build processes.
@@ -236,7 +236,7 @@ extends:
         steps:
 
         # Build both native and managed assets.
-        - script: ./build.cmd -configuration $(BuildConfig) /p:TargetArchitecture=x64 /p:CopyPackageAssets=true
+        - script: ./build.cmd -ci -configuration $(BuildConfig) /p:TargetArchitecture=x64 /p:CopyPackageAssets=true
           displayName: Build
 
         - task: ComponentGovernanceComponentDetection@0
