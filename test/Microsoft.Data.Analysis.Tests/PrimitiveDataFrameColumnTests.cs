@@ -55,6 +55,41 @@ namespace Microsoft.Data.Analysis.Tests
         }
 
         [X64Fact("32-bit doesn't allow to allocate more than 2 Gb")]
+        public void PrimitiveDataFrameColumn_Int32_CloneAsDouble_AcrossMultipleBuffers()
+        {
+            // Mirrors ReadOnlyDataFrameBuffer<int>.MaxCapacity, the number of values held by a single buffer.
+            // A full int buffer holds twice as many values as a double buffer can.
+            const int MaxCapacity = 0X7FEFFFFF / sizeof(int);
+            const int DoubleMaxCapacity = 0X7FEFFFFF / sizeof(double);
+
+            const long count = MaxCapacity + 16L;
+            var column = new Int32DataFrameColumn("Int", count);
+            Assert.Equal(2, column.GetReadOnlyDataBuffers().Count());
+
+            column[0] = 1;
+            column[DoubleMaxCapacity - 1] = 2;
+            column[DoubleMaxCapacity] = 3;
+            column[MaxCapacity - 1] = 4;
+            column[MaxCapacity] = 5;
+            column[count - 1] = 6;
+
+            // Adding a double value clones the int column as a double column
+            DoubleDataFrameColumn result = column.Add(0.5);
+
+            Assert.Equal(count, result.Length);
+            Assert.Equal(count - 6, result.NullCount);
+            Assert.Equal(1.5, result[0]);
+            Assert.Null(result[1]);
+            Assert.Equal(2.5, result[DoubleMaxCapacity - 1]);
+            Assert.Equal(3.5, result[DoubleMaxCapacity]);
+            Assert.Null(result[DoubleMaxCapacity + 1]);
+            Assert.Equal(4.5, result[MaxCapacity - 1]);
+            Assert.Equal(5.5, result[MaxCapacity]);
+            Assert.Null(result[MaxCapacity + 1]);
+            Assert.Equal(6.5, result[count - 1]);
+        }
+
+        [X64Fact("32-bit doesn't allow to allocate more than 2 Gb")]
         public void TestGetterAndSetterForColumnsGreaterThanMaxCapacity()
         {
             const int MaxCapacityInBytes = 2147483591;
