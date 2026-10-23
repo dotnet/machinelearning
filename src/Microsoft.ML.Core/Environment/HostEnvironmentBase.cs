@@ -140,7 +140,7 @@ internal abstract class HostEnvironmentBase<TEnv> : ChannelProviderBase, IHostEn
             {
                 _children.RemoveAll(r => r.TryGetTarget(out IHost _) == false);
                 Random rand = (seed.HasValue) ? RandomUtils.Create(seed.Value) : RandomUtils.Create(_rand);
-                host = RegisterCore(this, name, Master?.FullName, rand, verbose ?? Verbose);
+                host = RegisterCore(this, name, Parent?.FullName, rand, verbose ?? Verbose);
                 if (!IsCanceled)
                     _children.Add(new WeakReference<IHost>(host));
             }
@@ -275,7 +275,7 @@ internal abstract class HostEnvironmentBase<TEnv> : ChannelProviderBase, IHostEn
     }
 
     /// <summary>
-    /// Base class for <see cref="Dispatcher{TMessage}"/>. The master host environment has a
+    /// Base class for <see cref="Dispatcher{TMessage}"/>. The parent host environment has a
     /// map from <see cref="System.Type"/> to <see cref="Dispatcher"/>.
     /// </summary>
     protected abstract class Dispatcher
@@ -340,8 +340,8 @@ internal abstract class HostEnvironmentBase<TEnv> : ChannelProviderBase, IHostEn
 
     protected readonly TEnv Root;
     // This is non-null iff this environment was a fork of another. Disposing a fork
-    // doesn't free temp files. That is handled when the master is disposed.
-    protected readonly HostEnvironmentBase<TEnv> Master;
+    // doesn't free temp files. That is handled when the parent is disposed.
+    protected readonly HostEnvironmentBase<TEnv> Parent;
 
     // Protect _cancellation logic.
     private readonly object _cancelLock;
@@ -394,11 +394,11 @@ internal abstract class HostEnvironmentBase<TEnv> : ChannelProviderBase, IHostEn
         _rand = rand ?? RandomUtils.Create();
         _cancelLock = new object();
 
-        // This fork shares some stuff with the master.
-        Master = source;
-        GpuDeviceId = Master?.GpuDeviceId;
-        FallbackToCpu = Master?.FallbackToCpu ?? true;
-        Seed = Master?.Seed;
+        // This fork shares some stuff with the parent.
+        Parent = source;
+        GpuDeviceId = Parent?.GpuDeviceId;
+        FallbackToCpu = Parent?.FallbackToCpu ?? true;
+        Seed = Parent?.Seed;
         Root = source.Root;
         ListenerDict = source.ListenerDict;
         ProgressTracker = source.ProgressTracker;
@@ -419,7 +419,7 @@ internal abstract class HostEnvironmentBase<TEnv> : ChannelProviderBase, IHostEn
         {
             _children.RemoveAll(r => r.TryGetTarget(out IHost _) == false);
             Random rand = (seed.HasValue) ? RandomUtils.Create(seed.Value) : RandomUtils.Create(_rand);
-            host = RegisterCore(this, name, Master?.FullName, rand, verbose ?? Verbose);
+            host = RegisterCore(this, name, Parent?.FullName, rand, verbose ?? Verbose);
 
             // Need to manually copy over the parameters
             //((IHostEnvironmentInternal)host).Seed = this.Seed;
