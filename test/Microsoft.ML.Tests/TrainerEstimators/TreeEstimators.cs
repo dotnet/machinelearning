@@ -563,6 +563,22 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             Done();
         }
 
+        [Fact]
+        public void LightGbmTrainersDisableFeaturePreFilter()
+        {
+            var trainerParameters = new[]
+            {
+                new LightGbmBinaryTrainer(ML, new LightGbmBinaryTrainer.Options()).GetGbmParameters(),
+                new LightGbmMulticlassTrainer(ML, new LightGbmMulticlassTrainer.Options()).GetGbmParameters(),
+                new LightGbmRegressionTrainer(ML, new LightGbmRegressionTrainer.Options()).GetGbmParameters(),
+                new LightGbmRankingTrainer(ML, new LightGbmRankingTrainer.Options()).GetGbmParameters()
+            };
+
+            foreach (var parameters in trainerParameters)
+                Assert.False(Assert.IsType<bool>(parameters["feature_pre_filter"]));
+            Done();
+        }
+
         [LightGBMFact]
         public void LightGbmDatasetFiltersOnlyUnsplittableFeatures()
         {

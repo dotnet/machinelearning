@@ -293,6 +293,9 @@ namespace Microsoft.ML.Trainers.LightGbm
 
                 res["seed"] = (Seed.HasValue) ? Seed : host.Rand.Next();
 
+                // Preserve historical x64 feature selection without relying on a zero dataset row count.
+                res["feature_pre_filter"] = false;
+
                 res[GetOptionName(nameof(MaximumBinCountPerFeature))] = MaximumBinCountPerFeature;
                 res[GetOptionName(nameof(HandleMissingValue))] = HandleMissingValue;
                 res[GetOptionName(nameof(UseZeroAsMissingValue))] = UseZeroAsMissingValue;
