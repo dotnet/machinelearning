@@ -13,7 +13,7 @@ namespace Microsoft.ML.TestFramework.Attributes
     /// </summary>
     public sealed class LightGBMTheoryAttribute : EnvironmentSpecificTheoryAttribute
     {
-        public LightGBMTheoryAttribute() : base("LightGBM is 64-bit only")
+        public LightGBMTheoryAttribute() : base("LightGBM requires a 64-bit process and a loadable native library.")
         {
         }
 

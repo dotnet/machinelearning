@@ -14,7 +14,7 @@ namespace Microsoft.ML.TestFrameworkCommon.Attributes
     /// </summary>
     public sealed class OnnxFactAttribute : EnvironmentSpecificFactAttribute
     {
-        public OnnxFactAttribute() : base("Onnx is 64-bit only and is not supported on Linux with libc < v2.23")
+        public OnnxFactAttribute() : base("ONNX Runtime requires a supported platform and a loadable native library.")
         {
         }
 
