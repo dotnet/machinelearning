@@ -30,7 +30,7 @@ namespace Microsoft.ML.TestFrameworkCommon.Utility
     /// Enumerates possible library load targets. This default implementation returns the following load targets:
     /// First: The library contained in the applications base folder.
     /// Second: The simple name, unchanged.
-    /// Third: The library as resolved via the default DependencyContext, in the default nuget package cache folder.
+    /// Third: The library as resolved via the default DependencyContext, in the configured NuGet package cache folder.
     /// </summary>
     public class DefaultPathResolver : PathResolver
     {
@@ -147,7 +147,10 @@ namespace Microsoft.ML.TestFrameworkCommon.Utility
 
         private string GetNugetPackagesRootDirectory()
         {
-            // TODO: Handle alternative package directories, if they are configured.
+            string packageRoot = Environment.GetEnvironmentVariable("NUGET_PACKAGES");
+            if (!string.IsNullOrEmpty(packageRoot))
+                return packageRoot;
+
             return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".nuget", "packages");
         }
     }

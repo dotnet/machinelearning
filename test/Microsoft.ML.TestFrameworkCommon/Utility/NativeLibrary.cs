@@ -1,12 +1,14 @@
 ﻿// Taken from https://github.com/mellinoe/nativelibraryloader/blob/586f9738ff12688df8f0662027da8c319aee3841/NativeLibraryLoader/NativeLibrary.cs
 using System;
 using System.Runtime.InteropServices;
+#if NET5_0_OR_GREATER
+using RuntimeNativeLibrary = System.Runtime.InteropServices.NativeLibrary;
+#endif
 
 namespace Microsoft.ML.TestFrameworkCommon.Utility
 {
     /// <summary>
     /// Represents a native shared library opened by the operating system.
-    /// This type can be used to load native function pointers by name.
     /// </summary>
     public class NativeLibrary : IDisposable
     {
@@ -15,6 +17,22 @@ namespace Microsoft.ML.TestFrameworkCommon.Utility
 
         public static bool NativeLibraryExists(string name)
         {
+#if NET5_0_OR_GREATER
+            // Use the runtime's assembly-aware loader to honor native NuGet asset probing.
+            // The legacy loader below can falsely report missing libraries on Linux: its "libdl"
+            // import may not resolve to libdl.so.2, and its distro-specific RID lookup can miss
+            // portable linux-x64 assets. Passing the owning assembly avoids that custom probing.
+            var assembly = typeof(NativeLibrary).Assembly;
+            if (!RuntimeNativeLibrary.TryLoad(name, assembly, null, out var handle) &&
+                !RuntimeNativeLibrary.TryLoad("lib" + name, assembly, null, out handle) &&
+                !RuntimeNativeLibrary.TryLoad("lib_" + name, assembly, null, out handle))
+            {
+                return false;
+            }
+
+            RuntimeNativeLibrary.Free(handle);
+            return true;
+#else
             NativeLibrary nativeLibrary = default;
             string extension = default;
             string prefix = "lib";
@@ -60,102 +78,26 @@ namespace Microsoft.ML.TestFrameworkCommon.Utility
             {
                 nativeLibrary?.Dispose();
             }
+#endif
         }
 
         /// <summary>
         /// The operating system handle of the loaded library.
         /// </summary>
-        public IntPtr Handle { get; }
+        private IntPtr Handle { get; }
 
         /// <summary>
         /// Constructs a new NativeLibrary using the platform's default library loader.
         /// </summary>
         /// <param name="name">The name of the library to load.</param>
-        public NativeLibrary(string name) : this(name, _platformDefaultLoader, PathResolver.Default)
+        private NativeLibrary(string name)
         {
+            _loader = _platformDefaultLoader;
+            Handle = _loader.LoadNativeLibrary(name, PathResolver.Default);
         }
 
         /// <summary>
-        /// Constructs a new NativeLibrary using the platform's default library loader.
-        /// </summary>
-        /// <param name="names">An ordered list of names to attempt to load.</param>
-        public NativeLibrary(string[] names) : this(names, _platformDefaultLoader, PathResolver.Default)
-        {
-        }
-
-        /// <summary>
-        /// Constructs a new NativeLibrary using the specified library loader.
-        /// </summary>
-        /// <param name="name">The name of the library to load.</param>
-        /// <param name="loader">The loader used to open and close the library, and to load function pointers.</param>
-        public NativeLibrary(string name, LibraryLoader loader) : this(name, loader, PathResolver.Default)
-        {
-        }
-
-        /// <summary>
-        /// Constructs a new NativeLibrary using the specified library loader.
-        /// </summary>
-        /// <param name="names">An ordered list of names to attempt to load.</param>
-        /// <param name="loader">The loader used to open and close the library, and to load function pointers.</param>
-        public NativeLibrary(string[] names, LibraryLoader loader) : this(names, loader, PathResolver.Default)
-        {
-        }
-
-        /// <summary>
-        /// Constructs a new NativeLibrary using the specified library loader.
-        /// </summary>
-        /// <param name="name">The name of the library to load.</param>
-        /// <param name="loader">The loader used to open and close the library, and to load function pointers.</param>
-        /// <param name="pathResolver">The path resolver, used to identify possible load targets for the library.</param>
-        public NativeLibrary(string name, LibraryLoader loader, PathResolver pathResolver)
-        {
-            _loader = loader;
-            Handle = _loader.LoadNativeLibrary(name, pathResolver);
-        }
-
-        /// <summary>
-        /// Constructs a new NativeLibrary using the specified library loader.
-        /// </summary>
-        /// <param name="names">An ordered list of names to attempt to load.</param>
-        /// <param name="loader">The loader used to open and close the library, and to load function pointers.</param>
-        /// <param name="pathResolver">The path resolver, used to identify possible load targets for the library.</param>
-        public NativeLibrary(string[] names, LibraryLoader loader, PathResolver pathResolver)
-        {
-            _loader = loader;
-            Handle = _loader.LoadNativeLibrary(names, pathResolver);
-        }
-
-        /// <summary>
-        /// Loads a function whose signature matches the given delegate type's signature.
-        /// </summary>
-        /// <typeparam name="T">The type of delegate to return.</typeparam>
-        /// <param name="name">The name of the native export.</param>
-        /// <returns>A delegate wrapping the native function.</returns>
-        /// <exception cref="InvalidOperationException">Thrown when no function with the given name
-        /// is exported from the native library.</exception>
-        public T LoadFunction<T>(string name)
-        {
-            IntPtr functionPtr = _loader.LoadFunctionPointer(Handle, name);
-            if (functionPtr == IntPtr.Zero)
-            {
-                throw new InvalidOperationException($"No function was found with the name {name}.");
-            }
-
-            return Marshal.GetDelegateForFunctionPointer<T>(functionPtr);
-        }
-
-        /// <summary>
-        /// Loads a function pointer with the given name.
-        /// </summary>
-        /// <param name="name">The name of the native export.</param>
-        /// <returns>A function pointer for the given name, or 0 if no function with that name exists.</returns>
-        public IntPtr LoadFunction(string name)
-        {
-            return _loader.LoadFunctionPointer(Handle, name);
-        }
-
-        /// <summary>
-        /// Frees the native library. Function pointers retrieved from this library will be void.
+        /// Frees the native library.
         /// </summary>
         public void Dispose()
         {
