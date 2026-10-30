@@ -7,6 +7,8 @@ Search space defines a range of hyper-parameter for tuner to search from. Sweepa
 
 via attribute
 ```csharp
+using Xunit;
+
 public class Option
 {
     [Range(2, 32768, init: 2, logBase: true)]
@@ -31,17 +33,19 @@ var ss = new SearchSpace<Option>();
 var parameter = ss.SampleFromFeatureSpace(new []{0,0,0,0,0,0});
 
 // auto-binding
-parameter.WindowSize.Should().Be(2);
-parameter.SeriesLength.Should().Be(2);
-parameter.UseSoftmax.Should().BeTrue();
-parameter.AnotherOption.WindowSize.Should().Be(2);
+Assert.Equal(2, parameter.WindowSize);
+Assert.Equal(2, parameter.SeriesLength);
+Assert.True(parameter.UseSoftmax);
+Assert.Equal(2, parameter.AnotherOption.WindowSize);
 
 // search space can also map parameter back to feature space
-ss.MappingToFeatureSpace(parameter).Should().BeEquivalantTo(0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
+Assert.Equivalent(new[] { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 }, ss.MappingToFeatureSpace(parameter), strict: true);
 ```
 
 or correspondingly, via scratch
 ``` csharp
+using Xunit;
+
 var ss = new SearchSpace();
 ss.Add("WindowSize", new UniformIntOption(2, 32768, true, 2));
 ss.Add("SeriesLength", new ChoiceOption(2,3,4));
@@ -51,13 +55,13 @@ ss.Add("AnotherOption", ss.Clone());
 var parameter = ss.SampleFromFeatureSpace(new []{0,0,0,0,0,0});
 
 // auto-binding doesn't exist for scratch api
-parameter["WindowSize"].AsType<int>.Should().Be(2);
-parameter["SeriesLength"].AsType<int>.Should().Be(2);
-parameter["UseSoftmax"].AsType<bool>.Should().BeTrue();
-parameter["AnotherOption"]["WindowSize"].AsType<int>.Should().Be(2);
+Assert.Equal(2, parameter["WindowSize"].AsType<int>());
+Assert.Equal(2, parameter["SeriesLength"].AsType<int>());
+Assert.True(parameter["UseSoftmax"].AsType<bool>());
+Assert.Equal(2, parameter["AnotherOption"]["WindowSize"].AsType<int>());
 
 // search space can also map parameter back to feature space
-ss.MappingToFeatureSpace(parameter).Should().BeEquivalantTo(0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
+Assert.Equivalent(new[] { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 }, ss.MappingToFeatureSpace(parameter), strict: true);
 ```
 
 Currently, in order to make auto-binding work, there's a limitation on the parameter type that can be added to search space, which has to be either a Json primitive type or a nested search space.

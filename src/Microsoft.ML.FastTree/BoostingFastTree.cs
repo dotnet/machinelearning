@@ -42,9 +42,6 @@ namespace Microsoft.ML.Trainers.FastTree
                 throw ch.Except("Ensemble compression cannot be done when forcing to write last ensemble (hl)");
 
             if (FastTreeTrainerOptions.NumberOfLeaves > 2 && FastTreeTrainerOptions.HistogramPoolSize > FastTreeTrainerOptions.NumberOfLeaves - 1)
-                throw ch.Except("Histogram pool size (ps) must be at least 2.");
-
-            if (FastTreeTrainerOptions.NumberOfLeaves > 2 && FastTreeTrainerOptions.HistogramPoolSize > FastTreeTrainerOptions.NumberOfLeaves - 1)
                 throw ch.Except("Histogram pool size (ps) must be at most numLeaves - 1.");
 
             if (FastTreeTrainerOptions.EnablePruning && !HasValidSet)

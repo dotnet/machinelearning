@@ -55,6 +55,8 @@ export ROOTFS_DIR=<new rootfs location>
 
 The `<target architecture>` is typically `arm` or `arm64`. Use an Ubuntu codename supported by `eng/common/cross/build-rootfs.sh`.
 
+Linux cross-build jobs using `build/ci/job-template.yml` must pass the sysroot path through `rootfsDir` (for example, `/crossrootfs/arm64`). The template does not infer it from the agent image or job name.
+
 ### CI build containers
 
 Ubuntu x64 validation and nightly builds use
