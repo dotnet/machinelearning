@@ -43,7 +43,7 @@ jobs:
       ${{ if eq(parameters.codeCoverage, 'true') }}:
         hardLink: '/p:CreateHardLinksForCopyFilesToOutputDirectoryIfPossible=False /p:CreateHardLinksForCopyLocalIfPossible=False'
       ${{ if eq(parameters.codeCoverage, 'false') }}:
-        hardLink: '/p:CreateHardLinksForCopyLocalIfPossible=True'
+        hardLink: '/p:CreateHardLinksForCopyFilesToOutputDirectoryIfPossible=True /p:CreateHardLinksForCopyLocalIfPossible=True'
       testTargetFramework: '/p:TestTargetFramework=$(_targetFramework)'
     strategy:
       matrix:
