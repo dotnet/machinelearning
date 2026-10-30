@@ -1,47 +1,46 @@
-Building ML.NET on Linux and macOS
-==========================================
+# Building ML.NET on Linux and macOS
+
 ## Building
 
-1. Install the prerequisites ([Linux](#user-content-linux), [macOS](#user-content-macos))
-2. Clone the machine learning repo `git clone --recursive https://github.com/dotnet/machinelearning.git`
+1. Install Git
+2. Clone the machine learning repo `git clone --recurse-submodules https://github.com/dotnet/machinelearning.git`
 3. Navigate to the `machinelearning` directory
 4. Run `git submodule update --init` if you have not previously done so
-4. Run the build script `./build.sh`
+5. Install the native build prerequisites described below
+6. Run the build script `./build.sh`
 
 Calling the script `./build.sh` builds both the native and managed code.
 
 For more information about the different options when building, run `./build.sh -?` and look at examples in the [developer-guide](../project-docs/developer-guide.md).
 
-## Minimum Hardware Requirements
+## Minimum hardware requirements
+
 - 2GB RAM
-- x64
+- x64 or ARM64
 
 ## Prerequisites
 
-### Linux
+After cloning and entering the repository, install the native build dependencies for your operating system.
 
-The following components are needed:
-
-* git
-* clang-3.9
-* cmake 2.8.12
-* libunwind8
-* libomp-dev
-* curl
-* All the requirements necessary to run .NET Core 3.1 applications: libssl1.0.0 (1.0.2 for Debian 9) and libicu5x (libicu55 for ubuntu 16.x, and libicu57 for ubuntu 17.x). For more information on prerequisites in different linux distributions click [here](https://docs.microsoft.com/en-us/dotnet/core/linux-prerequisites?tabs=netcore30).
-
-For example, for Ubuntu 16.x:
+On Linux:
 
 ```sh
-sudo apt-get update
-sudo apt-get install git clang-3.9 cmake libunwind8 curl
-sudo apt-get install libssl1.0.0 libicu55
-sudo apt-get install libomp-dev
+sudo ./eng/install-dependencies.sh
 ```
 
-#### Cross compiling for ARM
+The dependency script supports Debian/Ubuntu, Fedora, Azure Linux, Amazon Linux, and Alpine. On Azure Linux, install `libomp` manually before building.
 
-Cross compilation is only supported on an Ubuntu host, 18.x and newer, and only .Net Core 3.1 or newer. You will need to install debootstrap and qemu-user-static to facilitate the process. Once they are installed you will need to build the cross compiling rootfs. We provide a script, `build-rootfs.sh`, to do this. You will also need to set the ROOTFS_DIR environment variable to the location of the rootfs you just created. The general process is as follows:
+On macOS, install Xcode command-line tools and [Homebrew](https://brew.sh/) first, then run:
+
+```sh
+./eng/install-dependencies.sh
+```
+
+The build scripts acquire the .NET SDK selected by `global.json`; you do not need to install that exact SDK separately.
+
+### Cross compiling for ARM
+
+Cross-compilation requires an Ubuntu host, `debootstrap`, and `qemu-user-static`. Build a root file system with the repository script, then set `ROOTFS_DIR` before building:
 
 ```sh
 sudo apt-get update
@@ -54,21 +53,29 @@ export ROOTFS_DIR=<new rootfs location>
 ./build.sh -c Release /p:TargetArchitecture=<target architecture>
 ```
 
-Note that the `<target architecture>` will usually be arm or arm64 and the `<ubuntu distro name>` is bionic for 18.04.
+The `<target architecture>` is typically `arm` or `arm64`. Use an Ubuntu codename supported by `eng/common/cross/build-rootfs.sh`.
 
-Alternatively, use the following Docker image which contains all the software packages and configurations required to cross-compile for ARM `mcr.microsoft.com/dotnet-buildtools/prereqs:ubuntu-18.04-mlnet-cross-arm64-20210519131124-2e59a5f`.
+Linux cross-build jobs using `build/ci/job-template.yml` must pass the sysroot path through `rootfsDir` (for example, `/crossrootfs/arm64`). The template does not infer it from the agent image or job name.
 
-### macOS
+### CI build containers
 
-macOS 10.13 (High Sierra) or higher is needed to build dotnet/machinelearning. We are using a .NET Core 3.1 SDK to build, which supports 10.13 or higher.
+Ubuntu x64 validation and nightly builds use
+`mcr.microsoft.com/dotnet-buildtools/prereqs:ubuntu-22.04-mlnet`, which includes
+Clang 14 and OpenMP development packages.
 
-On macOS a few components are needed which are not provided by a default developer setup:
-* cmake 3.10.3
-* libomp
-* gettext
-* All the requirements necessary to run .NET Core 3.1 applications. To view macOS prerequisites click [here](https://docs.microsoft.com/en-us/dotnet/core/install/macos?tabs=netcore31#dependencies).
+ARM and ARM64 CI builds use the same cross-build images as dotnet/runtime's
+`release/8.0` branch:
 
-One way of obtaining CMake and other required libraries is via [Homebrew](https://brew.sh):
-```sh
-$ brew update && brew install cmake libomp gettext && brew link gettext --force && brew link libomp --force
-```
+- `mcr.microsoft.com/dotnet-buildtools/prereqs:azurelinux-3.0-net8.0-cross-arm`
+- `mcr.microsoft.com/dotnet-buildtools/prereqs:azurelinux-3.0-net8.0-cross-arm64`
+
+These images run build tools on Azure Linux 3.0 while targeting Ubuntu Xenial
+sysroots at `/crossrootfs/arm` and `/crossrootfs/arm64`. The sysroots include the
+target OpenMP packages. Keep `ROOTFS_DIR` set to the matching directory when
+using these images, and set `LDFLAGS=-fuse-ld=lld` to use the bundled LLVM linker
+instead of the host's architecture-specific GNU linker.
+
+The official x64 native-package build retains its CentOS Stream 8 image to avoid
+raising the native libraries' minimum system-library requirements. Updating a
+build container must not silently change the compatibility baseline of shipped
+native assets.

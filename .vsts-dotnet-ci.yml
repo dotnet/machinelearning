@@ -40,21 +40,26 @@ resources:
     image: mcr.microsoft.com/dotnet-buildtools/prereqs:centos-stream8-mlnet
 
   - container: UbuntuContainer
-    image: mcr.microsoft.com/dotnet-buildtools/prereqs:ubuntu-18.04-mlnet
+    image: mcr.microsoft.com/dotnet-buildtools/prereqs:ubuntu-22.04-mlnet
 
-  - container: UbuntuCrossArmContainer
-    image: mcr.microsoft.com/dotnet-buildtools/prereqs:ubuntu-18.04-mlnet-cross-arm
+  - container: AzureLinuxCrossArmContainer
+    image: mcr.microsoft.com/dotnet-buildtools/prereqs:azurelinux-3.0-net8.0-cross-arm
+    env:
+      LDFLAGS: -fuse-ld=lld
 
-  - container: UbuntuCrossArm64Container
-    image: mcr.microsoft.com/dotnet-buildtools/prereqs:ubuntu-18.04-mlnet-cross-arm64
+  - container: AzureLinuxCrossArm64Container
+    image: mcr.microsoft.com/dotnet-buildtools/prereqs:azurelinux-3.0-net8.0-cross-arm64
+    env:
+      LDFLAGS: -fuse-ld=lld
 
 jobs:
 - template: /build/ci/job-template.yml
   parameters:
     architecture: arm
     name: Ubuntu_x64_cross_arm
+    rootfsDir: '/crossrootfs/arm'
     buildScript: ./build.sh
-    container: UbuntuCrossArmContainer
+    container: AzureLinuxCrossArmContainer
     customMatrixes:
       Debug_Build:
         _configuration: Debug
@@ -69,15 +74,16 @@ jobs:
     innerLoop: true
     pool:
       name: NetCore-Public
-      demands: ImageOverride -equals build.Ubuntu.2204.amd64.open
+      demands: ImageOverride -equals build.azurelinux.3.amd64.open
     helixQueue: Ubuntu.2204.ArmArch.Open@mcr.microsoft.com/dotnet-buildtools/prereqs:ubuntu-22.04-helix-arm32v7
 
 - template: /build/ci/job-template.yml
   parameters:
     architecture: arm64
     name: Ubuntu_x64_cross_arm64
+    rootfsDir: '/crossrootfs/arm64'
     buildScript: ./build.sh
-    container: UbuntuCrossArm64Container
+    container: AzureLinuxCrossArm64Container
     customMatrixes:
       Debug_Build:
         _configuration: Debug
@@ -92,7 +98,7 @@ jobs:
     innerLoop: true
     pool:
       name: NetCore-Public
-      demands: ImageOverride -equals build.Ubuntu.2204.amd64.open
+      demands: ImageOverride -equals build.azurelinux.3.amd64.open
     helixQueue: Ubuntu.2204.ArmArch.Open@mcr.microsoft.com/dotnet-buildtools/prereqs:ubuntu-22.04-helix-arm64v8
 
 - template: /build/ci/job-template.yml
@@ -103,7 +109,7 @@ jobs:
     innerLoop: true
     pool:
       name: NetCore-Public
-      demands: ImageOverride -equals build.Ubuntu.2204.amd64.open
+      demands: ImageOverride -equals build.azurelinux.3.amd64.open
     helixQueue: Ubuntu.2204.Amd64.Open@mcr.microsoft.com/dotnet-buildtools/prereqs:centos-stream9-mlnet-helix
 
 - template: /build/ci/job-template.yml
@@ -114,7 +120,7 @@ jobs:
     innerLoop: true
     pool:
       name: NetCore-Public
-      demands: ImageOverride -equals build.Ubuntu.2204.amd64.open
+      demands: ImageOverride -equals build.azurelinux.3.amd64.open
     helixQueue: Ubuntu.2204.Amd64.Open@mcr.microsoft.com/dotnet-buildtools/prereqs:ubuntu-22.04-mlnet-helix
 
 - template: /build/ci/job-template.yml
@@ -179,7 +185,7 @@ jobs:
     pool:
       name: NetCore-Public
       demands: ImageOverride -equals 1es-windows-2022-open
-    helixQueue: Windows.10.Amd64.Open
+    helixQueue: Windows.11.Amd64.Client.Open
 
 - template: /build/ci/job-template.yml
   parameters:
@@ -201,7 +207,7 @@ jobs:
     pool:
       name: NetCore-Public
       demands: ImageOverride -equals 1es-windows-2022-open
-    helixQueue: Windows.10.Amd64.Open
+    helixQueue: Windows.11.Amd64.Client.Open
 
 - template: /build/ci/job-template.yml
   parameters:
@@ -213,4 +219,4 @@ jobs:
     pool:
       name: NetCore-Public
       demands: ImageOverride -equals 1es-windows-2022-open
-    helixQueue: Windows.10.Amd64.Open
+    helixQueue: Windows.11.Amd64.Client.Open

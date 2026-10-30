@@ -26,7 +26,7 @@ variables:
 - name: Codeql.TSAOptionsPath
   value: '$(Build.SourcesDirectory)/.config/tsaoptions.json'
 - name: LinuxImage
-  value: 1es-ubuntu-2204
+  value: build.azurelinux.3.amd64
 - name: WindowsImage
   value: 1es-windows-2022
 - name: MacImage
@@ -53,6 +53,7 @@ extends:
     sdl:
       binskim:
         enabled: true
+        break: true
         scanOutputDirectoryOnly: true
       policheck:
         enabled: true
@@ -67,10 +68,14 @@ extends:
     containers:
       CentosContainer: 
         image: mcr.microsoft.com/dotnet-buildtools/prereqs:centos-stream8-mlnet
-      UbuntuCrossArmContainer: 
-        image: mcr.microsoft.com/dotnet-buildtools/prereqs:ubuntu-18.04-mlnet-cross-arm
-      UbuntuCrossArm64Container:
-        image: mcr.microsoft.com/dotnet-buildtools/prereqs:ubuntu-18.04-mlnet-cross-arm64
+      AzureLinuxCrossArmContainer:
+        image: mcr.microsoft.com/dotnet-buildtools/prereqs:azurelinux-3.0-net8.0-cross-arm
+        env:
+          LDFLAGS: -fuse-ld=lld
+      AzureLinuxCrossArm64Container:
+        image: mcr.microsoft.com/dotnet-buildtools/prereqs:azurelinux-3.0-net8.0-cross-arm64
+        env:
+          LDFLAGS: -fuse-ld=lld
     stages:
     - stage: build
       displayName: Build
@@ -102,7 +107,7 @@ extends:
           name: $(DncEngInternalBuildPool)
           image: $(LinuxImage)
           os: linux
-        container: UbuntuCrossArmContainer
+        container: AzureLinuxCrossArmContainer
         templateContext:
           outputs:
           - output: buildArtifacts
@@ -122,7 +127,7 @@ extends:
           name: $(DncEngInternalBuildPool)
           image: $(LinuxImage)
           os: linux
-        container: UbuntuCrossArm64Container
+        container: AzureLinuxCrossArm64Container
         templateContext:
           outputs:
           - output: buildArtifacts
@@ -147,9 +152,7 @@ extends:
             ArtifactName: pkgassets
         steps:
         - script: |
-            $(Build.SourcesDirectory)/eng/common/native/install-dependencies.sh osx
-            brew install libomp
-            brew link libomp --force
+            $(Build.SourcesDirectory)/eng/install-dependencies.sh osx
           displayName: Install build dependencies
         # Only build native assets to avoid conflicts.
         - script: ./build.sh --ci -projects $(Build.SourcesDirectory)/src/Native/Native.proj -configuration $(BuildConfig) /p:TargetArchitecture=x64 /p:CopyPackageAssets=true
@@ -169,9 +172,7 @@ extends:
             ArtifactName: pkgassets
         steps:
         - script:  |
-            $(Build.SourcesDirectory)/eng/common/native/install-dependencies.sh osx
-            brew install libomp
-            brew link libomp --force
+            $(Build.SourcesDirectory)/eng/install-dependencies.sh osx
           displayName: Install build dependencies
         # Only build native assets to avoid conflicts.
         - script: ./build.sh --ci -projects $(Build.SourcesDirectory)/src/Native/Native.proj -configuration $(BuildConfig) /p:TargetArchitecture=arm64 /p:CopyPackageAssets=true
@@ -263,7 +264,8 @@ extends:
               logs: true
               manifests: true
           enableMicrobuild: true
-          enablePublishUsingPipelines: true
+          enablePublishing: true
+          publishingVersion: 4
           enableSourceIndex: true
           dependsOn:
           - Linux_x64
@@ -280,10 +282,7 @@ extends:
             - _TeamName: DotNetCore
             - _InternalBuildArgs: /p:DotNetSignType=$(_SignType)
                                   /p:TeamName=$(_TeamName)
-                                  /p:DotNetSymbolServerTokenMsdl=$(microsoft-symbol-server-pat)
-                                  /p:DotNetSymbolServerTokenSymWeb=$(symweb-symbol-server-pat)
                                   /p:OfficialBuildId=$(OfficialBuildId)
-                                  /p:DotNetPublishUsingPipelines=$true
           pool:
             name: $(DncEngInternalBuildPool)
             image: $(WindowsImage)
@@ -322,12 +321,8 @@ extends:
           dependsOn: Package
           enablePublishBuildArtifacts: true
           publishAssetsImmediately: true
-          publishUsingPipelines: true
+          publishingVersion: 4
           pool:
             name: $(DncEngInternalBuildPool)
             image: $(WindowsImage)
             os: windows
-
-    - template: /eng/common/templates-official/post-build/post-build.yml@self
-      parameters:
-        publishingInfraVersion: 3

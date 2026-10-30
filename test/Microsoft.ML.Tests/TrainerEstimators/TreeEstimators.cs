@@ -19,7 +19,6 @@ using Microsoft.ML.Trainers.FastTree;
 using Microsoft.ML.Trainers.LightGbm;
 using Microsoft.ML.Transforms;
 using Xunit;
-using FluentAssertions;
 using System.IO;
 
 namespace Microsoft.ML.Tests.TrainerEstimators
@@ -52,6 +51,31 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var transformedDataView = pipe.Fit(dataView).Transform(dataView);
             var model = trainer.Fit(transformedDataView, transformedDataView);
             Done();
+        }
+
+        [Theory]
+        [InlineData(5, 4)]
+        [InlineData(5, 5)]
+        public void FastTreeHistogramPoolSizeValidation(int numberOfLeaves, int histogramPoolSize)
+        {
+            var data = ML.Data.LoadFromEnumerable(
+                SamplesUtils.DatasetUtils.GenerateBinaryLabelFloatFeatureVectorFloatWeightSamples(100).ToList());
+            var trainer = ML.BinaryClassification.Trainers.FastTree(new FastTreeBinaryTrainer.Options
+            {
+                NumberOfThreads = 1,
+                NumberOfTrees = 1,
+                NumberOfLeaves = numberOfLeaves,
+                HistogramPoolSize = histogramPoolSize,
+                MinimumExampleCountPerLeaf = 1,
+            });
+
+            if (numberOfLeaves > 2 && histogramPoolSize > numberOfLeaves - 1)
+            {
+                var exception = Assert.Throws<InvalidOperationException>(() => trainer.Fit(data));
+                Assert.Contains("Histogram pool size (ps) must be at most numLeaves - 1.", exception.Message);
+            }
+            else
+                Assert.NotNull(trainer.Fit(data));
         }
 
         [LightGBMFact]
@@ -206,6 +230,51 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var transformedDataView = pipe.Fit(dataView).Transform(dataView);
             var model = trainer.Fit(transformedDataView, transformedDataView);
             Done();
+        }
+
+        [LightGBMFact]
+        public void LightGBMRankerValidationWithManyGroups()
+        {
+            var train = ML.Data.LoadFromEnumerable(GetLightGbmRankingRows(0));
+            var validation = ML.Data.LoadFromEnumerable(GetLightGbmRankingRows(10_000));
+            var trainer = ML.Ranking.Trainers.LightGbm(new LightGbmRankingTrainer.Options
+            {
+                LabelColumnName = nameof(LightGbmRankingRow.Label),
+                FeatureColumnName = nameof(LightGbmRankingRow.Features),
+                RowGroupColumnName = nameof(LightGbmRankingRow.GroupId),
+                MinimumExampleCountPerLeaf = 1,
+                NumberOfIterations = 1,
+                NumberOfLeaves = 2,
+                NumberOfThreads = 1,
+            });
+
+            trainer.Fit(train, validation);
+            Done();
+        }
+
+        private static IEnumerable<LightGbmRankingRow> GetLightGbmRankingRows(int groupIdOffset)
+        {
+            for (int group = 0; group < 5_000; ++group)
+            {
+                for (int position = 0; position < 4; ++position)
+                {
+                    yield return new LightGbmRankingRow
+                    {
+                        GroupId = (uint)(groupIdOffset + group + 1),
+                        Label = 3 - position,
+                        Features = new[] { (float)position, (float)(group % 17) },
+                    };
+                }
+            }
+        }
+
+        private sealed class LightGbmRankingRow
+        {
+            public uint GroupId { get; set; }
+            public float Label { get; set; }
+
+            [VectorType(2)]
+            public float[] Features { get; set; }
         }
 
         /// <summary>
@@ -1037,8 +1106,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 }
             };
 
-            var action = () => estimator.Fit(dataView);
-            action.Should().Throw<OperationCanceledException>();
+            Assert.ThrowsAny<OperationCanceledException>(() => estimator.Fit(dataView));
         }
 
         [LightGBMFact]
@@ -1091,8 +1159,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                     UseCategoricalSplit = true
                 }));
 
-            var action = () => trainer.Fit(dataView);
-            action.Should().Throw<OperationCanceledException>();
+            Assert.ThrowsAny<OperationCanceledException>(() => trainer.Fit(dataView));
         }
 
         [LightGBMFact]
@@ -1119,8 +1186,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                     UseCategoricalSplit = true
                 }));
 
-            var action = () => trainer.Fit(dataView);
-            action.Should().Throw<OperationCanceledException>();
+            Assert.ThrowsAny<OperationCanceledException>(() => trainer.Fit(dataView));
         }
     }
 }

@@ -24,6 +24,10 @@
           <Generator>TextTemplatingFileGenerator</Generator>
           <LastGenOutput>PrimitiveDataFrameColumnComputationsTests.cs</LastGenOutput>
         </None>
+        <None Update="PrimitiveDataFrameColumn.NullComparisonTests.tt">
+          <Generator>TextTemplatingFileGenerator</Generator>
+          <LastGenOutput>PrimitiveDataFrameColumn.NullComparisonTests.cs</LastGenOutput>
+        </None>
     </ItemGroup>
 
     <ItemGroup>
@@ -40,6 +44,11 @@
           <DesignTime>True</DesignTime>
           <AutoGen>True</AutoGen>
           <DependentUpon>PrimitiveDataFrameColumnComputationsTests.tt</DependentUpon>
+        </Compile>
+        <Compile Update="PrimitiveDataFrameColumn.NullComparisonTests.cs">
+          <DesignTime>True</DesignTime>
+          <AutoGen>True</AutoGen>
+          <DependentUpon>PrimitiveDataFrameColumn.NullComparisonTests.tt</DependentUpon>
         </Compile>
     </ItemGroup>
 

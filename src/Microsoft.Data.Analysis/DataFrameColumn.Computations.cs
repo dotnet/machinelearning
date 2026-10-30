@@ -47,6 +47,12 @@ namespace Microsoft.Data.Analysis
         /// <summary>
         /// Updates column values at rowIndices with its cumulative rowIndices maximum
         /// </summary>
+        /// <param name="rowIndices">
+        /// The zero-based indices of rows to process, in enumeration order. Repeated indices are processed repeatedly.
+        /// </param>
+        /// <param name="inPlace">
+        /// <see langword="true"/> to update this column; <see langword="false"/> to return a new column.
+        /// </param>
         public virtual DataFrameColumn CumulativeMax(IEnumerable<long> rowIndices, bool inPlace = false)
         {
             throw new NotImplementedException();
@@ -63,6 +69,12 @@ namespace Microsoft.Data.Analysis
         /// <summary>
         /// Updates column values at rowIndices with its cumulative rowIndices minimum
         /// </summary>
+        /// <param name="rowIndices">
+        /// The zero-based indices of rows to process, in enumeration order. Repeated indices are processed repeatedly.
+        /// </param>
+        /// <param name="inPlace">
+        /// <see langword="true"/> to update this column; <see langword="false"/> to return a new column.
+        /// </param>
         public virtual DataFrameColumn CumulativeMin(IEnumerable<long> rowIndices, bool inPlace = false)
         {
             throw new NotImplementedException();
@@ -79,6 +91,12 @@ namespace Microsoft.Data.Analysis
         /// <summary>
         /// Updates column values at rowIndices with its cumulative rowIndices product
         /// </summary>
+        /// <param name="rowIndices">
+        /// The zero-based indices of rows to process, in enumeration order. Repeated indices are processed repeatedly.
+        /// </param>
+        /// <param name="inPlace">
+        /// <see langword="true"/> to update this column; <see langword="false"/> to return a new column.
+        /// </param>
         public virtual DataFrameColumn CumulativeProduct(IEnumerable<long> rowIndices, bool inPlace = false)
         {
             throw new NotImplementedException();
@@ -95,6 +113,12 @@ namespace Microsoft.Data.Analysis
         /// <summary>
         /// Updates column values at rowIndices with its cumulative rowIndices sum
         /// </summary>
+        /// <param name="rowIndices">
+        /// The zero-based indices of rows to process, in enumeration order. Repeated indices are processed repeatedly.
+        /// </param>
+        /// <param name="inPlace">
+        /// <see langword="true"/> to update this column; <see langword="false"/> to return a new column.
+        /// </param>
         public virtual DataFrameColumn CumulativeSum(IEnumerable<long> rowIndices, bool inPlace = false)
         {
             throw new NotImplementedException();
@@ -111,6 +135,9 @@ namespace Microsoft.Data.Analysis
         /// <summary>
         /// Returns the maximum of the values at rowIndices
         /// </summary>
+        /// <param name="rowIndices">
+        /// The zero-based indices of rows to process, in enumeration order. Repeated indices are processed repeatedly.
+        /// </param>
         public virtual object Max(IEnumerable<long> rowIndices)
         {
             throw new NotImplementedException();
@@ -127,6 +154,9 @@ namespace Microsoft.Data.Analysis
         /// <summary>
         /// Returns the minimum of the values at the rowIndices
         /// </summary>
+        /// <param name="rowIndices">
+        /// The zero-based indices of rows to process, in enumeration order. Repeated indices are processed repeatedly.
+        /// </param>
         public virtual object Min(IEnumerable<long> rowIndices)
         {
             throw new NotImplementedException();
@@ -143,6 +173,9 @@ namespace Microsoft.Data.Analysis
         /// <summary>
         /// Returns the product of the values at the rowIndices
         /// </summary>
+        /// <param name="rowIndices">
+        /// The zero-based indices of rows to process, in enumeration order. Repeated indices are processed repeatedly.
+        /// </param>
         public virtual object Product(IEnumerable<long> rowIndices)
         {
             throw new NotImplementedException();
@@ -159,6 +192,9 @@ namespace Microsoft.Data.Analysis
         /// <summary>
         /// Returns the sum of the values at the rowIndices
         /// </summary>
+        /// <param name="rowIndices">
+        /// The zero-based indices of rows to process, in enumeration order. Repeated indices are processed repeatedly.
+        /// </param>
         public virtual object Sum(IEnumerable<long> rowIndices)
         {
             throw new NotImplementedException();

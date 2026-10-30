@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using FluentAssertions;
 using Microsoft.ML.SearchSpace;
 using Microsoft.ML.TestFramework;
 using Xunit;
@@ -51,8 +50,8 @@ namespace Microsoft.ML.AutoML.Test
                 parameters.Add(tuner.Propose(settings));
             }
 
-            steps.Should().Be(600);
-            parameters.Distinct().Count().Should().Be(steps);
+            Assert.Equal(600, steps);
+            Assert.Equal(steps, parameters.Distinct().Count());
         }
 
         private class NaiveSearchSpace
