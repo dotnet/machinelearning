@@ -28,6 +28,66 @@ namespace Microsoft.ML.AutoML.Test
         {
         }
 
+        [Theory]
+        [InlineData(MulticlassClassificationMetric.MacroAccuracy, true)]
+        [InlineData(MulticlassClassificationMetric.MicroAccuracy, true)]
+        [InlineData(MulticlassClassificationMetric.LogLoss, false)]
+        [InlineData(MulticlassClassificationMetric.LogLossReduction, true)]
+        [InlineData(MulticlassClassificationMetric.TopKAccuracy, true)]
+        public void MulticlassClassificationMetric_optimization_direction(MulticlassClassificationMetric metric, bool isMaximize)
+        {
+            var context = new MLContext(1);
+            var experiment = context.Auto().CreateExperiment()
+                .SetMulticlassClassificationMetric(metric);
+            using var serviceProvider = experiment.ServiceCollection.BuildServiceProvider();
+
+            Assert.Equal(isMaximize, serviceProvider.GetRequiredService<IMetricManager>().IsMaximize);
+        }
+
+        [Theory]
+        [InlineData(MulticlassClassificationMetric.LogLossReduction, 1, 0.9)]
+        [InlineData(MulticlassClassificationMetric.LogLoss, 0, 0.2)]
+        public async Task MulticlassClassificationMetric_selects_best_trial_Async(MulticlassClassificationMetric metric, int expectedTrialId, double expectedMetric)
+        {
+            var context = new MLContext(1);
+            var experiment = context.Auto().CreateExperiment()
+                .SetMulticlassClassificationMetric(metric)
+                .SetMaxModelToExplore(3)
+                .SetTuner<RandomSearchTuner>()
+                .SetTrialRunner(serviceProvider => new FixedMetricTrialRunner(serviceProvider.GetRequiredService<IMetricManager>()));
+
+            var result = await experiment.RunAsync();
+
+            Assert.Equal(expectedTrialId, result.TrialSettings.TrialId);
+            Assert.Equal(expectedMetric, result.Metric);
+        }
+
+        private sealed class FixedMetricTrialRunner : ITrialRunner
+        {
+            private readonly IMetricManager _metricManager;
+
+            public FixedMetricTrialRunner(IMetricManager metricManager)
+            {
+                _metricManager = metricManager;
+            }
+
+            public Task<TrialResult> RunAsync(TrialSettings settings, CancellationToken ct)
+            {
+                var metrics = new[] { 0.2, 0.9, 0.5 };
+                var metric = metrics[settings.TrialId];
+                return Task.FromResult(new TrialResult
+                {
+                    TrialSettings = settings,
+                    Metric = metric,
+                    Loss = _metricManager.IsMaximize ? -metric : metric,
+                });
+            }
+
+            public void Dispose()
+            {
+            }
+        }
+
         [Fact]
         public async Task AutoMLExperiment_throw_timeout_exception_when_ct_is_canceled_and_no_trial_completed_Async()
         {

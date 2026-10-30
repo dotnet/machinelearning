@@ -83,7 +83,7 @@ namespace Microsoft.ML.AutoML
             MulticlassClassificationMetric.MacroAccuracy => true,
             MulticlassClassificationMetric.MicroAccuracy => true,
             MulticlassClassificationMetric.LogLoss => false,
-            MulticlassClassificationMetric.LogLossReduction => false,
+            MulticlassClassificationMetric.LogLossReduction => true,
             MulticlassClassificationMetric.TopKAccuracy => true,
             _ => throw new NotImplementedException(),
         };
