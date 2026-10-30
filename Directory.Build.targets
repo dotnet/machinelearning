@@ -38,6 +38,20 @@
       <NativeAssemblyReference Remove="MklProxyNative"/>
       <NativeAssemblyReference Remove="libiomp5md"/>
     </ItemGroup>
+
+    <MSBuild Condition="'@(NativeAssemblyReference->WithMetadataValue('Identity', 'OneDalNative'))' != ''"
+             Projects="$(RepoRoot)src\Native\Native.proj"
+             Targets="GetOneDalNativeDependencies"
+             Properties="Configuration=$(Configuration);TargetArchitecture=$(TargetArchitecture)"
+             RemoveProperties="TargetFramework;RuntimeIdentifier">
+      <Output TaskParameter="TargetOutputs" ItemName="_OneDalNativeDependency" />
+    </MSBuild>
+
+    <ItemGroup>
+      <NativeAssemblyReference Include="@(_OneDalNativeDependency)">
+        <FullAssemblyPath>$(NativeOutputPath)%(_OneDalNativeDependency.Identity)</FullAssemblyPath>
+      </NativeAssemblyReference>
+    </ItemGroup>
   </Target>
 
   <Target Name="CopyNativeAssembliesPublish" AfterTargets="Publish" DependsOnTargets="SetCopyProperties">

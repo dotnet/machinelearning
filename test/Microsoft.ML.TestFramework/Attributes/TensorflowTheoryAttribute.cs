@@ -13,7 +13,7 @@ namespace Microsoft.ML.TestFramework.Attributes
     /// </summary>
     public sealed class TensorFlowTheoryAttribute : EnvironmentSpecificTheoryAttribute
     {
-        public TensorFlowTheoryAttribute() : base("TensorFlow is 64-bit only and is not supported on Linux with libc < v2.23")
+        public TensorFlowTheoryAttribute() : base("TensorFlow requires a 64-bit process, a supported platform, and a loadable native library.")
         {
         }
 
