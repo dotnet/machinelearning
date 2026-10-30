@@ -56,3 +56,26 @@ export ROOTFS_DIR=<new rootfs location>
 The `<target architecture>` is typically `arm` or `arm64`. Use an Ubuntu codename supported by `eng/common/cross/build-rootfs.sh`.
 
 Linux cross-build jobs using `build/ci/job-template.yml` must pass the sysroot path through `rootfsDir` (for example, `/crossrootfs/arm64`). The template does not infer it from the agent image or job name.
+
+### CI build containers
+
+Ubuntu x64 validation and nightly builds use
+`mcr.microsoft.com/dotnet-buildtools/prereqs:ubuntu-22.04-mlnet`, which includes
+Clang 14 and OpenMP development packages.
+
+ARM and ARM64 CI builds use the same cross-build images as dotnet/runtime's
+`release/8.0` branch:
+
+- `mcr.microsoft.com/dotnet-buildtools/prereqs:azurelinux-3.0-net8.0-cross-arm`
+- `mcr.microsoft.com/dotnet-buildtools/prereqs:azurelinux-3.0-net8.0-cross-arm64`
+
+These images run build tools on Azure Linux 3.0 while targeting Ubuntu Xenial
+sysroots at `/crossrootfs/arm` and `/crossrootfs/arm64`. The sysroots include the
+target OpenMP packages. Keep `ROOTFS_DIR` set to the matching directory when
+using these images, and set `LDFLAGS=-fuse-ld=lld` to use the bundled LLVM linker
+instead of the host's architecture-specific GNU linker.
+
+The official x64 native-package build retains its CentOS Stream 8 image to avoid
+raising the native libraries' minimum system-library requirements. Updating a
+build container must not silently change the compatibility baseline of shipped
+native assets.
