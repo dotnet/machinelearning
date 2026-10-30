@@ -40,7 +40,6 @@ jobs:
         spaceValue: '%20'
       ${{ if ne(parameters.rootfsDir, '') }}:
         ROOTFS_DIR: ${{ parameters.rootfsDir }}
-      # Coverlet rewrites assemblies and PDBs; keep coverage outputs independent of obj files.
       ${{ if eq(parameters.codeCoverage, 'true') }}:
         hardLink: '/p:CreateHardLinksForCopyFilesToOutputDirectoryIfPossible=False /p:CreateHardLinksForCopyLocalIfPossible=False'
         ${{ if eq(parameters.buildScript, 'build.cmd') }}:
@@ -48,7 +47,7 @@ jobs:
         ${{ if eq(parameters.buildScript, './build.sh') }}:
           arcadeCiOption: '--ci'
       ${{ if eq(parameters.codeCoverage, 'false') }}:
-        hardLink: '/p:CreateHardLinksForCopyLocalIfPossible=True'
+        hardLink: '/p:CreateHardLinksForCopyFilesToOutputDirectoryIfPossible=True /p:CreateHardLinksForCopyLocalIfPossible=True'
         arcadeCiOption: ''
       testTargetFramework: '/p:TestTargetFramework=$(_targetFramework)'
     strategy:
