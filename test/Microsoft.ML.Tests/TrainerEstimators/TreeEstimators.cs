@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.ML.Calibrators;
@@ -504,7 +505,8 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             public float[] Score;
         }
 
-        private void LightGbmHelper(bool useSoftmax, double sigmoid, out string modelString, out List<GbmExample> mlnetPredictions, out double[] lgbmRawScores, out double[] lgbmProbabilities, bool unbalancedSets = false)
+        private void LightGbmHelper(bool useSoftmax, double sigmoid, out string modelString, out List<GbmExample> mlnetPredictions, out double[] lgbmRawScores, out double[] lgbmProbabilities, bool unbalancedSets = false,
+            int numberOfTrainingIterations = 3, double? learningRate = null)
         {
             // Prepare data and train LightGBM model via ML.NET
             // Training matrix. It contains all feature vectors.
@@ -530,11 +532,11 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
             var mlContext = new MLContext(seed: 0);
             var dataView = mlContext.Data.LoadFromEnumerable(dataList);
-            int numberOfTrainingIterations = 3;
             var gbmTrainer = new LightGbmMulticlassTrainer(mlContext,
                 new LightGbmMulticlassTrainer.Options
                 {
                     NumberOfIterations = numberOfTrainingIterations,
+                    LearningRate = learningRate,
                     MinimumExampleCountPerGroup = 1,
                     MinimumExampleCountPerLeaf = 1,
                     UseSoftmax = useSoftmax,
@@ -596,7 +598,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
                 using (var gbmNative = WrappedLightGbmTraining.Train(host, ch, pch, gbmParams, gbmDataSet, numIteration: numberOfTrainingIterations))
                 {
-                    int nativeLength = 0;
+                    long nativeLength = 0;
                     unsafe
                     {
                         fixed (float* data = dataMatrix)
@@ -612,6 +614,108 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                     }
                 }
             }
+        }
+
+        [Theory]
+        [InlineData(nameof(WrappedLightGbmInterface.DatasetCreateFromSampledColumn), "numTotalDistributedRow", false)]
+        [InlineData(nameof(WrappedLightGbmInterface.BoosterSaveModelToString), "bufferLen", false)]
+        [InlineData(nameof(WrappedLightGbmInterface.BoosterSaveModelToString), "outLen", true)]
+        [InlineData(nameof(WrappedLightGbmInterface.BoosterPredictForMat), "outLen", true)]
+        public void LightGbmInteropUsesInt64Parameters(string methodName, string parameterName, bool isByRef)
+        {
+            var method = typeof(WrappedLightGbmInterface).GetMethod(methodName);
+            Assert.NotNull(method);
+            var parameter = method.GetParameters().Single(p => p.Name == parameterName);
+            var expectedType = isByRef ? typeof(long).MakeByRefType() : typeof(long);
+
+            Assert.Equal(expectedType, parameter.ParameterType);
+            Done();
+        }
+
+        [Fact]
+        public void LightGbmTrainersDisableFeaturePreFilter()
+        {
+            var trainerParameters = new[]
+            {
+                new LightGbmBinaryTrainer(ML, new LightGbmBinaryTrainer.Options()).GetGbmParameters(),
+                new LightGbmMulticlassTrainer(ML, new LightGbmMulticlassTrainer.Options()).GetGbmParameters(),
+                new LightGbmRegressionTrainer(ML, new LightGbmRegressionTrainer.Options()).GetGbmParameters(),
+                new LightGbmRankingTrainer(ML, new LightGbmRankingTrainer.Options()).GetGbmParameters()
+            };
+
+            foreach (var parameters in trainerParameters)
+                Assert.False(Assert.IsType<bool>(parameters["feature_pre_filter"]));
+            Done();
+        }
+
+        [LightGBMFact]
+        public void LightGbmDatasetFiltersOnlyUnsplittableFeatures()
+        {
+            const int rowCount = 100;
+            const int rareFeatureCount = 5;
+            var sampleValues = new[]
+            {
+                Enumerable.Range(1, rowCount).Select(i => (double)i).ToArray(),
+                Enumerable.Repeat(1.0, rareFeatureCount).ToArray()
+            };
+            var sampleIndices = new[]
+            {
+                Enumerable.Range(0, rowCount).ToArray(),
+                Enumerable.Range(0, rareFeatureCount).ToArray()
+            };
+            var labels = Enumerable.Range(0, rowCount).Select(i => (float)i).ToArray();
+            var parameters = new Dictionary<string, object>
+            {
+                ["objective"] = "regression",
+                ["metric"] = "l2",
+                ["min_data_in_leaf"] = 20,
+                ["verbosity"] = -1
+            };
+            using (var dataset = new Trainers.LightGbm.Dataset(sampleValues, sampleIndices, 2,
+                new[] { rowCount, rareFeatureCount }, rowCount, rowCount,
+                LightGbmInterfaceUtils.JoinParameters(parameters), labels))
+            {
+                var data = new float[rowCount * 2];
+                for (int i = 0; i < rowCount; i++)
+                {
+                    data[i * 2] = i + 1;
+                    data[i * 2 + 1] = i < rareFeatureCount ? 1 : 0;
+                }
+                dataset.PushRows(data, rowCount, 2, 0);
+                using (var booster = new Booster(parameters, dataset))
+                {
+                    booster.Update();
+                    var featureInfos = booster.GetModelString().Split('\n')
+                        .Single(line => line.StartsWith("feature_infos=", StringComparison.Ordinal))
+                        .Substring("feature_infos=".Length).Trim().Split(' ');
+                    Assert.Equal(2, featureInfos.Length);
+                    Assert.NotEqual("none", featureInfos[0]);
+                    Assert.Equal("none", featureInfos[1]);
+                }
+            }
+            Done();
+        }
+
+        [LightGBMTheory]
+        [InlineData(3, false)]
+        [InlineData(100, true)]
+        public void LightGbmGetModelStringHandlesBufferSizes(int numberOfTrainingIterations, bool exceedsInitialBuffer)
+        {
+            // A low learning rate keeps the simple helper data from exhausting useful splits too early.
+            LightGbmHelper(useSoftmax: true, sigmoid: .5, out string modelString, out _, out _, out _,
+                numberOfTrainingIterations: numberOfTrainingIterations, learningRate: .01);
+
+            const int initialBufferSize = 65536;
+            int modelByteCount = Encoding.UTF8.GetByteCount(modelString);
+            if (exceedsInitialBuffer)
+                Assert.True(modelByteCount > initialBufferSize, $"Expected more than {initialBufferSize} UTF-8 bytes, got {modelByteCount}.");
+            else
+                Assert.True(modelByteCount < initialBufferSize, $"Expected fewer than {initialBufferSize} UTF-8 bytes, got {modelByteCount}.");
+
+            var model = Booster.GetModel(null, modelString);
+            Assert.Equal(numberOfTrainingIterations * _classNumber, model.NumTrees);
+            Assert.Equal(_columnNumber, Booster.GetNumFeatures(modelString));
+            Done();
         }
 
         [LightGBMFact]
