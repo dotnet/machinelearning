@@ -122,6 +122,9 @@ export __IntermediatesDir=$__IntermediatesDir
 if command -v "clang-9" > /dev/null 2>&1; then
     export CC="$(command -v clang-9)"
     export CXX="$(command -v clang++-9)"
+elif command -v "clang-14" > /dev/null 2>&1; then
+    export CC="$(command -v clang-14)"
+    export CXX="$(command -v clang++-14)"
 elif command -v "clang-6.0" > /dev/null 2>&1; then
     export CC="$(command -v clang-6.0)"
     export CXX="$(command -v clang++-6.0)"
@@ -139,7 +142,7 @@ elif command -v clang > /dev/null 2>&1; then
     export CXX="$(command -v clang++)"
 else
     echo "Unable to find Clang Compiler"
-    echo "Install clang-3.5 or clang3.6 or clang3.9"
+    echo "Install Clang with matching clang and clang++ executables, or a supported versioned pair (14, 9, 6.0, 3.5, 3.6, 3.9)."
     exit 1
 fi
 

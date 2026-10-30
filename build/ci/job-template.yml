@@ -71,7 +71,7 @@ jobs:
       - script: |
           $(Build.SourcesDirectory)/eng/install-dependencies.sh osx
         displayName: Install MacOS build dependencies
-    - ${{ if and( eq(parameters.nightlyBuild, 'true'), eq(parameters.pool.vmImage, 'ubuntu-18.04')) }}:
+    - ${{ if and( eq(parameters.nightlyBuild, 'true'), eq(parameters.pool.vmImage, 'ubuntu-22.04')) }}:
       - bash: echo "##vso[task.setvariable variable=LD_LIBRARY_PATH]$(nightlyBuildRunPath):$LD_LIBRARY_PATH"
         displayName: Set LD_LIBRARY_PATH for Ubuntu and CentOS to locate Native shared library in current running path
     - script: ${{ parameters.buildScript }} -configuration $(_configuration) /p:TargetArchitecture=${{ parameters.architecture }} /p:Coverage=${{ parameters.codeCoverage }} $(testTargetFramework) /p:CreateHardLinksForCopyFilesToOutputDirectoryIfPossible=True $(hardLink)
@@ -82,7 +82,7 @@ jobs:
           targetType: inline
           script: cd packages;find . -type d -path "*/runtimes/linux-*"  -exec rm -rv {} +;find . -type d -path "*/runtimes/win-*"  -exec rm -rv {} +;cd ..
         displayName: Clean up non-MacOS runtime folders of NuGet Packages to save disk space
-    - ${{ if eq(parameters.pool.vmImage, 'ubuntu-18.04') }}:
+    - ${{ if eq(parameters.pool.vmImage, 'ubuntu-22.04') }}:
       - task: Bash@3
         inputs:
           targetType: inline
