@@ -25,7 +25,7 @@ resources:
     image: mcr.microsoft.com/dotnet-buildtools/prereqs:centos-stream8-mlnet
 
   - container: UbuntuContainer
-    image: mcr.microsoft.com/dotnet-buildtools/prereqs:ubuntu-18.04-mlnet
+    image: mcr.microsoft.com/dotnet-buildtools/prereqs:ubuntu-22.04-mlnet
 
 jobs:
 - template: /build/ci/job-template.yml
@@ -46,7 +46,7 @@ jobs:
         _includeBenchmarkData: true
     nightlyBuild: true
     pool:
-      vmImage: ubuntu-18.04
+      vmImage: ubuntu-22.04
 
 - template: /build/ci/job-template.yml
   parameters:
@@ -55,7 +55,7 @@ jobs:
     container: UbuntuContainer
     nightlyBuild: true
     pool:
-      vmImage: ubuntu-18.04
+      vmImage: ubuntu-22.04
 
 - template: /build/ci/job-template.yml
   parameters:
