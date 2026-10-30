@@ -232,6 +232,35 @@ namespace Microsoft.ML.Tests.Transformers
             Assert.Equal(expected, prediction.Features);
         }
 
+        [Theory]
+        [InlineData("", "", "", true)]
+        [InlineData("is", "the", "a", true)]
+        [InlineData("is", "the", "a", false)]
+        public void TextFeaturizerWithEmptyNgramDictionaryTest(string text1, string text2, string text3, bool useCharExtractor)
+        {
+            // All rows are either empty or contain only stop words, so the n-gram dictionaries end up empty.
+            var data = new[] { new TestClass() { A = text1 }, new TestClass() { A = text2 }, new TestClass() { A = text3 } };
+            var dataView = ML.Data.LoadFromEnumerable(data);
+
+            var options = new TextFeaturizingEstimator.Options()
+            {
+                StopWordsRemoverOptions = new StopWordsRemovingEstimator.Options()
+                {
+                    Language = TextFeaturizingEstimator.Language.English
+                },
+            };
+            if (!useCharExtractor)
+                options.CharFeatureExtractor = null;
+
+            var pipeline = ML.Transforms.Text.FeaturizeText("Features", options, "A");
+            var model = pipeline.Fit(dataView);
+            var transformed = model.Transform(dataView);
+
+            var features = transformed.GetColumn<float[]>("Features").ToArray();
+            Assert.Equal(3, features.Length);
+            Assert.All(features, f => Assert.Empty(f));
+        }
+
         [Fact]
         public void TextFeaturizerWithCustomStopWordRemoverTest()
         {

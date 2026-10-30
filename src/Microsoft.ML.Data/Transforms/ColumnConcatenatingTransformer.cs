@@ -738,7 +738,7 @@ namespace Microsoft.ML.Data
                             int count = 0;
                             for (int j = 0; j < SrcIndices.Length; j++)
                             {
-                                Contracts.Assert(offset < dstLength);
+                                Contracts.Assert(offset <= dstLength);
                                 if (_srcTypes[j] is VectorDataViewType)
                                 {
                                     var buffer = tmpBufs[j];
