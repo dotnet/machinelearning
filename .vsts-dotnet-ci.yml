@@ -40,13 +40,17 @@ resources:
     image: mcr.microsoft.com/dotnet-buildtools/prereqs:centos-stream8-mlnet
 
   - container: UbuntuContainer
-    image: mcr.microsoft.com/dotnet-buildtools/prereqs:ubuntu-18.04-mlnet
+    image: mcr.microsoft.com/dotnet-buildtools/prereqs:ubuntu-22.04-mlnet
 
-  - container: UbuntuCrossArmContainer
-    image: mcr.microsoft.com/dotnet-buildtools/prereqs:ubuntu-18.04-mlnet-cross-arm
+  - container: AzureLinuxCrossArmContainer
+    image: mcr.microsoft.com/dotnet-buildtools/prereqs:azurelinux-3.0-net8.0-cross-arm
+    env:
+      LDFLAGS: -fuse-ld=lld
 
-  - container: UbuntuCrossArm64Container
-    image: mcr.microsoft.com/dotnet-buildtools/prereqs:ubuntu-18.04-mlnet-cross-arm64
+  - container: AzureLinuxCrossArm64Container
+    image: mcr.microsoft.com/dotnet-buildtools/prereqs:azurelinux-3.0-net8.0-cross-arm64
+    env:
+      LDFLAGS: -fuse-ld=lld
 
 jobs:
 - template: /build/ci/job-template.yml
@@ -54,7 +58,7 @@ jobs:
     architecture: arm
     name: Ubuntu_x64_cross_arm
     buildScript: ./build.sh
-    container: UbuntuCrossArmContainer
+    container: AzureLinuxCrossArmContainer
     customMatrixes:
       Debug_Build:
         _configuration: Debug
@@ -77,7 +81,7 @@ jobs:
     architecture: arm64
     name: Ubuntu_x64_cross_arm64
     buildScript: ./build.sh
-    container: UbuntuCrossArm64Container
+    container: AzureLinuxCrossArm64Container
     customMatrixes:
       Debug_Build:
         _configuration: Debug
