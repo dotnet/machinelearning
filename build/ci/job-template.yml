@@ -42,8 +42,13 @@ jobs:
         ROOTFS_DIR: ${{ parameters.rootfsDir }}
       ${{ if eq(parameters.codeCoverage, 'true') }}:
         hardLink: ''
+        ${{ if eq(parameters.buildScript, 'build.cmd') }}:
+          arcadeCiOption: '-ci'
+        ${{ if eq(parameters.buildScript, './build.sh') }}:
+          arcadeCiOption: '--ci'
       ${{ if eq(parameters.codeCoverage, 'false') }}:
         hardLink: '/p:CreateHardLinksForCopyLocalIfPossible=True'
+        arcadeCiOption: ''
       testTargetFramework: '/p:TestTargetFramework=$(_targetFramework)'
     strategy:
       matrix:
@@ -74,7 +79,7 @@ jobs:
     - ${{ if and( eq(parameters.nightlyBuild, 'true'), eq(parameters.pool.vmImage, 'ubuntu-22.04')) }}:
       - bash: echo "##vso[task.setvariable variable=LD_LIBRARY_PATH]$(nightlyBuildRunPath):$LD_LIBRARY_PATH"
         displayName: Set LD_LIBRARY_PATH for Ubuntu and CentOS to locate Native shared library in current running path
-    - script: ${{ parameters.buildScript }} -configuration $(_configuration) /p:TargetArchitecture=${{ parameters.architecture }} /p:Coverage=${{ parameters.codeCoverage }} $(testTargetFramework) /p:CreateHardLinksForCopyFilesToOutputDirectoryIfPossible=True $(hardLink)
+    - script: ${{ parameters.buildScript }} $(arcadeCiOption) -configuration $(_configuration) /p:TargetArchitecture=${{ parameters.architecture }} /p:Coverage=${{ parameters.codeCoverage }} $(testTargetFramework) /p:CreateHardLinksForCopyFilesToOutputDirectoryIfPossible=True $(hardLink)
       displayName: Build
     - ${{ if eq(parameters.pool.vmImage, 'macOS-10.15') }}:
       - task: Bash@3
@@ -119,10 +124,27 @@ jobs:
     - ${{ if eq(parameters.nightlyBuild, 'false') }}:
       - ${{ if eq(parameters.innerLoop, 'false') }}:
         - ${{ if and(eq(parameters.runSpecific, 'false'), eq(parameters.useVSTestTask, 'false')) }}:
-          - script: set PATH=%PATH%;%USERPROFILE%\.nuget\packages\libtorch-cpu-win-x64\2.2.1.1\runtimes\win-x64\native;%USERPROFILE%\.nuget\packages\torchsharp\0.102.7\runtimes\win-x64\native & ${{ parameters.buildScript }} /p:Build=false -configuration $(_configuration) /p:TargetArchitecture=${{ parameters.architecture }} -test -integrationTest /p:Coverage=${{ parameters.codeCoverage }} $(testTargetFramework)
+          - powershell: |
+              $propertyJson = & "$(dotnetPath)" msbuild test\run-tests.proj `
+                  '-getProperty:NuGetPackageRoot,LibTorchVersion,TorchSharpVersion,LightGBMVersion,TensorFlowVersion' `
+                  '/p:ContinuousIntegrationBuild=${{ parameters.codeCoverage }}' `
+                  -nologo
+              if ($LASTEXITCODE -ne 0) {
+                  exit $LASTEXITCODE
+              }
+
+              $properties = ($propertyJson | ConvertFrom-Json).Properties
+              $packageRoot = $properties.NuGetPackageRoot
+              $env:PATH += ";${packageRoot}libtorch-cpu-win-x64\$($properties.LibTorchVersion)\runtimes\win-x64\native"
+              $env:PATH += ";${packageRoot}torchsharp\$($properties.TorchSharpVersion)\runtimes\win-x64\native"
+              $env:PATH += ";${packageRoot}lightgbm\$($properties.LightGBMVersion)\runtimes\win-x64\native"
+              $env:PATH += ";${packageRoot}scisharp.tensorflow.redist\$($properties.TensorFlowVersion)\runtimes\win-x64\native"
+
+              & .\build.cmd $(arcadeCiOption) /p:Build=false -configuration $(_configuration) /p:TargetArchitecture=${{ parameters.architecture }} -test -integrationTest /p:Coverage=${{ parameters.codeCoverage }} $(testTargetFramework)
+              exit $LASTEXITCODE
             displayName: Run All Tests.
         - ${{ if and(eq(parameters.runSpecific, 'true'), eq(parameters.useVSTestTask, 'false')) }}:
-          - script: ${{ parameters.buildScript }} /p:Build=false -configuration $(_configuration) /p:TargetArchitecture=${{ parameters.architecture }} -test -integrationTest /p:TestRunnerAdditionalArguments='-trait$(spaceValue)Category=RunSpecificTest' /p:Coverage=${{ parameters.codeCoverage }} $(testTargetFramework)
+          - script: ${{ parameters.buildScript }} $(arcadeCiOption) /p:Build=false -configuration $(_configuration) /p:TargetArchitecture=${{ parameters.architecture }} -test -integrationTest /p:TestRunnerAdditionalArguments='-trait$(spaceValue)Category=RunSpecificTest' /p:Coverage=${{ parameters.codeCoverage }} $(testTargetFramework)
             displayName: Run Specific Tests.
         - ${{ if and(eq(parameters.buildScript, 'build.cmd'), eq(parameters.useVSTestTask, 'true')) }}:
           - task: VSTest@2
@@ -147,7 +169,7 @@ jobs:
               publishRunAttachments: true
       - ${{ if eq(parameters.innerLoop, 'true') }}:
         - ${{ if eq(parameters.codeCoverage, True) }}:
-          - script: ${{ parameters.buildScript }} /p:Build=false -configuration $(_configuration) /p:TargetArchitecture=${{ parameters.architecture }} -test -integrationTest /p:TestRunnerAdditionalArguments='-notrait$(spaceValue)Category=SkipInCI' /p:Coverage=${{ parameters.codeCoverage }} $(testTargetFramework)
+          - script: ${{ parameters.buildScript }} $(arcadeCiOption) /p:Build=false -configuration $(_configuration) /p:TargetArchitecture=${{ parameters.architecture }} -test -integrationTest /p:TestRunnerAdditionalArguments='-notrait$(spaceValue)Category=SkipInCI' /p:Coverage=${{ parameters.codeCoverage }} $(testTargetFramework)
             displayName: Run CI Tests.
         - ${{ if eq(parameters.codeCoverage, False) }}:
           - template: /build/ci/send-to-helix.yml
@@ -156,11 +178,11 @@ jobs:
               Configuration: $(_configuration)
               Architecture: ${{ parameters.architecture }}
               ${{ if eq(parameters.buildScript, 'build.cmd') }}:
-                MsBuildScript: 'powershell $(Build.SourcesDirectory)/eng/common/msbuild.ps1'
+                MsBuildScript: 'powershell $(Build.SourcesDirectory)/eng/common/msbuild.ps1 -ci'
                 WarnAsError: '-warnAsError 0'
                 TestTargetFramework: '$(testTargetFramework)'
               ${{ if eq(parameters.buildScript, './build.sh') }}:
-                MsBuildScript: '$(Build.SourcesDirectory)/eng/common/msbuild.sh'
+                MsBuildScript: '$(Build.SourcesDirectory)/eng/common/msbuild.sh --ci'
                 WarnAsError: '--warnAsError false'
                 TestTargetFramework: '$(testTargetFramework)'
     - script: $(dotnetPath) msbuild -restore build/Codecoverage.proj
