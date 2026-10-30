@@ -107,6 +107,64 @@ namespace Microsoft.Data.Analysis.Tests
         }
 
 
+        [Fact]
+        public void TestGroupByMinMaxProductSum()
+        {
+            var key = new Int32DataFrameColumn("Key", Enumerable.Range(0, 30).Select(x => x / 10));
+            var positive = new Int32DataFrameColumn("Positive", Enumerable.Range(0, 30).Select(x => x % 10 + 1));
+            var negative = new Int32DataFrameColumn("Negative", Enumerable.Range(0, 30).Select(x => -(x % 10) - 1));
+            var small = new Int32DataFrameColumn("Small", Enumerable.Range(0, 30).Select(x => x % 3 + 1));
+            var dates = new PrimitiveDataFrameColumn<DateTime>("Date", Enumerable.Range(0, 30).Select(x => new DateTime(2020, 1, 1).AddDays(x)));
+
+            // Nulls must be ignored by the aggregations
+            positive[0] = null;
+            negative[0] = null;
+            small[0] = null;
+            dates[0] = null;
+
+            // Group 2 contains only nulls
+            for (int i = 20; i < 30; i++)
+            {
+                positive[i] = null;
+                negative[i] = null;
+                small[i] = null;
+                dates[i] = null;
+            }
+
+            var df = new DataFrame(key, positive, negative, small, dates);
+
+            DataFrame min = df.GroupBy("Key").Min("Positive", "Negative", "Date");
+            Assert.Equal(2, min.Columns["Positive"][0]);
+            Assert.Equal(1, min.Columns["Positive"][1]);
+            Assert.Null(min.Columns["Positive"][2]);
+            Assert.Equal(-10, min.Columns["Negative"][0]);
+            Assert.Null(min.Columns["Negative"][2]);
+            Assert.Equal(new DateTime(2020, 1, 2), min.Columns["Date"][0]);
+            Assert.Equal(new DateTime(2020, 1, 11), min.Columns["Date"][1]);
+            Assert.Null(min.Columns["Date"][2]);
+
+            DataFrame max = df.GroupBy("Key").Max("Positive", "Negative", "Date");
+            Assert.Equal(10, max.Columns["Positive"][0]);
+            Assert.Null(max.Columns["Positive"][2]);
+            Assert.Equal(-2, max.Columns["Negative"][0]);
+            Assert.Equal(-1, max.Columns["Negative"][1]);
+            Assert.Null(max.Columns["Negative"][2]);
+            Assert.Equal(new DateTime(2020, 1, 10), max.Columns["Date"][0]);
+            Assert.Equal(new DateTime(2020, 1, 20), max.Columns["Date"][1]);
+            Assert.Null(max.Columns["Date"][2]);
+
+            // Group 0: 2,3,1,2,3,1,2,3,1 (first value is null); group 1: 2,3,1,2,3,1,2,3,1,2
+            DataFrame product = df.GroupBy("Key").Product("Small");
+            Assert.Equal(216, product.Columns["Small"][0]);
+            Assert.Equal(432, product.Columns["Small"][1]);
+
+            DataFrame sum = df.GroupBy("Key").Sum("Positive");
+            Assert.Equal(54, sum.Columns["Positive"][0]);
+            Assert.Equal(55, sum.Columns["Positive"][1]);
+            Assert.Null(sum.Columns["Positive"][2]);
+        }
+
+
         private DataFrame MakeTestDataFrameWithParityAndTensColumns(int length)
         {
             DataFrame df = DataFrameTests.MakeDataFrameWithNumericColumns(length, false);

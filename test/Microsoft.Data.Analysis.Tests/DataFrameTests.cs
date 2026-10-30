@@ -375,7 +375,9 @@ namespace Microsoft.Data.Analysis.Tests
             DataFrame min = df.GroupBy("Bool").Min();
             Assert.Equal(2, min.Rows.Count);
 
-            DataFrame product = df.GroupBy("Bool").Product();
+            // The product of the odd values (1 * 3 * 7 * 9) overflows sbyte
+            string[] productColumnNames = df.Columns.Select(column => column.Name).Where(name => name != "Bool" && name != "Sbyte").ToArray();
+            DataFrame product = df.GroupBy("Bool").Product(productColumnNames);
             Assert.Equal(2, product.Rows.Count);
 
             DataFrame sum = df.GroupBy("Bool").Sum();
@@ -393,8 +395,11 @@ namespace Microsoft.Data.Analysis.Tests
                     DataFrameColumn minColumn = min.Columns[originalColumn.Name];
                     Assert.Equal(r == 0 ? "0" : "1", minColumn[r].ToString());
 
-                    DataFrameColumn productColumn = product.Columns[originalColumn.Name];
-                    Assert.Equal("0", productColumn[r].ToString());
+                    if (originalColumn.Name != "Sbyte")
+                    {
+                        DataFrameColumn productColumn = product.Columns[originalColumn.Name];
+                        Assert.Equal(r == 0 ? "0" : "189", productColumn[r].ToString());
+                    }
 
                     DataFrameColumn sumColumn = sum.Columns[originalColumn.Name];
                     Assert.Equal("20", sumColumn[r].ToString());
@@ -412,7 +417,7 @@ namespace Microsoft.Data.Analysis.Tests
             DataFrame columnProduct = df.GroupBy("Bool").Product("Int");
             Assert.Equal(2, columnProduct.Columns.Count);
             Assert.Equal(0, columnProduct.Columns["Int"][0]);
-            Assert.Equal(0, columnProduct.Columns["Int"][1]);
+            Assert.Equal(189, columnProduct.Columns["Int"][1]);
             DataFrame columnMin = df.GroupBy("Bool").Min("Int");
             Assert.Equal(2, columnMin.Columns.Count);
             Assert.Equal(0, columnMin.Columns["Int"][0]);
