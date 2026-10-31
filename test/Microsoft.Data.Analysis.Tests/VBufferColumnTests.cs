@@ -46,6 +46,29 @@ namespace Microsoft.Data.Analysis.Tests
             Assert.Equal(0, vBufferColumn[0].GetValues()[4]);
         }
 
+        [Fact]
+        public void TestVBufferColumn_CloneAppendsDefaultValues()
+        {
+            var first = new VBuffer<int>(2, new[] { 1, 2 });
+            var second = new VBuffer<int>(2, new[] { 3, 4 });
+            var column = new VBufferDataFrameColumn<int>("VBuffer", new[] { first, second });
+            var mapIndices = new Int32DataFrameColumn("Indices", new[] { 1 });
+
+            VBufferDataFrameColumn<int> clone = column.Clone(numberOfNullsToAppend: 2);
+            VBufferDataFrameColumn<int> mappedClone = column.Clone(mapIndices, invertMapIndices: false, numberOfNullsToAppend: 2);
+
+            Assert.Equal(4, clone.Length);
+            Assert.Equal(first.GetValues().ToArray(), clone[0].GetValues().ToArray());
+            Assert.Equal(second.GetValues().ToArray(), clone[1].GetValues().ToArray());
+            Assert.Equal(0, clone[2].GetValues().Length);
+            Assert.Equal(0, clone[3].GetValues().Length);
+
+            Assert.Equal(3, mappedClone.Length);
+            Assert.Equal(second.GetValues().ToArray(), mappedClone[0].GetValues().ToArray());
+            Assert.Equal(0, mappedClone[1].GetValues().Length);
+            Assert.Equal(0, mappedClone[2].GetValues().Length);
+        }
+
         [X64Fact("32-bit doesn't allow to allocate more than 2 Gb")]
         public void TestVBufferColumn_Indexer_MoreThanMaxInt()
         {

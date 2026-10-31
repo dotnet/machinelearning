@@ -547,14 +547,10 @@ namespace Microsoft.Data.Analysis
         /// <returns>A new <see cref="PrimitiveDataFrameColumn{T}"/>.</returns>
         public PrimitiveDataFrameColumn<T> Clone(IEnumerable<long> mapIndices)
         {
-            IEnumerator<long> rows = mapIndices.GetEnumerator();
             PrimitiveDataFrameColumn<T> ret = CreateNewColumn(Name);
-            long numberOfRows = 0;
-            while (rows.MoveNext() && numberOfRows < Length)
+            foreach (long rowIndex in mapIndices)
             {
-                numberOfRows++;
-                var curRow = rows.Current;
-                var value = _columnContainer[curRow];
+                var value = _columnContainer[rowIndex];
                 ret.Append(value);
             }
             return ret;
