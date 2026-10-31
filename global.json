@@ -3,10 +3,12 @@
     "dotnet": "12.0.100-alpha.1.26480.102",
     "runtimes": {
       "dotnet": [
+        "$(DotNetRuntime100Version)",
         "$(DotNetRuntime60Version)",
         "$(DotNetRuntime80Version)"
       ],
       "dotnet/x86": [
+        "$(DotNetRuntime100Version)",
         "$(DotNetRuntime60Version)",
         "$(DotNetRuntime80Version)"
       ]
