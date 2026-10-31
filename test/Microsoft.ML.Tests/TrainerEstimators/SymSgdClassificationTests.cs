@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Linq;
+using System.Runtime.InteropServices;
 using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.TestFramework.Attributes;
@@ -13,7 +14,12 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 {
     public partial class TrainerEstimators
     {
-        [NativeDependencyFact("SymSgdNative")]
+        private static bool IsSymSgdClassificationSupported =>
+            !(RuntimeInformation.IsOSPlatform(OSPlatform.Linux)
+                && RuntimeInformation.ProcessArchitecture == Architecture.Arm)
+            && new NativeDependencyFactAttribute("SymSgdNative").Skip == null;
+
+        [ConditionalFact(nameof(IsSymSgdClassificationSupported))] // https://github.com/dotnet/machinelearning/issues/7837
         public void TestEstimatorSymSgdClassificationTrainer()
         {
             (var pipe, var dataView) = GetBinaryClassificationPipeline();
@@ -27,7 +33,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             Done();
         }
 
-        [NativeDependencyFact("SymSgdNative")]
+        [ConditionalFact(nameof(IsSymSgdClassificationSupported))] // https://github.com/dotnet/machinelearning/issues/7837
         public void TestEstimatorSymSgdInitPredictor()
         {
             (var pipe, var dataView) = GetBinaryClassificationPipeline();
