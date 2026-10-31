@@ -59,9 +59,18 @@ namespace Microsoft.ML.Tokenizers
                     inc = 1;
                 }
 
+                // BERT counts '\t', '\n' and '\r' as whitespace, although they are control characters.
+                if (c is '\t' or '\n' or '\r')
+                {
+                    AddChar(ref buffer, ref index, ' ');
+                    continue;
+                }
+
                 UnicodeCategory category = CharUnicodeInfo.GetUnicodeCategory(original, i);
 
-                if (category == UnicodeCategory.Control)
+                // The other control characters are removed, with the format and private-use characters, as the text cleaning of BERT
+                // does. Characters not assigned in Unicode are kept, for the model to map them to its unknown token.
+                if (category is UnicodeCategory.Control or UnicodeCategory.Format or UnicodeCategory.PrivateUse or UnicodeCategory.Surrogate)
                 {
                     i += inc;
                     continue;
@@ -86,6 +95,19 @@ namespace Microsoft.ML.Tokenizers
                     Debug.Assert(length > 0);
 
                     AddSpan(ref buffer, ref index, casingBuffer.Slice(0, length));
+
+                    i += inc;
+                    continue;
+                }
+
+                // The pre-tokenizer matches punctuation on UTF-16 code units: a punctuation character outside the Basic Multilingual
+                // Plane is set apart here, as BERT splits every punctuation character into a token of its own.
+                if (inc > 0 && IsPunctuation(category))
+                {
+                    AddChar(ref buffer, ref index, ' ');
+                    AddChar(ref buffer, ref index, c);
+                    AddChar(ref buffer, ref index, original[i + 1]);
+                    AddChar(ref buffer, ref index, ' ');
 
                     i += inc;
                     continue;
@@ -168,6 +190,12 @@ namespace Microsoft.ML.Tokenizers
             chars.CopyTo(buffer.AsSpan(index));
             index += chars.Length;
         }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static bool IsPunctuation(UnicodeCategory category) =>
+            category is UnicodeCategory.ConnectorPunctuation or UnicodeCategory.DashPunctuation or UnicodeCategory.OpenPunctuation or
+                UnicodeCategory.ClosePunctuation or UnicodeCategory.InitialQuotePunctuation or UnicodeCategory.FinalQuotePunctuation or
+                UnicodeCategory.OtherPunctuation;
 
         /// <summary>
         /// Checks whether CP is the codepoint of a CJK character.
