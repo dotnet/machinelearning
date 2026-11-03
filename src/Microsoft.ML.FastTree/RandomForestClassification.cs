@@ -127,7 +127,7 @@ namespace Microsoft.ML.Trainers.FastTree
     /// To create this trainer, use [FastForest](xref:Microsoft.ML.TreeExtensions.FastForest(Microsoft.ML.BinaryClassificationCatalog.BinaryClassificationTrainers,System.String,System.String,System.String,System.Int32,System.Int32,System.Int32))
     /// or [FastForest(Options)](xref:Microsoft.ML.TreeExtensions.FastForest(Microsoft.ML.BinaryClassificationCatalog.BinaryClassificationTrainers,Microsoft.ML.Trainers.FastTree.FastForestBinaryTrainer.Options)).
     ///
-    /// [!include[io](~/../docs/samples/docs/api-reference/io-columns-binary-classification.md)]
+    /// [!include[io](~/../docs/samples/docs/api-reference/io-columns-binary-classification-no-prob.md)]
     ///
     /// ### Trainer Characteristics
     /// |  |  |
