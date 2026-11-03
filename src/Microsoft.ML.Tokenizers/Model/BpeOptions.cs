@@ -64,29 +64,12 @@ namespace Microsoft.ML.Tokenizers
                 }
 
                 using Stream mergesStream = File.OpenRead(mergesFile);
-                using StreamReader reader = new(mergesStream);
-
-                List<string> merges = new();
-
-                int lineNumber = 0;
-                string? line;
-
-                while ((line = reader.ReadLine()) is not null)
+                Vec<(string, string)> mergePairs = BpeTokenizer.ConvertMergesToHashmapAsync(mergesStream).GetAwaiter().GetResult();
+                List<string> merges = new(mergePairs.Count);
+                for (int i = 0; i < mergePairs.Count; i++)
                 {
-                    lineNumber++;
-                    if (line.StartsWith("#version", StringComparison.Ordinal) || line.Length == 0)
-                    {
-                        continue;
-                    }
-
-                    // validate the merges format
-                    int index = line.IndexOf(' ');
-                    if (index < 0 || index == line.Length - 1 || line.IndexOf(' ', index + 1) >= 0)
-                    {
-                        throw new InvalidOperationException($"Invalid merge file format at line: {lineNumber}");
-                    }
-
-                    merges.Add(line);
+                    (string first, string second) = mergePairs[i];
+                    merges.Add($"{first} {second}");
                 }
 
                 Merges = merges;
