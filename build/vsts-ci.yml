@@ -68,10 +68,14 @@ extends:
     containers:
       CentosContainer: 
         image: mcr.microsoft.com/dotnet-buildtools/prereqs:centos-stream8-mlnet
-      UbuntuCrossArmContainer: 
-        image: mcr.microsoft.com/dotnet-buildtools/prereqs:ubuntu-18.04-mlnet-cross-arm
-      UbuntuCrossArm64Container:
-        image: mcr.microsoft.com/dotnet-buildtools/prereqs:ubuntu-18.04-mlnet-cross-arm64
+      AzureLinuxCrossArmContainer:
+        image: mcr.microsoft.com/dotnet-buildtools/prereqs:azurelinux-3.0-net8.0-cross-arm
+        env:
+          LDFLAGS: -fuse-ld=lld
+      AzureLinuxCrossArm64Container:
+        image: mcr.microsoft.com/dotnet-buildtools/prereqs:azurelinux-3.0-net8.0-cross-arm64
+        env:
+          LDFLAGS: -fuse-ld=lld
     stages:
     - stage: build
       displayName: Build
@@ -103,7 +107,7 @@ extends:
           name: $(DncEngInternalBuildPool)
           image: $(LinuxImage)
           os: linux
-        container: UbuntuCrossArmContainer
+        container: AzureLinuxCrossArmContainer
         templateContext:
           outputs:
           - output: buildArtifacts
@@ -123,7 +127,7 @@ extends:
           name: $(DncEngInternalBuildPool)
           image: $(LinuxImage)
           os: linux
-        container: UbuntuCrossArm64Container
+        container: AzureLinuxCrossArm64Container
         templateContext:
           outputs:
           - output: buildArtifacts
