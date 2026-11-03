@@ -198,8 +198,14 @@ namespace Microsoft.ML.Trainers.LightGbm
             {
                 // Ignore trees that do not contribute to the score.
                 var tree = TrainedEnsemble.GetTreeAt(i);
-                if (tree.LeafValues.Any(value => value != 0))
-                    res.AddTree(tree);
+                foreach (var value in tree.LeafValues)
+                {
+                    if (value != 0)
+                    {
+                        res.AddTree(tree);
+                        break;
+                    }
+                }
             }
             return res;
         }
