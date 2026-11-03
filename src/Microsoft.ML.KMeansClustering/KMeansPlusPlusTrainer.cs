@@ -52,7 +52,7 @@ namespace Microsoft.ML.Trainers
     /// For choosing the initial cluster centeroids, one of three options can be used:
     /// - Random initialization. This might lead to potentially bad approximations of the optimal clustering.
     /// - The K-means++ method. This is an [improved initialization algorithm](https://en.wikipedia.org/wiki/K-means%2b%2b#Improved_initialization_algorithm)
-    /// introduced [here](http://ilpubs.stanford.edu:8090/778/1/2006-13.pdf) by Ding et al., that guarantees to find
+    /// introduced [by Ding et al.](http://ilpubs.stanford.edu:8090/778/1/2006-13.pdf), that guarantees to find
     /// a solution that is $O(log K)$ competitive to the optimal K-means solution.
     /// - The K-means|| method. This method was introduced [here](https://theory.stanford.edu/~sergei/papers/vldb12-kmpar.pdf) by Bahmani et al., and uses
     /// a parallel method that drastically reduces the number of passes needed to obtain a good initialization.
@@ -68,14 +68,14 @@ namespace Microsoft.ML.Trainers
     /// The predicted label is the index with the smallest value in a $K$ dimensional vector $[d\_{0}, \dots, d\_{K-1}]$, where $K$ is the number of clusters.
     ///
     /// For more information on K-means, and K-means++ see:
-    /// [K-means](https://en.wikipedia.org/wiki/K-means_clustering)
-    /// [K-means++](https://en.wikipedia.org/wiki/K-means%2b%2b)
+    /// [K-means](https://en.wikipedia.org/wiki/K-means_clustering),
+    /// [K-means++](https://en.wikipedia.org/wiki/K-means%2b%2b).
     ///
     /// Check the See Also section for links to usage examples.
     /// ]]>
     /// </format>
     /// </remarks>
-    /// <seealso cref="Microsoft.ML.Trainers.KMeansTrainer" />
+    /// <seealso cref="O:Microsoft.ML.KMeansClusteringExtensions.KMeans" />
     public class KMeansTrainer : TrainerEstimatorBase<ClusteringPredictionTransformer<KMeansModelParameters>, KMeansModelParameters>
     {
         internal const string LoadNameValue = "KMeansPlusPlus";

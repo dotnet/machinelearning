@@ -19,7 +19,11 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The clustering catalog trainer object.</param>
         /// <param name="featureColumnName">The name of the feature column.</param>
-        /// <param name="exampleWeightColumnName">The name of the example weight column (optional).</param>
+        /// <param name="exampleWeightColumnName">
+        /// The name of the column containing a single <see cref="System.Single"/> weight per training example,
+        /// or <see langword="null"/> to give all examples equal weight.
+        /// See <see cref="UnsupervisedTrainerInputBaseWithWeight.ExampleWeightColumnName"/> for details.
+        /// </param>
         /// <param name="numberOfClusters">The number of clusters to use for KMeans.</param>
         /// <example>
         /// <format type="text/markdown">

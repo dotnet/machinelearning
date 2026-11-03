@@ -89,8 +89,37 @@ namespace Microsoft.ML.Trainers
         private protected UnsupervisedTrainerInputBaseWithWeight() { }
 
         /// <summary>
-        /// Column to use for example weight.
+        /// The name of the column containing a weight for each training example, or <see langword="null"/>
+        /// to give all examples equal weight.
         /// </summary>
+        /// <remarks>
+        /// <para>
+        /// The column must contain a single <see cref="System.Single"/> value per row.
+        /// Weights control the relative influence of training examples, not individual features.
+        /// How weights affect training depends on the trainer.
+        /// If no weight column is specified, each example has a weight of 1.
+        /// </para>
+        /// <para>
+        /// Only one column name can be specified. To calculate weights from multiple input columns,
+        /// first combine their values into a single weight column before training. For example, a row
+        /// with a quantity of 3 and a confidence of 0.5 could be assigned a weight of 1.5 by multiplying
+        /// those values.
+        /// </para>
+        /// </remarks>
+        /// <example>
+        /// The following options configure K-means to use a column named "Weight" containing the
+        /// per-example weights. The training data must contain that column in addition to "Features".
+        /// <code>
+        /// var options = new KMeansTrainer.Options
+        /// {
+        ///     FeatureColumnName = "Features",
+        ///     ExampleWeightColumnName = "Weight",
+        ///     NumberOfClusters = 2
+        /// };
+        /// var trainer = mlContext.Clustering.Trainers.KMeans(options);
+        /// var model = trainer.Fit(trainingData);
+        /// </code>
+        /// </example>
         [Argument(ArgumentType.AtMostOnce, HelpText = "Column to use for example weight", ShortName = "weight", SortOrder = 4, Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
         public string ExampleWeightColumnName = null;
     }
