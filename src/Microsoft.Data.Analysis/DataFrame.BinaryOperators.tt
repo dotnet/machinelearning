@@ -13,6 +13,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 
 namespace Microsoft.Data.Analysis
 {
@@ -32,7 +33,7 @@ namespace Microsoft.Data.Analysis
         {
             if (df == null)
             {
-                throw new ArgumentNullException(nameof(df));
+                ThrowArgumentNullException(nameof(df));
             }
 
             return df.<#=method.MethodName#>(value);
@@ -42,7 +43,7 @@ namespace Microsoft.Data.Analysis
         {
             if (df == null)
             {
-                throw new ArgumentNullException(nameof(df));
+                ThrowArgumentNullException(nameof(df));
             }
 
             return df.Reverse<#=method.MethodName#>(value);
@@ -55,7 +56,7 @@ namespace Microsoft.Data.Analysis
         {
             if (df == null)
             {
-                throw new ArgumentNullException(nameof(df));
+                ThrowArgumentNullException(nameof(df));
             }
 
             return df.<#=method.MethodName#>(value);
@@ -63,5 +64,10 @@ namespace Microsoft.Data.Analysis
 
 <# } #>
 <# } #>
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static void ThrowArgumentNullException(string paramName)
+        {
+            throw new ArgumentNullException(paramName);
+        }
     }
 }

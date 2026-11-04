@@ -7,6 +7,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 
 namespace Microsoft.Data.Analysis
 {
@@ -17,7 +18,7 @@ namespace Microsoft.Data.Analysis
         {
             if (df == null)
             {
-                throw new ArgumentNullException(nameof(df));
+                ThrowArgumentNullException(nameof(df));
             }
 
             return df.Add(value);
@@ -27,7 +28,7 @@ namespace Microsoft.Data.Analysis
         {
             if (df == null)
             {
-                throw new ArgumentNullException(nameof(df));
+                ThrowArgumentNullException(nameof(df));
             }
 
             return df.ReverseAdd(value);
@@ -37,7 +38,7 @@ namespace Microsoft.Data.Analysis
         {
             if (df == null)
             {
-                throw new ArgumentNullException(nameof(df));
+                ThrowArgumentNullException(nameof(df));
             }
 
             return df.Add(value);
@@ -47,7 +48,7 @@ namespace Microsoft.Data.Analysis
         {
             if (df == null)
             {
-                throw new ArgumentNullException(nameof(df));
+                ThrowArgumentNullException(nameof(df));
             }
 
             return df.ReverseAdd(value);
@@ -57,7 +58,7 @@ namespace Microsoft.Data.Analysis
         {
             if (df == null)
             {
-                throw new ArgumentNullException(nameof(df));
+                ThrowArgumentNullException(nameof(df));
             }
 
             return df.Add(value);
@@ -67,7 +68,7 @@ namespace Microsoft.Data.Analysis
         {
             if (df == null)
             {
-                throw new ArgumentNullException(nameof(df));
+                ThrowArgumentNullException(nameof(df));
             }
 
             return df.ReverseAdd(value);
@@ -77,7 +78,7 @@ namespace Microsoft.Data.Analysis
         {
             if (df == null)
             {
-                throw new ArgumentNullException(nameof(df));
+                ThrowArgumentNullException(nameof(df));
             }
 
             return df.Add(value);
@@ -87,7 +88,7 @@ namespace Microsoft.Data.Analysis
         {
             if (df == null)
             {
-                throw new ArgumentNullException(nameof(df));
+                ThrowArgumentNullException(nameof(df));
             }
 
             return df.ReverseAdd(value);
@@ -97,7 +98,7 @@ namespace Microsoft.Data.Analysis
         {
             if (df == null)
             {
-                throw new ArgumentNullException(nameof(df));
+                ThrowArgumentNullException(nameof(df));
             }
 
             return df.Add(value);
@@ -107,7 +108,7 @@ namespace Microsoft.Data.Analysis
         {
             if (df == null)
             {
-                throw new ArgumentNullException(nameof(df));
+                ThrowArgumentNullException(nameof(df));
             }
 
             return df.ReverseAdd(value);
@@ -117,7 +118,7 @@ namespace Microsoft.Data.Analysis
         {
             if (df == null)
             {
-                throw new ArgumentNullException(nameof(df));
+                ThrowArgumentNullException(nameof(df));
             }
 
             return df.Add(value);
@@ -127,7 +128,7 @@ namespace Microsoft.Data.Analysis
         {
             if (df == null)
             {
-                throw new ArgumentNullException(nameof(df));
+                ThrowArgumentNullException(nameof(df));
             }
 
             return df.ReverseAdd(value);
@@ -137,7 +138,7 @@ namespace Microsoft.Data.Analysis
         {
             if (df == null)
             {
-                throw new ArgumentNullException(nameof(df));
+                ThrowArgumentNullException(nameof(df));
             }
 
             return df.Add(value);
@@ -147,7 +148,7 @@ namespace Microsoft.Data.Analysis
         {
             if (df == null)
             {
-                throw new ArgumentNullException(nameof(df));
+                ThrowArgumentNullException(nameof(df));
             }
 
             return df.ReverseAdd(value);
@@ -157,7 +158,7 @@ namespace Microsoft.Data.Analysis
         {
             if (df == null)
             {
-                throw new ArgumentNullException(nameof(df));
+                ThrowArgumentNullException(nameof(df));
             }
 
             return df.Add(value);
@@ -167,7 +168,7 @@ namespace Microsoft.Data.Analysis
         {
             if (df == null)
             {
-                throw new ArgumentNullException(nameof(df));
+                ThrowArgumentNullException(nameof(df));
             }
 
             return df.ReverseAdd(value);
@@ -177,7 +178,7 @@ namespace Microsoft.Data.Analysis
         {
             if (df == null)
             {
-                throw new ArgumentNullException(nameof(df));
+                ThrowArgumentNullException(nameof(df));
             }
 
             return df.Add(value);
@@ -187,7 +188,7 @@ namespace Microsoft.Data.Analysis
         {
             if (df == null)
             {
-                throw new ArgumentNullException(nameof(df));
+                ThrowArgumentNullException(nameof(df));
             }
 
             return df.ReverseAdd(value);
@@ -197,7 +198,7 @@ namespace Microsoft.Data.Analysis
         {
             if (df == null)
             {
-                throw new ArgumentNullException(nameof(df));
+                ThrowArgumentNullException(nameof(df));
             }
 
             return df.Add(value);
@@ -207,7 +208,7 @@ namespace Microsoft.Data.Analysis
         {
             if (df == null)
             {
-                throw new ArgumentNullException(nameof(df));
+                ThrowArgumentNullException(nameof(df));
             }
 
             return df.ReverseAdd(value);
@@ -217,7 +218,7 @@ namespace Microsoft.Data.Analysis
         {
             if (df == null)
             {
-                throw new ArgumentNullException(nameof(df));
+                ThrowArgumentNullException(nameof(df));
             }
 
             return df.Add(value);
@@ -227,7 +228,7 @@ namespace Microsoft.Data.Analysis
         {
             if (df == null)
             {
-                throw new ArgumentNullException(nameof(df));
+                ThrowArgumentNullException(nameof(df));
             }
 
             return df.ReverseAdd(value);
@@ -237,7 +238,7 @@ namespace Microsoft.Data.Analysis
         {
             if (df == null)
             {
-                throw new ArgumentNullException(nameof(df));
+                ThrowArgumentNullException(nameof(df));
             }
 
             return df.Subtract(value);
@@ -247,7 +248,7 @@ namespace Microsoft.Data.Analysis
         {
             if (df == null)
             {
-                throw new ArgumentNullException(nameof(df));
+                ThrowArgumentNullException(nameof(df));
             }
 
             return df.ReverseSubtract(value);
@@ -257,7 +258,7 @@ namespace Microsoft.Data.Analysis
         {
             if (df == null)
             {
-                throw new ArgumentNullException(nameof(df));
+                ThrowArgumentNullException(nameof(df));
             }
 
             return df.Subtract(value);
@@ -267,7 +268,7 @@ namespace Microsoft.Data.Analysis
         {
             if (df == null)
             {
-                throw new ArgumentNullException(nameof(df));
+                ThrowArgumentNullException(nameof(df));
             }
 
             return df.ReverseSubtract(value);
@@ -277,7 +278,7 @@ namespace Microsoft.Data.Analysis
         {
             if (df == null)
             {
-                throw new ArgumentNullException(nameof(df));
+                ThrowArgumentNullException(nameof(df));
             }
 
             return df.Subtract(value);
@@ -287,7 +288,7 @@ namespace Microsoft.Data.Analysis
         {
             if (df == null)
             {
-                throw new ArgumentNullException(nameof(df));
+                ThrowArgumentNullException(nameof(df));
             }
 
             return df.ReverseSubtract(value);
@@ -297,7 +298,7 @@ namespace Microsoft.Data.Analysis
         {
             if (df == null)
             {
-                throw new ArgumentNullException(nameof(df));
+                ThrowArgumentNullException(nameof(df));
             }
 
             return df.Subtract(value);
@@ -307,7 +308,7 @@ namespace Microsoft.Data.Analysis
         {
             if (df == null)
             {
-                throw new ArgumentNullException(nameof(df));
+                ThrowArgumentNullException(nameof(df));
             }
 
             return df.ReverseSubtract(value);
@@ -317,7 +318,7 @@ namespace Microsoft.Data.Analysis
         {
             if (df == null)
             {
-                throw new ArgumentNullException(nameof(df));
+                ThrowArgumentNullException(nameof(df));
             }
 
             return df.Subtract(value);
@@ -327,7 +328,7 @@ namespace Microsoft.Data.Analysis
         {
             if (df == null)
             {
-                throw new ArgumentNullException(nameof(df));
+                ThrowArgumentNullException(nameof(df));
             }
 
             return df.ReverseSubtract(value);
@@ -337,7 +338,7 @@ namespace Microsoft.Data.Analysis
         {
             if (df == null)
             {
-                throw new ArgumentNullException(nameof(df));
+                ThrowArgumentNullException(nameof(df));
             }
 
             return df.Subtract(value);
@@ -347,7 +348,7 @@ namespace Microsoft.Data.Analysis
         {
             if (df == null)
             {
-                throw new ArgumentNullException(nameof(df));
+                ThrowArgumentNullException(nameof(df));
             }
 
             return df.ReverseSubtract(value);
@@ -357,7 +358,7 @@ namespace Microsoft.Data.Analysis
         {
             if (df == null)
             {
-                throw new ArgumentNullException(nameof(df));
+                ThrowArgumentNullException(nameof(df));
             }
 
             return df.Subtract(value);
@@ -367,7 +368,7 @@ namespace Microsoft.Data.Analysis
         {
             if (df == null)
             {
-                throw new ArgumentNullException(nameof(df));
+                ThrowArgumentNullException(nameof(df));
             }
 
             return df.ReverseSubtract(value);
@@ -377,7 +378,7 @@ namespace Microsoft.Data.Analysis
         {
             if (df == null)
             {
-                throw new ArgumentNullException(nameof(df));
+                ThrowArgumentNullException(nameof(df));
             }
 
             return df.Subtract(value);
@@ -387,7 +388,7 @@ namespace Microsoft.Data.Analysis
         {
             if (df == null)
             {
-                throw new ArgumentNullException(nameof(df));
+                ThrowArgumentNullException(nameof(df));
             }
 
             return df.ReverseSubtract(value);
@@ -397,7 +398,7 @@ namespace Microsoft.Data.Analysis
         {
             if (df == null)
             {
-                throw new ArgumentNullException(nameof(df));
+                ThrowArgumentNullException(nameof(df));
             }
 
             return df.Subtract(value);
@@ -407,7 +408,7 @@ namespace Microsoft.Data.Analysis
         {
             if (df == null)
             {
-                throw new ArgumentNullException(nameof(df));
+                ThrowArgumentNullException(nameof(df));
             }
 
             return df.ReverseSubtract(value);
@@ -417,7 +418,7 @@ namespace Microsoft.Data.Analysis
         {
             if (df == null)
             {
-                throw new ArgumentNullException(nameof(df));
+                ThrowArgumentNullException(nameof(df));
             }
 
             return df.Subtract(value);
@@ -427,7 +428,7 @@ namespace Microsoft.Data.Analysis
         {
             if (df == null)
             {
-                throw new ArgumentNullException(nameof(df));
+                ThrowArgumentNullException(nameof(df));
             }
 
             return df.ReverseSubtract(value);
@@ -437,7 +438,7 @@ namespace Microsoft.Data.Analysis
         {
             if (df == null)
             {
-                throw new ArgumentNullException(nameof(df));
+                ThrowArgumentNullException(nameof(df));
             }
 
             return df.Subtract(value);
@@ -447,7 +448,7 @@ namespace Microsoft.Data.Analysis
         {
             if (df == null)
             {
-                throw new ArgumentNullException(nameof(df));
+                ThrowArgumentNullException(nameof(df));
             }
 
             return df.ReverseSubtract(value);
@@ -457,7 +458,7 @@ namespace Microsoft.Data.Analysis
         {
             if (df == null)
             {
-                throw new ArgumentNullException(nameof(df));
+                ThrowArgumentNullException(nameof(df));
             }
 
             return df.Multiply(value);
@@ -467,7 +468,7 @@ namespace Microsoft.Data.Analysis
         {
             if (df == null)
             {
-                throw new ArgumentNullException(nameof(df));
+                ThrowArgumentNullException(nameof(df));
             }
 
             return df.ReverseMultiply(value);
@@ -477,7 +478,7 @@ namespace Microsoft.Data.Analysis
         {
             if (df == null)
             {
-                throw new ArgumentNullException(nameof(df));
+                ThrowArgumentNullException(nameof(df));
             }
 
             return df.Multiply(value);
@@ -487,7 +488,7 @@ namespace Microsoft.Data.Analysis
         {
             if (df == null)
             {
-                throw new ArgumentNullException(nameof(df));
+                ThrowArgumentNullException(nameof(df));
             }
 
             return df.ReverseMultiply(value);
@@ -497,7 +498,7 @@ namespace Microsoft.Data.Analysis
         {
             if (df == null)
             {
-                throw new ArgumentNullException(nameof(df));
+                ThrowArgumentNullException(nameof(df));
             }
 
             return df.Multiply(value);
@@ -507,7 +508,7 @@ namespace Microsoft.Data.Analysis
         {
             if (df == null)
             {
-                throw new ArgumentNullException(nameof(df));
+                ThrowArgumentNullException(nameof(df));
             }
 
             return df.ReverseMultiply(value);
@@ -517,7 +518,7 @@ namespace Microsoft.Data.Analysis
         {
             if (df == null)
             {
-                throw new ArgumentNullException(nameof(df));
+                ThrowArgumentNullException(nameof(df));
             }
 
             return df.Multiply(value);
@@ -527,7 +528,7 @@ namespace Microsoft.Data.Analysis
         {
             if (df == null)
             {
-                throw new ArgumentNullException(nameof(df));
+                ThrowArgumentNullException(nameof(df));
             }
 
             return df.ReverseMultiply(value);
@@ -537,7 +538,7 @@ namespace Microsoft.Data.Analysis
         {
             if (df == null)
             {
-                throw new ArgumentNullException(nameof(df));
+                ThrowArgumentNullException(nameof(df));
             }
 
             return df.Multiply(value);
@@ -547,7 +548,7 @@ namespace Microsoft.Data.Analysis
         {
             if (df == null)
             {
-                throw new ArgumentNullException(nameof(df));
+                ThrowArgumentNullException(nameof(df));
             }
 
             return df.ReverseMultiply(value);
@@ -557,7 +558,7 @@ namespace Microsoft.Data.Analysis
         {
             if (df == null)
             {
-                throw new ArgumentNullException(nameof(df));
+                ThrowArgumentNullException(nameof(df));
             }
 
             return df.Multiply(value);
@@ -567,7 +568,7 @@ namespace Microsoft.Data.Analysis
         {
             if (df == null)
             {
-                throw new ArgumentNullException(nameof(df));
+                ThrowArgumentNullException(nameof(df));
             }
 
             return df.ReverseMultiply(value);
@@ -577,7 +578,7 @@ namespace Microsoft.Data.Analysis
         {
             if (df == null)
             {
-                throw new ArgumentNullException(nameof(df));
+                ThrowArgumentNullException(nameof(df));
             }
 
             return df.Multiply(value);
@@ -587,7 +588,7 @@ namespace Microsoft.Data.Analysis
         {
             if (df == null)
             {
-                throw new ArgumentNullException(nameof(df));
+                ThrowArgumentNullException(nameof(df));
             }
 
             return df.ReverseMultiply(value);
@@ -597,7 +598,7 @@ namespace Microsoft.Data.Analysis
         {
             if (df == null)
             {
-                throw new ArgumentNullException(nameof(df));
+                ThrowArgumentNullException(nameof(df));
             }
 
             return df.Multiply(value);
@@ -607,7 +608,7 @@ namespace Microsoft.Data.Analysis
         {
             if (df == null)
             {
-                throw new ArgumentNullException(nameof(df));
+                ThrowArgumentNullException(nameof(df));
             }
 
             return df.ReverseMultiply(value);
@@ -617,7 +618,7 @@ namespace Microsoft.Data.Analysis
         {
             if (df == null)
             {
-                throw new ArgumentNullException(nameof(df));
+                ThrowArgumentNullException(nameof(df));
             }
 
             return df.Multiply(value);
@@ -627,7 +628,7 @@ namespace Microsoft.Data.Analysis
         {
             if (df == null)
             {
-                throw new ArgumentNullException(nameof(df));
+                ThrowArgumentNullException(nameof(df));
             }
 
             return df.ReverseMultiply(value);
@@ -637,7 +638,7 @@ namespace Microsoft.Data.Analysis
         {
             if (df == null)
             {
-                throw new ArgumentNullException(nameof(df));
+                ThrowArgumentNullException(nameof(df));
             }
 
             return df.Multiply(value);
@@ -647,7 +648,7 @@ namespace Microsoft.Data.Analysis
         {
             if (df == null)
             {
-                throw new ArgumentNullException(nameof(df));
+                ThrowArgumentNullException(nameof(df));
             }
 
             return df.ReverseMultiply(value);
@@ -657,7 +658,7 @@ namespace Microsoft.Data.Analysis
         {
             if (df == null)
             {
-                throw new ArgumentNullException(nameof(df));
+                ThrowArgumentNullException(nameof(df));
             }
 
             return df.Multiply(value);
@@ -667,7 +668,7 @@ namespace Microsoft.Data.Analysis
         {
             if (df == null)
             {
-                throw new ArgumentNullException(nameof(df));
+                ThrowArgumentNullException(nameof(df));
             }
 
             return df.ReverseMultiply(value);
@@ -677,7 +678,7 @@ namespace Microsoft.Data.Analysis
         {
             if (df == null)
             {
-                throw new ArgumentNullException(nameof(df));
+                ThrowArgumentNullException(nameof(df));
             }
 
             return df.Divide(value);
@@ -687,7 +688,7 @@ namespace Microsoft.Data.Analysis
         {
             if (df == null)
             {
-                throw new ArgumentNullException(nameof(df));
+                ThrowArgumentNullException(nameof(df));
             }
 
             return df.ReverseDivide(value);
@@ -697,7 +698,7 @@ namespace Microsoft.Data.Analysis
         {
             if (df == null)
             {
-                throw new ArgumentNullException(nameof(df));
+                ThrowArgumentNullException(nameof(df));
             }
 
             return df.Divide(value);
@@ -707,7 +708,7 @@ namespace Microsoft.Data.Analysis
         {
             if (df == null)
             {
-                throw new ArgumentNullException(nameof(df));
+                ThrowArgumentNullException(nameof(df));
             }
 
             return df.ReverseDivide(value);
@@ -717,7 +718,7 @@ namespace Microsoft.Data.Analysis
         {
             if (df == null)
             {
-                throw new ArgumentNullException(nameof(df));
+                ThrowArgumentNullException(nameof(df));
             }
 
             return df.Divide(value);
@@ -727,7 +728,7 @@ namespace Microsoft.Data.Analysis
         {
             if (df == null)
             {
-                throw new ArgumentNullException(nameof(df));
+                ThrowArgumentNullException(nameof(df));
             }
 
             return df.ReverseDivide(value);
@@ -737,7 +738,7 @@ namespace Microsoft.Data.Analysis
         {
             if (df == null)
             {
-                throw new ArgumentNullException(nameof(df));
+                ThrowArgumentNullException(nameof(df));
             }
 
             return df.Divide(value);
@@ -747,7 +748,7 @@ namespace Microsoft.Data.Analysis
         {
             if (df == null)
             {
-                throw new ArgumentNullException(nameof(df));
+                ThrowArgumentNullException(nameof(df));
             }
 
             return df.ReverseDivide(value);
@@ -757,7 +758,7 @@ namespace Microsoft.Data.Analysis
         {
             if (df == null)
             {
-                throw new ArgumentNullException(nameof(df));
+                ThrowArgumentNullException(nameof(df));
             }
 
             return df.Divide(value);
@@ -767,7 +768,7 @@ namespace Microsoft.Data.Analysis
         {
             if (df == null)
             {
-                throw new ArgumentNullException(nameof(df));
+                ThrowArgumentNullException(nameof(df));
             }
 
             return df.ReverseDivide(value);
@@ -777,7 +778,7 @@ namespace Microsoft.Data.Analysis
         {
             if (df == null)
             {
-                throw new ArgumentNullException(nameof(df));
+                ThrowArgumentNullException(nameof(df));
             }
 
             return df.Divide(value);
@@ -787,7 +788,7 @@ namespace Microsoft.Data.Analysis
         {
             if (df == null)
             {
-                throw new ArgumentNullException(nameof(df));
+                ThrowArgumentNullException(nameof(df));
             }
 
             return df.ReverseDivide(value);
@@ -797,7 +798,7 @@ namespace Microsoft.Data.Analysis
         {
             if (df == null)
             {
-                throw new ArgumentNullException(nameof(df));
+                ThrowArgumentNullException(nameof(df));
             }
 
             return df.Divide(value);
@@ -807,7 +808,7 @@ namespace Microsoft.Data.Analysis
         {
             if (df == null)
             {
-                throw new ArgumentNullException(nameof(df));
+                ThrowArgumentNullException(nameof(df));
             }
 
             return df.ReverseDivide(value);
@@ -817,7 +818,7 @@ namespace Microsoft.Data.Analysis
         {
             if (df == null)
             {
-                throw new ArgumentNullException(nameof(df));
+                ThrowArgumentNullException(nameof(df));
             }
 
             return df.Divide(value);
@@ -827,7 +828,7 @@ namespace Microsoft.Data.Analysis
         {
             if (df == null)
             {
-                throw new ArgumentNullException(nameof(df));
+                ThrowArgumentNullException(nameof(df));
             }
 
             return df.ReverseDivide(value);
@@ -837,7 +838,7 @@ namespace Microsoft.Data.Analysis
         {
             if (df == null)
             {
-                throw new ArgumentNullException(nameof(df));
+                ThrowArgumentNullException(nameof(df));
             }
 
             return df.Divide(value);
@@ -847,7 +848,7 @@ namespace Microsoft.Data.Analysis
         {
             if (df == null)
             {
-                throw new ArgumentNullException(nameof(df));
+                ThrowArgumentNullException(nameof(df));
             }
 
             return df.ReverseDivide(value);
@@ -857,7 +858,7 @@ namespace Microsoft.Data.Analysis
         {
             if (df == null)
             {
-                throw new ArgumentNullException(nameof(df));
+                ThrowArgumentNullException(nameof(df));
             }
 
             return df.Divide(value);
@@ -867,7 +868,7 @@ namespace Microsoft.Data.Analysis
         {
             if (df == null)
             {
-                throw new ArgumentNullException(nameof(df));
+                ThrowArgumentNullException(nameof(df));
             }
 
             return df.ReverseDivide(value);
@@ -877,7 +878,7 @@ namespace Microsoft.Data.Analysis
         {
             if (df == null)
             {
-                throw new ArgumentNullException(nameof(df));
+                ThrowArgumentNullException(nameof(df));
             }
 
             return df.Divide(value);
@@ -887,7 +888,7 @@ namespace Microsoft.Data.Analysis
         {
             if (df == null)
             {
-                throw new ArgumentNullException(nameof(df));
+                ThrowArgumentNullException(nameof(df));
             }
 
             return df.ReverseDivide(value);
@@ -897,7 +898,7 @@ namespace Microsoft.Data.Analysis
         {
             if (df == null)
             {
-                throw new ArgumentNullException(nameof(df));
+                ThrowArgumentNullException(nameof(df));
             }
 
             return df.Modulo(value);
@@ -907,7 +908,7 @@ namespace Microsoft.Data.Analysis
         {
             if (df == null)
             {
-                throw new ArgumentNullException(nameof(df));
+                ThrowArgumentNullException(nameof(df));
             }
 
             return df.ReverseModulo(value);
@@ -917,7 +918,7 @@ namespace Microsoft.Data.Analysis
         {
             if (df == null)
             {
-                throw new ArgumentNullException(nameof(df));
+                ThrowArgumentNullException(nameof(df));
             }
 
             return df.Modulo(value);
@@ -927,7 +928,7 @@ namespace Microsoft.Data.Analysis
         {
             if (df == null)
             {
-                throw new ArgumentNullException(nameof(df));
+                ThrowArgumentNullException(nameof(df));
             }
 
             return df.ReverseModulo(value);
@@ -937,7 +938,7 @@ namespace Microsoft.Data.Analysis
         {
             if (df == null)
             {
-                throw new ArgumentNullException(nameof(df));
+                ThrowArgumentNullException(nameof(df));
             }
 
             return df.Modulo(value);
@@ -947,7 +948,7 @@ namespace Microsoft.Data.Analysis
         {
             if (df == null)
             {
-                throw new ArgumentNullException(nameof(df));
+                ThrowArgumentNullException(nameof(df));
             }
 
             return df.ReverseModulo(value);
@@ -957,7 +958,7 @@ namespace Microsoft.Data.Analysis
         {
             if (df == null)
             {
-                throw new ArgumentNullException(nameof(df));
+                ThrowArgumentNullException(nameof(df));
             }
 
             return df.Modulo(value);
@@ -967,7 +968,7 @@ namespace Microsoft.Data.Analysis
         {
             if (df == null)
             {
-                throw new ArgumentNullException(nameof(df));
+                ThrowArgumentNullException(nameof(df));
             }
 
             return df.ReverseModulo(value);
@@ -977,7 +978,7 @@ namespace Microsoft.Data.Analysis
         {
             if (df == null)
             {
-                throw new ArgumentNullException(nameof(df));
+                ThrowArgumentNullException(nameof(df));
             }
 
             return df.Modulo(value);
@@ -987,7 +988,7 @@ namespace Microsoft.Data.Analysis
         {
             if (df == null)
             {
-                throw new ArgumentNullException(nameof(df));
+                ThrowArgumentNullException(nameof(df));
             }
 
             return df.ReverseModulo(value);
@@ -997,7 +998,7 @@ namespace Microsoft.Data.Analysis
         {
             if (df == null)
             {
-                throw new ArgumentNullException(nameof(df));
+                ThrowArgumentNullException(nameof(df));
             }
 
             return df.Modulo(value);
@@ -1007,7 +1008,7 @@ namespace Microsoft.Data.Analysis
         {
             if (df == null)
             {
-                throw new ArgumentNullException(nameof(df));
+                ThrowArgumentNullException(nameof(df));
             }
 
             return df.ReverseModulo(value);
@@ -1017,7 +1018,7 @@ namespace Microsoft.Data.Analysis
         {
             if (df == null)
             {
-                throw new ArgumentNullException(nameof(df));
+                ThrowArgumentNullException(nameof(df));
             }
 
             return df.Modulo(value);
@@ -1027,7 +1028,7 @@ namespace Microsoft.Data.Analysis
         {
             if (df == null)
             {
-                throw new ArgumentNullException(nameof(df));
+                ThrowArgumentNullException(nameof(df));
             }
 
             return df.ReverseModulo(value);
@@ -1037,7 +1038,7 @@ namespace Microsoft.Data.Analysis
         {
             if (df == null)
             {
-                throw new ArgumentNullException(nameof(df));
+                ThrowArgumentNullException(nameof(df));
             }
 
             return df.Modulo(value);
@@ -1047,7 +1048,7 @@ namespace Microsoft.Data.Analysis
         {
             if (df == null)
             {
-                throw new ArgumentNullException(nameof(df));
+                ThrowArgumentNullException(nameof(df));
             }
 
             return df.ReverseModulo(value);
@@ -1057,7 +1058,7 @@ namespace Microsoft.Data.Analysis
         {
             if (df == null)
             {
-                throw new ArgumentNullException(nameof(df));
+                ThrowArgumentNullException(nameof(df));
             }
 
             return df.Modulo(value);
@@ -1067,7 +1068,7 @@ namespace Microsoft.Data.Analysis
         {
             if (df == null)
             {
-                throw new ArgumentNullException(nameof(df));
+                ThrowArgumentNullException(nameof(df));
             }
 
             return df.ReverseModulo(value);
@@ -1077,7 +1078,7 @@ namespace Microsoft.Data.Analysis
         {
             if (df == null)
             {
-                throw new ArgumentNullException(nameof(df));
+                ThrowArgumentNullException(nameof(df));
             }
 
             return df.Modulo(value);
@@ -1087,7 +1088,7 @@ namespace Microsoft.Data.Analysis
         {
             if (df == null)
             {
-                throw new ArgumentNullException(nameof(df));
+                ThrowArgumentNullException(nameof(df));
             }
 
             return df.ReverseModulo(value);
@@ -1097,7 +1098,7 @@ namespace Microsoft.Data.Analysis
         {
             if (df == null)
             {
-                throw new ArgumentNullException(nameof(df));
+                ThrowArgumentNullException(nameof(df));
             }
 
             return df.Modulo(value);
@@ -1107,7 +1108,7 @@ namespace Microsoft.Data.Analysis
         {
             if (df == null)
             {
-                throw new ArgumentNullException(nameof(df));
+                ThrowArgumentNullException(nameof(df));
             }
 
             return df.ReverseModulo(value);
@@ -1117,7 +1118,7 @@ namespace Microsoft.Data.Analysis
         {
             if (df == null)
             {
-                throw new ArgumentNullException(nameof(df));
+                ThrowArgumentNullException(nameof(df));
             }
 
             return df.LeftShift(value);
@@ -1127,11 +1128,16 @@ namespace Microsoft.Data.Analysis
         {
             if (df == null)
             {
-                throw new ArgumentNullException(nameof(df));
+                ThrowArgumentNullException(nameof(df));
             }
 
             return df.RightShift(value);
         }
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static void ThrowArgumentNullException(string paramName)
+        {
+            throw new ArgumentNullException(paramName);
+        }
     }
 }
