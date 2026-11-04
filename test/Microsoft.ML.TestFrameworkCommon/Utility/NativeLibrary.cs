@@ -15,6 +15,17 @@ namespace Microsoft.ML.TestFrameworkCommon.Utility
 
         public static bool NativeLibraryExists(string name)
         {
+#if NET5_0_OR_GREATER
+            foreach (string libraryName in new[] { name, "lib" + name, "lib_" + name })
+            {
+                if (System.Runtime.InteropServices.NativeLibrary.TryLoad(libraryName, typeof(NativeLibrary).Assembly, null, out IntPtr handle))
+                {
+                    System.Runtime.InteropServices.NativeLibrary.Free(handle);
+                    return true;
+                }
+            }
+            return false;
+#else
             NativeLibrary nativeLibrary = default;
             string extension = default;
             string prefix = "lib";
@@ -60,6 +71,7 @@ namespace Microsoft.ML.TestFrameworkCommon.Utility
             {
                 nativeLibrary?.Dispose();
             }
+#endif
         }
 
         /// <summary>

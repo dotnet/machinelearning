@@ -24,4 +24,6 @@
     <PackageReference Include="Microsoft.ML.Parquet" />
     <PackageReference Include="Microsoft.ML.Recommender" />
   </ItemGroup>
+
+  <Import Project="$(PublishedPackageVersions)" Condition="'$(PublishedPackageVersions)' != ''" />
 </Project>

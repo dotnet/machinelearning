@@ -8,4 +8,6 @@
     <PackageVersion Include="Microsoft.ML" Version="6.0.0-preview.26513.4" />
     <PackageReference Include="Microsoft.ML" />
   </ItemGroup>
+
+  <Import Project="$(PublishedPackageVersions)" Condition="'$(PublishedPackageVersions)' != ''" />
 </Project>
