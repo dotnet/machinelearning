@@ -72,5 +72,25 @@ namespace Microsoft.ML.Tests.Transformers
 
             Thread.CurrentThread.CurrentCulture = currentCulture;
         }
+
+        [Theory]
+        [InlineData("fr-FR")]
+        [InlineData("de-DE")]
+        public void LineParserReadsInvariantNumbersUnderNonInvariantCulture(string cultureName)
+        {
+            var currentCulture = Thread.CurrentThread.CurrentCulture;
+            Thread.CurrentThread.CurrentCulture = new System.Globalization.CultureInfo(cultureName);
+            try
+            {
+                var result = LineParser.ParseKeyThenNumbers("word 0.5 -1.25 3", false);
+                Assert.True(result.isSuccess);
+                Assert.Equal("word", result.key);
+                Assert.Equal(new float[] { 0.5f, -1.25f, 3f }, result.values);
+            }
+            finally
+            {
+                Thread.CurrentThread.CurrentCulture = currentCulture;
+            }
+        }
     }
 }
