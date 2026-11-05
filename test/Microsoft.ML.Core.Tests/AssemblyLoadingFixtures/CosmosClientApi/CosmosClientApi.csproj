@@ -1,0 +1,6 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <AssemblyName>cosmosClientApi</AssemblyName>
+    <IsTestProject>false</IsTestProject>
+  </PropertyGroup>
+</Project>

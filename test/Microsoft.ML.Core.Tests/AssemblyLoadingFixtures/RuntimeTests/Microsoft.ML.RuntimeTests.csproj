@@ -1,0 +1,6 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <AssemblyName>Microsoft.ML.runtests</AssemblyName>
+    <IsTestProject>false</IsTestProject>
+  </PropertyGroup>
+</Project>
