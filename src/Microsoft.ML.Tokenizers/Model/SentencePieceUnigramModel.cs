@@ -821,6 +821,27 @@ namespace Microsoft.ML.Tokenizers
                 // Move by one unicode character.
                 startsAt += mbLen;
             }
+
+            if (ByteFallback)
+            {
+                return; // unknown pieces get replaced by their bytes.
+            }
+
+            // Merge continuous runs of unknown pieces on the best path into a single unknown piece, as SentencePiece does.
+            int endsAt = size;
+            while (endsAt > 0)
+            {
+                ref BestPathNode node = ref bestPathEndsAt[endsAt];
+                if (node.Id == UnknownId)
+                {
+                    while (node.StartsAt > 0 && bestPathEndsAt[node.StartsAt].Id == UnknownId)
+                    {
+                        node.StartsAt = bestPathEndsAt[node.StartsAt].StartsAt;
+                    }
+                }
+
+                endsAt = node.StartsAt;
+            }
         }
 
         public override IReadOnlyList<int> EncodeToIds(
