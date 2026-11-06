@@ -219,6 +219,15 @@ namespace Microsoft.ML.Tokenizers.Tests
             Assert.Equal(encoded, ids);
         }
 
+        [Fact]
+        public void GetIndexByTokenCountFromEnd_UsesPreTokenization()
+        {
+            var index = GPT2.GetIndexByTokenCountFromEnd("\n\ni", 2, out _, out var tokenCount, true, false);
+
+            Assert.Equal(1, index);
+            Assert.Equal(2, tokenCount);
+        }
+
         private void TestGPT4Tokenizer(Tokenizer gpt4Tokenizer)
         {
             string text = ReadAndSanitizeFile("./Data/lib.rs.txt");
