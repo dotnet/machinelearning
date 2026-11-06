@@ -487,6 +487,25 @@ namespace Microsoft.Data.Analysis.Tests
         }
 
         [Fact]
+        public void TestBinaryOperatorsWithNullDataFrame()
+        {
+            DataFrame df = null;
+
+            Assert.Equal("df", Assert.Throws<ArgumentNullException>(() => df + 1).ParamName);
+            Assert.Equal("df", Assert.Throws<ArgumentNullException>(() => 1 + df).ParamName);
+            Assert.Equal("df", Assert.Throws<ArgumentNullException>(() => df - 1.1).ParamName);
+            Assert.Equal("df", Assert.Throws<ArgumentNullException>(() => 1.1 - df).ParamName);
+            Assert.Equal("df", Assert.Throws<ArgumentNullException>(() => df * 1.1m).ParamName);
+            Assert.Equal("df", Assert.Throws<ArgumentNullException>(() => 1.1m * df).ParamName);
+            Assert.Equal("df", Assert.Throws<ArgumentNullException>(() => df / 2L).ParamName);
+            Assert.Equal("df", Assert.Throws<ArgumentNullException>(() => 2L / df).ParamName);
+            Assert.Equal("df", Assert.Throws<ArgumentNullException>(() => df % 2f).ParamName);
+            Assert.Equal("df", Assert.Throws<ArgumentNullException>(() => 2f % df).ParamName);
+            Assert.Equal("df", Assert.Throws<ArgumentNullException>(() => df << 1).ParamName);
+            Assert.Equal("df", Assert.Throws<ArgumentNullException>(() => df >> 1).ParamName);
+        }
+
+        [Fact]
         public void TestBinaryOperationsOnColumns()
         {
             Int32DataFrameColumn column = new Int32DataFrameColumn("Int", Enumerable.Range(0, 10));
