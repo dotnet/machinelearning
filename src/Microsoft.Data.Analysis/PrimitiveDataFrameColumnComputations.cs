@@ -550,7 +550,9 @@ namespace Microsoft.Data.Analysis
         public void Max(PrimitiveColumnContainer<byte> column, IEnumerable<long> rows, out byte? ret)
         {
             var value = byte.MinValue;
+            bool hasValue = false;
             var readOnlySpan = column.Buffers[0].ReadOnlySpan;
+            var readOnlyBitMapSpan = column.NullBitMapBuffers[0].ReadOnlySpan;
             long minRange = 0;
             long maxRange = ReadOnlyDataFrameBuffer<byte>.MaxCapacity;
             long maxCapacity = maxRange;
@@ -562,14 +564,19 @@ namespace Microsoft.Data.Analysis
                 {
                     int bufferIndex = (int)(row / maxCapacity);
                     readOnlySpan = column.Buffers[bufferIndex].ReadOnlySpan;
+                    readOnlyBitMapSpan = column.NullBitMapBuffers[bufferIndex].ReadOnlySpan;
                     minRange = checked(bufferIndex * maxCapacity);
                     maxRange = checked((bufferIndex + 1) * maxCapacity);
                 }
                 row -= minRange;
+                if (!BitUtility.IsValid(readOnlyBitMapSpan, (int)row))
+                    continue;
+
+                hasValue = true;
                 value = (byte)(Math.Max(readOnlySpan[(int)row], value));
             }
 
-            ret = value;
+            ret = hasValue ? value : null;
         }
 
         public void Min(PrimitiveColumnContainer<byte> column, out byte? ret)
@@ -598,7 +605,9 @@ namespace Microsoft.Data.Analysis
         public void Min(PrimitiveColumnContainer<byte> column, IEnumerable<long> rows, out byte? ret)
         {
             var value = byte.MaxValue;
+            bool hasValue = false;
             var readOnlySpan = column.Buffers[0].ReadOnlySpan;
+            var readOnlyBitMapSpan = column.NullBitMapBuffers[0].ReadOnlySpan;
             long minRange = 0;
             long maxRange = ReadOnlyDataFrameBuffer<byte>.MaxCapacity;
             long maxCapacity = maxRange;
@@ -610,14 +619,19 @@ namespace Microsoft.Data.Analysis
                 {
                     int bufferIndex = (int)(row / maxCapacity);
                     readOnlySpan = column.Buffers[bufferIndex].ReadOnlySpan;
+                    readOnlyBitMapSpan = column.NullBitMapBuffers[bufferIndex].ReadOnlySpan;
                     minRange = checked(bufferIndex * maxCapacity);
                     maxRange = checked((bufferIndex + 1) * maxCapacity);
                 }
                 row -= minRange;
+                if (!BitUtility.IsValid(readOnlyBitMapSpan, (int)row))
+                    continue;
+
+                hasValue = true;
                 value = (byte)(Math.Min(readOnlySpan[(int)row], value));
             }
 
-            ret = value;
+            ret = hasValue ? value : null;
         }
 
         public void Product(PrimitiveColumnContainer<byte> column, out byte? ret)
@@ -641,8 +655,9 @@ namespace Microsoft.Data.Analysis
 
         public void Product(PrimitiveColumnContainer<byte> column, IEnumerable<long> rows, out byte? ret)
         {
-            byte value = default;
+            var value = (byte)1;
             var readOnlySpan = column.Buffers[0].ReadOnlySpan;
+            var readOnlyBitMapSpan = column.NullBitMapBuffers[0].ReadOnlySpan;
             long minRange = 0;
             long maxRange = ReadOnlyDataFrameBuffer<byte>.MaxCapacity;
             long maxCapacity = maxRange;
@@ -654,10 +669,14 @@ namespace Microsoft.Data.Analysis
                 {
                     int bufferIndex = (int)(row / maxCapacity);
                     readOnlySpan = column.Buffers[bufferIndex].ReadOnlySpan;
+                    readOnlyBitMapSpan = column.NullBitMapBuffers[bufferIndex].ReadOnlySpan;
                     minRange = checked(bufferIndex * maxCapacity);
                     maxRange = checked((bufferIndex + 1) * maxCapacity);
                 }
                 row -= minRange;
+                if (!BitUtility.IsValid(readOnlyBitMapSpan, (int)row))
+                    continue;
+
                 value = checked((byte)(readOnlySpan[(int)row] * value));
             }
 
@@ -689,8 +708,10 @@ namespace Microsoft.Data.Analysis
 
         public void Sum(PrimitiveColumnContainer<byte> column, IEnumerable<long> rows, out byte? ret)
         {
-            byte value = default;
+            var value = (byte)0;
+            bool hasValue = false;
             var readOnlySpan = column.Buffers[0].ReadOnlySpan;
+            var readOnlyBitMapSpan = column.NullBitMapBuffers[0].ReadOnlySpan;
             long minRange = 0;
             long maxRange = ReadOnlyDataFrameBuffer<byte>.MaxCapacity;
             long maxCapacity = maxRange;
@@ -702,14 +723,19 @@ namespace Microsoft.Data.Analysis
                 {
                     int bufferIndex = (int)(row / maxCapacity);
                     readOnlySpan = column.Buffers[bufferIndex].ReadOnlySpan;
+                    readOnlyBitMapSpan = column.NullBitMapBuffers[bufferIndex].ReadOnlySpan;
                     minRange = checked(bufferIndex * maxCapacity);
                     maxRange = checked((bufferIndex + 1) * maxCapacity);
                 }
                 row -= minRange;
+                if (!BitUtility.IsValid(readOnlyBitMapSpan, (int)row))
+                    continue;
+
+                hasValue = true;
                 value = checked((byte)(readOnlySpan[(int)row] + value));
             }
 
-            ret = value;
+            ret = hasValue ? value : null;
         }
 
         public void Round(PrimitiveColumnContainer<byte> column)
@@ -1037,7 +1063,9 @@ namespace Microsoft.Data.Analysis
         public void Max(PrimitiveColumnContainer<char> column, IEnumerable<long> rows, out char? ret)
         {
             var value = char.MinValue;
+            bool hasValue = false;
             var readOnlySpan = column.Buffers[0].ReadOnlySpan;
+            var readOnlyBitMapSpan = column.NullBitMapBuffers[0].ReadOnlySpan;
             long minRange = 0;
             long maxRange = ReadOnlyDataFrameBuffer<char>.MaxCapacity;
             long maxCapacity = maxRange;
@@ -1049,14 +1077,19 @@ namespace Microsoft.Data.Analysis
                 {
                     int bufferIndex = (int)(row / maxCapacity);
                     readOnlySpan = column.Buffers[bufferIndex].ReadOnlySpan;
+                    readOnlyBitMapSpan = column.NullBitMapBuffers[bufferIndex].ReadOnlySpan;
                     minRange = checked(bufferIndex * maxCapacity);
                     maxRange = checked((bufferIndex + 1) * maxCapacity);
                 }
                 row -= minRange;
+                if (!BitUtility.IsValid(readOnlyBitMapSpan, (int)row))
+                    continue;
+
+                hasValue = true;
                 value = (char)(Math.Max(readOnlySpan[(int)row], value));
             }
 
-            ret = value;
+            ret = hasValue ? value : null;
         }
 
         public void Min(PrimitiveColumnContainer<char> column, out char? ret)
@@ -1085,7 +1118,9 @@ namespace Microsoft.Data.Analysis
         public void Min(PrimitiveColumnContainer<char> column, IEnumerable<long> rows, out char? ret)
         {
             var value = char.MaxValue;
+            bool hasValue = false;
             var readOnlySpan = column.Buffers[0].ReadOnlySpan;
+            var readOnlyBitMapSpan = column.NullBitMapBuffers[0].ReadOnlySpan;
             long minRange = 0;
             long maxRange = ReadOnlyDataFrameBuffer<char>.MaxCapacity;
             long maxCapacity = maxRange;
@@ -1097,14 +1132,19 @@ namespace Microsoft.Data.Analysis
                 {
                     int bufferIndex = (int)(row / maxCapacity);
                     readOnlySpan = column.Buffers[bufferIndex].ReadOnlySpan;
+                    readOnlyBitMapSpan = column.NullBitMapBuffers[bufferIndex].ReadOnlySpan;
                     minRange = checked(bufferIndex * maxCapacity);
                     maxRange = checked((bufferIndex + 1) * maxCapacity);
                 }
                 row -= minRange;
+                if (!BitUtility.IsValid(readOnlyBitMapSpan, (int)row))
+                    continue;
+
+                hasValue = true;
                 value = (char)(Math.Min(readOnlySpan[(int)row], value));
             }
 
-            ret = value;
+            ret = hasValue ? value : null;
         }
 
         public void Product(PrimitiveColumnContainer<char> column, out char? ret)
@@ -1128,8 +1168,9 @@ namespace Microsoft.Data.Analysis
 
         public void Product(PrimitiveColumnContainer<char> column, IEnumerable<long> rows, out char? ret)
         {
-            char value = default;
+            var value = (char)1;
             var readOnlySpan = column.Buffers[0].ReadOnlySpan;
+            var readOnlyBitMapSpan = column.NullBitMapBuffers[0].ReadOnlySpan;
             long minRange = 0;
             long maxRange = ReadOnlyDataFrameBuffer<char>.MaxCapacity;
             long maxCapacity = maxRange;
@@ -1141,10 +1182,14 @@ namespace Microsoft.Data.Analysis
                 {
                     int bufferIndex = (int)(row / maxCapacity);
                     readOnlySpan = column.Buffers[bufferIndex].ReadOnlySpan;
+                    readOnlyBitMapSpan = column.NullBitMapBuffers[bufferIndex].ReadOnlySpan;
                     minRange = checked(bufferIndex * maxCapacity);
                     maxRange = checked((bufferIndex + 1) * maxCapacity);
                 }
                 row -= minRange;
+                if (!BitUtility.IsValid(readOnlyBitMapSpan, (int)row))
+                    continue;
+
                 value = checked((char)(readOnlySpan[(int)row] * value));
             }
 
@@ -1176,8 +1221,10 @@ namespace Microsoft.Data.Analysis
 
         public void Sum(PrimitiveColumnContainer<char> column, IEnumerable<long> rows, out char? ret)
         {
-            char value = default;
+            var value = (char)0;
+            bool hasValue = false;
             var readOnlySpan = column.Buffers[0].ReadOnlySpan;
+            var readOnlyBitMapSpan = column.NullBitMapBuffers[0].ReadOnlySpan;
             long minRange = 0;
             long maxRange = ReadOnlyDataFrameBuffer<char>.MaxCapacity;
             long maxCapacity = maxRange;
@@ -1189,14 +1236,19 @@ namespace Microsoft.Data.Analysis
                 {
                     int bufferIndex = (int)(row / maxCapacity);
                     readOnlySpan = column.Buffers[bufferIndex].ReadOnlySpan;
+                    readOnlyBitMapSpan = column.NullBitMapBuffers[bufferIndex].ReadOnlySpan;
                     minRange = checked(bufferIndex * maxCapacity);
                     maxRange = checked((bufferIndex + 1) * maxCapacity);
                 }
                 row -= minRange;
+                if (!BitUtility.IsValid(readOnlyBitMapSpan, (int)row))
+                    continue;
+
+                hasValue = true;
                 value = checked((char)(readOnlySpan[(int)row] + value));
             }
 
-            ret = value;
+            ret = hasValue ? value : null;
         }
 
         public void Round(PrimitiveColumnContainer<char> column)
@@ -1524,7 +1576,9 @@ namespace Microsoft.Data.Analysis
         public void Max(PrimitiveColumnContainer<decimal> column, IEnumerable<long> rows, out decimal? ret)
         {
             var value = decimal.MinValue;
+            bool hasValue = false;
             var readOnlySpan = column.Buffers[0].ReadOnlySpan;
+            var readOnlyBitMapSpan = column.NullBitMapBuffers[0].ReadOnlySpan;
             long minRange = 0;
             long maxRange = ReadOnlyDataFrameBuffer<decimal>.MaxCapacity;
             long maxCapacity = maxRange;
@@ -1536,14 +1590,19 @@ namespace Microsoft.Data.Analysis
                 {
                     int bufferIndex = (int)(row / maxCapacity);
                     readOnlySpan = column.Buffers[bufferIndex].ReadOnlySpan;
+                    readOnlyBitMapSpan = column.NullBitMapBuffers[bufferIndex].ReadOnlySpan;
                     minRange = checked(bufferIndex * maxCapacity);
                     maxRange = checked((bufferIndex + 1) * maxCapacity);
                 }
                 row -= minRange;
+                if (!BitUtility.IsValid(readOnlyBitMapSpan, (int)row))
+                    continue;
+
+                hasValue = true;
                 value = (decimal)(Math.Max(readOnlySpan[(int)row], value));
             }
 
-            ret = value;
+            ret = hasValue ? value : null;
         }
 
         public void Min(PrimitiveColumnContainer<decimal> column, out decimal? ret)
@@ -1572,7 +1631,9 @@ namespace Microsoft.Data.Analysis
         public void Min(PrimitiveColumnContainer<decimal> column, IEnumerable<long> rows, out decimal? ret)
         {
             var value = decimal.MaxValue;
+            bool hasValue = false;
             var readOnlySpan = column.Buffers[0].ReadOnlySpan;
+            var readOnlyBitMapSpan = column.NullBitMapBuffers[0].ReadOnlySpan;
             long minRange = 0;
             long maxRange = ReadOnlyDataFrameBuffer<decimal>.MaxCapacity;
             long maxCapacity = maxRange;
@@ -1584,14 +1645,19 @@ namespace Microsoft.Data.Analysis
                 {
                     int bufferIndex = (int)(row / maxCapacity);
                     readOnlySpan = column.Buffers[bufferIndex].ReadOnlySpan;
+                    readOnlyBitMapSpan = column.NullBitMapBuffers[bufferIndex].ReadOnlySpan;
                     minRange = checked(bufferIndex * maxCapacity);
                     maxRange = checked((bufferIndex + 1) * maxCapacity);
                 }
                 row -= minRange;
+                if (!BitUtility.IsValid(readOnlyBitMapSpan, (int)row))
+                    continue;
+
+                hasValue = true;
                 value = (decimal)(Math.Min(readOnlySpan[(int)row], value));
             }
 
-            ret = value;
+            ret = hasValue ? value : null;
         }
 
         public void Product(PrimitiveColumnContainer<decimal> column, out decimal? ret)
@@ -1615,8 +1681,9 @@ namespace Microsoft.Data.Analysis
 
         public void Product(PrimitiveColumnContainer<decimal> column, IEnumerable<long> rows, out decimal? ret)
         {
-            decimal value = default;
+            var value = (decimal)1;
             var readOnlySpan = column.Buffers[0].ReadOnlySpan;
+            var readOnlyBitMapSpan = column.NullBitMapBuffers[0].ReadOnlySpan;
             long minRange = 0;
             long maxRange = ReadOnlyDataFrameBuffer<decimal>.MaxCapacity;
             long maxCapacity = maxRange;
@@ -1628,10 +1695,14 @@ namespace Microsoft.Data.Analysis
                 {
                     int bufferIndex = (int)(row / maxCapacity);
                     readOnlySpan = column.Buffers[bufferIndex].ReadOnlySpan;
+                    readOnlyBitMapSpan = column.NullBitMapBuffers[bufferIndex].ReadOnlySpan;
                     minRange = checked(bufferIndex * maxCapacity);
                     maxRange = checked((bufferIndex + 1) * maxCapacity);
                 }
                 row -= minRange;
+                if (!BitUtility.IsValid(readOnlyBitMapSpan, (int)row))
+                    continue;
+
                 value = checked((decimal)(readOnlySpan[(int)row] * value));
             }
 
@@ -1663,8 +1734,10 @@ namespace Microsoft.Data.Analysis
 
         public void Sum(PrimitiveColumnContainer<decimal> column, IEnumerable<long> rows, out decimal? ret)
         {
-            decimal value = default;
+            var value = (decimal)0;
+            bool hasValue = false;
             var readOnlySpan = column.Buffers[0].ReadOnlySpan;
+            var readOnlyBitMapSpan = column.NullBitMapBuffers[0].ReadOnlySpan;
             long minRange = 0;
             long maxRange = ReadOnlyDataFrameBuffer<decimal>.MaxCapacity;
             long maxCapacity = maxRange;
@@ -1676,14 +1749,19 @@ namespace Microsoft.Data.Analysis
                 {
                     int bufferIndex = (int)(row / maxCapacity);
                     readOnlySpan = column.Buffers[bufferIndex].ReadOnlySpan;
+                    readOnlyBitMapSpan = column.NullBitMapBuffers[bufferIndex].ReadOnlySpan;
                     minRange = checked(bufferIndex * maxCapacity);
                     maxRange = checked((bufferIndex + 1) * maxCapacity);
                 }
                 row -= minRange;
+                if (!BitUtility.IsValid(readOnlyBitMapSpan, (int)row))
+                    continue;
+
+                hasValue = true;
                 value = checked((decimal)(readOnlySpan[(int)row] + value));
             }
 
-            ret = value;
+            ret = hasValue ? value : null;
         }
 
         public void Round(PrimitiveColumnContainer<decimal> column)
@@ -2011,7 +2089,9 @@ namespace Microsoft.Data.Analysis
         public void Max(PrimitiveColumnContainer<double> column, IEnumerable<long> rows, out double? ret)
         {
             var value = double.MinValue;
+            bool hasValue = false;
             var readOnlySpan = column.Buffers[0].ReadOnlySpan;
+            var readOnlyBitMapSpan = column.NullBitMapBuffers[0].ReadOnlySpan;
             long minRange = 0;
             long maxRange = ReadOnlyDataFrameBuffer<double>.MaxCapacity;
             long maxCapacity = maxRange;
@@ -2023,14 +2103,19 @@ namespace Microsoft.Data.Analysis
                 {
                     int bufferIndex = (int)(row / maxCapacity);
                     readOnlySpan = column.Buffers[bufferIndex].ReadOnlySpan;
+                    readOnlyBitMapSpan = column.NullBitMapBuffers[bufferIndex].ReadOnlySpan;
                     minRange = checked(bufferIndex * maxCapacity);
                     maxRange = checked((bufferIndex + 1) * maxCapacity);
                 }
                 row -= minRange;
+                if (!BitUtility.IsValid(readOnlyBitMapSpan, (int)row))
+                    continue;
+
+                hasValue = true;
                 value = (double)(Math.Max(readOnlySpan[(int)row], value));
             }
 
-            ret = value;
+            ret = hasValue ? value : null;
         }
 
         public void Min(PrimitiveColumnContainer<double> column, out double? ret)
@@ -2059,7 +2144,9 @@ namespace Microsoft.Data.Analysis
         public void Min(PrimitiveColumnContainer<double> column, IEnumerable<long> rows, out double? ret)
         {
             var value = double.MaxValue;
+            bool hasValue = false;
             var readOnlySpan = column.Buffers[0].ReadOnlySpan;
+            var readOnlyBitMapSpan = column.NullBitMapBuffers[0].ReadOnlySpan;
             long minRange = 0;
             long maxRange = ReadOnlyDataFrameBuffer<double>.MaxCapacity;
             long maxCapacity = maxRange;
@@ -2071,14 +2158,19 @@ namespace Microsoft.Data.Analysis
                 {
                     int bufferIndex = (int)(row / maxCapacity);
                     readOnlySpan = column.Buffers[bufferIndex].ReadOnlySpan;
+                    readOnlyBitMapSpan = column.NullBitMapBuffers[bufferIndex].ReadOnlySpan;
                     minRange = checked(bufferIndex * maxCapacity);
                     maxRange = checked((bufferIndex + 1) * maxCapacity);
                 }
                 row -= minRange;
+                if (!BitUtility.IsValid(readOnlyBitMapSpan, (int)row))
+                    continue;
+
+                hasValue = true;
                 value = (double)(Math.Min(readOnlySpan[(int)row], value));
             }
 
-            ret = value;
+            ret = hasValue ? value : null;
         }
 
         public void Product(PrimitiveColumnContainer<double> column, out double? ret)
@@ -2102,8 +2194,9 @@ namespace Microsoft.Data.Analysis
 
         public void Product(PrimitiveColumnContainer<double> column, IEnumerable<long> rows, out double? ret)
         {
-            double value = default;
+            var value = (double)1;
             var readOnlySpan = column.Buffers[0].ReadOnlySpan;
+            var readOnlyBitMapSpan = column.NullBitMapBuffers[0].ReadOnlySpan;
             long minRange = 0;
             long maxRange = ReadOnlyDataFrameBuffer<double>.MaxCapacity;
             long maxCapacity = maxRange;
@@ -2115,10 +2208,14 @@ namespace Microsoft.Data.Analysis
                 {
                     int bufferIndex = (int)(row / maxCapacity);
                     readOnlySpan = column.Buffers[bufferIndex].ReadOnlySpan;
+                    readOnlyBitMapSpan = column.NullBitMapBuffers[bufferIndex].ReadOnlySpan;
                     minRange = checked(bufferIndex * maxCapacity);
                     maxRange = checked((bufferIndex + 1) * maxCapacity);
                 }
                 row -= minRange;
+                if (!BitUtility.IsValid(readOnlyBitMapSpan, (int)row))
+                    continue;
+
                 value = checked((double)(readOnlySpan[(int)row] * value));
             }
 
@@ -2150,8 +2247,10 @@ namespace Microsoft.Data.Analysis
 
         public void Sum(PrimitiveColumnContainer<double> column, IEnumerable<long> rows, out double? ret)
         {
-            double value = default;
+            var value = (double)0;
+            bool hasValue = false;
             var readOnlySpan = column.Buffers[0].ReadOnlySpan;
+            var readOnlyBitMapSpan = column.NullBitMapBuffers[0].ReadOnlySpan;
             long minRange = 0;
             long maxRange = ReadOnlyDataFrameBuffer<double>.MaxCapacity;
             long maxCapacity = maxRange;
@@ -2163,14 +2262,19 @@ namespace Microsoft.Data.Analysis
                 {
                     int bufferIndex = (int)(row / maxCapacity);
                     readOnlySpan = column.Buffers[bufferIndex].ReadOnlySpan;
+                    readOnlyBitMapSpan = column.NullBitMapBuffers[bufferIndex].ReadOnlySpan;
                     minRange = checked(bufferIndex * maxCapacity);
                     maxRange = checked((bufferIndex + 1) * maxCapacity);
                 }
                 row -= minRange;
+                if (!BitUtility.IsValid(readOnlyBitMapSpan, (int)row))
+                    continue;
+
+                hasValue = true;
                 value = checked((double)(readOnlySpan[(int)row] + value));
             }
 
-            ret = value;
+            ret = hasValue ? value : null;
         }
 
         public void Round(PrimitiveColumnContainer<double> column)
@@ -2498,7 +2602,9 @@ namespace Microsoft.Data.Analysis
         public void Max(PrimitiveColumnContainer<float> column, IEnumerable<long> rows, out float? ret)
         {
             var value = float.MinValue;
+            bool hasValue = false;
             var readOnlySpan = column.Buffers[0].ReadOnlySpan;
+            var readOnlyBitMapSpan = column.NullBitMapBuffers[0].ReadOnlySpan;
             long minRange = 0;
             long maxRange = ReadOnlyDataFrameBuffer<float>.MaxCapacity;
             long maxCapacity = maxRange;
@@ -2510,14 +2616,19 @@ namespace Microsoft.Data.Analysis
                 {
                     int bufferIndex = (int)(row / maxCapacity);
                     readOnlySpan = column.Buffers[bufferIndex].ReadOnlySpan;
+                    readOnlyBitMapSpan = column.NullBitMapBuffers[bufferIndex].ReadOnlySpan;
                     minRange = checked(bufferIndex * maxCapacity);
                     maxRange = checked((bufferIndex + 1) * maxCapacity);
                 }
                 row -= minRange;
+                if (!BitUtility.IsValid(readOnlyBitMapSpan, (int)row))
+                    continue;
+
+                hasValue = true;
                 value = (float)(Math.Max(readOnlySpan[(int)row], value));
             }
 
-            ret = value;
+            ret = hasValue ? value : null;
         }
 
         public void Min(PrimitiveColumnContainer<float> column, out float? ret)
@@ -2546,7 +2657,9 @@ namespace Microsoft.Data.Analysis
         public void Min(PrimitiveColumnContainer<float> column, IEnumerable<long> rows, out float? ret)
         {
             var value = float.MaxValue;
+            bool hasValue = false;
             var readOnlySpan = column.Buffers[0].ReadOnlySpan;
+            var readOnlyBitMapSpan = column.NullBitMapBuffers[0].ReadOnlySpan;
             long minRange = 0;
             long maxRange = ReadOnlyDataFrameBuffer<float>.MaxCapacity;
             long maxCapacity = maxRange;
@@ -2558,14 +2671,19 @@ namespace Microsoft.Data.Analysis
                 {
                     int bufferIndex = (int)(row / maxCapacity);
                     readOnlySpan = column.Buffers[bufferIndex].ReadOnlySpan;
+                    readOnlyBitMapSpan = column.NullBitMapBuffers[bufferIndex].ReadOnlySpan;
                     minRange = checked(bufferIndex * maxCapacity);
                     maxRange = checked((bufferIndex + 1) * maxCapacity);
                 }
                 row -= minRange;
+                if (!BitUtility.IsValid(readOnlyBitMapSpan, (int)row))
+                    continue;
+
+                hasValue = true;
                 value = (float)(Math.Min(readOnlySpan[(int)row], value));
             }
 
-            ret = value;
+            ret = hasValue ? value : null;
         }
 
         public void Product(PrimitiveColumnContainer<float> column, out float? ret)
@@ -2589,8 +2707,9 @@ namespace Microsoft.Data.Analysis
 
         public void Product(PrimitiveColumnContainer<float> column, IEnumerable<long> rows, out float? ret)
         {
-            float value = default;
+            var value = (float)1;
             var readOnlySpan = column.Buffers[0].ReadOnlySpan;
+            var readOnlyBitMapSpan = column.NullBitMapBuffers[0].ReadOnlySpan;
             long minRange = 0;
             long maxRange = ReadOnlyDataFrameBuffer<float>.MaxCapacity;
             long maxCapacity = maxRange;
@@ -2602,10 +2721,14 @@ namespace Microsoft.Data.Analysis
                 {
                     int bufferIndex = (int)(row / maxCapacity);
                     readOnlySpan = column.Buffers[bufferIndex].ReadOnlySpan;
+                    readOnlyBitMapSpan = column.NullBitMapBuffers[bufferIndex].ReadOnlySpan;
                     minRange = checked(bufferIndex * maxCapacity);
                     maxRange = checked((bufferIndex + 1) * maxCapacity);
                 }
                 row -= minRange;
+                if (!BitUtility.IsValid(readOnlyBitMapSpan, (int)row))
+                    continue;
+
                 value = checked((float)(readOnlySpan[(int)row] * value));
             }
 
@@ -2637,8 +2760,10 @@ namespace Microsoft.Data.Analysis
 
         public void Sum(PrimitiveColumnContainer<float> column, IEnumerable<long> rows, out float? ret)
         {
-            float value = default;
+            var value = (float)0;
+            bool hasValue = false;
             var readOnlySpan = column.Buffers[0].ReadOnlySpan;
+            var readOnlyBitMapSpan = column.NullBitMapBuffers[0].ReadOnlySpan;
             long minRange = 0;
             long maxRange = ReadOnlyDataFrameBuffer<float>.MaxCapacity;
             long maxCapacity = maxRange;
@@ -2650,14 +2775,19 @@ namespace Microsoft.Data.Analysis
                 {
                     int bufferIndex = (int)(row / maxCapacity);
                     readOnlySpan = column.Buffers[bufferIndex].ReadOnlySpan;
+                    readOnlyBitMapSpan = column.NullBitMapBuffers[bufferIndex].ReadOnlySpan;
                     minRange = checked(bufferIndex * maxCapacity);
                     maxRange = checked((bufferIndex + 1) * maxCapacity);
                 }
                 row -= minRange;
+                if (!BitUtility.IsValid(readOnlyBitMapSpan, (int)row))
+                    continue;
+
+                hasValue = true;
                 value = checked((float)(readOnlySpan[(int)row] + value));
             }
 
-            ret = value;
+            ret = hasValue ? value : null;
         }
 
         public void Round(PrimitiveColumnContainer<float> column)
@@ -2985,7 +3115,9 @@ namespace Microsoft.Data.Analysis
         public void Max(PrimitiveColumnContainer<int> column, IEnumerable<long> rows, out int? ret)
         {
             var value = int.MinValue;
+            bool hasValue = false;
             var readOnlySpan = column.Buffers[0].ReadOnlySpan;
+            var readOnlyBitMapSpan = column.NullBitMapBuffers[0].ReadOnlySpan;
             long minRange = 0;
             long maxRange = ReadOnlyDataFrameBuffer<int>.MaxCapacity;
             long maxCapacity = maxRange;
@@ -2997,14 +3129,19 @@ namespace Microsoft.Data.Analysis
                 {
                     int bufferIndex = (int)(row / maxCapacity);
                     readOnlySpan = column.Buffers[bufferIndex].ReadOnlySpan;
+                    readOnlyBitMapSpan = column.NullBitMapBuffers[bufferIndex].ReadOnlySpan;
                     minRange = checked(bufferIndex * maxCapacity);
                     maxRange = checked((bufferIndex + 1) * maxCapacity);
                 }
                 row -= minRange;
+                if (!BitUtility.IsValid(readOnlyBitMapSpan, (int)row))
+                    continue;
+
+                hasValue = true;
                 value = (int)(Math.Max(readOnlySpan[(int)row], value));
             }
 
-            ret = value;
+            ret = hasValue ? value : null;
         }
 
         public void Min(PrimitiveColumnContainer<int> column, out int? ret)
@@ -3033,7 +3170,9 @@ namespace Microsoft.Data.Analysis
         public void Min(PrimitiveColumnContainer<int> column, IEnumerable<long> rows, out int? ret)
         {
             var value = int.MaxValue;
+            bool hasValue = false;
             var readOnlySpan = column.Buffers[0].ReadOnlySpan;
+            var readOnlyBitMapSpan = column.NullBitMapBuffers[0].ReadOnlySpan;
             long minRange = 0;
             long maxRange = ReadOnlyDataFrameBuffer<int>.MaxCapacity;
             long maxCapacity = maxRange;
@@ -3045,14 +3184,19 @@ namespace Microsoft.Data.Analysis
                 {
                     int bufferIndex = (int)(row / maxCapacity);
                     readOnlySpan = column.Buffers[bufferIndex].ReadOnlySpan;
+                    readOnlyBitMapSpan = column.NullBitMapBuffers[bufferIndex].ReadOnlySpan;
                     minRange = checked(bufferIndex * maxCapacity);
                     maxRange = checked((bufferIndex + 1) * maxCapacity);
                 }
                 row -= minRange;
+                if (!BitUtility.IsValid(readOnlyBitMapSpan, (int)row))
+                    continue;
+
+                hasValue = true;
                 value = (int)(Math.Min(readOnlySpan[(int)row], value));
             }
 
-            ret = value;
+            ret = hasValue ? value : null;
         }
 
         public void Product(PrimitiveColumnContainer<int> column, out int? ret)
@@ -3076,8 +3220,9 @@ namespace Microsoft.Data.Analysis
 
         public void Product(PrimitiveColumnContainer<int> column, IEnumerable<long> rows, out int? ret)
         {
-            int value = default;
+            var value = (int)1;
             var readOnlySpan = column.Buffers[0].ReadOnlySpan;
+            var readOnlyBitMapSpan = column.NullBitMapBuffers[0].ReadOnlySpan;
             long minRange = 0;
             long maxRange = ReadOnlyDataFrameBuffer<int>.MaxCapacity;
             long maxCapacity = maxRange;
@@ -3089,10 +3234,14 @@ namespace Microsoft.Data.Analysis
                 {
                     int bufferIndex = (int)(row / maxCapacity);
                     readOnlySpan = column.Buffers[bufferIndex].ReadOnlySpan;
+                    readOnlyBitMapSpan = column.NullBitMapBuffers[bufferIndex].ReadOnlySpan;
                     minRange = checked(bufferIndex * maxCapacity);
                     maxRange = checked((bufferIndex + 1) * maxCapacity);
                 }
                 row -= minRange;
+                if (!BitUtility.IsValid(readOnlyBitMapSpan, (int)row))
+                    continue;
+
                 value = checked((int)(readOnlySpan[(int)row] * value));
             }
 
@@ -3124,8 +3273,10 @@ namespace Microsoft.Data.Analysis
 
         public void Sum(PrimitiveColumnContainer<int> column, IEnumerable<long> rows, out int? ret)
         {
-            int value = default;
+            var value = (int)0;
+            bool hasValue = false;
             var readOnlySpan = column.Buffers[0].ReadOnlySpan;
+            var readOnlyBitMapSpan = column.NullBitMapBuffers[0].ReadOnlySpan;
             long minRange = 0;
             long maxRange = ReadOnlyDataFrameBuffer<int>.MaxCapacity;
             long maxCapacity = maxRange;
@@ -3137,14 +3288,19 @@ namespace Microsoft.Data.Analysis
                 {
                     int bufferIndex = (int)(row / maxCapacity);
                     readOnlySpan = column.Buffers[bufferIndex].ReadOnlySpan;
+                    readOnlyBitMapSpan = column.NullBitMapBuffers[bufferIndex].ReadOnlySpan;
                     minRange = checked(bufferIndex * maxCapacity);
                     maxRange = checked((bufferIndex + 1) * maxCapacity);
                 }
                 row -= minRange;
+                if (!BitUtility.IsValid(readOnlyBitMapSpan, (int)row))
+                    continue;
+
+                hasValue = true;
                 value = checked((int)(readOnlySpan[(int)row] + value));
             }
 
-            ret = value;
+            ret = hasValue ? value : null;
         }
 
         public void Round(PrimitiveColumnContainer<int> column)
@@ -3472,7 +3628,9 @@ namespace Microsoft.Data.Analysis
         public void Max(PrimitiveColumnContainer<long> column, IEnumerable<long> rows, out long? ret)
         {
             var value = long.MinValue;
+            bool hasValue = false;
             var readOnlySpan = column.Buffers[0].ReadOnlySpan;
+            var readOnlyBitMapSpan = column.NullBitMapBuffers[0].ReadOnlySpan;
             long minRange = 0;
             long maxRange = ReadOnlyDataFrameBuffer<long>.MaxCapacity;
             long maxCapacity = maxRange;
@@ -3484,14 +3642,19 @@ namespace Microsoft.Data.Analysis
                 {
                     int bufferIndex = (int)(row / maxCapacity);
                     readOnlySpan = column.Buffers[bufferIndex].ReadOnlySpan;
+                    readOnlyBitMapSpan = column.NullBitMapBuffers[bufferIndex].ReadOnlySpan;
                     minRange = checked(bufferIndex * maxCapacity);
                     maxRange = checked((bufferIndex + 1) * maxCapacity);
                 }
                 row -= minRange;
+                if (!BitUtility.IsValid(readOnlyBitMapSpan, (int)row))
+                    continue;
+
+                hasValue = true;
                 value = (long)(Math.Max(readOnlySpan[(int)row], value));
             }
 
-            ret = value;
+            ret = hasValue ? value : null;
         }
 
         public void Min(PrimitiveColumnContainer<long> column, out long? ret)
@@ -3520,7 +3683,9 @@ namespace Microsoft.Data.Analysis
         public void Min(PrimitiveColumnContainer<long> column, IEnumerable<long> rows, out long? ret)
         {
             var value = long.MaxValue;
+            bool hasValue = false;
             var readOnlySpan = column.Buffers[0].ReadOnlySpan;
+            var readOnlyBitMapSpan = column.NullBitMapBuffers[0].ReadOnlySpan;
             long minRange = 0;
             long maxRange = ReadOnlyDataFrameBuffer<long>.MaxCapacity;
             long maxCapacity = maxRange;
@@ -3532,14 +3697,19 @@ namespace Microsoft.Data.Analysis
                 {
                     int bufferIndex = (int)(row / maxCapacity);
                     readOnlySpan = column.Buffers[bufferIndex].ReadOnlySpan;
+                    readOnlyBitMapSpan = column.NullBitMapBuffers[bufferIndex].ReadOnlySpan;
                     minRange = checked(bufferIndex * maxCapacity);
                     maxRange = checked((bufferIndex + 1) * maxCapacity);
                 }
                 row -= minRange;
+                if (!BitUtility.IsValid(readOnlyBitMapSpan, (int)row))
+                    continue;
+
+                hasValue = true;
                 value = (long)(Math.Min(readOnlySpan[(int)row], value));
             }
 
-            ret = value;
+            ret = hasValue ? value : null;
         }
 
         public void Product(PrimitiveColumnContainer<long> column, out long? ret)
@@ -3563,8 +3733,9 @@ namespace Microsoft.Data.Analysis
 
         public void Product(PrimitiveColumnContainer<long> column, IEnumerable<long> rows, out long? ret)
         {
-            long value = default;
+            var value = (long)1;
             var readOnlySpan = column.Buffers[0].ReadOnlySpan;
+            var readOnlyBitMapSpan = column.NullBitMapBuffers[0].ReadOnlySpan;
             long minRange = 0;
             long maxRange = ReadOnlyDataFrameBuffer<long>.MaxCapacity;
             long maxCapacity = maxRange;
@@ -3576,10 +3747,14 @@ namespace Microsoft.Data.Analysis
                 {
                     int bufferIndex = (int)(row / maxCapacity);
                     readOnlySpan = column.Buffers[bufferIndex].ReadOnlySpan;
+                    readOnlyBitMapSpan = column.NullBitMapBuffers[bufferIndex].ReadOnlySpan;
                     minRange = checked(bufferIndex * maxCapacity);
                     maxRange = checked((bufferIndex + 1) * maxCapacity);
                 }
                 row -= minRange;
+                if (!BitUtility.IsValid(readOnlyBitMapSpan, (int)row))
+                    continue;
+
                 value = checked((long)(readOnlySpan[(int)row] * value));
             }
 
@@ -3611,8 +3786,10 @@ namespace Microsoft.Data.Analysis
 
         public void Sum(PrimitiveColumnContainer<long> column, IEnumerable<long> rows, out long? ret)
         {
-            long value = default;
+            var value = (long)0;
+            bool hasValue = false;
             var readOnlySpan = column.Buffers[0].ReadOnlySpan;
+            var readOnlyBitMapSpan = column.NullBitMapBuffers[0].ReadOnlySpan;
             long minRange = 0;
             long maxRange = ReadOnlyDataFrameBuffer<long>.MaxCapacity;
             long maxCapacity = maxRange;
@@ -3624,14 +3801,19 @@ namespace Microsoft.Data.Analysis
                 {
                     int bufferIndex = (int)(row / maxCapacity);
                     readOnlySpan = column.Buffers[bufferIndex].ReadOnlySpan;
+                    readOnlyBitMapSpan = column.NullBitMapBuffers[bufferIndex].ReadOnlySpan;
                     minRange = checked(bufferIndex * maxCapacity);
                     maxRange = checked((bufferIndex + 1) * maxCapacity);
                 }
                 row -= minRange;
+                if (!BitUtility.IsValid(readOnlyBitMapSpan, (int)row))
+                    continue;
+
+                hasValue = true;
                 value = checked((long)(readOnlySpan[(int)row] + value));
             }
 
-            ret = value;
+            ret = hasValue ? value : null;
         }
 
         public void Round(PrimitiveColumnContainer<long> column)
@@ -3959,7 +4141,9 @@ namespace Microsoft.Data.Analysis
         public void Max(PrimitiveColumnContainer<sbyte> column, IEnumerable<long> rows, out sbyte? ret)
         {
             var value = sbyte.MinValue;
+            bool hasValue = false;
             var readOnlySpan = column.Buffers[0].ReadOnlySpan;
+            var readOnlyBitMapSpan = column.NullBitMapBuffers[0].ReadOnlySpan;
             long minRange = 0;
             long maxRange = ReadOnlyDataFrameBuffer<sbyte>.MaxCapacity;
             long maxCapacity = maxRange;
@@ -3971,14 +4155,19 @@ namespace Microsoft.Data.Analysis
                 {
                     int bufferIndex = (int)(row / maxCapacity);
                     readOnlySpan = column.Buffers[bufferIndex].ReadOnlySpan;
+                    readOnlyBitMapSpan = column.NullBitMapBuffers[bufferIndex].ReadOnlySpan;
                     minRange = checked(bufferIndex * maxCapacity);
                     maxRange = checked((bufferIndex + 1) * maxCapacity);
                 }
                 row -= minRange;
+                if (!BitUtility.IsValid(readOnlyBitMapSpan, (int)row))
+                    continue;
+
+                hasValue = true;
                 value = (sbyte)(Math.Max(readOnlySpan[(int)row], value));
             }
 
-            ret = value;
+            ret = hasValue ? value : null;
         }
 
         public void Min(PrimitiveColumnContainer<sbyte> column, out sbyte? ret)
@@ -4007,7 +4196,9 @@ namespace Microsoft.Data.Analysis
         public void Min(PrimitiveColumnContainer<sbyte> column, IEnumerable<long> rows, out sbyte? ret)
         {
             var value = sbyte.MaxValue;
+            bool hasValue = false;
             var readOnlySpan = column.Buffers[0].ReadOnlySpan;
+            var readOnlyBitMapSpan = column.NullBitMapBuffers[0].ReadOnlySpan;
             long minRange = 0;
             long maxRange = ReadOnlyDataFrameBuffer<sbyte>.MaxCapacity;
             long maxCapacity = maxRange;
@@ -4019,14 +4210,19 @@ namespace Microsoft.Data.Analysis
                 {
                     int bufferIndex = (int)(row / maxCapacity);
                     readOnlySpan = column.Buffers[bufferIndex].ReadOnlySpan;
+                    readOnlyBitMapSpan = column.NullBitMapBuffers[bufferIndex].ReadOnlySpan;
                     minRange = checked(bufferIndex * maxCapacity);
                     maxRange = checked((bufferIndex + 1) * maxCapacity);
                 }
                 row -= minRange;
+                if (!BitUtility.IsValid(readOnlyBitMapSpan, (int)row))
+                    continue;
+
+                hasValue = true;
                 value = (sbyte)(Math.Min(readOnlySpan[(int)row], value));
             }
 
-            ret = value;
+            ret = hasValue ? value : null;
         }
 
         public void Product(PrimitiveColumnContainer<sbyte> column, out sbyte? ret)
@@ -4050,8 +4246,9 @@ namespace Microsoft.Data.Analysis
 
         public void Product(PrimitiveColumnContainer<sbyte> column, IEnumerable<long> rows, out sbyte? ret)
         {
-            sbyte value = default;
+            var value = (sbyte)1;
             var readOnlySpan = column.Buffers[0].ReadOnlySpan;
+            var readOnlyBitMapSpan = column.NullBitMapBuffers[0].ReadOnlySpan;
             long minRange = 0;
             long maxRange = ReadOnlyDataFrameBuffer<sbyte>.MaxCapacity;
             long maxCapacity = maxRange;
@@ -4063,10 +4260,14 @@ namespace Microsoft.Data.Analysis
                 {
                     int bufferIndex = (int)(row / maxCapacity);
                     readOnlySpan = column.Buffers[bufferIndex].ReadOnlySpan;
+                    readOnlyBitMapSpan = column.NullBitMapBuffers[bufferIndex].ReadOnlySpan;
                     minRange = checked(bufferIndex * maxCapacity);
                     maxRange = checked((bufferIndex + 1) * maxCapacity);
                 }
                 row -= minRange;
+                if (!BitUtility.IsValid(readOnlyBitMapSpan, (int)row))
+                    continue;
+
                 value = checked((sbyte)(readOnlySpan[(int)row] * value));
             }
 
@@ -4098,8 +4299,10 @@ namespace Microsoft.Data.Analysis
 
         public void Sum(PrimitiveColumnContainer<sbyte> column, IEnumerable<long> rows, out sbyte? ret)
         {
-            sbyte value = default;
+            var value = (sbyte)0;
+            bool hasValue = false;
             var readOnlySpan = column.Buffers[0].ReadOnlySpan;
+            var readOnlyBitMapSpan = column.NullBitMapBuffers[0].ReadOnlySpan;
             long minRange = 0;
             long maxRange = ReadOnlyDataFrameBuffer<sbyte>.MaxCapacity;
             long maxCapacity = maxRange;
@@ -4111,14 +4314,19 @@ namespace Microsoft.Data.Analysis
                 {
                     int bufferIndex = (int)(row / maxCapacity);
                     readOnlySpan = column.Buffers[bufferIndex].ReadOnlySpan;
+                    readOnlyBitMapSpan = column.NullBitMapBuffers[bufferIndex].ReadOnlySpan;
                     minRange = checked(bufferIndex * maxCapacity);
                     maxRange = checked((bufferIndex + 1) * maxCapacity);
                 }
                 row -= minRange;
+                if (!BitUtility.IsValid(readOnlyBitMapSpan, (int)row))
+                    continue;
+
+                hasValue = true;
                 value = checked((sbyte)(readOnlySpan[(int)row] + value));
             }
 
-            ret = value;
+            ret = hasValue ? value : null;
         }
 
         public void Round(PrimitiveColumnContainer<sbyte> column)
@@ -4446,7 +4654,9 @@ namespace Microsoft.Data.Analysis
         public void Max(PrimitiveColumnContainer<short> column, IEnumerable<long> rows, out short? ret)
         {
             var value = short.MinValue;
+            bool hasValue = false;
             var readOnlySpan = column.Buffers[0].ReadOnlySpan;
+            var readOnlyBitMapSpan = column.NullBitMapBuffers[0].ReadOnlySpan;
             long minRange = 0;
             long maxRange = ReadOnlyDataFrameBuffer<short>.MaxCapacity;
             long maxCapacity = maxRange;
@@ -4458,14 +4668,19 @@ namespace Microsoft.Data.Analysis
                 {
                     int bufferIndex = (int)(row / maxCapacity);
                     readOnlySpan = column.Buffers[bufferIndex].ReadOnlySpan;
+                    readOnlyBitMapSpan = column.NullBitMapBuffers[bufferIndex].ReadOnlySpan;
                     minRange = checked(bufferIndex * maxCapacity);
                     maxRange = checked((bufferIndex + 1) * maxCapacity);
                 }
                 row -= minRange;
+                if (!BitUtility.IsValid(readOnlyBitMapSpan, (int)row))
+                    continue;
+
+                hasValue = true;
                 value = (short)(Math.Max(readOnlySpan[(int)row], value));
             }
 
-            ret = value;
+            ret = hasValue ? value : null;
         }
 
         public void Min(PrimitiveColumnContainer<short> column, out short? ret)
@@ -4494,7 +4709,9 @@ namespace Microsoft.Data.Analysis
         public void Min(PrimitiveColumnContainer<short> column, IEnumerable<long> rows, out short? ret)
         {
             var value = short.MaxValue;
+            bool hasValue = false;
             var readOnlySpan = column.Buffers[0].ReadOnlySpan;
+            var readOnlyBitMapSpan = column.NullBitMapBuffers[0].ReadOnlySpan;
             long minRange = 0;
             long maxRange = ReadOnlyDataFrameBuffer<short>.MaxCapacity;
             long maxCapacity = maxRange;
@@ -4506,14 +4723,19 @@ namespace Microsoft.Data.Analysis
                 {
                     int bufferIndex = (int)(row / maxCapacity);
                     readOnlySpan = column.Buffers[bufferIndex].ReadOnlySpan;
+                    readOnlyBitMapSpan = column.NullBitMapBuffers[bufferIndex].ReadOnlySpan;
                     minRange = checked(bufferIndex * maxCapacity);
                     maxRange = checked((bufferIndex + 1) * maxCapacity);
                 }
                 row -= minRange;
+                if (!BitUtility.IsValid(readOnlyBitMapSpan, (int)row))
+                    continue;
+
+                hasValue = true;
                 value = (short)(Math.Min(readOnlySpan[(int)row], value));
             }
 
-            ret = value;
+            ret = hasValue ? value : null;
         }
 
         public void Product(PrimitiveColumnContainer<short> column, out short? ret)
@@ -4537,8 +4759,9 @@ namespace Microsoft.Data.Analysis
 
         public void Product(PrimitiveColumnContainer<short> column, IEnumerable<long> rows, out short? ret)
         {
-            short value = default;
+            var value = (short)1;
             var readOnlySpan = column.Buffers[0].ReadOnlySpan;
+            var readOnlyBitMapSpan = column.NullBitMapBuffers[0].ReadOnlySpan;
             long minRange = 0;
             long maxRange = ReadOnlyDataFrameBuffer<short>.MaxCapacity;
             long maxCapacity = maxRange;
@@ -4550,10 +4773,14 @@ namespace Microsoft.Data.Analysis
                 {
                     int bufferIndex = (int)(row / maxCapacity);
                     readOnlySpan = column.Buffers[bufferIndex].ReadOnlySpan;
+                    readOnlyBitMapSpan = column.NullBitMapBuffers[bufferIndex].ReadOnlySpan;
                     minRange = checked(bufferIndex * maxCapacity);
                     maxRange = checked((bufferIndex + 1) * maxCapacity);
                 }
                 row -= minRange;
+                if (!BitUtility.IsValid(readOnlyBitMapSpan, (int)row))
+                    continue;
+
                 value = checked((short)(readOnlySpan[(int)row] * value));
             }
 
@@ -4585,8 +4812,10 @@ namespace Microsoft.Data.Analysis
 
         public void Sum(PrimitiveColumnContainer<short> column, IEnumerable<long> rows, out short? ret)
         {
-            short value = default;
+            var value = (short)0;
+            bool hasValue = false;
             var readOnlySpan = column.Buffers[0].ReadOnlySpan;
+            var readOnlyBitMapSpan = column.NullBitMapBuffers[0].ReadOnlySpan;
             long minRange = 0;
             long maxRange = ReadOnlyDataFrameBuffer<short>.MaxCapacity;
             long maxCapacity = maxRange;
@@ -4598,14 +4827,19 @@ namespace Microsoft.Data.Analysis
                 {
                     int bufferIndex = (int)(row / maxCapacity);
                     readOnlySpan = column.Buffers[bufferIndex].ReadOnlySpan;
+                    readOnlyBitMapSpan = column.NullBitMapBuffers[bufferIndex].ReadOnlySpan;
                     minRange = checked(bufferIndex * maxCapacity);
                     maxRange = checked((bufferIndex + 1) * maxCapacity);
                 }
                 row -= minRange;
+                if (!BitUtility.IsValid(readOnlyBitMapSpan, (int)row))
+                    continue;
+
+                hasValue = true;
                 value = checked((short)(readOnlySpan[(int)row] + value));
             }
 
-            ret = value;
+            ret = hasValue ? value : null;
         }
 
         public void Round(PrimitiveColumnContainer<short> column)
@@ -4933,7 +5167,9 @@ namespace Microsoft.Data.Analysis
         public void Max(PrimitiveColumnContainer<uint> column, IEnumerable<long> rows, out uint? ret)
         {
             var value = uint.MinValue;
+            bool hasValue = false;
             var readOnlySpan = column.Buffers[0].ReadOnlySpan;
+            var readOnlyBitMapSpan = column.NullBitMapBuffers[0].ReadOnlySpan;
             long minRange = 0;
             long maxRange = ReadOnlyDataFrameBuffer<uint>.MaxCapacity;
             long maxCapacity = maxRange;
@@ -4945,14 +5181,19 @@ namespace Microsoft.Data.Analysis
                 {
                     int bufferIndex = (int)(row / maxCapacity);
                     readOnlySpan = column.Buffers[bufferIndex].ReadOnlySpan;
+                    readOnlyBitMapSpan = column.NullBitMapBuffers[bufferIndex].ReadOnlySpan;
                     minRange = checked(bufferIndex * maxCapacity);
                     maxRange = checked((bufferIndex + 1) * maxCapacity);
                 }
                 row -= minRange;
+                if (!BitUtility.IsValid(readOnlyBitMapSpan, (int)row))
+                    continue;
+
+                hasValue = true;
                 value = (uint)(Math.Max(readOnlySpan[(int)row], value));
             }
 
-            ret = value;
+            ret = hasValue ? value : null;
         }
 
         public void Min(PrimitiveColumnContainer<uint> column, out uint? ret)
@@ -4981,7 +5222,9 @@ namespace Microsoft.Data.Analysis
         public void Min(PrimitiveColumnContainer<uint> column, IEnumerable<long> rows, out uint? ret)
         {
             var value = uint.MaxValue;
+            bool hasValue = false;
             var readOnlySpan = column.Buffers[0].ReadOnlySpan;
+            var readOnlyBitMapSpan = column.NullBitMapBuffers[0].ReadOnlySpan;
             long minRange = 0;
             long maxRange = ReadOnlyDataFrameBuffer<uint>.MaxCapacity;
             long maxCapacity = maxRange;
@@ -4993,14 +5236,19 @@ namespace Microsoft.Data.Analysis
                 {
                     int bufferIndex = (int)(row / maxCapacity);
                     readOnlySpan = column.Buffers[bufferIndex].ReadOnlySpan;
+                    readOnlyBitMapSpan = column.NullBitMapBuffers[bufferIndex].ReadOnlySpan;
                     minRange = checked(bufferIndex * maxCapacity);
                     maxRange = checked((bufferIndex + 1) * maxCapacity);
                 }
                 row -= minRange;
+                if (!BitUtility.IsValid(readOnlyBitMapSpan, (int)row))
+                    continue;
+
+                hasValue = true;
                 value = (uint)(Math.Min(readOnlySpan[(int)row], value));
             }
 
-            ret = value;
+            ret = hasValue ? value : null;
         }
 
         public void Product(PrimitiveColumnContainer<uint> column, out uint? ret)
@@ -5024,8 +5272,9 @@ namespace Microsoft.Data.Analysis
 
         public void Product(PrimitiveColumnContainer<uint> column, IEnumerable<long> rows, out uint? ret)
         {
-            uint value = default;
+            var value = (uint)1;
             var readOnlySpan = column.Buffers[0].ReadOnlySpan;
+            var readOnlyBitMapSpan = column.NullBitMapBuffers[0].ReadOnlySpan;
             long minRange = 0;
             long maxRange = ReadOnlyDataFrameBuffer<uint>.MaxCapacity;
             long maxCapacity = maxRange;
@@ -5037,10 +5286,14 @@ namespace Microsoft.Data.Analysis
                 {
                     int bufferIndex = (int)(row / maxCapacity);
                     readOnlySpan = column.Buffers[bufferIndex].ReadOnlySpan;
+                    readOnlyBitMapSpan = column.NullBitMapBuffers[bufferIndex].ReadOnlySpan;
                     minRange = checked(bufferIndex * maxCapacity);
                     maxRange = checked((bufferIndex + 1) * maxCapacity);
                 }
                 row -= minRange;
+                if (!BitUtility.IsValid(readOnlyBitMapSpan, (int)row))
+                    continue;
+
                 value = checked((uint)(readOnlySpan[(int)row] * value));
             }
 
@@ -5072,8 +5325,10 @@ namespace Microsoft.Data.Analysis
 
         public void Sum(PrimitiveColumnContainer<uint> column, IEnumerable<long> rows, out uint? ret)
         {
-            uint value = default;
+            var value = (uint)0;
+            bool hasValue = false;
             var readOnlySpan = column.Buffers[0].ReadOnlySpan;
+            var readOnlyBitMapSpan = column.NullBitMapBuffers[0].ReadOnlySpan;
             long minRange = 0;
             long maxRange = ReadOnlyDataFrameBuffer<uint>.MaxCapacity;
             long maxCapacity = maxRange;
@@ -5085,14 +5340,19 @@ namespace Microsoft.Data.Analysis
                 {
                     int bufferIndex = (int)(row / maxCapacity);
                     readOnlySpan = column.Buffers[bufferIndex].ReadOnlySpan;
+                    readOnlyBitMapSpan = column.NullBitMapBuffers[bufferIndex].ReadOnlySpan;
                     minRange = checked(bufferIndex * maxCapacity);
                     maxRange = checked((bufferIndex + 1) * maxCapacity);
                 }
                 row -= minRange;
+                if (!BitUtility.IsValid(readOnlyBitMapSpan, (int)row))
+                    continue;
+
+                hasValue = true;
                 value = checked((uint)(readOnlySpan[(int)row] + value));
             }
 
-            ret = value;
+            ret = hasValue ? value : null;
         }
 
         public void Round(PrimitiveColumnContainer<uint> column)
@@ -5420,7 +5680,9 @@ namespace Microsoft.Data.Analysis
         public void Max(PrimitiveColumnContainer<ulong> column, IEnumerable<long> rows, out ulong? ret)
         {
             var value = ulong.MinValue;
+            bool hasValue = false;
             var readOnlySpan = column.Buffers[0].ReadOnlySpan;
+            var readOnlyBitMapSpan = column.NullBitMapBuffers[0].ReadOnlySpan;
             long minRange = 0;
             long maxRange = ReadOnlyDataFrameBuffer<ulong>.MaxCapacity;
             long maxCapacity = maxRange;
@@ -5432,14 +5694,19 @@ namespace Microsoft.Data.Analysis
                 {
                     int bufferIndex = (int)(row / maxCapacity);
                     readOnlySpan = column.Buffers[bufferIndex].ReadOnlySpan;
+                    readOnlyBitMapSpan = column.NullBitMapBuffers[bufferIndex].ReadOnlySpan;
                     minRange = checked(bufferIndex * maxCapacity);
                     maxRange = checked((bufferIndex + 1) * maxCapacity);
                 }
                 row -= minRange;
+                if (!BitUtility.IsValid(readOnlyBitMapSpan, (int)row))
+                    continue;
+
+                hasValue = true;
                 value = (ulong)(Math.Max(readOnlySpan[(int)row], value));
             }
 
-            ret = value;
+            ret = hasValue ? value : null;
         }
 
         public void Min(PrimitiveColumnContainer<ulong> column, out ulong? ret)
@@ -5468,7 +5735,9 @@ namespace Microsoft.Data.Analysis
         public void Min(PrimitiveColumnContainer<ulong> column, IEnumerable<long> rows, out ulong? ret)
         {
             var value = ulong.MaxValue;
+            bool hasValue = false;
             var readOnlySpan = column.Buffers[0].ReadOnlySpan;
+            var readOnlyBitMapSpan = column.NullBitMapBuffers[0].ReadOnlySpan;
             long minRange = 0;
             long maxRange = ReadOnlyDataFrameBuffer<ulong>.MaxCapacity;
             long maxCapacity = maxRange;
@@ -5480,14 +5749,19 @@ namespace Microsoft.Data.Analysis
                 {
                     int bufferIndex = (int)(row / maxCapacity);
                     readOnlySpan = column.Buffers[bufferIndex].ReadOnlySpan;
+                    readOnlyBitMapSpan = column.NullBitMapBuffers[bufferIndex].ReadOnlySpan;
                     minRange = checked(bufferIndex * maxCapacity);
                     maxRange = checked((bufferIndex + 1) * maxCapacity);
                 }
                 row -= minRange;
+                if (!BitUtility.IsValid(readOnlyBitMapSpan, (int)row))
+                    continue;
+
+                hasValue = true;
                 value = (ulong)(Math.Min(readOnlySpan[(int)row], value));
             }
 
-            ret = value;
+            ret = hasValue ? value : null;
         }
 
         public void Product(PrimitiveColumnContainer<ulong> column, out ulong? ret)
@@ -5511,8 +5785,9 @@ namespace Microsoft.Data.Analysis
 
         public void Product(PrimitiveColumnContainer<ulong> column, IEnumerable<long> rows, out ulong? ret)
         {
-            ulong value = default;
+            var value = (ulong)1;
             var readOnlySpan = column.Buffers[0].ReadOnlySpan;
+            var readOnlyBitMapSpan = column.NullBitMapBuffers[0].ReadOnlySpan;
             long minRange = 0;
             long maxRange = ReadOnlyDataFrameBuffer<ulong>.MaxCapacity;
             long maxCapacity = maxRange;
@@ -5524,10 +5799,14 @@ namespace Microsoft.Data.Analysis
                 {
                     int bufferIndex = (int)(row / maxCapacity);
                     readOnlySpan = column.Buffers[bufferIndex].ReadOnlySpan;
+                    readOnlyBitMapSpan = column.NullBitMapBuffers[bufferIndex].ReadOnlySpan;
                     minRange = checked(bufferIndex * maxCapacity);
                     maxRange = checked((bufferIndex + 1) * maxCapacity);
                 }
                 row -= minRange;
+                if (!BitUtility.IsValid(readOnlyBitMapSpan, (int)row))
+                    continue;
+
                 value = checked((ulong)(readOnlySpan[(int)row] * value));
             }
 
@@ -5559,8 +5838,10 @@ namespace Microsoft.Data.Analysis
 
         public void Sum(PrimitiveColumnContainer<ulong> column, IEnumerable<long> rows, out ulong? ret)
         {
-            ulong value = default;
+            var value = (ulong)0;
+            bool hasValue = false;
             var readOnlySpan = column.Buffers[0].ReadOnlySpan;
+            var readOnlyBitMapSpan = column.NullBitMapBuffers[0].ReadOnlySpan;
             long minRange = 0;
             long maxRange = ReadOnlyDataFrameBuffer<ulong>.MaxCapacity;
             long maxCapacity = maxRange;
@@ -5572,14 +5853,19 @@ namespace Microsoft.Data.Analysis
                 {
                     int bufferIndex = (int)(row / maxCapacity);
                     readOnlySpan = column.Buffers[bufferIndex].ReadOnlySpan;
+                    readOnlyBitMapSpan = column.NullBitMapBuffers[bufferIndex].ReadOnlySpan;
                     minRange = checked(bufferIndex * maxCapacity);
                     maxRange = checked((bufferIndex + 1) * maxCapacity);
                 }
                 row -= minRange;
+                if (!BitUtility.IsValid(readOnlyBitMapSpan, (int)row))
+                    continue;
+
+                hasValue = true;
                 value = checked((ulong)(readOnlySpan[(int)row] + value));
             }
 
-            ret = value;
+            ret = hasValue ? value : null;
         }
 
         public void Round(PrimitiveColumnContainer<ulong> column)
@@ -5907,7 +6193,9 @@ namespace Microsoft.Data.Analysis
         public void Max(PrimitiveColumnContainer<ushort> column, IEnumerable<long> rows, out ushort? ret)
         {
             var value = ushort.MinValue;
+            bool hasValue = false;
             var readOnlySpan = column.Buffers[0].ReadOnlySpan;
+            var readOnlyBitMapSpan = column.NullBitMapBuffers[0].ReadOnlySpan;
             long minRange = 0;
             long maxRange = ReadOnlyDataFrameBuffer<ushort>.MaxCapacity;
             long maxCapacity = maxRange;
@@ -5919,14 +6207,19 @@ namespace Microsoft.Data.Analysis
                 {
                     int bufferIndex = (int)(row / maxCapacity);
                     readOnlySpan = column.Buffers[bufferIndex].ReadOnlySpan;
+                    readOnlyBitMapSpan = column.NullBitMapBuffers[bufferIndex].ReadOnlySpan;
                     minRange = checked(bufferIndex * maxCapacity);
                     maxRange = checked((bufferIndex + 1) * maxCapacity);
                 }
                 row -= minRange;
+                if (!BitUtility.IsValid(readOnlyBitMapSpan, (int)row))
+                    continue;
+
+                hasValue = true;
                 value = (ushort)(Math.Max(readOnlySpan[(int)row], value));
             }
 
-            ret = value;
+            ret = hasValue ? value : null;
         }
 
         public void Min(PrimitiveColumnContainer<ushort> column, out ushort? ret)
@@ -5955,7 +6248,9 @@ namespace Microsoft.Data.Analysis
         public void Min(PrimitiveColumnContainer<ushort> column, IEnumerable<long> rows, out ushort? ret)
         {
             var value = ushort.MaxValue;
+            bool hasValue = false;
             var readOnlySpan = column.Buffers[0].ReadOnlySpan;
+            var readOnlyBitMapSpan = column.NullBitMapBuffers[0].ReadOnlySpan;
             long minRange = 0;
             long maxRange = ReadOnlyDataFrameBuffer<ushort>.MaxCapacity;
             long maxCapacity = maxRange;
@@ -5967,14 +6262,19 @@ namespace Microsoft.Data.Analysis
                 {
                     int bufferIndex = (int)(row / maxCapacity);
                     readOnlySpan = column.Buffers[bufferIndex].ReadOnlySpan;
+                    readOnlyBitMapSpan = column.NullBitMapBuffers[bufferIndex].ReadOnlySpan;
                     minRange = checked(bufferIndex * maxCapacity);
                     maxRange = checked((bufferIndex + 1) * maxCapacity);
                 }
                 row -= minRange;
+                if (!BitUtility.IsValid(readOnlyBitMapSpan, (int)row))
+                    continue;
+
+                hasValue = true;
                 value = (ushort)(Math.Min(readOnlySpan[(int)row], value));
             }
 
-            ret = value;
+            ret = hasValue ? value : null;
         }
 
         public void Product(PrimitiveColumnContainer<ushort> column, out ushort? ret)
@@ -5998,8 +6298,9 @@ namespace Microsoft.Data.Analysis
 
         public void Product(PrimitiveColumnContainer<ushort> column, IEnumerable<long> rows, out ushort? ret)
         {
-            ushort value = default;
+            var value = (ushort)1;
             var readOnlySpan = column.Buffers[0].ReadOnlySpan;
+            var readOnlyBitMapSpan = column.NullBitMapBuffers[0].ReadOnlySpan;
             long minRange = 0;
             long maxRange = ReadOnlyDataFrameBuffer<ushort>.MaxCapacity;
             long maxCapacity = maxRange;
@@ -6011,10 +6312,14 @@ namespace Microsoft.Data.Analysis
                 {
                     int bufferIndex = (int)(row / maxCapacity);
                     readOnlySpan = column.Buffers[bufferIndex].ReadOnlySpan;
+                    readOnlyBitMapSpan = column.NullBitMapBuffers[bufferIndex].ReadOnlySpan;
                     minRange = checked(bufferIndex * maxCapacity);
                     maxRange = checked((bufferIndex + 1) * maxCapacity);
                 }
                 row -= minRange;
+                if (!BitUtility.IsValid(readOnlyBitMapSpan, (int)row))
+                    continue;
+
                 value = checked((ushort)(readOnlySpan[(int)row] * value));
             }
 
@@ -6046,8 +6351,10 @@ namespace Microsoft.Data.Analysis
 
         public void Sum(PrimitiveColumnContainer<ushort> column, IEnumerable<long> rows, out ushort? ret)
         {
-            ushort value = default;
+            var value = (ushort)0;
+            bool hasValue = false;
             var readOnlySpan = column.Buffers[0].ReadOnlySpan;
+            var readOnlyBitMapSpan = column.NullBitMapBuffers[0].ReadOnlySpan;
             long minRange = 0;
             long maxRange = ReadOnlyDataFrameBuffer<ushort>.MaxCapacity;
             long maxCapacity = maxRange;
@@ -6059,14 +6366,19 @@ namespace Microsoft.Data.Analysis
                 {
                     int bufferIndex = (int)(row / maxCapacity);
                     readOnlySpan = column.Buffers[bufferIndex].ReadOnlySpan;
+                    readOnlyBitMapSpan = column.NullBitMapBuffers[bufferIndex].ReadOnlySpan;
                     minRange = checked(bufferIndex * maxCapacity);
                     maxRange = checked((bufferIndex + 1) * maxCapacity);
                 }
                 row -= minRange;
+                if (!BitUtility.IsValid(readOnlyBitMapSpan, (int)row))
+                    continue;
+
+                hasValue = true;
                 value = checked((ushort)(readOnlySpan[(int)row] + value));
             }
 
-            ret = value;
+            ret = hasValue ? value : null;
         }
 
         public void Round(PrimitiveColumnContainer<ushort> column)
