@@ -596,6 +596,34 @@ namespace Microsoft.ML.Tokenizers.Tests
         }
 
         [Fact]
+        public void ContinuousUnknownPiecesAreMergedTest()
+        {
+            var vocab = new List<(string Piece, float Score)>
+            {
+                ("<unk>", 0f),
+                ("<s>",   0f),
+                ("</s>",  0f),
+                ("▁Hello", -1f),
+                ("▁",      -2f),
+                ("!",      -3f),
+            };
+
+            SentencePieceTokenizer tokenizer = SentencePieceTokenizer.Create(
+                vocab, unkId: 0, addBeginningOfSentence: false, addEndOfSentence: false);
+
+            string text = "Hello XYZ!AB";
+
+            // SentencePiece merges a run of unknown characters into a single <unk>.
+            IReadOnlyList<int> ids = tokenizer.EncodeToIds(text, addBeginningOfSentence: false, addEndOfSentence: false);
+            Assert.Equal(new[] { 3, 4, 0, 5, 0 }, ids);
+            Assert.Equal(5, tokenizer.CountTokens(text, addBeginningOfSentence: false, addEndOfSentence: false));
+
+            IReadOnlyList<EncodedToken> tokens = tokenizer.EncodeToTokens(text, out _, addBeginningOfSentence: false, addEndOfSentence: false);
+            Assert.Equal(new[] { "▁Hello", "▁", "XYZ", "!", "AB" }, tokens.Select(t => t.Value).ToArray());
+            Assert.Equal(new[] { 3, 4, 0, 5, 0 }, tokens.Select(t => t.Id).ToArray());
+        }
+
+        [Fact]
         public void CreateFromVocabNullTest()
         {
             Assert.Throws<ArgumentNullException>(() =>
