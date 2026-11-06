@@ -915,7 +915,7 @@ namespace Microsoft.ML.Trainers
                 KMeansUtils.ParallelMapReduce<float[], float[]>(
                     numThreads, host, cursorFactory, initializationState.RowIndexGetter,
                     (ref float[] weights) => weights = new float[totalSamples],
-                    (ref VBuffer<float> point, int pointRowIndex, float[] weights, Random rand) =>
+                    (ref VBuffer<float> point, int pointRowIndex, float pointWeight, float[] weights, Random rand) =>
                     {
                         int bestCluster;
                         float discardBestWeight;
@@ -925,7 +925,7 @@ namespace Microsoft.ML.Trainers
                         int debugBestCluster = KMeansUtils.FindBestCluster(in point, clusters, clustersL2s);
                         ch.Assert(bestCluster == debugBestCluster);
 #endif
-                        weights[bestCluster]++;
+                        weights[bestCluster] += pointWeight;
                     },
                     (float[][] workStateWeights, Random rand, ref float[] weights) =>
                     {
@@ -942,7 +942,7 @@ namespace Microsoft.ML.Trainers
                 KMeansUtils.ParallelMapReduce<float[], float[]>(
                     numThreads, host, cursorFactory, (FeatureFloatVectorCursor cur) => -1,
                     (ref float[] weights) => weights = new float[totalSamples],
-                    (ref VBuffer<float> point, int discard, float[] weights, Random rand) => weights[KMeansUtils.FindBestCluster(in point, clusters, clustersL2s)]++,
+                    (ref VBuffer<float> point, int discard, float pointWeight, float[] weights, Random rand) => weights[KMeansUtils.FindBestCluster(in point, clusters, clustersL2s)] += pointWeight,
                     (float[][] workStateWeights, Random rand, ref float[] weights) =>
                     {
                         weights = new float[totalSamples];
@@ -1018,7 +1018,8 @@ namespace Microsoft.ML.Trainers
 
             // Standard KMeans per-cluster data.
             protected readonly VBuffer<float>[] Centroids;
-            protected readonly long[] ClusterSizes;
+            // Sum of example weights assigned to each cluster.
+            protected readonly double[] ClusterSizes;
 
             // YinYang per-cluster data.
             // cached sum of the first maxInstancesToAccelerate instances assigned to cluster i for 0 <= i < _k
@@ -1060,7 +1061,7 @@ namespace Microsoft.ML.Trainers
                 for (int j = 0; j < k; j++)
                     Centroids[j] = VBufferUtils.CreateDense<float>(dimensionality);
 
-                ClusterSizes = new long[k];
+                ClusterSizes = new double[k];
 
                 if (maxInstancesToAccelerate > 0)
                 {
@@ -1092,7 +1093,7 @@ namespace Microsoft.ML.Trainers
                 }
             }
 
-            public void KeepYinYangAssignment(int bestCluster)
+            public void KeepYinYangAssignment(int bestCluster, float weight)
             {
                 // this instance does not change clusters in this iteration
                 // also, this instance does not account for average score calculation
@@ -1104,42 +1105,42 @@ namespace Microsoft.ML.Trainers
                 // should remove this line, and special case N = 0 when we average the distance score,
                 // otherwise we'll continue to report a smaller epsilon and terminate earlier than we
                 // otherwise would have.
-                ClusterSizes[bestCluster]++;
+                ClusterSizes[bestCluster] += weight;
                 _n++;
                 GloballyFiltered++;
             }
 
-            public void UpdateClusterAssignment(bool firstIteration, in VBuffer<float> features, int cluster, int previousCluster, float distance)
+            public void UpdateClusterAssignment(bool firstIteration, in VBuffer<float> features, float weight, int cluster, int previousCluster, float distance)
             {
                 if (firstIteration)
                 {
-                    VectorUtils.Add(in features, ref CachedSum[cluster]);
+                    VectorUtils.AddMult(in features, weight, ref CachedSum[cluster]);
                     NumChanged++;
                 }
                 else if (previousCluster != cluster)
                 {
                     // update the cachedSum as the instance moves from (previous) bestCluster[n] to cluster
-                    VectorUtils.Add(in features, ref CachedSum[cluster]);
+                    VectorUtils.AddMult(in features, weight, ref CachedSum[cluster]);
                     // There doesnt seem to be a Subtract function that does a -= b, so doing a += (-1 * b)
-                    VectorUtils.AddMult(in features, -1, ref CachedSum[previousCluster]);
+                    VectorUtils.AddMult(in features, -weight, ref CachedSum[previousCluster]);
                     NumChanged++;
                 }
                 else
                     NumUnchangedMissed++;
 
-                UpdateClusterAssignmentMetrics(cluster, distance);
+                UpdateClusterAssignmentMetrics(cluster, weight, distance);
             }
 
-            public void UpdateClusterAssignment(in VBuffer<float> features, int cluster, float distance)
+            public void UpdateClusterAssignment(in VBuffer<float> features, float weight, int cluster, float distance)
             {
-                VectorUtils.Add(in features, ref Centroids[cluster]);
-                UpdateClusterAssignmentMetrics(cluster, distance);
+                VectorUtils.AddMult(in features, weight, ref Centroids[cluster]);
+                UpdateClusterAssignmentMetrics(cluster, weight, distance);
             }
 
-            private void UpdateClusterAssignmentMetrics(int cluster, float distance)
+            private void UpdateClusterAssignmentMetrics(int cluster, float weight, float distance)
             {
                 _n++;
-                ClusterSizes[cluster]++;
+                ClusterSizes[cluster] += weight;
                 AverageScore += distance;
             }
 
@@ -1210,7 +1211,7 @@ namespace Microsoft.ML.Trainers
                     if (isAccelerated)
                         VectorUtils.Add(in CachedSum[i], ref Centroids[i]);
 
-                    if (ClusterSizes[i] > 1)
+                    if (ClusterSizes[i] > 0)
                         VectorUtils.ScaleBy(ref Centroids[i], (float)(1.0 / ClusterSizes[i]));
 
                     if (isAccelerated)
@@ -1422,7 +1423,7 @@ namespace Microsoft.ML.Trainers
                                 int id = state.RowIndexGetter(cursor);
                                 if (id != -1)
                                 {
-                                    VectorUtils.Add(in cursor.Features, ref cachedSumCopy[state.GetBestCluster(id)]);
+                                    VectorUtils.AddMult(in cursor.Features, cursor.Weight, ref cachedSumCopy[state.GetBestCluster(id)]);
                                     numCounted++;
                                 }
                             }
@@ -1498,7 +1499,7 @@ namespace Microsoft.ML.Trainers
                     state.UpdateYinYangBounds(n);
                     if (state.IsYinYangGloballyBound(n))
                     {
-                        chunkState.KeepYinYangAssignment(state.GetBestCluster(n));
+                        chunkState.KeepYinYangAssignment(state.GetBestCluster(n), cursor.Weight);
 #if DEBUG
                         state.AssertValidYinYangBounds(n, in cursor.Features, centroids);
 #endif
@@ -1513,11 +1514,11 @@ namespace Microsoft.ML.Trainers
                 KMeansUtils.FindBestCluster(in cursor.Features, centroids, centroidL2s, k, false, out minDistance, out cluster, out secMinDistance, out secCluster);
 
                 if (n == -1)
-                    chunkState.UpdateClusterAssignment(in cursor.Features, cluster, minDistance);
+                    chunkState.UpdateClusterAssignment(in cursor.Features, cursor.Weight, cluster, minDistance);
                 else
                 {
                     int prevCluster = state.SetYinYangCluster(n, in cursor.Features, minDistance, cluster, secMinDistance);
-                    chunkState.UpdateClusterAssignment(firstIteration, in cursor.Features, cluster, prevCluster, minDistance);
+                    chunkState.UpdateClusterAssignment(firstIteration, in cursor.Features, cursor.Weight, cluster, prevCluster, minDistance);
                 }
             }
         }
@@ -1612,7 +1613,7 @@ namespace Microsoft.ML.Trainers
                     else
                         heap.Clear();
                 },
-                (ref VBuffer<float> point, int pointRowIndex, Heap<WeightedPoint> heap, Random rand) =>
+                (ref VBuffer<float> point, int pointRowIndex, float pointWeight, Heap<WeightedPoint> heap, Random rand) =>
                 {
                     // We use distance as a proxy for 'is the same point'. By excluding
                     // all points that lie within a very small distance of our current set of
@@ -1632,7 +1633,7 @@ namespace Microsoft.ML.Trainers
                     if (weight <= sameClusterEpsilon)
                         return;
 
-                    double key = Math.Log(rand.NextDouble()) / weight;
+                    double key = Math.Log(rand.NextDouble()) / ((double)weight * pointWeight);
                     // If we are less than all of the samples in the heap and the heap
                     // is full already, early return.
                     if (heap.Count == numSamples && key <= heap.Top.Weight)
@@ -1687,7 +1688,7 @@ namespace Microsoft.ML.Trainers
 
         public delegate void InitAction<TPartitionState>(ref TPartitionState val);
         public delegate int RowIndexGetter(FeatureFloatVectorCursor cur);
-        public delegate void MapAction<TPartitionState>(ref VBuffer<float> point, int rowIndex, TPartitionState state, Random rand);
+        public delegate void MapAction<TPartitionState>(ref VBuffer<float> point, int rowIndex, float weight, TPartitionState state, Random rand);
         public delegate void ReduceAction<TPartitionState, TGlobalState>(TPartitionState[] intermediates, Random rand, ref TGlobalState result);
 
         /// <summary>
@@ -1734,7 +1735,7 @@ namespace Microsoft.ML.Trainers
                     using (cur)
                     {
                         while (cur.MoveNext())
-                            mapper(ref cur.Features, rowIndexGetter(cur), innerWorkState, rand);
+                            mapper(ref cur.Features, rowIndexGetter(cur), cur.Weight, innerWorkState, rand);
                     }
                 };
             }

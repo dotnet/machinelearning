@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.ML.Data;
+using Microsoft.ML.Trainers;
 using Xunit;
 
 namespace Microsoft.ML.Scenarios
@@ -88,6 +89,48 @@ namespace Microsoft.ML.Scenarios
             //Calculate dbi is false by default so Dbi would be 0
             Assert.Equal(0d, metrics.DaviesBouldinIndex);
             Assert.Equal(0d, metrics.AverageDistance, 0.00001);
+        }
+
+        public class WeightedClusteringData
+        {
+            [VectorType(1)]
+            public float[] Features;
+            public float Weight;
+        }
+
+        [Theory]
+        [InlineData(KMeansTrainer.InitializationAlgorithm.KMeansPlusPlus, 1)]
+        [InlineData(KMeansTrainer.InitializationAlgorithm.KMeansYinyang, 1)]
+        [InlineData(KMeansTrainer.InitializationAlgorithm.KMeansYinyang, 2)]
+        [InlineData(KMeansTrainer.InitializationAlgorithm.Random, 1)]
+        public void KMeansCentroidsUseExampleWeights(KMeansTrainer.InitializationAlgorithm initializationAlgorithm, int numberOfThreads)
+        {
+            var mlContext = new MLContext(seed: 1);
+            var data = mlContext.Data.LoadFromEnumerable(new[]
+            {
+                new WeightedClusteringData { Features = new[] { 0f }, Weight = 1f },
+                new WeightedClusteringData { Features = new[] { 10f }, Weight = 9f },
+                new WeightedClusteringData { Features = new[] { 100f }, Weight = 3f },
+                new WeightedClusteringData { Features = new[] { 110f }, Weight = 1f },
+            });
+
+            var model = mlContext.Clustering.Trainers.KMeans(new KMeansTrainer.Options
+            {
+                NumberOfClusters = 2,
+                ExampleWeightColumnName = nameof(WeightedClusteringData.Weight),
+                InitializationAlgorithm = initializationAlgorithm,
+                NumberOfThreads = numberOfThreads,
+            }).Fit(data);
+
+            VBuffer<float>[] centroids = default;
+            model.Model.GetClusterCentroids(ref centroids, out _);
+
+            var values = new[] { centroids[0].GetValues()[0], centroids[1].GetValues()[0] };
+            Array.Sort(values);
+
+            // Weighted means: (1 * 0 + 9 * 10) / (1 + 9) and (3 * 100 + 1 * 110) / (3 + 1).
+            Assert.Equal(9f, values[0], 0.0001f);
+            Assert.Equal(102.5f, values[1], 0.0001f);
         }
     }
 }
