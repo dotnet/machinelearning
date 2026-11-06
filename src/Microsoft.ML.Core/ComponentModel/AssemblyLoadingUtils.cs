@@ -162,7 +162,7 @@ internal static class AssemblyLoadingUtils
             case "neuraltreeevaluator.dll":
             case "optimizationbuilderdotnet.dll":
             case "parallelcommunicator.dll":
-            case "Microsoft.ML.runtests.dll":
+            case "microsoft.ml.runtests.dll":
             case "scopecompiler.dll":
             case "symsgdnative.dll":
             case "tbb.dll":
@@ -172,7 +172,7 @@ internal static class AssemblyLoadingUtils
             case "libxgboost.dll":
             case "zedgraph.dll":
             case "__scopecodegen__.dll":
-            case "cosmosClientApi.dll":
+            case "cosmosclientapi.dll":
                 return true;
         }
 
