@@ -47,6 +47,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.DotNet.RemoteExecutor" />
     <PackageReference Include="Microsoft.ML.Onnx.TestModels" />
     <PackageReference Include="Microsoft.ML.TestDatabases" />
     <PackageReference Include="Microsoft.ML.TestModels" />

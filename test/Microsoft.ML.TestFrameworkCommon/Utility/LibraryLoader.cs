@@ -194,6 +194,10 @@ namespace Microsoft.ML.TestFrameworkCommon.Utility
 
             protected override IntPtr CoreLoadNativeLibrary(string name)
             {
+                // Resolve dependencies beside the DLL, not just beside the test host.
+                if (Path.IsPathRooted(name))
+                    return Kernel32.LoadLibraryEx(Path.GetFullPath(name), IntPtr.Zero, Kernel32.LoadWithAlteredSearchPath);
+
                 return Kernel32.LoadLibrary(name);
             }
         }
