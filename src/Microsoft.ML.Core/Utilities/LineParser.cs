@@ -28,20 +28,13 @@ namespace Microsoft.ML.Internal.Utilities
             {
                 if (i == valuesToParse.Length || valuesToParse[i] == ' ' || valuesToParse[i] == '\t')
                 {
-                    if (invariantCulture)
-                    {
-                        if (DoubleParser.TryParse(valuesToParse.Slice(toParseStartIndex, i - toParseStartIndex), out float parsed))
-                            values[valueIndex++] = parsed;
-                        else
-                            return (false, null, null);
-                    }
+                    // Files written with '.' as the decimal separator (e.g. fastText downloads) must parse
+                    // regardless of the current culture, so the current culture is only a fallback.
+                    var toParse = valuesToParse.Slice(toParseStartIndex, i - toParseStartIndex);
+                    if (DoubleParser.TryParse(toParse, out float parsed) || (!invariantCulture && float.TryParse(toParse.ToString(), out parsed)))
+                        values[valueIndex++] = parsed;
                     else
-                    {
-                        if (float.TryParse(valuesToParse.Slice(toParseStartIndex, i - toParseStartIndex).ToString(), out float parsed))
-                            values[valueIndex++] = parsed;
-                        else
-                            return (false, null, null);
-                    }
+                        return (false, null, null);
 
                     toParseStartIndex = i + 1;
                 }

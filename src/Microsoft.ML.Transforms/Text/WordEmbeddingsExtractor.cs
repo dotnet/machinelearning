@@ -710,10 +710,8 @@ namespace Microsoft.ML.Transforms.Text
                         model = new Model(dimension);
                     if (model.Dimension == dimension)
                     {
-                        float temp;
-                        string firstKey = wordsInFirstLine[0];
-                        float[] firstValue = wordsInFirstLine.Skip(1).Select(x => float.TryParse(x, out temp) ? temp : Single.NaN).ToArray();
-                        if (!firstValue.Contains(Single.NaN))
+                        (bool isSuccess, string firstKey, float[] firstValue) = LineParser.ParseKeyThenNumbers(firstLine, invariantCulture);
+                        if (isSuccess)
                             model.AddWordVector(ch, firstKey, firstValue);
                     }
 
