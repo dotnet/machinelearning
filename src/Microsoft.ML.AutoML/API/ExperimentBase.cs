@@ -115,7 +115,7 @@ namespace Microsoft.ML.AutoML
             const int crossValRowCountThreshold = 15000;
 
             var rowCount = DatasetDimensionsUtil.CountRows(trainData, crossValRowCountThreshold);
-            var samplingKeyColumnName = GetSamplingKey(columnInformation?.GroupIdColumnName, columnInformation?.SamplingKeyColumnName);
+            var samplingKeyColumnName = GetSamplingKey(columnInformation?.GroupIdColumnName, columnInformation?.SamplingKeyColumnName, columnInformation?.LabelColumnName);
             if (rowCount < crossValRowCountThreshold)
             {
                 const int numCrossValFolds = 10;
@@ -129,9 +129,9 @@ namespace Microsoft.ML.AutoML
             }
         }
 
-        private string GetSamplingKey(string groupIdColumnName, string samplingKeyColumnName)
+        private string GetSamplingKey(string groupIdColumnName, string samplingKeyColumnName, string labelColumnName)
         {
-            UserInputValidationUtil.ValidateSamplingKey(samplingKeyColumnName, groupIdColumnName, _task);
+            UserInputValidationUtil.ValidateSamplingKey(samplingKeyColumnName, groupIdColumnName, labelColumnName, _task);
             if (_task == TaskKind.Ranking)
                 return groupIdColumnName ?? DefaultColumnNames.GroupId;
             return samplingKeyColumnName;
@@ -219,7 +219,7 @@ namespace Microsoft.ML.AutoML
             IProgress<CrossValidationRunDetail<TMetrics>> progressHandler = null)
         {
             UserInputValidationUtil.ValidateNumberOfCVFoldsArg(numberOfCVFolds);
-            var samplingKeyColumnName = GetSamplingKey(columnInformation?.GroupIdColumnName, columnInformation?.SamplingKeyColumnName);
+            var samplingKeyColumnName = GetSamplingKey(columnInformation?.GroupIdColumnName, columnInformation?.SamplingKeyColumnName, columnInformation?.LabelColumnName);
             var splitResult = SplitUtil.CrossValSplit(Context, trainData, numberOfCVFolds, samplingKeyColumnName);
             return ExecuteCrossVal(splitResult.trainDatasets, columnInformation, splitResult.validationDatasets, preFeaturizer, progressHandler);
         }
