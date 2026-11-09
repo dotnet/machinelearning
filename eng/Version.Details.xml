@@ -7,34 +7,34 @@
     </Dependency>
   </ProductDependencies>
   <ToolsetDependencies>
-    <Dependency Name="Microsoft.DotNet.Arcade.Sdk" Version="11.0.0-beta.26528.6">
+    <Dependency Name="Microsoft.DotNet.Arcade.Sdk" Version="11.0.0-beta.26553.7">
       <Uri>https://github.com/dotnet/arcade</Uri>
-      <Sha>d7737fa028e509dc2baafddf2607bab06bb9621f</Sha>
+      <Sha>42933ea2511f3d11b247c28fa08ad8c6c7749c4a</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.DotNet.Build.Tasks.Feed" Version="11.0.0-beta.26528.6">
+    <Dependency Name="Microsoft.DotNet.Build.Tasks.Feed" Version="11.0.0-beta.26553.7">
       <Uri>https://github.com/dotnet/arcade</Uri>
-      <Sha>d7737fa028e509dc2baafddf2607bab06bb9621f</Sha>
+      <Sha>42933ea2511f3d11b247c28fa08ad8c6c7749c4a</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.DotNet.SignTool" Version="11.0.0-beta.26528.6">
+    <Dependency Name="Microsoft.DotNet.SignTool" Version="11.0.0-beta.26553.7">
       <Uri>https://github.com/dotnet/arcade</Uri>
-      <Sha>d7737fa028e509dc2baafddf2607bab06bb9621f</Sha>
+      <Sha>42933ea2511f3d11b247c28fa08ad8c6c7749c4a</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.DotNet.Helix.Sdk" Version="11.0.0-beta.26528.6">
+    <Dependency Name="Microsoft.DotNet.Helix.Sdk" Version="11.0.0-beta.26553.7">
       <Uri>https://github.com/dotnet/arcade</Uri>
-      <Sha>d7737fa028e509dc2baafddf2607bab06bb9621f</Sha>
+      <Sha>42933ea2511f3d11b247c28fa08ad8c6c7749c4a</Sha>
     </Dependency>
     <!-- Stay on package 8.0 until we stop testing for net6.0
     <Dependency Name="Microsoft.DotNet.RemoteExecutor" Version="9.0.0-beta.24212.4">
       <Uri>https://github.com/dotnet/arcade</Uri>
       <Sha>812d978c303174dc1aa305d7359e79053d7d4971</Sha>
     </Dependency> -->
-    <Dependency Name="Microsoft.DotNet.XUnitExtensions" Version="11.0.0-beta.26528.6">
+    <Dependency Name="Microsoft.DotNet.XUnitExtensions" Version="11.0.0-beta.26553.7">
       <Uri>https://github.com/dotnet/arcade</Uri>
-      <Sha>d7737fa028e509dc2baafddf2607bab06bb9621f</Sha>
+      <Sha>42933ea2511f3d11b247c28fa08ad8c6c7749c4a</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.DotNet.XliffTasks" Version="11.0.0-beta.26528.6">
+    <Dependency Name="Microsoft.DotNet.XliffTasks" Version="11.0.0-beta.26553.7">
       <Uri>https://github.com/dotnet/arcade</Uri>
-      <Sha>d7737fa028e509dc2baafddf2607bab06bb9621f</Sha>
+      <Sha>42933ea2511f3d11b247c28fa08ad8c6c7749c4a</Sha>
     </Dependency>
   </ToolsetDependencies>
 </Dependencies>
