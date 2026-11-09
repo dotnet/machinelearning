@@ -397,7 +397,10 @@ namespace Microsoft.ML
         /// <param name="data">The dataset to split.</param>
         /// <param name="testFraction">The fraction of data to go into the test set.</param>
         /// <param name="samplingKeyColumnName">Name of a column to use for grouping rows. If two examples share the same value of the <paramref name="samplingKeyColumnName"/>,
-        /// they are guaranteed to appear in the same subset (train or test). This can be used to ensure no label leakage from the train to the test set.
+        /// they are guaranteed to appear in the same subset (train or test). Use this to keep related rows together, for example all rows from the same user or session,
+        /// so that information about a group does not leak from the train set into the test set.
+        /// Do not use the label column as the <paramref name="samplingKeyColumnName"/>: all rows with the same label value would end up in the same subset,
+        /// so the train or test set could be missing some label values entirely. Grouping rows is not the same as stratifying by label.
         /// Note that when performing a Ranking Experiment, the <paramref name="samplingKeyColumnName"/> must be the GroupId column.
         /// If <see langword="null"/> no row grouping will be performed.</param>
         /// <param name="seed">Seed for the random number generator used to select rows for the train-test split.</param>
@@ -444,7 +447,10 @@ namespace Microsoft.ML
         /// <param name="data">The dataset to split.</param>
         /// <param name="numberOfFolds">Number of cross-validation folds.</param>
         /// <param name="samplingKeyColumnName">Name of a column to use for grouping rows. If two examples share the same value of the <paramref name="samplingKeyColumnName"/>,
-        /// they are guaranteed to appear in the same subset (train or test). This can be used to ensure no label leakage from the train to the test set.
+        /// they are guaranteed to appear in the same subset (train or test). Use this to keep related rows together, for example all rows from the same user or session,
+        /// so that information about a group does not leak from the train set into the test set.
+        /// Do not use the label column as the <paramref name="samplingKeyColumnName"/>: all rows with the same label value would end up in the same subset,
+        /// so the train or test set could be missing some label values entirely. Grouping rows is not the same as stratifying by label.
         /// Note that when performing a Ranking Experiment, the <paramref name="samplingKeyColumnName"/> must be the GroupId column.
         /// If <see langword="null"/> no row grouping will be performed.</param>
         /// <param name="seed">Seed for the random number generator used to select rows for cross-validation folds.</param>

@@ -230,7 +230,8 @@ namespace Microsoft.ML.AutoML
         /// <param name="trainData">The training data to be used by the AutoML experiment.</param>
         /// <param name="numberOfCVFolds">The number of cross validation folds into which the training data should be divided when fitting a model.</param>
         /// <param name="labelColumnName">The name of the label column.</param>
-        /// <param name="samplingKeyColumn">The name of the sampling key column.</param>
+        /// <param name="samplingKeyColumn">The name of the sampling key column.
+        /// See <see cref="ColumnInformation.SamplingKeyColumnName"/> for more information.</param>
         /// <param name="preFeaturizer">Pre-featurizer that AutoML will apply to the data during an
         /// experiment. (The pre-featurizer will be fit only on the training data split to produce a
         /// trained transform. Then, the trained transform will be applied to both the training

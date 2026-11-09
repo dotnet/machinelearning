@@ -124,6 +124,13 @@ namespace Microsoft.ML.AutoML
         {
             ValidateLabelColumn(columnInformation.LabelColumnName);
 
+            if (columnInformation.SamplingKeyColumnName == columnInformation.LabelColumnName)
+            {
+                throw new ArgumentException($"Provided sampling key column '{columnInformation.SamplingKeyColumnName}' cannot be the same as the label column. " +
+                    "Rows that share a sampling key value are always placed in the same split, so all rows with the same label value would end up in the same split.",
+                    nameof(columnInformation));
+            }
+
             ValidateColumnInfoEnumerationProperty(columnInformation.CategoricalColumnNames, CategoricalColumnPurposeName);
             ValidateColumnInfoEnumerationProperty(columnInformation.NumericColumnNames, NumericColumnPurposeName);
             ValidateColumnInfoEnumerationProperty(columnInformation.TextColumnNames, TextColumnPurposeName);

@@ -100,6 +100,18 @@ namespace Microsoft.ML.AutoML.Test
         }
 
         [Fact]
+        public void ValidateExperimentExecuteSamplingKeySameAsLabel()
+        {
+            var columnInfo = new ColumnInformation() { SamplingKeyColumnName = DefaultColumnNames.Label };
+
+            foreach (var task in new[] { TaskKind.BinaryClassification, TaskKind.Regression, TaskKind.Ranking })
+            {
+                var ex = Assert.Throws<ArgumentException>(() => UserInputValidationUtil.ValidateExperimentExecuteArgs(_data, columnInfo, null, task));
+                Assert.StartsWith("Provided sampling key column 'Label' cannot be the same as the label column.", ex.Message);
+            }
+        }
+
+        [Fact]
         public void ValidateExperimentExecuteArgsTrainValidColCountMismatch()
         {
             var context = new MLContext(1);
