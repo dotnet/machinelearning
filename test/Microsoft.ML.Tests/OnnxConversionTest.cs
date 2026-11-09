@@ -1710,7 +1710,7 @@ namespace Microsoft.ML.Tests
             Done();
         }
 
-        [NativeDependencyFact("onnxruntime")]
+        [OnnxFact]
         public void SelectiveExportOnnxTest()
         {
             var mlContext = new MLContext(seed: 1);

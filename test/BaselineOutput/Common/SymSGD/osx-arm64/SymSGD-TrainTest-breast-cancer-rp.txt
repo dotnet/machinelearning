@@ -1,0 +1,4 @@
+SymSGD
+AUC	Accuracy	Positive precision	Positive recall	Negative precision	Negative recall	Log-loss	Log-loss reduction	F1 Score	AUPRC	/nt	Learner Name	Train Dataset	Test Dataset	Results File	Run Time	Physical Memory	Virtual Memory	Command Line	Settings	
+0.996108	0.970717	0.965957	0.949791	0.973214	0.981982	Infinity	-Infinity	0.957806	0.991948	1	SymSGD	%Data%	%Data%	%Output%	99	0	0	maml.exe TrainTest test=%Data% tr=SymSGD{nt=1} norm=No dout=%Output% data=%Data% out=%Output% seed=1	/nt:1	
+

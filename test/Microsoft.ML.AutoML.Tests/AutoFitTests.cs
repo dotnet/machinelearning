@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Threading;
-using FluentAssertions;
 using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.TestFramework;
@@ -85,7 +84,7 @@ namespace Microsoft.ML.AutoML.Test
             var result = context.Auto()
                 .CreateBinaryClassificationExperiment(settings)
                 .Execute(trainData, new ColumnInformation() { LabelColumnName = DatasetUtil.UciAdultLabel });
-            result.BestRun.ValidationMetrics.Accuracy.Should().BeGreaterThanOrEqualTo(0.7);
+            Assert.True(result.BestRun.ValidationMetrics.Accuracy >= 0.7);
             Assert.NotNull(result.BestRun.Estimator);
             Assert.NotNull(result.BestRun.Model);
             Assert.NotNull(result.BestRun.TrainerName);
@@ -285,7 +284,7 @@ namespace Microsoft.ML.AutoML.Test
                     .CreateMulticlassClassificationExperiment(settings)
                     .Execute(trainData, numberOfCVFolds, DatasetUtil.TrivialMulticlassDatasetLabel);
 
-                result.BestRun.Results.First().ValidationMetrics.MicroAccuracy.Should().BeGreaterThan(0.7);
+                Assert.True(result.BestRun.Results.First().ValidationMetrics.MicroAccuracy > 0.7);
                 var scoredData = result.BestRun.Results.First().Model.Transform(trainData);
                 Assert.Equal(NumberDataViewType.Single, scoredData.Schema[DefaultColumnNames.PredictedLabel].Type);
 
@@ -347,7 +346,7 @@ namespace Microsoft.ML.AutoML.Test
                             .CreateMulticlassClassificationExperiment(settings)
                             .Execute(trainDataset, testDataset, columnInference.ColumnInformation);
 
-            result.BestRun.ValidationMetrics.MicroAccuracy.Should().BeGreaterThan(0.1);
+            Assert.True(result.BestRun.ValidationMetrics.MicroAccuracy > 0.1);
 
             var scoredData = result.BestRun.Model.Transform(trainData);
             Assert.Equal(TextDataViewType.Instance, scoredData.Schema[DefaultColumnNames.PredictedLabel].Type);
@@ -370,7 +369,7 @@ namespace Microsoft.ML.AutoML.Test
                             .CreateMulticlassClassificationExperiment(settings)
                             .Execute(trainData, 5, columnInference.ColumnInformation);
 
-            result.BestRun.Results.Select(x => x.ValidationMetrics.MicroAccuracy).Max().Should().BeGreaterThan(0.1);
+            Assert.True(result.BestRun.Results.Select(x => x.ValidationMetrics.MicroAccuracy).Max() > 0.1);
 
             var scoredData = result.BestRun.Results.First().Model.Transform(trainData);
             Assert.Equal(TextDataViewType.Instance, scoredData.Schema[DefaultColumnNames.PredictedLabel].Type);

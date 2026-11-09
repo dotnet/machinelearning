@@ -1,7 +1,7 @@
-ML. NET Release Process
+ML.NET Release Process
 ======================
 
-This document describes the different kinds of ML. NET releases, how those releases are versioned, and how they are built.
+This document describes the different kinds of ML.NET releases, how those releases are versioned, and how they are built.
 
 Types of releases
 --------------------
@@ -18,7 +18,7 @@ ML.NET has four kinds of releases: daily builds, previews, periodic general avai
 
 1. **Daily builds:** these can be downloaded from [this NuGet feed](https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-libraries/nuget/v3/index.json), and are built automatically each time a commit is made to the `main` branch.
 1. **Preview:** These releases are built from `main` or the corresponding `release/A.0` GitHub branch, and are expected to meet a higher quality bar than the daily builds. These can also be downloaded from [this NuGet feed](https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-libraries/nuget/v3/index.json), or within Visual Studio, as detailed below. When we introduce new APIs in a preview release, we avoid doing a GA release at the same time (unless there are patches required for the last GA release). If there are no new APIs, then we go straight to a GA release and skip the preview release.
-1. **GA:** These releases are built from the corresponding `release/A.0` GitHub branch. They are rigorously tested, stable, and meant for general use. They are also the default choice when installing ML. NET via the `Install-Package Microsoft.ML` command, and are published to [nuget.org](https://www.nuget.org/packages/Microsoft.ML/)
+1. **GA:** These releases are built from the corresponding `release/A.0` GitHub branch. They are rigorously tested, stable, and meant for general use. They are also the default choice when installing ML.NET via the `dotnet add package Microsoft.ML` command, and are published to [nuget.org](https://www.nuget.org/packages/Microsoft.ML/)
 1. **Fix:** These releases include patches for bugs in either the preview or GA releases.
 
 Versioning for releases
@@ -30,7 +30,7 @@ The table below explains how each of the elements in our versioning schema would
 | -------------|-------------|-------------|-------------|-------------|
 | Daily build | No change   | No change   | No change   | A date-like stamp is added, i.e. `Microsoft.Extensions.ML 1.5.0-preview-28327-2`   |
 | Preview | No change | No change   | No change   | `preview` tag and build information are added (i.e. `A.B.C-preview.26457.2`) |
-| GA | Incremented for non-WIP NuGets. WIP NuGets maintain an `A` value of `0` | Remains 0 | Reset to 0 | `preview` tag is removed |
+| GA | Incremented for non-WIP NuGet packages. WIP packages maintain an `A` value of `0` | Remains 0 | Reset to 0 | `preview` tag is removed |
 | Fix | No change | No change | Incremented | No change
 
 > Note: to install the preview packages via the NuGet Package Manager in Visual Studio, you must make sure to check the "Include prerelease" checkbox:
@@ -89,3 +89,29 @@ When creating a new `release/<version>` branch:
    dotnet msbuild .\src\Microsoft.ML.AutoML\Microsoft.ML.AutoML.csproj -nologo -getProperty:PackageVersion
    dotnet msbuild .\src\Microsoft.ML.Tokenizers\Microsoft.ML.Tokenizers.csproj -nologo -getProperty:PackageVersion
    ```
+
+Local package integration tests
+-------------------------------
+
+Run the existing nightly test project against packages from a specific official
+build published to `dotnet-libraries`. ML.NET is not built from source.
+
+Use PowerShell 7.2+, a .NET 10 SDK/runtime (or a newer SDK with the .NET 10 runtime),
+and Azure CLI signed in with read access to `dnceng/internal`
+(or set `AZURE_DEVOPS_ACCESS_TOKEN`). From the repository root:
+
+```powershell
+$selection = Join-Path ([IO.Path]::GetTempPath()) 'mlnet-selected-build.json'
+.\eng\testing\Resolve-PublishedPackages.ps1 -BuildId 3103962 -OutputPath $selection
+.\eng\testing\Run-PackageIntegrationTests.ps1 -SelectionPath $selection
+```
+
+The runner supplies exact package versions to both the nightly project and its
+test helper. It disables repository-native copying and uses fresh build outputs
+and a fresh package cache. Package-only checks require the ONNX and MKL native
+libraries on supported platforms. The shared integration tests keep their normal
+capability-based skips.
+
+Use `-Filter` to select tests, or `-WorkingDirectory` to choose an empty directory
+outside the checkout. Logs, resolved packages, and TRX results are retained in its
+`diagnostics` folder.

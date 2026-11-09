@@ -295,17 +295,13 @@ namespace Microsoft.ML.Trainers.LightGbm
                     }
                     else
                     {
-                        InternalRegressionTree tree = new InternalRegressionTree(2);
                         var leafOutput = Str2DoubleArray(kvPairs["leaf_value"], ' ');
-                        if (leafOutput[0] != 0)
-                        {
-                            // Convert Constant tree to Two-leaf tree, avoid being filter by TLC.
-                            var categoricalSplitFeatures = new int[1][];
-                            var categoricalSplit = new bool[1];
-                            tree = InternalRegressionTree.Create(2, new int[] { 0 }, new double[] { 0 },
-                                new float[] { 0 }, new float[] { 0 }, new int[] { -1 }, new int[] { -2 }, new double[] { leafOutput[0], leafOutput[0] },
-                                categoricalSplitFeatures, categoricalSplit);
-                        }
+                        // Represent constant trees as a split with identical leaf values.
+                        var categoricalSplitFeatures = new int[1][];
+                        var categoricalSplit = new bool[1];
+                        var tree = InternalRegressionTree.Create(2, new int[] { 0 }, new double[] { 0 },
+                            new float[] { 0 }, new float[] { 0 }, new int[] { -1 }, new int[] { -2 }, new double[] { leafOutput[0], leafOutput[0] },
+                            categoricalSplitFeatures, categoricalSplit);
                         res.AddTree(tree);
                     }
                 }

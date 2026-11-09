@@ -21,6 +21,7 @@
     <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="$(MicrosoftCodeAnalysisCSharpVersion)" />
     <PackageVersion Include="Microsoft.DotNet.Interactive" Version="$(MicrosoftDotNetInteractiveVersion)" />
     <PackageVersion Include="Microsoft.DotNet.Interactive.Formatting" Version="$(MicrosoftDotNetInteractiveVersion)" />
+    <PackageVersion Include="Microsoft.CSharp" Version="$(MicrosoftCSharpVersion)" />
     <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="$(MicrosoftExtensionsDependencyInjectionVersion)" />
     <PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="$(MicrosoftExtensionsDependencyInjectionAbstractionsVersion)" />
     <PackageVersion Include="Microsoft.Extensions.Logging" Version="$(MicrosoftExtensionsLoggingVersion)" />
@@ -67,7 +68,6 @@
 
     <!-- Test-only dependencies -->
     <PackageVersion Include="ApprovalTests" Version="$(ApprovalTestsVersion)" />
-    <PackageVersion Include="AwesomeAssertions" Version="$(AwesomeAssertionsVersion)" />
     <PackageVersion Include="BenchmarkDotNet" Version="$(BenchmarkDotNetVersion)" />
     <PackageVersion Include="BenchmarkDotNet.Diagnostics.Windows" Version="$(BenchmarkDotNetVersion)" />
     <PackageVersion Include="coverlet.collector" Version="$(CoverletCollectorVersion)" />

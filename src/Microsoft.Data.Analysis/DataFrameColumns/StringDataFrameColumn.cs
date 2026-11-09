@@ -223,7 +223,7 @@ namespace Microsoft.Data.Analysis
                 }
                 // TODO: Refactor the sort routine to also work with IList?
                 string[] array = buffer.ToArray();
-                IntrospectiveSort(array, array.Length, sortIndices, comparer);
+                IntrospectiveSort(array, array.Length, sortIndices, comparer, ascending);
                 bufferSortIndices.Add(sortIndices);
             }
             // Simple merge sort to build the full column's sort indices
@@ -275,11 +275,13 @@ namespace Microsoft.Data.Analysis
             return columnSortIndices;
         }
 
+        /// <inheritdoc cref="DataFrameColumn.Clone(DataFrameColumn, bool, long)"/>
         public new StringDataFrameColumn Clone(DataFrameColumn mapIndices, bool invertMapIndices, long numberOfNullsToAppend)
         {
             return (StringDataFrameColumn)CloneImplementation(mapIndices, invertMapIndices, numberOfNullsToAppend);
         }
 
+        /// <inheritdoc cref="DataFrameColumn.Clone(long)"/>
         public new StringDataFrameColumn Clone(long numberOfNullsToAppend = 0)
         {
             return (StringDataFrameColumn)CloneImplementation(numberOfNullsToAppend);

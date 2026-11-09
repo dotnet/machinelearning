@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using FluentAssertions;
 using Microsoft.Data.Analysis;
 using Microsoft.ML.AutoML;
 using Microsoft.ML.Fairlearn.AutoML;
@@ -29,7 +28,7 @@ namespace Microsoft.ML.Fairlearn.Tests
             moment.LoadData(X, X["y_true"], X["sensitiveFeature"] as StringDataFrameColumn);
 
             var searchSpace = Utilities.GenerateBinaryClassificationLambdaSearchSpace(moment, 5);
-            searchSpace.Keys.Should().BeEquivalentTo("a_pos", "a_neg", "b_pos", "b_neg");
+            Assert.Equivalent(new[] { "a_pos", "a_neg", "b_pos", "b_neg" }, searchSpace.Keys, strict: true);
 
         }
 
@@ -103,7 +102,7 @@ namespace Microsoft.ML.Fairlearn.Tests
 
             var bestResult = experiment.Run();
             var model = bestResult.Model;
-            bestResult.Metric.Should().BeGreaterThanOrEqualTo(0.4);
+            Assert.True(bestResult.Metric >= 0.4);
         }
     }
 }

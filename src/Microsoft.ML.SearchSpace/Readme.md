@@ -25,6 +25,8 @@ Provides some basic tuning algoritions (GridSearch, etc..)
 ## Examples
 
 ``` csharp
+using Xunit;
+
 private class BasicSearchSpace
 {
     [Range(-1000, 1000, init: 0)]
@@ -55,17 +57,17 @@ var tuner = new DefaultValueTuner(ss);
 
 // Get one sampling result from tuner
 BasicSearchSpace param = tuner.Propose();
-// param.UniformInt.Should().Be(0);
-// param.ChoiceStr.Should().Be("a"); // no default value designate for ChoiceStr, so the first value will be used.
-// param.NestSS.UniformInt.Should().Be(0);
+// Assert.Equal(0, param.UniformInt);
+// Assert.Equal("a", param.ChoiceStr); // no default value designate for ChoiceStr, so the first value will be used.
+// Assert.Equal(0, param.NestSS.UniformInt);
 
 // Or you can also sample from scratch
 // The feature of ss is a 4-d [0, 1) vector.
 BasicSearchSpace param2 = ss.SampleFromFeatureSpace(new[] {0.5, 0, 0.5, 0});
-// (param == param2).Should().BeTrue();
+// Assert.True(param == param2);
 
 // You can also map param back to feature space
-ss.MappingToFeatureSpace(param).Should().BeEquivalentTo(0.5, 0, 0.5, 0);
+Assert.Equivalent(new[] { 0.5, 0, 0.5, 0 }, ss.MappingToFeatureSpace(param), strict: true);
 ```
 
 
