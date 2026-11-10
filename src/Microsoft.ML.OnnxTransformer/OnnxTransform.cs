@@ -79,7 +79,7 @@ namespace Microsoft.ML.Transforms.Onnx
             [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "Name of the output column.", SortOrder = 2)]
             public string[] OutputColumns;
 
-            [Argument(ArgumentType.AtMostOnce, HelpText = "GPU device id to run on (e.g. 0,1,..). Null for CPU. Requires CUDA 9.1.", SortOrder = 3)]
+            [Argument(ArgumentType.AtMostOnce, HelpText = "GPU device id to run on (e.g. 0,1,..). Null for CPU.", SortOrder = 3)]
             public int? GpuDeviceId = null;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "If true, resumes execution on CPU upon GPU error. If false, will raise the GPU exception.", SortOrder = 4)]
@@ -930,27 +930,24 @@ namespace Microsoft.ML.Transforms.Onnx
     /// | Does this estimator need to look at the data to train its parameters? | No |
     /// | Input column data type | Known-sized vector of <xref:System.Single> or <xref:System.Double> types |
     /// | Output column data type | As specified by the ONNX model |
-    /// | Required NuGet in addition to Microsoft.ML | Microsoft.ML.OnnxTransformer (always),  either Microsoft.ML.OnnxRuntime 1.6.0 (for CPU processing) or Microsoft.ML.OnnxRuntime.Gpu 1.6.0 (for GPU processing if GPU is available) |
+    /// | Required NuGet packages in addition to Microsoft.ML | Microsoft.ML.OnnxTransformer, plus either Microsoft.ML.OnnxRuntime (for CPU processing) or Microsoft.ML.OnnxRuntime.Gpu (for GPU processing if GPU is available) |
     /// | Exportable to ONNX | No |
     ///
     /// To create this estimator use the following APIs:
     /// [ApplyOnnxModel](xref:Microsoft.ML.OnnxCatalog.ApplyOnnxModel*)
     ///
-    /// Supports inferencing of models in ONNX 1.6 format (opset 11), using the [Microsoft.ML.OnnxRuntime](https://www.nuget.org/packages/Microsoft.ML.OnnxRuntime/) library.
+    /// Supports inferencing of ONNX models using the [Microsoft.ML.OnnxRuntime](https://www.nuget.org/packages/Microsoft.ML.OnnxRuntime/) library.
     /// Models are scored on CPU if the project references Microsoft.ML.OnnxRuntime and on the GPU if the project references Microsoft.ML.OnnxRuntime.Gpu.
     /// Every project using the OnnxScoringEstimator must reference one of the above two packages.
     ///
     /// To run on a GPU, use the
-    /// NuGet package [Microsoft.ML.OnnxRuntime.Gpu](https://www.nuget.org/packages/Microsoft.ML.OnnxRuntime.Gpu/) instead of the Microsoft.ML.OnnxRuntime nuget (which is for CPU processing). Microsoft.ML.OnnxRuntime.Gpu
-    /// requires a [CUDA supported GPU](https://developer.nvidia.com/cuda-gpus#compute), the [CUDA 10.2 Toolkit](https://developer.nvidia.com/cuda-downloads), and [cuDNN 8.0.3](https://developer.nvidia.com/cudnn) (as indicated on [Onnxruntime's documentation](https://github.com/Microsoft/onnxruntime#system-requirements)).
+    /// NuGet package [Microsoft.ML.OnnxRuntime.Gpu](https://www.nuget.org/packages/Microsoft.ML.OnnxRuntime.Gpu/) instead of the Microsoft.ML.OnnxRuntime NuGet package (which is for CPU processing).
+    /// See the [ONNX Runtime CUDA Execution Provider documentation](https://onnxruntime.ai/docs/execution-providers/CUDA-ExecutionProvider.html#requirements) for current GPU, CUDA, and cuDNN requirements.
     /// When creating the estimator through [ApplyOnnxModel](xref:Microsoft.ML.OnnxCatalog.ApplyOnnxModel*), set the parameter 'gpuDeviceId' to a valid non-negative integer. Typical device ID values are 0 or 1. If the GPU device isn't found but 'fallbackToCpu = true' then the estimator will run on the CPU. If the GPU device isn't found but 'fallbackToCpu = false' then the estimator will throw an exception
-    ///
-    /// The inputs and outputs of the ONNX models must be Tensor type. Sequence and Maps are not yet supported.
     ///
     /// Internally, OnnxTransformer (the return value of OnnxScoringEstimator.Fit()) holds a reference to an inference session which points to unmanaged memory owned by OnnxRuntime.dll.
     /// Whenever there is a call to [ApplyOnnxModel](xref:Microsoft.ML.OnnxCatalog.ApplyOnnxModel*) in a pipeline, it is advised to cast the return value of the Fit() call to IDisposable and call Dispose() to ensure that there are no memory leaks.
     ///
-    /// OnnxRuntime works on Windows, MacOS and Ubuntu 16.04 Linux 64-bit platforms.
     /// Visit [ONNX Models](https://github.com/onnx/models) to see a list of readily available models to get started with.
     /// Refer to [ONNX](http://onnx.ai) for more information.
     ///

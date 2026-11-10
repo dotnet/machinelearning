@@ -9,7 +9,6 @@ using System.Linq;
 using ApprovalTests;
 using ApprovalTests.Namers;
 using ApprovalTests.Reporters;
-using FluentAssertions;
 using Microsoft.ML.Data;
 using Microsoft.ML.TestFramework;
 using Newtonsoft.Json;
@@ -205,9 +204,9 @@ namespace Microsoft.ML.AutoML.Test
             var sample = TextFileSample.CreateFromFullFile(dataset);
             var result = TextFileContents.TrySplitColumns(context, sample, TextFileContents.DefaultSeparators);
 
-            result.ColumnCount.Should().Be(4);
-            result.Separator.Should().Be(',');
-            result.IsSuccess.Should().BeTrue();
+            Assert.Equal(4, result.ColumnCount);
+            Assert.Equal(',', result.Separator);
+            Assert.True(result.IsSuccess);
         }
 
         [Fact]

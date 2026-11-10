@@ -40,7 +40,7 @@ Console.WriteLine($"5 tokens from start: {(normalizedText ?? source).Substring(0
 
 IReadOnlyList<int> ids = tokenizer.EncodeToIds(source);
 Console.WriteLine(string.Join(", ", ids));
-// prints: 1199, 4037, 2065, 374, 279, 1920, 315, 45473, 264, 925, 1139, 264, 1160, 315, 11460, 13
+// prints: 1279, 6602, 2860, 382, 290, 2273, 328, 87130, 261, 1621, 1511, 261, 1562, 328, 20290, 13
 
 //
 // Using Llama Tokenizer

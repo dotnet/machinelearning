@@ -9,7 +9,7 @@ namespace Microsoft.ML.TestFramework.Attributes
 {
     public class FieldAwareFactorizationMachineFactAttribute : EnvironmentSpecificFactAttribute
     {
-        private const string SkipMessage = "FieldAwareFactorizationMachine doesn't currently support non x86/x64. https://github.com/dotnet/machinelearning/issues/5871";
+        private const string SkipMessage = "FieldAwareFactorizationMachine requires AVX or CpuMathNative.";
 
         public FieldAwareFactorizationMachineFactAttribute() : base(SkipMessage)
         {
@@ -17,6 +17,10 @@ namespace Microsoft.ML.TestFramework.Attributes
 
         protected override bool IsEnvironmentSupported()
         {
+#if NET8_0_OR_GREATER
+            if (System.Runtime.Intrinsics.X86.Avx.IsSupported)
+                return true;
+#endif
             return NativeLibrary.NativeLibraryExists("CpuMathNative");
         }
     }

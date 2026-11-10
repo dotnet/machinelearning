@@ -103,6 +103,9 @@ namespace Microsoft.Data.Analysis
         /// <param name="renameDuplicatedColumns">If set to true, columns with repeated names are auto-renamed.</param>
         /// <param name="cultureInfo">culture info for formatting values</param>
         /// <returns>DataFrame</returns>
+        /// <exception cref="ArgumentException">Thrown when <paramref name="dataTypes"/> is <see langword="null"/> and <paramref name="guessRows"/> is not greater than 0.</exception>
+        /// <exception cref="FormatException">Thrown when the file is empty, or a value is not a valid representation of its column's type.</exception>
+        /// <exception cref="NotSupportedException">Thrown when <paramref name="dataTypes"/> contains a type that is not a supported column type.</exception>
         public static DataFrame LoadCsv(string filename,
                                 char separator = ',', bool header = true,
                                 string[] columnNames = null, Type[] dataTypes = null,
@@ -537,6 +540,9 @@ namespace Microsoft.Data.Analysis
         /// <param name="cultureInfo">culture info for formatting values</param>
         /// <param name="guessTypeFunction">function used to guess the type of a column based on its values</param>
         /// <returns><see cref="DataFrame"/></returns>
+        /// <exception cref="ArgumentException">Thrown when <paramref name="dataTypes"/> is <see langword="null"/> and <paramref name="guessRows"/> is not greater than 0.</exception>
+        /// <exception cref="FormatException">Thrown when <paramref name="csvString"/> is empty, or a value is not a valid representation of its column's type.</exception>
+        /// <exception cref="NotSupportedException">Thrown when <paramref name="dataTypes"/> contains, or <paramref name="guessTypeFunction"/> returns, a type that is not a supported column type.</exception>
         public static DataFrame LoadCsvFromString(string csvString,
                                 char separator = ',', bool header = true,
                                 string[] columnNames = null, Type[] dataTypes = null,
@@ -564,6 +570,9 @@ namespace Microsoft.Data.Analysis
         /// <param name="cultureInfo">culture info for formatting values</param>
         /// <param name="guessTypeFunction">function used to guess the type of a column based on its values</param>
         /// <returns><see cref="DataFrame"/></returns>
+        /// <exception cref="ArgumentException">Thrown when <paramref name="csvStream"/> does not support seeking, or <paramref name="dataTypes"/> is <see langword="null"/> and <paramref name="guessRows"/> is not greater than 0.</exception>
+        /// <exception cref="FormatException">Thrown when <paramref name="csvStream"/> is empty, or a value is not a valid representation of its column's type.</exception>
+        /// <exception cref="NotSupportedException">Thrown when <paramref name="dataTypes"/> contains, or <paramref name="guessTypeFunction"/> returns, a type that is not a supported column type.</exception>
         public static DataFrame LoadCsv(Stream csvStream,
                                 char separator = ',', bool header = true,
                                 string[] columnNames = null, Type[] dataTypes = null,

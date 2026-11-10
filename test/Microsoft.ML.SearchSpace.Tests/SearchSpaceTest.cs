@@ -10,7 +10,6 @@ using System.Text.Json.Serialization;
 using ApprovalTests;
 using ApprovalTests.Namers;
 using ApprovalTests.Reporters;
-using FluentAssertions;
 using Microsoft.ML.SearchSpace.Option;
 using Microsoft.ML.SearchSpace.Tuner;
 using Microsoft.ML.Trainers;
@@ -41,18 +40,18 @@ namespace Microsoft.ML.SearchSpace.Tests
             var ss = new SearchSpace<BasicSearchSpace>();
             var param = ss.SampleFromFeatureSpace(new[] { 0.0, 0, 0, 0, 0, 0, 0 });
 
-            param.ChoiceStr.Should().Be("a");
-            param.UniformDouble.Should().Be(-1000);
-            param.UniformFloat.Should().Be(-1000);
-            param.UniformInt.Should().Be(-1000);
-            param.ChoiceInt.Should().Be(1);
+            Assert.Equal("a", param.ChoiceStr);
+            Assert.Equal(-1000.0, param.UniformDouble);
+            Assert.Equal(-1000f, param.UniformFloat);
+            Assert.Equal(-1000, param.UniformInt);
+            Assert.Equal(1, param.ChoiceInt);
 
             param = ss.SampleFromFeatureSpace(new[] { 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5 });
-            param.ChoiceStr.Should().Be("c");
-            param.UniformDouble.Should().Be(0);
-            param.UniformFloat.Should().Be(0);
-            param.ChoiceInt.Should().Be(3);
-            param.UniformInt.Should().Be(0);
+            Assert.Equal("c", param.ChoiceStr);
+            Assert.Equal(0.0, param.UniformDouble);
+            Assert.Equal(0f, param.UniformFloat);
+            Assert.Equal(3, param.ChoiceInt);
+            Assert.Equal(0, param.UniformInt);
         }
 
         [Fact]
@@ -61,25 +60,25 @@ namespace Microsoft.ML.SearchSpace.Tests
             var ss = new SearchSpace<BasicSearchSpace>();
             var param = ss.SampleFromFeatureSpace(new[] { 0.0, 0, 0, 0, 0, 0, 0 });
             var features = ss.MappingToFeatureSpace(param);
-            features.Should().Equal(0, 0, 0, 0, 0, 0, 0);
+            Assert.Equal(new double[] { 0, 0, 0, 0, 0, 0, 0 }, features);
 
             param = ss.SampleFromFeatureSpace(new[] { 0.5, 0.5, 0.5, 0, 0.5, 0.5, 0.5 });
             features = ss.MappingToFeatureSpace(param);
-            features.Should().Equal(0.5, 0.5, 0.5, 0, 0.5, 0.5, 0.5);
+            Assert.Equal(new[] { 0.5, 0.5, 0.5, 0, 0.5, 0.5, 0.5 }, features);
         }
 
         [Fact]
         public void Nest_search_space_mapping_to_feature_space_test()
         {
             var ss = new SearchSpace<NestSearchSpace>();
-            ss.FeatureSpaceDim.Should().Be(9);
+            Assert.Equal(9, ss.FeatureSpaceDim);
             var param = ss.SampleFromFeatureSpace(new[] { 0.0, 0, 0, 0, 0, 0, 0, 0, 0 });
             var features = ss.MappingToFeatureSpace(param);
-            features.Should().Equal(0, 0, 0, 0, 0, 0, 0, 0, 0);
+            Assert.Equal(new double[] { 0, 0, 0, 0, 0, 0, 0, 0, 0 }, features);
 
             param = ss.SampleFromFeatureSpace(new[] { 0.5, 0.5, 0.5, 0, 0.5, 0.5, 0.5, 0.5, 0.5 });
             features = ss.MappingToFeatureSpace(param);
-            features.Should().Equal(0.5, 0.5, 0.5, 0, 0.5, 0.5, 0.5, 0.5, 0.5);
+            Assert.Equal(new[] { 0.5, 0.5, 0.5, 0, 0.5, 0.5, 0.5, 0.5, 0.5 }, features);
         }
 
         [Fact]
@@ -97,45 +96,45 @@ namespace Microsoft.ML.SearchSpace.Tests
             };
             var ss = new SearchSpace<NestSearchSpace>(option);
 
-            ss.FeatureSpaceDim.Should().Be(9);
+            Assert.Equal(9, ss.FeatureSpaceDim);
             var param = ss.SampleFromFeatureSpace(new[] { 0.0, 0, 0, 0, 0, 0, 0, 0, 0 });
 
-            param.UniformDouble.Should().Be(-1000);
-            param.UniformFloat.Should().Be(-1000);
-            param.BasicSS.UniformInt.Should().Be(-1000);
-            param.BasicSS.UniformDouble.Should().Be(-1000);
-            param.BasicSS.UniformFloat.Should().Be(-1000);
-            param.BasicSS.ChoiceStr.Should().Be("a");
-            param.BasicSS.DefaultSearchSpace.Strings.Should().BeEquivalentTo("B", "C", "D");
-            param.BasicSS.ChoiceBoolean.Should().BeTrue();
-            param.BasicSS.JTokenType.Should().Be(JsonTokenType.None);
-            param.BasicSS.ChoiceInt.Should().Be(1);
+            Assert.Equal(-1000.0, param.UniformDouble);
+            Assert.Equal(-1000f, param.UniformFloat);
+            Assert.Equal(-1000, param.BasicSS.UniformInt);
+            Assert.Equal(-1000.0, param.BasicSS.UniformDouble);
+            Assert.Equal(-1000f, param.BasicSS.UniformFloat);
+            Assert.Equal("a", param.BasicSS.ChoiceStr);
+            Assert.Equivalent(new[] { "B", "C", "D" }, param.BasicSS.DefaultSearchSpace.Strings, strict: true);
+            Assert.True(param.BasicSS.ChoiceBoolean);
+            Assert.Equal(JsonTokenType.None, param.BasicSS.JTokenType);
+            Assert.Equal(1, param.BasicSS.ChoiceInt);
 
             param = ss.SampleFromFeatureSpace(new[] { 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5 });
 
-            param.UniformDouble.Should().Be(0);
-            param.UniformFloat.Should().Be(0);
-            param.BasicSS.UniformInt.Should().Be(0);
-            param.BasicSS.UniformDouble.Should().Be(0);
-            param.BasicSS.UniformFloat.Should().Be(0);
-            param.BasicSS.ChoiceStr.Should().Be("c");
-            param.BasicSS.DefaultSearchSpace.Strings.Should().BeEquivalentTo("B", "C", "D");
-            param.BasicSS.ChoiceInt.Should().Be(3);
-            param.BasicSS.ChoiceBoolean.Should().BeFalse();
-            param.BasicSS.JTokenType.Should().Be(JsonTokenType.StartArray);
+            Assert.Equal(0.0, param.UniformDouble);
+            Assert.Equal(0f, param.UniformFloat);
+            Assert.Equal(0, param.BasicSS.UniformInt);
+            Assert.Equal(0.0, param.BasicSS.UniformDouble);
+            Assert.Equal(0f, param.BasicSS.UniformFloat);
+            Assert.Equal("c", param.BasicSS.ChoiceStr);
+            Assert.Equivalent(new[] { "B", "C", "D" }, param.BasicSS.DefaultSearchSpace.Strings, strict: true);
+            Assert.Equal(3, param.BasicSS.ChoiceInt);
+            Assert.False(param.BasicSS.ChoiceBoolean);
+            Assert.Equal(JsonTokenType.StartArray, param.BasicSS.JTokenType);
         }
 
         [Fact]
         public void Search_space_add_option_test()
         {
             var ss = new SearchSpace();
-            ss.FeatureSpaceDim.Should().Be(0);
+            Assert.Equal(0, ss.FeatureSpaceDim);
 
             ss.Add("A", new UniformIntOption(-1000, 1000));
-            ss.FeatureSpaceDim.Should().Be(1);
+            Assert.Equal(1, ss.FeatureSpaceDim);
 
             var param = ss.SampleFromFeatureSpace(new[] { 0.5 });
-            param["A"].AsType<int>().Should().Be(0);
+            Assert.Equal(0, param["A"].AsType<int>());
         }
 
         [Fact]
@@ -143,20 +142,20 @@ namespace Microsoft.ML.SearchSpace.Tests
         {
             var option = new BasicSearchSpace();
             var ss = new SearchSpace<BasicSearchSpace>(option);
-            ss.FeatureSpaceDim.Should().Be(7);
+            Assert.Equal(7, ss.FeatureSpaceDim);
 
-            ss.Remove("UniformInt").Should().BeTrue();
-            ss.FeatureSpaceDim.Should().Be(6);
-            ss.Keys.Should().BeEquivalentTo("ChoiceStr", "UniformDouble", "UniformFloat", "ChoiceBoolean", "JTokenType", "ChoiceInt");
+            Assert.True(ss.Remove("UniformInt"));
+            Assert.Equal(6, ss.FeatureSpaceDim);
+            Assert.Equivalent(new[] { "ChoiceStr", "UniformDouble", "UniformFloat", "ChoiceBoolean", "JTokenType", "ChoiceInt" }, ss.Keys, strict: true);
 
             var parameter = ss.SampleFromFeatureSpace(new double[] { 0, 0, 0, 0, 0, 0 });
 
-            parameter.DefaultSearchSpace.Strings.Should().BeEquivalentTo("A", "B", "C");
-            parameter.DefaultSearchSpace.String.Should().BeNullOrEmpty();
-            parameter.ChoiceStr.Should().Be("a");
-            parameter.ChoiceBoolean.Should().BeTrue();
-            parameter.JTokenType.Should().Be(JsonTokenType.None);
-            parameter.ChoiceInt.Should().Be(1);
+            Assert.Equivalent(new[] { "A", "B", "C" }, parameter.DefaultSearchSpace.Strings, strict: true);
+            Assert.True(string.IsNullOrEmpty(parameter.DefaultSearchSpace.String));
+            Assert.Equal("a", parameter.ChoiceStr);
+            Assert.True(parameter.ChoiceBoolean);
+            Assert.Equal(JsonTokenType.None, parameter.JTokenType);
+            Assert.Equal(1, parameter.ChoiceInt);
         }
 
         [Fact]
@@ -166,15 +165,15 @@ namespace Microsoft.ML.SearchSpace.Tests
             var defaultTuner = new DefaultValueTuner(ss);
             var param = defaultTuner.Propose().AsType<NestSearchSpace>();
 
-            param.UniformDouble.Should().Be(0);
-            param.UniformFloat.Should().Be(0);
-            param.BasicSS.UniformInt.Should().Be(0);
-            param.BasicSS.UniformDouble.Should().Be(0);
-            param.BasicSS.UniformFloat.Should().Be(0);
-            param.BasicSS.ChoiceStr.Should().Be("a");
-            param.BasicSS.ChoiceBoolean.Should().BeTrue();
-            param.BasicSS.JTokenType.Should().Be(JsonTokenType.Null);
-            param.BasicSS.ChoiceInt.Should().Be(1);
+            Assert.Equal(0.0, param.UniformDouble);
+            Assert.Equal(0f, param.UniformFloat);
+            Assert.Equal(0, param.BasicSS.UniformInt);
+            Assert.Equal(0.0, param.BasicSS.UniformDouble);
+            Assert.Equal(0f, param.BasicSS.UniformFloat);
+            Assert.Equal("a", param.BasicSS.ChoiceStr);
+            Assert.True(param.BasicSS.ChoiceBoolean);
+            Assert.Equal(JsonTokenType.Null, param.BasicSS.JTokenType);
+            Assert.Equal(1, param.BasicSS.ChoiceInt);
         }
 
         [Fact]
@@ -191,26 +190,26 @@ namespace Microsoft.ML.SearchSpace.Tests
             var ss = new SearchSpace<DefaultSearchSpace>(defaultSearchSpace);
             var param = ss.SampleFromFeatureSpace(new double[0]);
 
-            param.Int.Should().Be(10);
-            param.Float.Should().Be(0f);
-            param.Double.Should().Be(0);
-            param.Bool.Should().BeTrue();
-            param.String.Should().Be("String");
-            param.Strings.Should().BeEquivalentTo("A", "B", "C");
-            param.JTokenType.Should().Be(JsonTokenType.Null);
-            param.NullString.Should().BeNull();
-            ss.FeatureSpaceDim.Should().Be(0);
-            ss.MappingToFeatureSpace(param).Should().HaveCount(0);
+            Assert.Equal(10, param.Int);
+            Assert.Equal(0f, param.Float);
+            Assert.Equal(0.0, param.Double);
+            Assert.True(param.Bool);
+            Assert.Equal("String", param.String);
+            Assert.Equivalent(new[] { "A", "B", "C" }, param.Strings, strict: true);
+            Assert.Equal(JsonTokenType.Null, param.JTokenType);
+            Assert.Null(param.NullString);
+            Assert.Equal(0, ss.FeatureSpaceDim);
+            Assert.Empty(ss.MappingToFeatureSpace(param));
         }
 
         [Fact]
         public void Search_space_hash_code_test()
         {
             var ss = new SearchSpace<BasicSearchSpace>();
-            ss.GetHashCode().Should().Be(2005165306);
+            Assert.Equal(2005165306, ss.GetHashCode());
 
             ss.Remove("UniformInt");
-            ss.GetHashCode().Should().Be(125205970);
+            Assert.Equal(125205970, ss.GetHashCode());
         }
 
         [Fact]
@@ -224,18 +223,18 @@ namespace Microsoft.ML.SearchSpace.Tests
             anotherNestOption["int"] = new UniformIntOption(2, 3);
             searchSpace["nestOption"] = anotherNestOption;
 
-            searchSpace.FeatureSpaceDim.Should().Be(4);
+            Assert.Equal(4, searchSpace.FeatureSpaceDim);
             var parameter = searchSpace.SampleFromFeatureSpace(new double[] { 0, 0, 0, 0 });
-            parameter["nestOption"]["choice"].AsType<string>().Should().Be("d");
-            parameter["nestOption"]["int"].AsType<int>().Should().Be(2);
-            parameter["choice"].AsType<string>().Should().Be("a");
-            parameter["int"].AsType<int>().Should().Be(0);
+            Assert.Equal("d", parameter["nestOption"]["choice"].AsType<string>());
+            Assert.Equal(2, parameter["nestOption"]["int"].AsType<int>());
+            Assert.Equal("a", parameter["choice"].AsType<string>());
+            Assert.Equal(0, parameter["int"].AsType<int>());
 
             parameter = searchSpace.SampleFromFeatureSpace(new double[] { 1, 1, 1, 1 });
-            parameter["nestOption"]["choice"].AsType<string>().Should().Be("e");
-            parameter["nestOption"]["int"].AsType<int>().Should().Be(3);
-            parameter["choice"].AsType<string>().Should().Be("c");
-            parameter["int"].AsType<int>().Should().Be(1);
+            Assert.Equal("e", parameter["nestOption"]["choice"].AsType<string>());
+            Assert.Equal(3, parameter["nestOption"]["int"].AsType<int>());
+            Assert.Equal("c", parameter["choice"].AsType<string>());
+            Assert.Equal(1, parameter["int"].AsType<int>());
         }
 
         [Fact]
@@ -248,7 +247,7 @@ namespace Microsoft.ML.SearchSpace.Tests
             var parameter = Parameter.CreateNestedParameter();
             parameter["choice"] = Parameter.FromString("a");
             parameter["int"] = Parameter.FromInt(0);
-            searchSpace.MappingToFeatureSpace(parameter).Should().Equal(0, 0);
+            Assert.Equal(new double[] { 0, 0 }, searchSpace.MappingToFeatureSpace(parameter));
         }
 
         [Fact]
@@ -262,17 +261,17 @@ namespace Microsoft.ML.SearchSpace.Tests
 
             // changing of the first dimension should be reflected in option "a"
             var parameter = searchSpace.SampleFromFeatureSpace(new double[] { 0, 0.5, 0.5 });
-            parameter["a"].AsType<int>().Should().Be(0);
+            Assert.Equal(0, parameter["a"].AsType<int>());
             parameter = searchSpace.SampleFromFeatureSpace(new double[] { 1, 0.5, 0.5 });
-            parameter["a"].AsType<int>().Should().Be(1);
+            Assert.Equal(1, parameter["a"].AsType<int>());
 
             searchSpace.Remove("a");
 
             // the first dimension should be option "b"
             parameter = searchSpace.SampleFromFeatureSpace(new double[] { 0, 0.5 });
-            parameter["b"].AsType<int>().Should().Be(1);
+            Assert.Equal(1, parameter["b"].AsType<int>());
             parameter = searchSpace.SampleFromFeatureSpace(new double[] { 1, 0.5 });
-            parameter["b"].AsType<int>().Should().Be(2);
+            Assert.Equal(2, parameter["b"].AsType<int>());
         }
 
         [Fact]

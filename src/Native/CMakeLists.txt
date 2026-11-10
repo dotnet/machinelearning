@@ -37,7 +37,7 @@ if(WIN32)
     add_compile_options(/Oy-) # disable suppressing of the creation of frame pointers on the call stack for quicker function calls
     add_compile_options(/GF) # enable read-only string pooling
     add_compile_options(/FC) # use full pathnames in diagnostics
-    add_compile_options(/DEBUG)
+    add_compile_options(/Z7)
     add_compile_options(/GS)
     add_compile_options(/Zc:inline)
     add_compile_options(/fp:precise)
@@ -46,6 +46,7 @@ if(WIN32)
     add_compile_options(/d1nodatetime)
     add_compile_options(/experimental:deterministic)
     add_compile_options(/GL)
+    add_compile_options(/guard:cast)
     add_compile_options(/d2CastGuardFailureMode:fastfail)
 
     # From here below are warnings required to be explicitly enabled.
@@ -265,9 +266,11 @@ if(NOT ${ARCHITECTURE} MATCHES "arm.*")
     add_subdirectory(CpuMathNative)
     add_subdirectory(FastTreeNative)
     add_subdirectory(MklProxyNative)
-    # TODO: once we fix the 4 intel MKL methods, SymSgdNative will need to go back in.
-    add_subdirectory(SymSgdNative)
-  endif()
+endif()
+
+# On ARM, SymSgdNative compiles the small MklImportsArm CBLAS shim directly
+# (see SymSgdNative/CMakeLists.txt), so we do not build a separate libMklImports.
+add_subdirectory(SymSgdNative)
 
 if(${ARCHITECTURE} MATCHES "[xX].*64")
   add_subdirectory(OneDalNative)

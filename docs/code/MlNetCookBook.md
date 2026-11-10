@@ -3,11 +3,6 @@
 This document is intended to provide essential samples for common usage patterns of ML.NET. 
 It is advisable to be at least minimally familiar with [high-level concepts of ML.NET](MlNetHighLevelConcepts.md), otherwise the terminology in this document may be foreign to you.
 The examples in this document make use of the dynamic API, currently the supported ML.NET API.
-In ML.NET there is also a static API, that operates on the schema of the data, strongly typing the data type. 
-That version of the API is considered experimental., more about it in the [Static API Cookbook](experimental/MlNetCookBookStaticApi.md)
-
-The examples in this cookbook use the recommended and supported API for ML.NET known as the "Dynamic API."
-For examples of the "Static API", an experimental API that operates on the schema of the data using strongly typed data types, please refer to the [Static API Cookbook](experimental/MlNetCookBookStaticApi.md)
 
 ## How to use this cookbook
 
@@ -305,9 +300,8 @@ var someRows = mlContext
     .Take(4).ToArray();
 
 // Extract the 'AllFeatures' column.
-// This will give the entire dataset: make sure to only take several row
-// in case the dataset is huge. The is similar to the static API, except
-// you have to specify the column name and type.
+// This will give the entire dataset: make sure to only take several rows
+// in case the dataset is huge.
 var featureColumns = transformedData.GetColumn<string[]>(transformedData.Schema["AllFeatures"])
 
 ```

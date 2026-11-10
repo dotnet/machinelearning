@@ -561,7 +561,10 @@ namespace Microsoft.ML.Transforms.Text
             {
                 var xfCols = new List<LpNormNormalizingEstimator.ColumnOptions>(2);
 
-                if (charFeatureCol != null)
+                // When the n-gram dictionary is empty (for example, every row is empty or contains only
+                // stop words), the extractor produces a variable-size vector with no slots. There is nothing
+                // to normalize in that case, and the LpNorm transform only accepts known-size vectors.
+                if (charFeatureCol != null && LpNormNormalizingEstimatorBase.IsColumnTypeValid(view.Schema[charFeatureCol].Type))
                 {
                     var dstCol = GenerateColumnName(view.Schema, charFeatureCol, "LpCharNorm");
                     tempCols.Add(dstCol);
@@ -569,7 +572,7 @@ namespace Microsoft.ML.Transforms.Text
                     charFeatureCol = dstCol;
                 }
 
-                if (wordFeatureCol != null)
+                if (wordFeatureCol != null && LpNormNormalizingEstimatorBase.IsColumnTypeValid(view.Schema[wordFeatureCol].Type))
                 {
                     var dstCol = GenerateColumnName(view.Schema, wordFeatureCol, "LpWordNorm");
                     tempCols.Add(dstCol);

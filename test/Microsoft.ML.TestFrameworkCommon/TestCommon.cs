@@ -73,9 +73,11 @@ namespace Microsoft.ML.TestFrameworkCommon
             directory = AppContext.BaseDirectory;
 #endif
 
-            while (!Directory.Exists(Path.Combine(directory, ".git")) && directory != null)
+            while (directory != null &&
+                !Directory.Exists(Path.Combine(directory, ".git")) &&
+                !File.Exists(Path.Combine(directory, ".git")))
             {
-                directory = Directory.GetParent(directory).FullName;
+                directory = Directory.GetParent(directory)?.FullName;
             }
 
             if (directory == null)

@@ -11,7 +11,7 @@ namespace Microsoft.ML.TestFramework.Attributes
     {
         private readonly string _library;
 
-        public NativeDependencyFactAttribute(string library) : base($"This test requires a native library {library} that wasn't found.")
+        public NativeDependencyFactAttribute(string library) : base($"This test requires a supported platform and a loadable native library {library}.")
         {
             _library = library;
         }

@@ -496,9 +496,6 @@ namespace Microsoft.ML.TimeSeries
                 _minimumOriginValue = Double.MaxValue;
                 _maximumOriginValue = Double.MinValue;
 
-                var sum = 0.0;
-                var squareSum = 0.0;
-
                 Array.Resize(ref _seriesToDetect, values.Length);
                 for (int i = 0; i < values.Length; ++i)
                 {
@@ -506,17 +503,24 @@ namespace Microsoft.ML.TimeSeries
                     _seriesToDetect[i] = value;
                     _minimumOriginValue = Math.Min(_minimumOriginValue, value);
                     _maximumOriginValue = Math.Max(_maximumOriginValue, value);
+                }
+
+                if (_period > 0)
+                {
+                    _deseasonalityFunction.Deseasonality(ref values, _period, ref _seriesToDetect);
+                }
+
+                var sum = 0.0;
+                var squareSum = 0.0;
+                for (int i = 0; i < values.Length; ++i)
+                {
+                    var value = _seriesToDetect[i];
                     sum += value;
                     squareSum += value * value;
                 }
 
                 _mean = sum / values.Length;
                 _std = Math.Sqrt((squareSum - (sum * sum) / values.Length) / values.Length);
-
-                if (_period > 0)
-                {
-                    _deseasonalityFunction.Deseasonality(ref values, _period, ref _seriesToDetect);
-                }
 
                 SpectralResidual(_seriesToDetect, results, _threshold);
 
@@ -812,7 +816,7 @@ namespace Microsoft.ML.TimeSeries
                 //Step 11: Update Anomaly Score, Expected Value and Boundaries
                 for (int i = 0; i < results.Length; ++i)
                 {
-                    results[i][1] = CalculateAnomalyScore(values[i], _ifftRe[i], _units[i], results[i][0] > 0);
+                    results[i][1] = CalculateAnomalyScore(values[i], results[i][3], _units[i], results[i][0] > 0);
 
                     // adjust the expected value if the point is not anomaly
                     if (results[i][0] == 0)

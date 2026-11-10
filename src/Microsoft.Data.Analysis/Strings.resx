@@ -261,6 +261,9 @@
   <data name="StreamDoesntSupportReading" xml:space="preserve">
     <value>Stream doesn't support reading</value>
   </data>
+  <data name="SuffixesMustBeDifferent" xml:space="preserve">
+    <value>{0} and {1} must be different when both DataFrames contain a column called '{2}'</value>
+  </data>
   <data name="ValueNameAlreadyExists" xml:space="preserve">
     <value>Value name '{0}' matches an existing column name</value>
   </data>

@@ -26,11 +26,13 @@ variables:
 - name: Codeql.TSAOptionsPath
   value: '$(Build.SourcesDirectory)/.config/tsaoptions.json'
 - name: LinuxImage
-  value: 1es-ubuntu-2204
+  value: build.azurelinux.3.amd64
 - name: WindowsImage
   value: 1es-windows-2022
 - name: MacImage
   value: macOS-15
+- name: MacArm64Image
+  value: macOS-15-arm64
 - ${{ if and(notin(variables['Build.Reason'], 'PullRequest'), eq(variables['Build.SourceBranch'], 'refs/heads/main')) }}:
   - name: enableSourceIndex
     value: true
@@ -51,6 +53,7 @@ extends:
     sdl:
       binskim:
         enabled: true
+        break: true
         scanOutputDirectoryOnly: true
       policheck:
         enabled: true
@@ -65,10 +68,14 @@ extends:
     containers:
       CentosContainer: 
         image: mcr.microsoft.com/dotnet-buildtools/prereqs:centos-stream8-mlnet
-      UbuntuCrossArmContainer: 
-        image: mcr.microsoft.com/dotnet-buildtools/prereqs:ubuntu-18.04-mlnet-cross-arm
-      UbuntuCrossArm64Container:
-        image: mcr.microsoft.com/dotnet-buildtools/prereqs:ubuntu-18.04-mlnet-cross-arm64
+      AzureLinuxCrossArmContainer:
+        image: mcr.microsoft.com/dotnet-buildtools/prereqs:azurelinux-3.0-net8.0-cross-arm
+        env:
+          LDFLAGS: -fuse-ld=lld
+      AzureLinuxCrossArm64Container:
+        image: mcr.microsoft.com/dotnet-buildtools/prereqs:azurelinux-3.0-net8.0-cross-arm64
+        env:
+          LDFLAGS: -fuse-ld=lld
     stages:
     - stage: build
       displayName: Build
@@ -88,7 +95,7 @@ extends:
             ArtifactName: pkgassets
         steps:
         # Only build native assets to avoid conflicts.
-        - script: ./build.sh -configuration $(BuildConfig) -projects $(Build.SourcesDirectory)/src/Native/Native.proj /p:TargetArchitecture=x64 /p:CopyPackageAssets=true
+        - script: ./build.sh --ci -configuration $(BuildConfig) -projects $(Build.SourcesDirectory)/src/Native/Native.proj /p:TargetArchitecture=x64 /p:CopyPackageAssets=true
           displayName: Build Native Assets
 
       ################################################################################
@@ -100,7 +107,7 @@ extends:
           name: $(DncEngInternalBuildPool)
           image: $(LinuxImage)
           os: linux
-        container: UbuntuCrossArmContainer
+        container: AzureLinuxCrossArmContainer
         templateContext:
           outputs:
           - output: buildArtifacts
@@ -108,7 +115,7 @@ extends:
             ArtifactName: pkgassets
         steps:
         # Only build native assets to avoid conflicts.
-        - script: ./build.sh -configuration $(BuildConfig) -projects $(Build.SourcesDirectory)/src/Native/Native.proj /p:TargetArchitecture=arm /p:CopyPackageAssets=true
+        - script: ./build.sh --ci -configuration $(BuildConfig) -projects $(Build.SourcesDirectory)/src/Native/Native.proj /p:TargetArchitecture=arm /p:CopyPackageAssets=true
           displayName: Build Native Assets
 
       ################################################################################
@@ -120,7 +127,7 @@ extends:
           name: $(DncEngInternalBuildPool)
           image: $(LinuxImage)
           os: linux
-        container: UbuntuCrossArm64Container
+        container: AzureLinuxCrossArm64Container
         templateContext:
           outputs:
           - output: buildArtifacts
@@ -128,7 +135,7 @@ extends:
             ArtifactName: pkgassets
         steps:
         # Only build native assets to avoid conflicts.
-        - script: ./build.sh -configuration $(BuildConfig) -projects $(Build.SourcesDirectory)/src/Native/Native.proj /p:TargetArchitecture=arm64 /p:CopyPackageAssets=true
+        - script: ./build.sh --ci -configuration $(BuildConfig) -projects $(Build.SourcesDirectory)/src/Native/Native.proj /p:TargetArchitecture=arm64 /p:CopyPackageAssets=true
           displayName: Build Native Assets
 
       ################################################################################
@@ -145,12 +152,10 @@ extends:
             ArtifactName: pkgassets
         steps:
         - script: |
-            $(Build.SourcesDirectory)/eng/common/native/install-dependencies.sh osx
-            brew install libomp
-            brew link libomp --force
+            $(Build.SourcesDirectory)/eng/install-dependencies.sh osx
           displayName: Install build dependencies
         # Only build native assets to avoid conflicts.
-        - script: ./build.sh -projects $(Build.SourcesDirectory)/src/Native/Native.proj -configuration $(BuildConfig) /p:TargetArchitecture=x64 /p:CopyPackageAssets=true
+        - script: ./build.sh --ci -projects $(Build.SourcesDirectory)/src/Native/Native.proj -configuration $(BuildConfig) /p:TargetArchitecture=x64 /p:CopyPackageAssets=true
           displayName: Build Native Assets
 
       ################################################################################
@@ -158,7 +163,7 @@ extends:
       ################################################################################
         pool:
           name: Azure Pipelines
-          vmImage: $(MacImage)
+          vmImage: $(MacArm64Image)
           os: macOS
         templateContext:
           outputs:
@@ -167,12 +172,10 @@ extends:
             ArtifactName: pkgassets
         steps:
         - script:  |
-            $(Build.SourcesDirectory)/eng/common/native/install-dependencies.sh osx
-            brew install libomp
-            brew link libomp --force
+            $(Build.SourcesDirectory)/eng/install-dependencies.sh osx
           displayName: Install build dependencies
         # Only build native assets to avoid conflicts.
-        - script: ./build.sh -projects $(Build.SourcesDirectory)/src/Native/Native.proj -configuration $(BuildConfig) /p:TargetArchitecture=arm64 /p:CopyPackageAssets=true
+        - script: ./build.sh --ci -projects $(Build.SourcesDirectory)/src/Native/Native.proj -configuration $(BuildConfig) /p:TargetArchitecture=arm64 /p:CopyPackageAssets=true
           displayName: Build Native Assets
 
       ################################################################################
@@ -189,7 +192,7 @@ extends:
             ArtifactName: pkgassets
         steps:
         # Only build native assets to avoid conflicts.
-        - script: ./build.cmd -projects $(Build.SourcesDirectory)/src/Native/Native.proj -configuration $(BuildConfig) /p:TargetArchitecture=arm64 /p:CopyPackageAssets=true
+        - script: ./build.cmd -ci -projects $(Build.SourcesDirectory)/src/Native/Native.proj -configuration $(BuildConfig) /p:TargetArchitecture=arm64 /p:CopyPackageAssets=true
           displayName: Build Native Assets
 
         # Terminate all dotnet build processes.
@@ -212,7 +215,7 @@ extends:
             ArtifactName: pkgassets
         steps:
         # Only build native assets to avoid conflicts.
-        - script: ./build.cmd -projects $(Build.SourcesDirectory)/src/Native/Native.proj -configuration $(BuildConfig) /p:TargetArchitecture=x86 /p:CopyPackageAssets=true
+        - script: ./build.cmd -ci -projects $(Build.SourcesDirectory)/src/Native/Native.proj -configuration $(BuildConfig) /p:TargetArchitecture=x86 /p:CopyPackageAssets=true
           displayName: Build Native Assets
 
         # Terminate all dotnet build processes.
@@ -237,7 +240,7 @@ extends:
         steps:
 
         # Build both native and managed assets.
-        - script: ./build.cmd -configuration $(BuildConfig) /p:TargetArchitecture=x64 /p:CopyPackageAssets=true
+        - script: ./build.cmd -ci -configuration $(BuildConfig) /p:TargetArchitecture=x64 /p:CopyPackageAssets=true
           displayName: Build
 
         - task: ComponentGovernanceComponentDetection@0
@@ -261,7 +264,8 @@ extends:
               logs: true
               manifests: true
           enableMicrobuild: true
-          enablePublishUsingPipelines: true
+          enablePublishing: true
+          publishingVersion: 4
           enableSourceIndex: true
           dependsOn:
           - Linux_x64
@@ -278,10 +282,7 @@ extends:
             - _TeamName: DotNetCore
             - _InternalBuildArgs: /p:DotNetSignType=$(_SignType)
                                   /p:TeamName=$(_TeamName)
-                                  /p:DotNetSymbolServerTokenMsdl=$(microsoft-symbol-server-pat)
-                                  /p:DotNetSymbolServerTokenSymWeb=$(symweb-symbol-server-pat)
                                   /p:OfficialBuildId=$(OfficialBuildId)
-                                  /p:DotNetPublishUsingPipelines=$true
           pool:
             name: $(DncEngInternalBuildPool)
             image: $(WindowsImage)
@@ -320,12 +321,8 @@ extends:
           dependsOn: Package
           enablePublishBuildArtifacts: true
           publishAssetsImmediately: true
-          publishUsingPipelines: true
+          publishingVersion: 4
           pool:
             name: $(DncEngInternalBuildPool)
             image: $(WindowsImage)
             os: windows
-
-    - template: /eng/common/templates-official/post-build/post-build.yml@self
-      parameters:
-        publishingInfraVersion: 3

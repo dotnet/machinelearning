@@ -111,6 +111,123 @@ namespace Microsoft.ML.Trainers.FastTree
             }
         }
 
+        /// <summary>
+        /// Managed equivalent of <see cref="SumupCPlusPlusDense"/>, used on platforms where the
+        /// native FastTree library is not available (e.g. arm64). This mirrors the native C_Sumup
+        /// loop in src/Native/FastTreeNative (Sumup.h / SumupNibbles.h) exactly, including the
+        /// per-document iteration and accumulation order, so histogram results are bit-identical
+        /// to the native implementation. Reads go through fixed pointers to avoid the per-element
+        /// bounds checks and interface-indexer dispatch of the generic <see cref="IntArray.Sumup"/>.
+        /// </summary>
+        protected static unsafe void SumupManagedDense(SumupInputData input, FeatureHistogram histogram,
+            byte* data, int numBits)
+        {
+            using (Timer.Time(TimerEvent.SumupCppDense))
+            {
+                fixed (FloatType* pSumTargetsByBin = histogram.SumTargetsByBin)
+                fixed (FloatType* pSampleOutputs = input.Outputs)
+                fixed (double* pSumWeightsByBin = histogram.SumWeightsByBin)
+                fixed (double* pSampleWeights = input.Weights)
+                fixed (int* pIndices = input.DocIndices)
+                fixed (int* pCountByBin = histogram.CountByBin)
+                {
+                    int count = input.TotalCount;
+                    ushort* data16 = (ushort*)data;
+                    int* data32 = (int*)data;
+
+                    // numBits is switched outside the loop (it never varies within a call) so the
+                    // hot loop stays a tight scalar accumulation matching the native code. The
+                    // "pIndices == null ? i : pIndices[i]" ternary is loop-invariant and free.
+                    if (pSumWeightsByBin != null)
+                    {
+                        switch (numBits)
+                        {
+                            case 4:
+                                for (int i = 0; i < count; i++)
+                                {
+                                    int p = pIndices == null ? i : pIndices[i];
+                                    int featureBin = (data[p >> 1] >> ((~(p << 2)) & 4)) & 0xf;
+                                    pSumTargetsByBin[featureBin] += pSampleOutputs[i];
+                                    pSumWeightsByBin[featureBin] += pSampleWeights[i];
+                                    ++pCountByBin[featureBin];
+                                }
+                                break;
+                            case 8:
+                                for (int i = 0; i < count; i++)
+                                {
+                                    int featureBin = data[pIndices == null ? i : pIndices[i]];
+                                    pSumTargetsByBin[featureBin] += pSampleOutputs[i];
+                                    pSumWeightsByBin[featureBin] += pSampleWeights[i];
+                                    ++pCountByBin[featureBin];
+                                }
+                                break;
+                            case 16:
+                                for (int i = 0; i < count; i++)
+                                {
+                                    int featureBin = data16[pIndices == null ? i : pIndices[i]];
+                                    pSumTargetsByBin[featureBin] += pSampleOutputs[i];
+                                    pSumWeightsByBin[featureBin] += pSampleWeights[i];
+                                    ++pCountByBin[featureBin];
+                                }
+                                break;
+                            case 32:
+                                for (int i = 0; i < count; i++)
+                                {
+                                    int featureBin = data32[pIndices == null ? i : pIndices[i]];
+                                    pSumTargetsByBin[featureBin] += pSampleOutputs[i];
+                                    pSumWeightsByBin[featureBin] += pSampleWeights[i];
+                                    ++pCountByBin[featureBin];
+                                }
+                                break;
+                            default:
+                                throw Contracts.Except("Unsupported bits per item {0}", numBits);
+                        }
+                    }
+                    else
+                    {
+                        switch (numBits)
+                        {
+                            case 4:
+                                for (int i = 0; i < count; i++)
+                                {
+                                    int p = pIndices == null ? i : pIndices[i];
+                                    int featureBin = (data[p >> 1] >> ((~(p << 2)) & 4)) & 0xf;
+                                    pSumTargetsByBin[featureBin] += pSampleOutputs[i];
+                                    ++pCountByBin[featureBin];
+                                }
+                                break;
+                            case 8:
+                                for (int i = 0; i < count; i++)
+                                {
+                                    int featureBin = data[pIndices == null ? i : pIndices[i]];
+                                    pSumTargetsByBin[featureBin] += pSampleOutputs[i];
+                                    ++pCountByBin[featureBin];
+                                }
+                                break;
+                            case 16:
+                                for (int i = 0; i < count; i++)
+                                {
+                                    int featureBin = data16[pIndices == null ? i : pIndices[i]];
+                                    pSumTargetsByBin[featureBin] += pSampleOutputs[i];
+                                    ++pCountByBin[featureBin];
+                                }
+                                break;
+                            case 32:
+                                for (int i = 0; i < count; i++)
+                                {
+                                    int featureBin = data32[pIndices == null ? i : pIndices[i]];
+                                    pSumTargetsByBin[featureBin] += pSampleOutputs[i];
+                                    ++pCountByBin[featureBin];
+                                }
+                                break;
+                            default:
+                                throw Contracts.Except("Unsupported bits per item {0}", numBits);
+                        }
+                    }
+                }
+            }
+        }
+
         public override IIntArrayForwardIndexer GetIndexer()
         {
             return this;
@@ -389,21 +506,21 @@ namespace Microsoft.ML.Trainers.FastTree
             : base(len)
         {
             _data = new byte[len];
-            SetupSumupHandler(SumupNative, base.Sumup);
+            SetupSumupHandler(SumupNative, SumupManaged);
         }
 
         public Dense8BitIntArray(byte[] buffer, ref int position)
             : base(buffer.ToInt(ref position))
         {
             _data = buffer.ToByteArray(ref position);
-            SetupSumupHandler(SumupNative, base.Sumup);
+            SetupSumupHandler(SumupNative, SumupManaged);
         }
 
         public Dense8BitIntArray(int len, IEnumerable<int> values)
             : base(len)
         {
             _data = values.Select(i => (byte)i).ToArray(len);
-            SetupSumupHandler(SumupNative, base.Sumup);
+            SetupSumupHandler(SumupNative, SumupManaged);
         }
 
         /// <summary>
@@ -457,6 +574,17 @@ namespace Microsoft.ML.Trainers.FastTree
             }
         }
 
+        internal void SumupManaged(SumupInputData input, FeatureHistogram histogram)
+        {
+            unsafe
+            {
+                fixed (byte* pData = _data)
+                {
+                    SumupManagedDense(input, histogram, pData, 8);
+                }
+            }
+        }
+
         public override void Sumup(SumupInputData input, FeatureHistogram histogram) => SumupHandler(input, histogram);
     }
 
@@ -476,14 +604,14 @@ namespace Microsoft.ML.Trainers.FastTree
             : base(len)
         {
             _data = new byte[(len + 1) / 2]; // Even length = half the bytes. Odd length = half the bytes+0.5.
-            SetupSumupHandler(SumupNative, base.Sumup);
+            SetupSumupHandler(SumupNative, SumupManaged);
         }
 
         public Dense4BitIntArray(int len, IEnumerable<int> values)
             : base(len)
         {
             _data = new byte[(len + 1) / 2];
-            SetupSumupHandler(SumupNative, base.Sumup);
+            SetupSumupHandler(SumupNative, SumupManaged);
 
             int currentIndex = 0;
             bool upper = true;
@@ -508,7 +636,7 @@ namespace Microsoft.ML.Trainers.FastTree
             : base(buffer.ToInt(ref position))
         {
             _data = buffer.ToByteArray(ref position);
-            SetupSumupHandler(SumupNative, base.Sumup);
+            SetupSumupHandler(SumupNative, SumupManaged);
         }
 
         /// <summary>
@@ -580,6 +708,17 @@ namespace Microsoft.ML.Trainers.FastTree
             }
         }
 
+        internal void SumupManaged(SumupInputData input, FeatureHistogram histogram)
+        {
+            unsafe
+            {
+                fixed (byte* pData = _data)
+                {
+                    SumupManagedDense(input, histogram, pData, 4);
+                }
+            }
+        }
+
         public override void Sumup(SumupInputData input, FeatureHistogram histogram) => SumupHandler(input, histogram);
     }
 
@@ -596,21 +735,21 @@ namespace Microsoft.ML.Trainers.FastTree
             : base(len)
         {
             _data = new ushort[len];
-            SetupSumupHandler(SumupNative, base.Sumup);
+            SetupSumupHandler(SumupNative, SumupManaged);
         }
 
         public Dense16BitIntArray(int len, IEnumerable<int> values)
             : base(len)
         {
             _data = values.Select(i => (ushort)i).ToArray(len);
-            SetupSumupHandler(SumupNative, base.Sumup);
+            SetupSumupHandler(SumupNative, SumupManaged);
         }
 
         public Dense16BitIntArray(byte[] buffer, ref int position)
             : base(buffer.ToInt(ref position))
         {
             _data = buffer.ToUShortArray(ref position);
-            SetupSumupHandler(SumupNative, base.Sumup);
+            SetupSumupHandler(SumupNative, SumupManaged);
         }
 
         public override unsafe void Callback(Action<IntPtr> callback)
@@ -668,6 +807,18 @@ namespace Microsoft.ML.Trainers.FastTree
             }
         }
 
+        internal void SumupManaged(SumupInputData input, FeatureHistogram histogram)
+        {
+            unsafe
+            {
+                fixed (ushort* pData = _data)
+                {
+                    byte* pDataBytes = (byte*)pData;
+                    SumupManagedDense(input, histogram, pDataBytes, 16);
+                }
+            }
+        }
+
         public override void Sumup(SumupInputData input, FeatureHistogram histogram) => SumupHandler(input, histogram);
 
     }
@@ -685,21 +836,21 @@ namespace Microsoft.ML.Trainers.FastTree
             : base(len)
         {
             _data = new int[len];
-            SetupSumupHandler(SumupNative, base.Sumup);
+            SetupSumupHandler(SumupNative, SumupManaged);
         }
 
         public Dense32BitIntArray(int len, IEnumerable<int> values)
             : base(len)
         {
             _data = values.ToArray(len);
-            SetupSumupHandler(SumupNative, base.Sumup);
+            SetupSumupHandler(SumupNative, SumupManaged);
         }
 
         public Dense32BitIntArray(byte[] buffer, ref int position)
             : base(buffer.ToInt(ref position))
         {
             _data = buffer.ToIntArray(ref position);
-            SetupSumupHandler(SumupNative, base.Sumup);
+            SetupSumupHandler(SumupNative, SumupManaged);
         }
 
         public override unsafe void Callback(Action<IntPtr> callback)
@@ -753,6 +904,18 @@ namespace Microsoft.ML.Trainers.FastTree
                 {
                     byte* pDataBytes = (byte*)pData;
                     SumupCPlusPlusDense(input, histogram, pDataBytes, 32);
+                }
+            }
+        }
+
+        internal void SumupManaged(SumupInputData input, FeatureHistogram histogram)
+        {
+            unsafe
+            {
+                fixed (int* pData = _data)
+                {
+                    byte* pDataBytes = (byte*)pData;
+                    SumupManagedDense(input, histogram, pDataBytes, 32);
                 }
             }
         }

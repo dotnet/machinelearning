@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using FluentAssertions;
 using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.TestFramework;
@@ -33,11 +32,11 @@ namespace Microsoft.ML.AutoML.Test
             var contextManager = new DefaultMLContextManager(mainContext);
 
             var childContext = contextManager.CreateMLContext();
-            childContext.GpuDeviceId.Should().Be(10);
-            childContext.FallbackToCpu.Should().BeFalse();
-            childContext.TempFilePath.Should().Be("temp");
+            Assert.Equal(10, childContext.GpuDeviceId);
+            Assert.False(childContext.FallbackToCpu);
+            Assert.Equal("temp", childContext.TempFilePath);
 
-            ((IHostEnvironmentInternal)childContext.Model.GetEnvironment()).Seed.Should().Be(10);
+            Assert.Equal(10, ((IHostEnvironmentInternal)childContext.Model.GetEnvironment()).Seed);
         }
 
         [Fact]
@@ -60,7 +59,7 @@ namespace Microsoft.ML.AutoML.Test
             channel.Info("info");
             channel.Error("error");
 
-            messages.Count().Should().Be(4);
+            Assert.Equal(4, messages.Count());
         }
     }
 }

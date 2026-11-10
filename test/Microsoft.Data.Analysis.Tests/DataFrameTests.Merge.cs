@@ -1013,6 +1013,18 @@ namespace Microsoft.Data.Analysis.Tests
             Assert.NotNull(merge.Columns.GetDateTimeColumn("DateTime_right"));
         }
 
+        [Fact]
+        public void TestMerge_ColumnNamesCollide_ThrowsOnSameSuffixOnBothSides()
+        {
+            DataFrame left = MakeDataFrameWithNumericColumns(3, false);
+            DataFrame right = MakeDataFrameWithNumericColumns(4, false);
+
+            Assert.Throws<ArgumentException>(() => left.Merge<int>(right, "Int", "Int", "_same", "_same"));
+
+            DataFrame merge = left.Merge<int>(right, "Int", "Int");
+            Assert.Equal(left.Columns.Count + right.Columns.Count, merge.Columns.Count);
+        }
+
         private void VerifyMerge(DataFrame merge, DataFrame left, DataFrame right, JoinAlgorithm joinAlgorithm)
         {
             if (joinAlgorithm == JoinAlgorithm.Left || joinAlgorithm == JoinAlgorithm.Inner)
