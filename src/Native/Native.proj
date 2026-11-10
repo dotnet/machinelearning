@@ -201,6 +201,12 @@
                           RelativePath="Microsoft.ML.Mkl.Redist\runtimes\$(PackageRid)\native" />
       <NativePackageAsset Include="@(_OneDalNativeDependency)"
                           RelativePath="Microsoft.ML.OneDal\runtimes\$(PackageRid)\native" />
+      <NativePackageAsset Condition="'$(OS)' == 'Windows_NT' And '$(TargetArchitecture)' == 'x64'"
+                          Include="$(NuGetPackageRoot)inteltbb.devel.win\$(OneTbbPkgVersion)\runtimes\win-x64\native\tbb12.pdb"
+                          RelativePath="Microsoft.ML.OneDal\runtimes\$(PackageRid)\native" />
+      <NativePackageAsset Condition="'$(OS)' == 'Windows_NT' And '$(TargetArchitecture)' == 'x64'"
+                          Include="$(NuGetPackageRoot)inteltbb.devel.win\$(OneTbbPkgVersion)\runtimes\win-x64\native\tbbmalloc.pdb"
+                          RelativePath="Microsoft.ML.OneDal\runtimes\$(PackageRid)\native" />
       <NativePackageAsset Condition="'$(TargetArchitecture)' == 'x64'"
                           Include="$(NativeAssetsBuiltPath)\$(NativeLibPrefix)OneDalNative$(NativeLibExtension)"
                           RelativePath="Microsoft.ML.OneDal\runtimes\$(PackageRid)\native" />
