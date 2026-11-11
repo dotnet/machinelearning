@@ -103,7 +103,7 @@ Publishing a servicing release
 
 After publishing a GA release, prepare `release/<version>` for servicing: advance both `PatchVersion` values in `eng/BranchInfo.props` from `0` to `1`, set `PreReleaseVersionLabel` to `servicing` in `eng/Versions.props`, and update the stable compatibility baselines to the last-shipped versions ([example](https://github.com/dotnet/machinelearning/pull/7905)).
 
-1. Before building a servicing release, ensure both `PatchVersion` values in `eng/BranchInfo.props` are one higher than the last shipped patch. Increment them only if they were not already advanced after the previous release.
+1. Before building a servicing release, ensure both `PatchVersion` values in `eng/BranchInfo.props` are one higher than the last shipped patch.
 1. Queue the official build with `VERSIONKIND=release` to remove the prerelease suffix ([Arcade versioning](https://github.com/dotnet/arcade/blob/main/Documentation/Versioning.md#build-kind)).
 1. Add release notes under `docs/release-notes/` to both `main` and the release branch, including stable, experimental, and Tokenizers/data package versions.
 1. [Validate and publish the final packages](#validating-and-publishing-packages).
