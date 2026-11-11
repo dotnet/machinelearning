@@ -38,6 +38,8 @@ On macOS, install Xcode command-line tools and [Homebrew](https://brew.sh/) firs
 
 The build scripts acquire the .NET SDK selected by `global.json`; you do not need to install that exact SDK separately.
 
+Local tests default to both .NET 10 and .NET 11 on all architectures. CI explicitly runs .NET 10 and .NET 11 tests on both x64 and ARM64 in Debug and Release.
+
 ### Cross compiling for ARM
 
 Cross-compilation requires an Ubuntu host, `debootstrap`, and `qemu-user-static`. Build a root file system with the repository script, then set `ROOTFS_DIR` before building:
