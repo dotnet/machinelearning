@@ -124,7 +124,7 @@ Validating and publishing packages
    Stop on failure. [`--all` checks signatures](https://learn.microsoft.com/en-us/dotnet/core/tools/dotnet-nuget-verify), not functionality.
 
 1. Run the [package integration tests](#local-package-integration-tests) against the exact packages being shipped. Review skipped tests and retain the results.
-1. [Publish the validated shipping packages to nuget.org](https://learn.microsoft.com/en-us/nuget/nuget-org/publish-a-package) without rebuilding or repacking them. 
+1. [Publish the validated shipping packages to nuget.org](https://learn.microsoft.com/en-us/nuget/nuget-org/publish-a-package) without rebuilding or repacking them.
 1. Confirm every expected package/version can be restored from nuget.org with a fresh cache before announcing the release.
 
 Local package integration tests
