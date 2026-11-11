@@ -138,12 +138,14 @@ namespace Microsoft.ML.Trainers.LightGbm
 
             /// <summary>
             /// Whether training data is unbalanced.
+            /// The default value is <see langword="false"/>.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Use for binary classification when training data is not balanced.", ShortName = "us")]
             public bool UnbalancedSets = false;
 
             /// <summary>
             /// Controls the balance of positive and negative weights in <see cref="LightGbmBinaryTrainer"/>.
+            /// The default value is <c>1</c>.
             /// </summary>
             /// <value>
             /// This is useful for training on unbalanced data. A typical value to consider is sum(negative cases) / sum(positive cases).
@@ -156,6 +158,7 @@ namespace Microsoft.ML.Trainers.LightGbm
 
             /// <summary>
             /// Parameter for the sigmoid function.
+            /// The default value is <c>0.5</c>.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Parameter for the sigmoid function.", ShortName = "sigmoid")]
             [TGUI(Label = "Sigmoid", SuggestedSweeps = "0.5,1")]
@@ -163,6 +166,7 @@ namespace Microsoft.ML.Trainers.LightGbm
 
             /// <summary>
             /// Determines what evaluation metric to use.
+            /// The default value is <see cref="EvaluateMetricType.Logloss"/>.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce,
                 HelpText = "Evaluation metrics.",

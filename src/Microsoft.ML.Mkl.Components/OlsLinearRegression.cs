@@ -78,6 +78,7 @@ namespace Microsoft.ML.Trainers
             /// <summary>
             /// L2 regularization weight. Adding L2 regularization turns this algorithm into a form of ridge regression,
             /// rather than, strictly speaking, ordinary least squares.
+            /// The default value is <c>1e-6</c>.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "L2 regularization weight", ShortName = "l2", SortOrder = 50)]
             [TGUI(SuggestedSweeps = "1e-6,0.1,1")]
@@ -86,12 +87,14 @@ namespace Microsoft.ML.Trainers
 
             /// <summary>
             /// Whether to calculate per parameter (e.g., the coefficient of the i-th input feature) significance statistics.
+            /// The default value is <see langword="true"/>.
             /// </summary>
             [Argument(ArgumentType.LastOccurrenceWins, HelpText = "Whether to calculate per parameter significance statistics", ShortName = "sig")]
             public bool CalculateStatistics = true;
 
             /// <summary>
             /// Number of data points per batch, when loading data.
+            /// The default is <c>0</c>, which selects the batch size automatically.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Number of entries in a batch when loading data (0 = auto).", Hide = true)]
             public int BatchSize = 0;

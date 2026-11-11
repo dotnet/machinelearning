@@ -131,6 +131,7 @@ namespace Microsoft.ML.Trainers.LightGbm
 
             /// <summary>
             /// Determines what evaluation metric to use.
+            /// The default value is <see cref="EvaluateMetricType.RootMeanSquaredError"/>.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce,
                 HelpText = "Evaluation metrics.",

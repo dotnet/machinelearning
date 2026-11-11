@@ -93,20 +93,36 @@ namespace Microsoft.ML.Trainers
         /// </summary>
         public sealed class Options : UnsupervisedTrainerInputBaseWithWeight
         {
+            /// <summary>
+            /// The number of principal components.
+            /// The default value is <c>20</c>.
+            /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "The number of components in the PCA", ShortName = "k", SortOrder = 50)]
             [TGUI(SuggestedSweeps = "10,20,40,80")]
             [TlcModule.SweepableDiscreteParam("Rank", new object[] { 10, 20, 40, 80 })]
             public int Rank = Defaults.NumComponents;
 
+            /// <summary>
+            /// The oversampling parameter for randomized PCA training.
+            /// The default value is <c>20</c>.
+            /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Oversampling parameter for randomized PCA training", SortOrder = 50)]
             [TGUI(SuggestedSweeps = "10,20,40")]
             [TlcModule.SweepableDiscreteParam("Oversampling", new object[] { 10, 20, 40 })]
             public int Oversampling = Defaults.OversamplingParameters;
 
+            /// <summary>
+            /// Whether to center the data to have zero mean.
+            /// The default value is <see langword="true"/>.
+            /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "If enabled, data is centered to be zero mean", Name = "Center", ShortName = "center")]
             [TlcModule.SweepableDiscreteParam("Center", null, isBool: true)]
             public bool EnsureZeroMean = Defaults.EnsureZeroMean;
 
+            /// <summary>
+            /// The random number generator seed.
+            /// The default is <see langword="null"/>, which generates a seed from the host environment.
+            /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "The seed for random number generation", ShortName = "seed")]
             public int? Seed;
 

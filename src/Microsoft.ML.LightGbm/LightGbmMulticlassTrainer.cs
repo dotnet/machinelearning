@@ -84,12 +84,14 @@ namespace Microsoft.ML.Trainers.LightGbm
 
             /// <summary>
             /// Whether training data is unbalanced.
+            /// The default value is <see langword="false"/>.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Use for multi-class classification when training data is not balanced", ShortName = "us")]
             public bool UnbalancedSets = false;
 
             /// <summary>
             /// Whether to use softmax loss.
+            /// The default is <see langword="null"/>, which selects the loss automatically based on the training data.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Use softmax loss for the multi classification.")]
             [TlcModule.SweepableDiscreteParam("UseSoftmax", new object[] { true, false })]
@@ -97,6 +99,7 @@ namespace Microsoft.ML.Trainers.LightGbm
 
             /// <summary>
             /// Parameter for the sigmoid function.
+            /// The default value is <c>0.5</c>.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Parameter for the sigmoid function.", ShortName = "sigmoid")]
             [TGUI(Label = "Sigmoid", SuggestedSweeps = "0.5,1")]
@@ -104,6 +107,7 @@ namespace Microsoft.ML.Trainers.LightGbm
 
             /// <summary>
             /// Determines what evaluation metric to use.
+            /// The default value is <see cref="EvaluateMetricType.Error"/>.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce,
                 HelpText = "Evaluation metrics.",

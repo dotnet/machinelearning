@@ -126,7 +126,8 @@ namespace Microsoft.ML.Trainers.LightGbm
             };
 
             /// <summary>
-            /// Comma-separated list of gains associated with each relevance label.
+            /// Gains associated with each relevance label.
+            /// The default value is <c>[0, 3, 7, 15, 31, 63, 127, 255, 511, 1023, 2047, 4095]</c>.
             /// </summary>
             [Argument(ArgumentType.Multiple, HelpText = "An array of gains associated to each relevance label.", ShortName = "gains")]
             [TGUI(Label = "Ranking Label Gain")]
@@ -134,6 +135,7 @@ namespace Microsoft.ML.Trainers.LightGbm
 
             /// <summary>
             /// Parameter for the sigmoid function.
+            /// The default value is <c>0.5</c>.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Parameter for the sigmoid function.", ShortName = "sigmoid")]
             [TGUI(Label = "Sigmoid", SuggestedSweeps = "0.5,1")]
@@ -141,6 +143,7 @@ namespace Microsoft.ML.Trainers.LightGbm
 
             /// <summary>
             /// Determines what evaluation metric to use.
+            /// The default value is <see cref="EvaluateMetricType.NormalizedDiscountedCumulativeGain"/>.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce,
                 HelpText = "Evaluation metrics.",

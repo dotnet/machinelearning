@@ -60,6 +60,7 @@ namespace Microsoft.ML.Trainers.LightGbm
             internal BoosterParameterBase GetBooster() { return null; }
             /// <summary>
             /// The minimum loss reduction required to make a further partition on a leaf node of the tree.
+            /// The default value is <c>0</c>.
             /// </summary>
             /// <value>
             /// Larger values make the algorithm more conservative.
@@ -72,6 +73,7 @@ namespace Microsoft.ML.Trainers.LightGbm
 
             /// <summary>
             /// The maximum depth of a tree.
+            /// The default value is <c>0</c>.
             /// </summary>
             /// <value>
             /// 0 means no limit.
@@ -83,6 +85,7 @@ namespace Microsoft.ML.Trainers.LightGbm
 
             /// <summary>
             /// The minimum sum of instance weight needed to form a new node.
+            /// The default value is <c>0.1</c>.
             /// </summary>
             /// <value>
             /// If the tree partition step results in a leaf node with the sum of instance weight less than <see cref="MinimumChildWeight"/>,
@@ -98,6 +101,7 @@ namespace Microsoft.ML.Trainers.LightGbm
 
             /// <summary>
             /// The frequency of performing subsampling (bagging).
+            /// The default value is <c>0</c>.
             /// </summary>
             /// <value>
             /// 0 means disable bagging. N means perform bagging at every N iterations.
@@ -112,6 +116,7 @@ namespace Microsoft.ML.Trainers.LightGbm
 
             /// <summary>
             /// The fraction of training data used for creating trees.
+            /// The default value is <c>1</c>.
             /// </summary>
             /// <value>
             /// Setting it to 0.5 means that LightGBM randomly picks half of the data points to grow trees.
@@ -125,6 +130,7 @@ namespace Microsoft.ML.Trainers.LightGbm
 
             /// <summary>
             /// The fraction of features used when creating trees.
+            /// The default value is <c>1</c>.
             /// </summary>
             /// <value>
             /// If <see cref="FeatureFraction"/> is smaller than 1.0, LightGBM will randomly select fraction of features to train each tree.
@@ -139,6 +145,7 @@ namespace Microsoft.ML.Trainers.LightGbm
 
             /// <summary>
             /// The L2 regularization term on weights.
+            /// The default value is <c>0.01</c>.
             /// </summary>
             /// <value>
             /// Increasing this value could help reduce over-fitting.
@@ -153,6 +160,7 @@ namespace Microsoft.ML.Trainers.LightGbm
 
             /// <summary>
             /// The L1 regularization term on weights.
+            /// The default value is <c>0</c>.
             /// </summary>
             /// <value>
             /// Increasing this value could help reduce over-fitting.
@@ -255,6 +263,7 @@ namespace Microsoft.ML.Trainers.LightGbm
 
             /// <summary>
             /// The dropout rate, i.e. the fraction of previous trees to drop during the dropout.
+            /// The default value is <c>0.1</c>.
             /// </summary>
             /// <value>
             /// Valid range is [0,1].
@@ -265,6 +274,7 @@ namespace Microsoft.ML.Trainers.LightGbm
 
             /// <summary>
             /// The maximum number of dropped trees in a boosting round.
+            /// The default value is <c>1</c>.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Maximum number of dropped trees in a boosting round.")]
             [TlcModule.Range(Inf = 0, Max = int.MaxValue)]
@@ -272,6 +282,7 @@ namespace Microsoft.ML.Trainers.LightGbm
 
             /// <summary>
             /// The probability of skipping the dropout procedure during a boosting iteration.
+            /// The default value is <c>0.5</c>.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Probability for not dropping in a boosting round.")]
             [TlcModule.Range(Inf = 0.0, Max = 1.0)]
@@ -279,12 +290,14 @@ namespace Microsoft.ML.Trainers.LightGbm
 
             /// <summary>
             /// Whether to enable xgboost dart mode.
+            /// The default value is <see langword="false"/>.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "True will enable xgboost dart mode.")]
             public bool XgboostDartMode = false;
 
             /// <summary>
             /// Whether to enable uniform drop.
+            /// The default value is <see langword="false"/>.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "True will enable uniform drop.")]
             public bool UniformDrop = false;
@@ -323,6 +336,7 @@ namespace Microsoft.ML.Trainers.LightGbm
         {
             /// <summary>
             /// The retain ratio of large gradient data.
+            /// The default value is <c>0.2</c>.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Retain ratio for large gradient instances.")]
             [TlcModule.Range(Inf = 0.0, Max = 1.0)]
@@ -330,6 +344,7 @@ namespace Microsoft.ML.Trainers.LightGbm
 
             /// <summary>
             /// The retain ratio of small gradient data.
+            /// The default value is <c>0.1</c>.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Retain ratio for small gradient instances.")]
             [TlcModule.Range(Inf = 0.0, Max = 1.0)]

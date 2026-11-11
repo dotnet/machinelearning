@@ -65,6 +65,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
             /// <summary>
             /// Whether to use derivatives optimized for unbalanced training data.
+            /// The default value is <see langword="false"/>.
             /// </summary>
             [Argument(ArgumentType.LastOccurrenceWins, HelpText = "Option for using derivatives optimized for unbalanced sets", ShortName = "us")]
             [TGUI(Label = "Optimize for unbalanced")]
@@ -81,6 +82,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
             /// <summary>
             /// Early stopping metrics.
+            /// The default is <see cref="EarlyStoppingMetric.L1Norm"/>.
             /// </summary>
             public EarlyStoppingMetric EarlyStoppingMetric
             {
@@ -126,6 +128,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
             /// <summary>
             /// Early stopping metrics.
+            /// The default is <see cref="EarlyStoppingMetric.L1Norm"/>.
             /// </summary>
             public EarlyStoppingMetric EarlyStoppingMetric
             {
@@ -168,6 +171,7 @@ namespace Microsoft.ML.Trainers.FastTree
             /// <summary>
             /// The index parameter for the Tweedie distribution, in the range [1, 2]. 1 is Poisson loss, 2 is gamma loss,
             /// and intermediate values are compound Poisson loss.
+            /// The default value is <c>1.5</c>.
             /// </summary>
             [Argument(ArgumentType.LastOccurrenceWins, HelpText =
                 "Index parameter for the Tweedie distribution, in the range [1, 2]. 1 is Poisson loss, 2 is gamma loss, " +
@@ -185,6 +189,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
             /// <summary>
             /// Early stopping metrics.
+            /// The default is <see cref="EarlyStoppingMetric.L1Norm"/>.
             /// </summary>
             public EarlyStoppingMetric EarlyStoppingMetric
             {
@@ -222,7 +227,8 @@ namespace Microsoft.ML.Trainers.FastTree
         public sealed class Options : BoostedTreeOptions, IFastTreeTrainerFactory
         {
             /// <summary>
-            /// Comma-separated list of gains associated with each relevance label.
+            /// Gains associated with each relevance label.
+            /// The default value is <c>[0, 3, 7, 15, 31]</c>.
             /// </summary>
             [Argument(ArgumentType.LastOccurrenceWins, HelpText = "Comma-separated list of gains associated to each relevance label.", ShortName = "gains")]
             [TGUI(NoSweep = true)]
@@ -230,6 +236,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
             /// <summary>
             /// Whether to train using discounted cumulative gain (DCG) instead of normalized DCG (NDCG).
+            /// The default value is <see langword="false"/>.
             /// </summary>
             [Argument(ArgumentType.LastOccurrenceWins, HelpText = "Train DCG instead of NDCG", ShortName = "dcg")]
             public bool UseDcg;
@@ -246,6 +253,7 @@ namespace Microsoft.ML.Trainers.FastTree
             /// <summary>
             /// The maximum NDCG truncation to use in the
             /// <a href="https://www.microsoft.com/en-us/research/wp-content/uploads/2016/02/MSR-TR-2010-82.pdf">LambdaMAR algorithm</a>.
+            /// The default value is <c>100</c>.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "max-NDCG truncation to use in the LambdaMART algorithm", ShortName = "n", Hide = true)]
             [TGUI(NotGui = true)]
@@ -282,6 +290,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
             /// <summary>
             /// Early stopping metrics.
+            /// The default is <see cref="EarlyStoppingRankingMetric.NdcgAt1"/>.
             /// </summary>
             public EarlyStoppingRankingMetric EarlyStoppingMetric
             {
@@ -355,6 +364,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
         /// <summary>
         /// The number of threads to use.
+        /// The default is <see langword="null"/>, which selects the number of threads automatically.
         /// </summary>
         [Argument(ArgumentType.LastOccurrenceWins, HelpText = "The number of threads to use", ShortName = "t", NullName = "<Auto>")]
         public int? NumberOfThreads = null;
@@ -382,6 +392,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
         /// <summary>
         /// The entropy (regularization) coefficient between 0 and 1.
+        /// The default value is <c>0</c>.
         /// </summary>
         [Argument(ArgumentType.LastOccurrenceWins, HelpText = "The entropy (regularization) coefficient between 0 and 1", ShortName = "e")]
         public Double EntropyCoefficient;
@@ -389,30 +400,36 @@ namespace Microsoft.ML.Trainers.FastTree
         // REVIEW: Different short name from TLC FR arguments.
         /// <summary>
         /// The number of histograms in the pool (between 2 and numLeaves).
+        /// The default is <c>-1</c>, which lets the trainer choose the pool size from the number of leaves.
         /// </summary>
         [Argument(ArgumentType.LastOccurrenceWins, HelpText = "The number of histograms in the pool (between 2 and numLeaves)", ShortName = "ps")]
         public int HistogramPoolSize = -1;
 
         /// <summary>
         /// Whether to utilize the disk or the data's native transposition facilities (where applicable) when performing the transpose.
+        /// The default is <see langword="null"/>, which automatically selects transposition based on the input data's
+        /// capabilities.
         /// </summary>
         [Argument(ArgumentType.LastOccurrenceWins, HelpText = "Whether to utilize the disk or the data's native transposition facilities (where applicable) when performing the transpose", ShortName = "dt")]
         public bool? DiskTranspose;
 
         /// <summary>
         /// Whether to collectivize features during dataset preparation to speed up training.
+        /// The default value is <see langword="true"/>.
         /// </summary>
         [Argument(ArgumentType.LastOccurrenceWins, HelpText = "Whether to collectivize features during dataset preparation to speed up training", ShortName = "flocks", Hide = true)]
         public bool FeatureFlocks = true;
 
         /// <summary>
         /// Whether to do split based on multiple categorical feature values.
+        /// The default value is <see langword="false"/>.
         /// </summary>
         [Argument(ArgumentType.LastOccurrenceWins, HelpText = "Whether to do split based on multiple categorical feature values.", ShortName = "cat")]
         public bool CategoricalSplit = false;
 
         /// <summary>
         /// Maximum categorical split groups to consider when splitting on a categorical feature. Split groups are a collection of split points. This is used to reduce overfitting when there many categorical features.
+        /// The default value is <c>64</c>.
         /// </summary>
         [Argument(ArgumentType.LastOccurrenceWins, HelpText = "Maximum categorical split groups to consider when splitting on a categorical feature. " +
                                                              "Split groups are a collection of split points. This is used to reduce overfitting when " +
@@ -421,6 +438,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
         /// <summary>
         /// Maximum categorical split points to consider when splitting on a categorical feature.
+        /// The default value is <c>64</c>.
         /// </summary>
         [Argument(ArgumentType.LastOccurrenceWins, HelpText = "Maximum categorical split points to consider when splitting on a categorical feature.", ShortName = "maxcat")]
         public int MaximumCategoricalSplitPointCount = 64;
@@ -433,18 +451,21 @@ namespace Microsoft.ML.Trainers.FastTree
 
         /// <summary>
         /// Minimum categorical example count in a bin to consider for a split.
+        /// The default value is <c>100</c>.
         /// </summary>
         [Argument(ArgumentType.LastOccurrenceWins, HelpText = "Minimum categorical example count in a bin to consider for a split.", ShortName = "mdo")]
         public int MinimumExamplesForCategoricalSplit = 100;
 
         /// <summary>
         /// Bias for calculating gradient for each feature bin for a categorical feature.
+        /// The default value is <c>0</c>.
         /// </summary>
         [Argument(ArgumentType.LastOccurrenceWins, HelpText = "Bias for calculating gradient for each feature bin for a categorical feature.", ShortName = "bias")]
         public double Bias = 0;
 
         /// <summary>
         /// Bundle low population bins. Bundle.None(0): no bundling, Bundle.AggregateLowPopulation(1): Bundle low population, Bundle.Adjacent(2): Neighbor low population bundle.
+        /// The default value is <see cref="Bundle.None"/>.
         /// </summary>
         [Argument(ArgumentType.LastOccurrenceWins, HelpText = "Bundle low population bins. " +
                                                              "Bundle.None(0): no bundling, " +
@@ -456,30 +477,35 @@ namespace Microsoft.ML.Trainers.FastTree
         // REVIEW: Reverting back to 255 to make the same defaults of FR.
         /// <summary>
         /// Maximum number of distinct values (bins) per feature.
+        /// The default value is <c>255</c>.
         /// </summary>
         [Argument(ArgumentType.LastOccurrenceWins, HelpText = "Maximum number of distinct values (bins) per feature", ShortName = "mb")]
         public int MaximumBinCountPerFeature = 255;  // save one for undefs
 
         /// <summary>
         /// Sparsity level needed to use sparse feature representation.
+        /// The default value is <c>0.7</c>.
         /// </summary>
         [Argument(ArgumentType.LastOccurrenceWins, HelpText = "Sparsity level needed to use sparse feature representation", ShortName = "sp")]
         public Double SparsifyThreshold = 0.7;
 
         /// <summary>
         /// The feature first use penalty coefficient.
+        /// The default value is <c>0</c>.
         /// </summary>
         [Argument(ArgumentType.LastOccurrenceWins, HelpText = "The feature first use penalty coefficient", ShortName = "ffup")]
         public Double FeatureFirstUsePenalty;
 
         /// <summary>
         /// The feature re-use penalty (regularization) coefficient.
+        /// The default value is <c>0</c>.
         /// </summary>
         [Argument(ArgumentType.LastOccurrenceWins, HelpText = "The feature re-use penalty (regularization) coefficient", ShortName = "frup")]
         public Double FeatureReusePenalty;
 
         /// <summary>
         /// Tree fitting gain confidence requirement. Only consider a gain if its likelihood versus a random choice gain is above this value.
+        /// The default value is <c>0</c>.
         /// </summary>
         /// <value>
         /// Value of 0.95 would mean restricting to gains that have less than a 0.05 chance of being generated randomly through choice of a random split.
@@ -490,18 +516,21 @@ namespace Microsoft.ML.Trainers.FastTree
 
         /// <summary>
         /// The temperature of the randomized softmax distribution for choosing the feature.
+        /// The default value is <c>0</c>.
         /// </summary>
         [Argument(ArgumentType.AtMostOnce, HelpText = "The temperature of the randomized softmax distribution for choosing the feature", ShortName = "smtemp")]
         public Double SoftmaxTemperature;
 
         /// <summary>
         /// Print execution time breakdown to ML.NET channel.
+        /// The default value is <see langword="false"/>.
         /// </summary>
         [Argument(ArgumentType.AtMostOnce, HelpText = "Print execution time breakdown to stdout", ShortName = "et")]
         public bool ExecutionTime;
 
         /// <summary>
         /// Print memory statistics to ML.NET channel.
+        /// The default value is <see langword="true"/>.
         /// </summary>
         [Argument(ArgumentType.AtMostOnce, HelpText = "Print memory statistics to stdout", ShortName = "memstats")]
         public bool MemoryStatistics = true;
@@ -509,6 +538,7 @@ namespace Microsoft.ML.Trainers.FastTree
         // REVIEW: Different from original FastRank arguments (shortname l vs. nl). Different default from TLC FR Wrapper (20 vs. 20).
         /// <summary>
         /// The max number of leaves in each regression tree.
+        /// The default value is <c>20</c>.
         /// </summary>
         [Argument(ArgumentType.LastOccurrenceWins, HelpText = "The max number of leaves in each regression tree", ShortName = "nl", SortOrder = 2)]
         [TGUI(Description = "The maximum number of leaves per tree", SuggestedSweeps = "2-128;log;inc:4")]
@@ -517,6 +547,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
         /// <summary>
         /// The minimal number of data points required to form a new tree leaf.
+        /// The default value is <c>10</c>.
         /// </summary>
         // REVIEW: Arrays not supported in GUI
         // REVIEW: Different shortname than FastRank module. Same as the TLC FRWrapper.
@@ -527,6 +558,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
         /// <summary>
         /// Total number of decision trees to create in the ensemble.
+        /// The default value is <c>100</c>.
         /// </summary>
         // REVIEW: Different shortname than FastRank module. Same as the TLC FRWrapper.
         [Argument(ArgumentType.LastOccurrenceWins, HelpText = "Total number of decision trees to create in the ensemble", ShortName = "iter", SortOrder = 1)]
@@ -537,12 +569,14 @@ namespace Microsoft.ML.Trainers.FastTree
         /// <summary>
         /// The fraction of features (chosen randomly) to use on each iteration. Use 0.9 if only 90% of features is needed.
         /// Lower numbers help reduce over-fitting.
+        /// The default is <c>1</c> for FastTree and <c>0.7</c> for FastForest.
         /// </summary>
         [Argument(ArgumentType.AtMostOnce, HelpText = "The fraction of features (chosen randomly) to use on each iteration", ShortName = "ff")]
         public Double FeatureFraction = 1;
 
         /// <summary>
         /// Number of trees in each bag (0 for disabling bagging).
+        /// The default is <c>0</c> for FastTree and <c>1</c> for FastForest.
         /// </summary>
         [Argument(ArgumentType.AtMostOnce, HelpText = "Number of trees in each bag (0 for disabling bagging)", ShortName = "bag")]
         public int BaggingSize;
@@ -559,18 +593,21 @@ namespace Microsoft.ML.Trainers.FastTree
 
         /// <summary>
         /// The fraction of features (chosen randomly) to use on each split. If it's value is 0.9, 90% of all features would be dropped in expectation.
+        /// The default is <c>1</c> for FastTree and <c>0.7</c> for FastForest.
         /// </summary>
         [Argument(ArgumentType.AtMostOnce, HelpText = "The fraction of features (chosen randomly) to use on each split", ShortName = "sf")]
         public Double FeatureFractionPerSplit = 1;
 
         /// <summary>
         /// Smoothing parameter for tree regularization.
+        /// The default value is <c>0</c>.
         /// </summary>
         [Argument(ArgumentType.AtMostOnce, HelpText = "Smoothing paramter for tree regularization", ShortName = "s")]
         public Double Smoothing;
 
         /// <summary>
         /// When a root split is impossible, allow training to proceed.
+        /// The default value is <see langword="true"/>.
         /// </summary>
         [Argument(ArgumentType.AtMostOnce, HelpText = "When a root split is impossible, allow training to proceed", ShortName = "allowempty,dummies", Hide = true)]
         [TGUI(NotGui = true)]
@@ -586,6 +623,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
         /// <summary>
         /// Compress the tree Ensemble.
+        /// The default value is <see langword="false"/>.
         /// </summary>
         [Argument(ArgumentType.LastOccurrenceWins, HelpText = "Compress the tree Ensemble", ShortName = "cmp", Hide = true)]
         [TGUI(NotGui = true)]
@@ -610,6 +648,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
         /// <summary>
         /// Calculate metric values for train/valid/test every k rounds.
+        /// The default value is <see cref="int.MaxValue"/>.
         /// </summary>
         [Argument(ArgumentType.LastOccurrenceWins, HelpText = "Calculate metric values for train/valid/test every k rounds", ShortName = "tf")]
         public int TestFrequency = int.MaxValue;
@@ -651,24 +690,28 @@ namespace Microsoft.ML.Trainers.FastTree
         //Turning BSR on makes larger steps in initial stages and converges to better results with fewer trees (though in the end, it asymptotes to the same results).
         /// <summary>
         /// Option for using best regression step trees.
+        /// The default value is <see langword="false"/>.
         /// </summary>
         [Argument(ArgumentType.LastOccurrenceWins, HelpText = "Option for using best regression step trees", ShortName = "bsr")]
         public bool BestStepRankingRegressionTrees = false;
 
         /// <summary>
         /// Determines whether to use line search for a step size.
+        /// The default value is <see langword="false"/>.
         /// </summary>
         [Argument(ArgumentType.LastOccurrenceWins, HelpText = "Should we use line search for a step size", ShortName = "ls")]
         public bool UseLineSearch;
 
         /// <summary>
         /// Number of post-bracket line search steps.
+        /// The default value is <c>0</c>.
         /// </summary>
         [Argument(ArgumentType.LastOccurrenceWins, HelpText = "Number of post-bracket line search steps", ShortName = "lssteps")]
         public int MaximumNumberOfLineSearchSteps;
 
         /// <summary>
         /// Minimum line search step size.
+        /// The default value is <c>0</c>.
         /// </summary>
         [Argument(ArgumentType.LastOccurrenceWins, HelpText = "Minimum line search step size", ShortName = "minstep")]
         public Double MinimumStepSize;
@@ -680,6 +723,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
         /// <summary>
         /// Optimization algorithm to be used.
+        /// The default value is <see cref="OptimizationAlgorithmType.GradientDescent"/>.
         /// </summary>
         /// <value>
         /// See <see cref="OptimizationAlgorithmType"/> for available optimizers.
@@ -703,6 +747,7 @@ namespace Microsoft.ML.Trainers.FastTree
         /// <summary>
         /// Early stopping rule used to terminate training process once meeting a specified criterion. Possible choices are
         /// <see cref="EarlyStoppingRuleBase"/>'s implementations such as <see cref="TolerantEarlyStoppingRule"/> and <see cref="GeneralityLossRule"/>.
+        /// The default is <see langword="null"/>, which disables early stopping.
         /// </summary>
         public EarlyStoppingRuleBase EarlyStoppingRule
         {
@@ -724,18 +769,21 @@ namespace Microsoft.ML.Trainers.FastTree
 
         /// <summary>
         /// Enable post-training tree pruning to avoid overfitting. It requires a validation set.
+        /// The default value is <see langword="false"/>.
         /// </summary>
         [Argument(ArgumentType.AtMostOnce, HelpText = "Enable post-training pruning to avoid overfitting. (a validation set is required)", ShortName = "pruning")]
         public bool EnablePruning;
 
         /// <summary>
         /// Use window and tolerance for pruning.
+        /// The default value is <see langword="false"/>.
         /// </summary>
         [Argument(ArgumentType.LastOccurrenceWins, HelpText = "Use window and tolerance for pruning", ShortName = "prtol")]
         public bool UseTolerantPruning;
 
         /// <summary>
         /// The tolerance threshold for pruning.
+        /// The default value is <c>0.004</c>.
         /// </summary>
         [Argument(ArgumentType.AtMostOnce, HelpText = "The tolerance threshold for pruning", ShortName = "prth")]
         [TGUI(Description = "Pruning threshold")]
@@ -743,6 +791,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
         /// <summary>
         /// The moving window size for pruning.
+        /// The default value is <c>5</c>.
         /// </summary>
         [Argument(ArgumentType.AtMostOnce, HelpText = "The moving window size for pruning", ShortName = "prws")]
         [TGUI(Description = "Pruning window size")]
@@ -750,6 +799,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
         /// <summary>
         /// The learning rate.
+        /// The default value is <c>0.2</c>.
         /// </summary>
         [Argument(ArgumentType.LastOccurrenceWins, HelpText = "The learning rate", ShortName = "lr", SortOrder = 4)]
         [TGUI(Label = "Learning Rate", SuggestedSweeps = "0.025-0.4;log")]
@@ -758,6 +808,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
         /// <summary>
         /// Shrinkage.
+        /// The default value is <c>1</c>.
         /// </summary>
         [Argument(ArgumentType.AtMostOnce, HelpText = "Shrinkage", ShortName = "shrk")]
         [TGUI(Label = "Shrinkage", SuggestedSweeps = "0.25-4;log")]
@@ -766,6 +817,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
         /// <summary>
         /// Dropout rate for tree regularization.
+        /// The default value is <c>0</c>.
         /// </summary>
         [Argument(ArgumentType.AtMostOnce, HelpText = "Dropout rate for tree regularization", ShortName = "tdrop")]
         [TGUI(SuggestedSweeps = "0,0.000000001,0.05,0.1,0.2")]
@@ -774,24 +826,28 @@ namespace Microsoft.ML.Trainers.FastTree
 
         /// <summary>
         /// Sample each query 1 in k times in the GetDerivatives function.
+        /// The default value is <c>1</c>.
         /// </summary>
         [Argument(ArgumentType.AtMostOnce, HelpText = "Sample each query 1 in k times in the GetDerivatives function", ShortName = "sr")]
         public int GetDerivativesSampleRate = 1;
 
         /// <summary>
         /// Write the last ensemble instead of the one determined by early stopping.
+        /// The default value is <see langword="false"/>.
         /// </summary>
         [Argument(ArgumentType.AtMostOnce, HelpText = "Write the last ensemble instead of the one determined by early stopping", ShortName = "hl")]
         public bool WriteLastEnsemble;
 
         /// <summary>
         /// Upper bound on absolute value of single tree output.
+        /// The default value is <c>100</c>.
         /// </summary>
         [Argument(ArgumentType.AtMostOnce, HelpText = "Upper bound on absolute value of single tree output", ShortName = "mo")]
         public Double MaximumTreeOutput = 100;
 
         /// <summary>
         /// Training starts from random ordering (determined by /r1).
+        /// The default value is <see langword="false"/>.
         /// </summary>
         [Argument(ArgumentType.LastOccurrenceWins, HelpText = "Training starts from random ordering (determined by /r1)", ShortName = "rs", Hide = true)]
         [TGUI(NotGui = true)]
@@ -799,6 +855,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
         /// <summary>
         /// Filter zero lambdas during training.
+        /// The default value is <see langword="false"/>.
         /// </summary>
         [Argument(ArgumentType.AtMostOnce, HelpText = "Filter zero lambdas during training", ShortName = "fzl", Hide = true)]
         [TGUI(NotGui = true)]
