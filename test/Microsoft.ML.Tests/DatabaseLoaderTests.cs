@@ -9,7 +9,6 @@ using System.Data.SQLite;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
-using FluentAssertions;
 using Microsoft.ML.Data;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.TestFramework;
@@ -320,12 +319,12 @@ END";
             var source = new DatabaseSource(SQLiteFactory.Instance, connectionString, "SELECT datetime FROM Datetime");
             var data = loader.Load(source);
             var datetimes = data.GetColumn<DateTime>("datetime").ToArray();
-            datetimes.Count().Should().Be(2);
 
             // Convert null value to DateTime.MinValue, aka 0001-01-01 00:00:00
             // This is the default behavior of TextLoader as well.
-            datetimes[0].Should().Be(DateTime.MinValue);
-            datetimes[1].Should().Be(new DateTime(2018, 1, 1, 0, 0, 0));
+            Assert.Collection(datetimes,
+                datetime => Assert.Equal(DateTime.MinValue, datetime),
+                datetime => Assert.Equal(new DateTime(2018, 1, 1, 0, 0, 0), datetime));
         }
 
         /// <summary>

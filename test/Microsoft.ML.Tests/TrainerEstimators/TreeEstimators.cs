@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.ML.Calibrators;
@@ -19,7 +20,6 @@ using Microsoft.ML.Trainers.FastTree;
 using Microsoft.ML.Trainers.LightGbm;
 using Microsoft.ML.Transforms;
 using Xunit;
-using FluentAssertions;
 using System.IO;
 
 namespace Microsoft.ML.Tests.TrainerEstimators
@@ -52,6 +52,31 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var transformedDataView = pipe.Fit(dataView).Transform(dataView);
             var model = trainer.Fit(transformedDataView, transformedDataView);
             Done();
+        }
+
+        [Theory]
+        [InlineData(5, 4)]
+        [InlineData(5, 5)]
+        public void FastTreeHistogramPoolSizeValidation(int numberOfLeaves, int histogramPoolSize)
+        {
+            var data = ML.Data.LoadFromEnumerable(
+                SamplesUtils.DatasetUtils.GenerateBinaryLabelFloatFeatureVectorFloatWeightSamples(100).ToList());
+            var trainer = ML.BinaryClassification.Trainers.FastTree(new FastTreeBinaryTrainer.Options
+            {
+                NumberOfThreads = 1,
+                NumberOfTrees = 1,
+                NumberOfLeaves = numberOfLeaves,
+                HistogramPoolSize = histogramPoolSize,
+                MinimumExampleCountPerLeaf = 1,
+            });
+
+            if (numberOfLeaves > 2 && histogramPoolSize > numberOfLeaves - 1)
+            {
+                var exception = Assert.Throws<InvalidOperationException>(() => trainer.Fit(data));
+                Assert.Contains("Histogram pool size (ps) must be at most numLeaves - 1.", exception.Message);
+            }
+            else
+                Assert.NotNull(trainer.Fit(data));
         }
 
         [LightGBMFact]
@@ -205,6 +230,51 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
             var transformedDataView = pipe.Fit(dataView).Transform(dataView);
             var model = trainer.Fit(transformedDataView, transformedDataView);
+            Done();
+        }
+
+        [Theory]
+        [InlineData(0)]
+        [InlineData(-1)]
+        [InlineData(1)]
+        public void LightGbmConstantTreeConversion(int leafValue)
+        {
+            var ensemble = Booster.GetModel(null,
+                $"Tree=0\nnum_leaves=1\nnum_cat=0\nleaf_value={leafValue}\n\n");
+            var tree = new RegressionTree(ensemble.GetTreeAt(0));
+
+            Assert.All(tree.LeafValues, value => Assert.Equal((double)leafValue, value));
+            Done();
+        }
+
+        [LightGBMFact]
+        public void LightGbmRankerConstantModel()
+        {
+            var data = ML.Data.LoadFromEnumerable(Enumerable.Range(0, 20)
+                .Select(i => new LightGbmRankingRow
+                {
+                    GroupId = (uint)(i / 4 + 1),
+                    Label = 0,
+                    Features = new[] { (float)(i % 4), (float)(i / 4) },
+                }));
+            var trainer = ML.Ranking.Trainers.LightGbm(new LightGbmRankingTrainer.Options
+            {
+                MinimumExampleCountPerLeaf = 1,
+                NumberOfIterations = 1,
+                NumberOfLeaves = 2,
+                NumberOfThreads = 1,
+            });
+
+            var model = trainer.Fit(data);
+            var scores = model.Transform(data).GetColumn<float>("Score").ToArray();
+            Assert.Equal(20, scores.Length);
+            Assert.All(scores, score => Assert.Equal(0f, score));
+
+            using var stream = new MemoryStream();
+            ML.Model.Save(model, data.Schema, stream);
+            stream.Position = 0;
+            var loadedModel = ML.Model.Load(stream, out _);
+            Assert.Equal(scores, loadedModel.Transform(data).GetColumn<float>("Score").ToArray());
             Done();
         }
 
@@ -375,6 +445,49 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 var data = pipe.Fit(dataView).Transform(dataView).Preview();
                 TestEstimatorCore(pipe, dataView);
             }
+            Done();
+        }
+
+        [Theory]
+        [InlineData("multiclass")]
+        [InlineData("multiclassova")]
+        public void LightGbmMulticlassIgnoresZeroConstantTrees(string objective)
+        {
+            var leafValues = new[] { 1, 0, -1, 0, 0, 0 };
+            var modelText = $"max_feature_idx={_columnNumber - 1}\nobjective={objective} num_class:3\n\n"
+                + string.Concat(leafValues.Select((value, index) =>
+                    $"Tree={index}\nnum_leaves=1\nnum_cat=0\nleaf_value={value}\n\n"))
+                + "parameters:\n[categorical_feature: ]\nend of parameters\n";
+            using var modelStream = new MemoryStream(Encoding.UTF8.GetBytes(modelText));
+            var data = ML.Data.LoadFromEnumerable(new[]
+            {
+                new GbmExample { Features = new float[_columnNumber] },
+            });
+
+            var model = ML.MulticlassClassification.Trainers.LightGbm(modelStream).Fit(data);
+            Assert.Equal(3, model.Model.SubModelParameters.Length);
+            for (int classId = 0; classId < 3; classId++)
+            {
+                var predictor = Assert.IsType<FeatureWeightsCalibratedModelParameters<LightGbmBinaryModelParameters, PlattCalibrator>>(
+                    model.Model.SubModelParameters[classId]);
+                var trees = predictor.SubModel.TrainedTreeEnsemble.Trees;
+                if (leafValues[classId] == 0)
+                    Assert.Empty(trees);
+                else
+                    Assert.All(Assert.Single(trees).LeafValues, value => Assert.Equal((double)leafValues[classId], value));
+            }
+
+            var scores = model.Transform(data).GetColumn<float[]>("Score").Single();
+            Assert.Equal(3, scores.Length);
+            Assert.True(scores[0] > scores[1]);
+            Assert.True(scores[1] > scores[2]);
+            Assert.Equal(1f, scores.Sum(), 6);
+
+            using var stream = new MemoryStream();
+            ML.Model.Save(model, data.Schema, stream);
+            stream.Position = 0;
+            var loadedModel = ML.Model.Load(stream, out _);
+            Assert.Equal(scores, loadedModel.Transform(data).GetColumn<float[]>("Score").Single());
             Done();
         }
 
@@ -1082,8 +1195,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 }
             };
 
-            var action = () => estimator.Fit(dataView);
-            action.Should().Throw<OperationCanceledException>();
+            Assert.ThrowsAny<OperationCanceledException>(() => estimator.Fit(dataView));
         }
 
         [LightGBMFact]
@@ -1136,8 +1248,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                     UseCategoricalSplit = true
                 }));
 
-            var action = () => trainer.Fit(dataView);
-            action.Should().Throw<OperationCanceledException>();
+            Assert.ThrowsAny<OperationCanceledException>(() => trainer.Fit(dataView));
         }
 
         [LightGBMFact]
@@ -1164,8 +1275,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                     UseCategoricalSplit = true
                 }));
 
-            var action = () => trainer.Fit(dataView);
-            action.Should().Throw<OperationCanceledException>();
+            Assert.ThrowsAny<OperationCanceledException>(() => trainer.Fit(dataView));
         }
     }
 }

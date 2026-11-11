@@ -89,3 +89,29 @@ When creating a new `release/<version>` branch:
    dotnet msbuild .\src\Microsoft.ML.AutoML\Microsoft.ML.AutoML.csproj -nologo -getProperty:PackageVersion
    dotnet msbuild .\src\Microsoft.ML.Tokenizers\Microsoft.ML.Tokenizers.csproj -nologo -getProperty:PackageVersion
    ```
+
+Local package integration tests
+-------------------------------
+
+Run the existing nightly test project against packages from a specific official
+build published to `dotnet-libraries`. ML.NET is not built from source.
+
+Use PowerShell 7.2+, a .NET 10 SDK/runtime (or a newer SDK with the .NET 10 runtime),
+and Azure CLI signed in with read access to `dnceng/internal`
+(or set `AZURE_DEVOPS_ACCESS_TOKEN`). From the repository root:
+
+```powershell
+$selection = Join-Path ([IO.Path]::GetTempPath()) 'mlnet-selected-build.json'
+.\eng\testing\Resolve-PublishedPackages.ps1 -BuildId 3103962 -OutputPath $selection
+.\eng\testing\Run-PackageIntegrationTests.ps1 -SelectionPath $selection
+```
+
+The runner supplies exact package versions to both the nightly project and its
+test helper. It disables repository-native copying and uses fresh build outputs
+and a fresh package cache. Package-only checks require the ONNX and MKL native
+libraries on supported platforms. The shared integration tests keep their normal
+capability-based skips.
+
+Use `-Filter` to select tests, or `-WorkingDirectory` to choose an empty directory
+outside the checkout. Logs, resolved packages, and TRX results are retained in its
+`diagnostics` folder.

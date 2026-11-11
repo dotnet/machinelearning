@@ -3,25 +3,12 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text.RegularExpressions;
-using System.Threading;
-using System.Threading.Tasks;
-using FluentAssertions;
-using Microsoft.DotNet.PlatformAbstractions;
-using Microsoft.Extensions.DependencyModel;
-using Microsoft.ML.Calibrators;
+using System.IO;
+using Microsoft.DotNet.RemoteExecutor;
 using Microsoft.ML.Data;
-using Microsoft.ML.Internal.Utilities;
-using Microsoft.ML.Model;
 using Microsoft.ML.RunTests;
-using Microsoft.ML.Runtime;
 using Microsoft.ML.TestFramework.Attributes;
-using Microsoft.ML.Trainers;
 using Microsoft.ML.Trainers.FastTree;
-using Microsoft.ML.Trainers.LightGbm;
-using Microsoft.ML.Transforms;
 using Xunit;
 
 namespace Microsoft.ML.Tests.TrainerEstimators
@@ -29,15 +16,36 @@ namespace Microsoft.ML.Tests.TrainerEstimators
     public partial class TrainerEstimators : TestDataPipeBase
     {
 
-        // [Fact]
         [NativeDependencyFact("OneDalNative")]
         public void OneDalFastTreeBinaryEstimator()
         {
-            Environment.SetEnvironmentVariable("MLNET_BACKEND", "ONEDAL");
+            var originalBackend = Environment.GetEnvironmentVariable("MLNET_BACKEND");
             var trainDataPath = GetDataPath("binary_synth_data_train.csv");
             var testDataPath = GetDataPath("binary_synth_data_test.csv");
 
-            var loader = ML.Data.CreateTextLoader(columns: new[] {
+            // oneDAL has to be selected before static initialization of MLContext runs, which means using RemoteExecutor here.
+            var options = new RemoteInvokeOptions();
+            options.StartInfo.EnvironmentVariables["MLNET_BACKEND"] = "ONEDAL";
+            // Enable verbose output for oneDAL, so that the output check below can verify that oneDAL is being used.
+            options.StartInfo.EnvironmentVariables["MLNET_BACKEND_VERBOSE"] = "1";
+            // oneDAL loads its threading runtime dynamically; test dependencies are beside the test assembly.
+            options.StartInfo.EnvironmentVariables["PATH"] =
+                Path.GetDirectoryName(typeof(TrainerEstimators).Assembly.Location) + Path.PathSeparator + Environment.GetEnvironmentVariable("PATH");
+            options.StartInfo.RedirectStandardOutput = true;
+            var remote = RemoteExecutor.Invoke(TrainOneDalFastForest, trainDataPath, testDataPath, options);
+            var output = remote.Process.StandardOutput.ReadToEndAsync();
+            remote.Dispose();
+
+            Assert.Contains("Decision Forest Classification parameters:", output.GetAwaiter().GetResult());
+            Assert.Equal(originalBackend, Environment.GetEnvironmentVariable("MLNET_BACKEND"));
+        }
+
+        private static void TrainOneDalFastForest(string trainDataPath, string testDataPath)
+        {
+            var ml = new MLContext(seed: 1);
+            Assert.True(MLContext.OneDalDispatchingEnabled);
+
+            var loader = ml.Data.CreateTextLoader(columns: new[] {
               new TextLoader.Column("f0", DataKind.Single, 0),
               new TextLoader.Column("f1", DataKind.Single, 1),
               new TextLoader.Column("f2", DataKind.Single, 2),
@@ -54,12 +62,10 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var trainingData = loader.Load(trainDataPath);
             var testingData = loader.Load(testDataPath);
 
-            var preprocessingPipeline = ML.Transforms.Concatenate("Features", new string[] { "f0", "f1", "f2", "f3", "f4", "f5", "f6", "f7" });
+            var preprocessingPipeline = ml.Transforms.Concatenate("Features", new string[] { "f0", "f1", "f2", "f3", "f4", "f5", "f6", "f7" });
 
             var preprocessedTrainingData = preprocessingPipeline.Fit(trainingData).Transform(trainingData);
             var preprocessedTestingData = preprocessingPipeline.Fit(trainingData).Transform(testingData);
-
-            // Output.WriteLine($"**** After preprocessing the data got {preprocessedTrainingData.Schema.Count} columns.");
 
             FastForestBinaryTrainer.Options options = new FastForestBinaryTrainer.Options();
             options.LabelColumnName = "target";
@@ -69,12 +75,12 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             options.MinimumExampleCountPerLeaf = 5;
             options.FeatureFraction = 1.0;
 
-            var trainer = ML.BinaryClassification.Trainers.FastForest(options);
+            var trainer = ml.BinaryClassification.Trainers.FastForest(options);
             var model = trainer.Fit(preprocessedTrainingData);
             var trainingPredictions = model.Transform(preprocessedTrainingData);
-            var trainingMetrics = ML.BinaryClassification.EvaluateNonCalibrated(trainingPredictions, labelColumnName: "target");
+            var trainingMetrics = ml.BinaryClassification.EvaluateNonCalibrated(trainingPredictions, labelColumnName: "target");
             var testingPredictions = model.Transform(preprocessedTestingData);
-            var testingMetrics = ML.BinaryClassification.EvaluateNonCalibrated(testingPredictions, labelColumnName: "target");
+            var testingMetrics = ml.BinaryClassification.EvaluateNonCalibrated(testingPredictions, labelColumnName: "target");
 
             Assert.True(testingMetrics.Accuracy > 0.8);
         }

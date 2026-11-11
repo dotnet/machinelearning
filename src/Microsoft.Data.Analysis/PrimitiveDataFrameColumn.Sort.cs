@@ -35,8 +35,7 @@ namespace Microsoft.Data.Analysis
                 {
                     sortIndices[i] = i;
                 }
-                IntrospectiveSort(buffer.ReadOnlySpan, buffer.Length, sortIndices, comparer);
-                // Bug fix: QuickSort is not stable. When PrimitiveDataFrameColumn has null values and default values, they move around
+                IntrospectiveSort(buffer.ReadOnlySpan, buffer.Length, sortIndices, comparer, ascending);
                 List<int> nonNullSortIndices = new List<int>();
                 for (int i = 0; i < sortIndices.Length; i++)
                 {
@@ -45,9 +44,10 @@ namespace Microsoft.Data.Analysis
                     {
                         nonNullSortIndices.Add(sortIndices[i]);
                     }
-                    else
+                    // Collect null rows in their original order, independently of the sorted values.
+                    if (!BitUtility.IsValid(nullBitMapSpan, i))
                     {
-                        columnNullIndices[nullIndicesSlot] = localSortIndex + b * _columnContainer.Buffers[0].Length;
+                        columnNullIndices[nullIndicesSlot] = i + b * _columnContainer.Buffers[0].Length;
                         nullIndicesSlot++;
                     }
                 }

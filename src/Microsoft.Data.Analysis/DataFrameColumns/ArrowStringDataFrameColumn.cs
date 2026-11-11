@@ -365,11 +365,13 @@ namespace Microsoft.Data.Analysis
 
         protected internal override PrimitiveDataFrameColumn<long> GetSortIndices(bool ascending, bool putNullValuesLast) => throw new NotSupportedException();
 
+        /// <inheritdoc cref="DataFrameColumn.Clone(long)"/>
         public new ArrowStringDataFrameColumn Clone(long numberOfNullsToAppend = 0)
         {
             return (ArrowStringDataFrameColumn)CloneImplementation(numberOfNullsToAppend);
         }
 
+        /// <inheritdoc cref="DataFrameColumn.Clone(DataFrameColumn, bool, long)"/>
         public new ArrowStringDataFrameColumn Clone(DataFrameColumn mapIndices, bool invertMapIndices = false, long numberOfNullsToAppend = 0)
         {
             return (ArrowStringDataFrameColumn)CloneImplementation(mapIndices, invertMapIndices, numberOfNullsToAppend);

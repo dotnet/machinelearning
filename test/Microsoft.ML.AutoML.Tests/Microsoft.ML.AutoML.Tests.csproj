@@ -23,7 +23,6 @@
   <ItemGroup>
     <PackageReference Include="ApprovalTests" />
     <PackageReference Include="System.Data.SqlClient" />
-    <PackageReference Include="AwesomeAssertions" />
     <PackageReference Include="SciSharp.TensorFlow.Redist" />
     <PackageReference Include="Microsoft.ML.OnnxRuntime" />
   </ItemGroup>

@@ -22,8 +22,11 @@
   </PropertyGroup>
 
   <PropertyGroup>
+    <SystemCollectionsImmutableVersion>$(SystemCollectionsImmutableTestVersion)</SystemCollectionsImmutableVersion>
     <VSTestLogger>trx</VSTestLogger>
     <VSTestResultsDirectory>$(OutputPath)</VSTestResultsDirectory>
+    <!-- Cleanly override the arcade default xunit.runner.json. -->
+    <XUnitDesktopSettingsFile>$(MSBuildThisFileDirectory)Microsoft.ML.TestFrameworkCommon\xunit.runner.json</XUnitDesktopSettingsFile>
     <CopyLocalLockFileAssemblies Condition="'$(Coverage)' != 'true'">true</CopyLocalLockFileAssemblies>
   </PropertyGroup>
 

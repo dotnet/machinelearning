@@ -9,7 +9,6 @@ using System.Threading;
 using ApprovalTests;
 using ApprovalTests.Namers;
 using ApprovalTests.Reporters;
-using FluentAssertions;
 using Microsoft.ML.SearchSpace.Option;
 using Xunit;
 using Xunit.Abstractions;
@@ -41,7 +40,7 @@ namespace Microsoft.ML.SearchSpace.Tests
             Approvals.Verify(json);
 
             parameter = JsonSerializer.Deserialize<Parameter>(json);
-            parameter.AsType<string[]>().Should().Equal("A", "B", "C");
+            Assert.Equal(new[] { "A", "B", "C" }, parameter.AsType<string[]>());
         }
 
         [Fact]
@@ -50,35 +49,35 @@ namespace Microsoft.ML.SearchSpace.Tests
             var parameter = Parameter.FromInt(3);
 
             // integer
-            parameter.AsType<int>().Should().Be(3);
+            Assert.Equal(3, parameter.AsType<int>());
 
             // double
             parameter = Parameter.FromDouble(3.1415926);
-            parameter.AsType<double>().Should().Be(3.1415926);
+            Assert.Equal(3.1415926, parameter.AsType<double>());
 
             // float
             parameter = Parameter.FromFloat(3.1415926F);
-            parameter.AsType<float>().Should().Be(3.1415926F);
+            Assert.Equal(3.1415926F, parameter.AsType<float>());
 
             // string
             parameter = Parameter.FromString("abc");
-            parameter.AsType<string>().Should().Be("abc");
+            Assert.Equal("abc", parameter.AsType<string>());
 
             // bool
             parameter = Parameter.FromBool(false);
-            parameter.AsType<bool>().Should().BeFalse();
+            Assert.False(parameter.AsType<bool>());
 
             // string[]
             parameter = Parameter.FromIEnumerable(new[] { "a", "b", "c" });
-            parameter.AsType<string[]>().Should().BeEquivalentTo("a", "b", "c");
+            Assert.Equivalent(new[] { "a", "b", "c" }, parameter.AsType<string[]>(), strict: true);
 
             // enum
             parameter = Parameter.FromEnum(JsonTokenType.None);
-            parameter.AsType<JsonTokenType>().Should().Be(JsonTokenType.None);
+            Assert.Equal(JsonTokenType.None, parameter.AsType<JsonTokenType>());
 
             // long
             parameter = Parameter.FromLong(long.MaxValue);
-            parameter.AsType<long>().Should().Be(long.MaxValue);
+            Assert.Equal(long.MaxValue, parameter.AsType<long>());
         }
 
         [Fact]
@@ -87,15 +86,15 @@ namespace Microsoft.ML.SearchSpace.Tests
             var b = new B();
             var parameter = Parameter.FromObject(b);
 
-            parameter["Int"].AsType<int>().Should().Be(0);
-            parameter["Float"].AsType<float>().Should().Be(1f);
-            parameter["Double"].AsType<double>().Should().Be(2);
-            parameter["Bool"].AsType<bool>().Should().BeFalse();
-            parameter["String"].AsType<string>().Should().Be("String");
-            parameter["Strings"].AsType<string[]>().Should().BeEquivalentTo("A", "B", "C");
-            parameter["JTokenType"].AsType<JsonTokenType>().Should().Be(JsonTokenType.Null);
-            parameter["A"].AsType<A>().Strings.Should().BeEquivalentTo("A", "B", "C");
-            parameter.AsType<B>().Strings.Should().BeEquivalentTo("A", "B", "C");
+            Assert.Equal(0, parameter["Int"].AsType<int>());
+            Assert.Equal(1f, parameter["Float"].AsType<float>());
+            Assert.Equal(2.0, parameter["Double"].AsType<double>());
+            Assert.False(parameter["Bool"].AsType<bool>());
+            Assert.Equal("String", parameter["String"].AsType<string>());
+            Assert.Equivalent(new[] { "A", "B", "C" }, parameter["Strings"].AsType<string[]>(), strict: true);
+            Assert.Equal(JsonTokenType.Null, parameter["JTokenType"].AsType<JsonTokenType>());
+            Assert.Equivalent(new[] { "A", "B", "C" }, parameter["A"].AsType<A>().Strings, strict: true);
+            Assert.Equivalent(new[] { "A", "B", "C" }, parameter.AsType<B>().Strings, strict: true);
         }
 
         [Fact]
@@ -110,12 +109,12 @@ namespace Microsoft.ML.SearchSpace.Tests
             Approvals.Verify(json);
 
             parameter = JsonSerializer.Deserialize<Parameter>(json);
-            parameter["Int"].AsType<int>().Should().Be(0);
-            parameter["Float"].AsType<float>().Should().Be(1f);
-            parameter["Double"].AsType<double>().Should().Be(2);
-            parameter["Bool"].AsType<bool>().Should().BeFalse();
-            parameter["Strings"].AsType<string[]>().Should().BeEquivalentTo("A", "B", "C");
-            parameter["JTokenType"].AsType<JsonTokenType>().Should().Be(JsonTokenType.Null);
+            Assert.Equal(0, parameter["Int"].AsType<int>());
+            Assert.Equal(1f, parameter["Float"].AsType<float>());
+            Assert.Equal(2.0, parameter["Double"].AsType<double>());
+            Assert.False(parameter["Bool"].AsType<bool>());
+            Assert.Equivalent(new[] { "A", "B", "C" }, parameter["Strings"].AsType<string[]>(), strict: true);
+            Assert.Equal(JsonTokenType.Null, parameter["JTokenType"].AsType<JsonTokenType>());
             json = JsonSerializer.Serialize(parameter, _settings);
             Approvals.Verify(json);
         }
@@ -129,7 +128,7 @@ namespace Microsoft.ML.SearchSpace.Tests
             var ss = new SearchSpace();
             ss.Add("_SampleSize", new UniformDoubleOption(10000, 20000));
             var parameter = ss.SampleFromFeatureSpace(new[] { 0.5 });
-            parameter["_SampleSize"].AsType<double>().Should().Be(15000.0);
+            Assert.Equal(15000.0, parameter["_SampleSize"].AsType<double>());
             Thread.CurrentThread.CurrentCulture = originalCuture;
         }
 
@@ -145,13 +144,13 @@ namespace Microsoft.ML.SearchSpace.Tests
             var paramB1 = Parameter.FromObject(b);
             var paramB2 = Parameter.FromObject(b);
 
-            (paramB1.Equals(paramB2)).Should().BeTrue();
+            Assert.True(paramB1.Equals(paramB2));
 
             b.Bool = true;
             paramB2 = Parameter.FromObject(b);
 
-            (paramB1.Equals(paramB2)).Should().BeFalse();
-            (paramB1.Equals(null)).Should().BeFalse();
+            Assert.False(paramB1.Equals(paramB2));
+            Assert.False(paramB1.Equals(null));
         }
 
         private class A

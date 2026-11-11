@@ -5,6 +5,13 @@
 
 EXECUTION_DIR=$(dirname "$0")
 
+if [[ -n "$HELIX_DUMP_FOLDER" ]]; then
+  export DOTNET_DbgEnableMiniDump=1
+  export DOTNET_EnableCrashReport=1
+  export DOTNET_DbgMiniDumpName="$HELIX_DUMP_FOLDER/coredump.%p.%t.dmp"
+  export DOTNET_CreateDumpDiagnostics=1
+fi
+
 
 
 

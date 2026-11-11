@@ -2,8 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.ML.Data;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.TestFramework;
 using Xunit;
 using Xunit.Abstractions;
@@ -25,6 +27,52 @@ namespace Microsoft.ML.Tests
             public float[] Score { get; set; }
 
             public float PredictedLabel { get; set; }
+        }
+
+        private class RegressionEvaluatorInput
+        {
+            public float Label { get; set; }
+
+            public float Score { get; set; }
+        }
+
+        [Fact]
+        public void ShowSchemaWithEvaluatorTransformDoesNotThrowDuringCleanup()
+        {
+            bool transformCreated = false;
+            var args = new ShowSchemaCommand.Arguments
+            {
+                Loader = ComponentFactoryUtils.CreateFromFunction<IMultiStreamSource, ILegacyDataLoader>(
+                    (env, source) => TextLoader.Create(env, new TextLoader.Options
+                    {
+                        Columns = new[]
+                        {
+                            new TextLoader.Column(nameof(RegressionEvaluatorInput.Label), DataKind.Single, 0),
+                            new TextLoader.Column(nameof(RegressionEvaluatorInput.Score), DataKind.Single, 1)
+                        }
+                    }, source)),
+                Transforms = new[]
+                {
+                    new KeyValuePair<string, IComponentFactory<IDataView, IDataTransform>>(
+                        null,
+                        ComponentFactoryUtils.CreateFromFunction<IDataView, IDataTransform>((env, input) =>
+                        {
+                            transformCreated = true;
+                            var roleMappedData = new RoleMappedData(
+                                input,
+                                opt: false,
+                                RoleMappedSchema.ColumnRole.Label.Bind(nameof(RegressionEvaluatorInput.Label)),
+                                new RoleMappedSchema.ColumnRole("Score").Bind(nameof(RegressionEvaluatorInput.Score)));
+                            var evaluator = new RegressionEvaluator(env, new RegressionEvaluator.Arguments());
+                            return ((IEvaluator)evaluator).GetPerInstanceMetrics(roleMappedData);
+                        }))
+                }
+            };
+
+            var env = new ConsoleEnvironment(42).AddStandardComponents();
+            new ShowSchemaCommand(env, args).Run();
+
+            Assert.True(transformCreated);
         }
 
         [Fact]

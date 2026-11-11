@@ -8,7 +8,6 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using FluentAssertions;
 using Microsoft.ML.TestFramework;
 using Xunit;
 using Xunit.Abstractions;
@@ -34,12 +33,12 @@ namespace Microsoft.ML.AutoML.Test
                 isOnStopTrainingGetInvoked = true;
             };
 
-            manager.IsStopTrainingRequested().Should().BeFalse();
+            Assert.False(manager.IsStopTrainingRequested());
 
             cts.Cancel();
 
-            manager.IsStopTrainingRequested().Should().BeTrue();
-            isOnStopTrainingGetInvoked.Should().BeTrue();
+            Assert.True(manager.IsStopTrainingRequested());
+            Assert.True(isOnStopTrainingGetInvoked);
         }
 
         [Fact]
@@ -62,8 +61,8 @@ namespace Microsoft.ML.AutoML.Test
             });
 
             await waitForCompleted;
-            manager.IsStopTrainingRequested().Should().BeTrue();
-            isOnStopTrainingGetInvoked.Should().BeTrue();
+            Assert.True(manager.IsStopTrainingRequested());
+            Assert.True(isOnStopTrainingGetInvoked);
         }
 
         [Fact]
@@ -89,10 +88,10 @@ namespace Microsoft.ML.AutoML.Test
             });
 
             await waitForCompleted;
-            aggregationManager.IsStopTrainingRequested().Should().BeTrue();
-            timeoutManager.IsStopTrainingRequested().Should().BeTrue();
-            cancellationManager.IsStopTrainingRequested().Should().BeFalse();
-            isOnStopTrainingGetInvoked.Should().BeTrue();
+            Assert.True(aggregationManager.IsStopTrainingRequested());
+            Assert.True(timeoutManager.IsStopTrainingRequested());
+            Assert.False(cancellationManager.IsStopTrainingRequested());
+            Assert.True(isOnStopTrainingGetInvoked);
 
             aggregationManager = new AggregateTrainingStopManager(null, new TimeoutTrainingStopManager(TimeSpan.FromSeconds(100), null), cancellationManager);
             isOnStopTrainingGetInvoked = false;
@@ -103,9 +102,9 @@ namespace Microsoft.ML.AutoML.Test
             cts.Cancel();
 
             await waitForCompleted;
-            aggregationManager.IsStopTrainingRequested().Should().BeTrue();
-            cancellationManager.IsStopTrainingRequested().Should().BeTrue();
-            isOnStopTrainingGetInvoked.Should().BeTrue();
+            Assert.True(aggregationManager.IsStopTrainingRequested());
+            Assert.True(cancellationManager.IsStopTrainingRequested());
+            Assert.True(isOnStopTrainingGetInvoked);
         }
     }
 }

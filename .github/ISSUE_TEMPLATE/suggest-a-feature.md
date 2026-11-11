@@ -7,6 +7,8 @@ assignees: ''
 
 ---
 
+If your suggestion adds, changes, or removes a public API, use the [API proposal template](https://github.com/dotnet/machinelearning/issues/new?template=propose-an-api.md) and follow the [API review process](https://github.com/dotnet/machinelearning/blob/main/docs/project-docs/api-review-process.md) before implementation.
+
 **Is your feature request related to a problem? Please describe.**
 A clear and concise description of what the problem is. Ex. I'm always frustrated when [...]
 
