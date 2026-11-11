@@ -2,15 +2,6 @@
 # ML.NET's official, signed build
 ################################################################################
 
-schedules:
-- cron: 0 3 * * 0
-  displayName: Weekly official build
-  branches:
-    include:
-    - main
-    - release/*
-  always: true
-
 variables:
 - name: BuildConfig
   value: Release
@@ -60,6 +51,9 @@ extends:
     featureFlags:
       autoBaseline: true
     sdl:
+      codeql:
+        ${{ if startsWith(variables['Build.SourceBranch'], 'refs/heads/release/') }}:
+          enabledOnNonDefaultBranches: true
       binskim:
         enabled: true
         break: true
