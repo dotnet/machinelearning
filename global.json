@@ -1,6 +1,6 @@
 {
   "tools": {
-    "dotnet": "12.0.100-alpha.1.26480.102",
+    "dotnet": "11.0.100",
     "runtimes": {
       "dotnet": [
         "$(DotNetRuntime60Version)",
