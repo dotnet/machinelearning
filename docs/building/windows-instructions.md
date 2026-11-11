@@ -52,6 +52,9 @@ You can then pack them into NuGet packages using the same target architecture:
 
 ## Running Tests
 
+Local tests default to both .NET 10 and .NET 11 on all architectures.
+CI explicitly runs .NET 10 and .NET 11 tests on both x64 and ARM64 in Debug and Release, with separate .NET Framework 4.8 jobs.
+
 ### Running tests from Visual Studio
 
 After successfully building, run tests through the Visual Studio Test Explorer window.

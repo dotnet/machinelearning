@@ -4,11 +4,13 @@
     "runtimes": {
       "dotnet": [
         "$(DotNetRuntime60Version)",
-        "$(DotNetRuntime80Version)"
+        "$(DotNetRuntime100Version)",
+        "$(DotNetRuntime110Version)"
       ],
       "dotnet/x86": [
         "$(DotNetRuntime60Version)",
-        "$(DotNetRuntime80Version)"
+        "$(DotNetRuntime100Version)",
+        "$(DotNetRuntime110Version)"
       ]
     }
   },
