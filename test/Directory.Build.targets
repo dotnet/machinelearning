@@ -2,6 +2,13 @@
 
   <Import Project="..\Directory.Build.targets" />
 
+  <!-- The pinned preview SDK maps net11.0 to .NET 12 packs by default. -->
+  <ItemGroup Condition="'$(TargetFramework)' == 'net11.0'">
+    <FrameworkReference Update="Microsoft.NETCore.App"
+                        TargetingPackVersion="$(DotNetRuntime110Version)"
+                        RuntimeFrameworkVersion="$(DotNetRuntime110Version)" />
+  </ItemGroup>
+
   <PropertyGroup>
     <!-- This needs to be in Directory.Build.targets or the default value for AllowedReferenceRelatedFileExtensions will not be applied.
          This is required in order to have following extension files in the output folder of the projects referencing other projects. -->
