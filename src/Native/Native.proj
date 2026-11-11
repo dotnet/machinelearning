@@ -167,7 +167,7 @@
                           Include="$(NativeAssetsBuiltPath)\$(NativeLibPrefix)CpuMathNative$(NativeLibExtension)"
                           RelativePath="Microsoft.ML.CpuMath\runtimes\$(PackageRid)\nativeassets\netstandard2.0" />
       <NativePackageAsset Include="$(PlaceholderFile)"
-                          RelativePath="Microsoft.ML.CpuMath\runtimes\$(PackageRid)\nativeassets\net8.0" />
+                          RelativePath="Microsoft.ML.CpuMath\runtimes\$(PackageRid)\nativeassets\net10.0" />
       <NativePackageAsset Include="$(NativeAssetsBuiltPath)\$(NativeLibPrefix)LdaNative$(NativeLibExtension)"
                           RelativePath="Microsoft.ML\runtimes\$(PackageRid)\native" />
       <!-- On ARM, SymSgdNative contains a self-contained CBLAS shim instead of using Intel MKL. -->
