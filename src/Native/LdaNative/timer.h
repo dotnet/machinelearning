@@ -5,9 +5,10 @@
 #pragma once
 #include <chrono>
 #include <iomanip>
-#include <iostream>
+#include <sstream>
 #include <string>
 using namespace std::chrono;
+
 class CTimer
 {
 
@@ -44,13 +45,18 @@ public:
     }
 
     // time unit: seconds
-    void Tag(const std::string& message)
+    std::string Tag(const std::string& message)
     {
         endPerfomanceCount = std::chrono::steady_clock::now();
         totalElapsed += duration_cast<duration<float>> (endPerfomanceCount - startPerfomanceCount);
-        OutputStatistics(message);
+
+        std::ostringstream output;
+        output << "Time Cost totally: " << std::fixed << std::setprecision(6) << GetTotalElaps()
+            << ", last time span(" << message << "): " << GetTaggedTimeSpan() << " seconds.";
+
         //start next round
         Start();
+        return output.str();
     }
 
     float GetTotalElaps()
@@ -72,13 +78,6 @@ public:
     float GetTaggedTimeSpan()
     {
         return duration_cast<duration<float>> (endPerfomanceCount - startPerfomanceCount).count();
-    }
-
-    void OutputStatistics(const std::string& message)
-    {
-        std::cout << "Time Cost totally: " << std::fixed << std::setprecision(6) << GetTotalElaps()
-            << ", last time span(" << message << "): " << GetTaggedTimeSpan()
-            << std::defaultfloat << " seconds.\n";
     }
 
 private:

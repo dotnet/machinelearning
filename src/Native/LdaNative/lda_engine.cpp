@@ -14,6 +14,7 @@
 #include <thread>
 #include <algorithm>
 #include <iomanip>
+#include <sstream>
 #include <stdlib.h>
 
 #include "timer.h"
@@ -37,6 +38,16 @@
 #endif
 
 namespace lda {
+    namespace
+    {
+        void WriteOutputLine(const std::string& line)
+        {
+            static std::mutex outputMutex;
+            std::lock_guard<std::mutex> lock(outputMutex);
+            std::cout << line << '\n';
+        }
+    }
+
     LdaEngine::LdaEngine(int numTopic,
         int numVocab,
         float alphaSum,
@@ -516,7 +527,7 @@ namespace lda {
         process_barrier_->wait();
 
         std::string message = "thread_id = " + std::to_string(thread_id) + ", training iterations";
-        tmDebug.Tag(message);
+        WriteOutputLine(tmDebug.Tag(message));
     }
 
     void LdaEngine::Testing_Thread()
@@ -623,8 +634,10 @@ namespace lda {
         }
 
         double total_end = lda::get_time();
-        std::cout << "thread_id = " << thread_id << ", Total time for burnin iterations : "
-            << std::fixed << std::setprecision(6) << total_end - total_start << std::defaultfloat << " sec.\n";
+        std::ostringstream output;
+        output << "thread_id = " << thread_id << ", Total time for burnin iterations : "
+            << std::fixed << std::setprecision(6) << total_end - total_start << " sec.";
+        WriteOutputLine(output.str());
     }
 
     void LdaEngine::AllocateDataMemory(int num_document, int64_t corpus_size)
