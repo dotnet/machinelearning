@@ -39,36 +39,43 @@ namespace Microsoft.ML.TorchSharp.Roberta
         {
             /// <summary>
             /// Context Column Name
+            /// The default value is <c>Context</c>.
             /// </summary>
             public string ContextColumnName = DefaultColumnNames.Context;
 
             /// <summary>
             /// Question Column Name
+            /// The default value is <c>Question</c>.
             /// </summary>
             public string QuestionColumnName = DefaultColumnNames.Question;
 
             /// <summary>
             /// Answer Column Name for the training data
+            /// The default value is <c>TrainingAnswer</c>.
             /// </summary>
             public string TrainingAnswerColumnName = DefaultColumnNames.TrainingAnswer;
 
             /// <summary>
             /// Answer Column Name for the predicted answers
+            /// The default value is <c>Answer</c>.
             /// </summary>
             public string PredictedAnswerColumnName = DefaultColumnNames.Answer;
 
             /// <summary>
             /// Answer Index Start Column Name
+            /// The default value is <c>AnswerStart</c>.
             /// </summary>
             public string AnswerIndexStartColumnName = DefaultColumnNames.AnswerIndex;
 
             /// <summary>
             /// Number of top predicted answers in question answering task.
+            /// The default value is <c>3</c>.
             /// </summary>
             public int TopKAnswers = DefaultColumnNames.TopKAnswers;
 
             /// <summary>
             /// How often to log the loss.
+            /// The default value is <c>50</c>.
             /// </summary>
             public int LogEveryNStep = 50;
 

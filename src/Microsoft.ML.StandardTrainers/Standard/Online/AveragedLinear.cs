@@ -23,6 +23,7 @@ namespace Microsoft.ML.Trainers
     {
         /// <summary>
         /// Learning rate.
+        /// The default is <c>1</c> for the averaged perceptron and <c>0.1</c> for online gradient descent.
         /// </summary>
         [Argument(ArgumentType.AtMostOnce, HelpText = "Learning rate", ShortName = "lr", SortOrder = 50)]
         [TGUI(Label = "Learning rate", SuggestedSweeps = "0.01,0.1,0.5,1.0")]
@@ -35,7 +36,9 @@ namespace Microsoft.ML.Trainers
         /// </summary>
         /// <value>
         /// <see langword="true" /> to decrease the <see cref="LearningRate"/> as iterations progress; otherwise, <see langword="false" />.
-        /// Default is <see langword="false" />. The learning rate will be reduced with every weight update proportional to the square root of the number of updates.
+        /// The default is <see langword="false" /> for the averaged perceptron and
+        /// <see langword="true" /> for online gradient descent. The learning rate will be reduced
+        /// with every weight update proportional to the square root of the number of updates.
         /// </value>
         [Argument(ArgumentType.AtMostOnce, HelpText = "Decrease learning rate", ShortName = "decreaselr", SortOrder = 50)]
         [TGUI(Label = "Decrease Learning Rate", Description = "Decrease learning rate as iterations progress")]
@@ -65,6 +68,7 @@ namespace Microsoft.ML.Trainers
 
         /// <summary>
         /// The L2 weight for <a href='https://en.wikipedia.org/wiki/Regularization_(mathematics)'>regularization</a>.
+        /// The default value is <c>0</c>.
         /// </summary>
         [Argument(ArgumentType.AtMostOnce, HelpText = "L2 Regularization Weight", ShortName = "reg,L2RegularizerWeight", SortOrder = 50)]
         [TGUI(Label = "L2 Regularization Weight")]

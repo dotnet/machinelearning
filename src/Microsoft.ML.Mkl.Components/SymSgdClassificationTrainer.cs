@@ -82,8 +82,8 @@ namespace Microsoft.ML.Trainers
         public sealed class Options : TrainerInputBaseWithLabel
         {
             /// <summary>
-            /// Degree of lock-free parallelism. Determinism not guaranteed if this is set to higher than 1.
-            /// The default value is the number of logical cores that are available on the system.
+            /// Degree of lock-free parallelism. Determinism is not guaranteed when more than one thread is used.
+            /// The default is <see langword="null"/>, which uses the number of available logical processors.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Degree of lock-free parallelism. Determinism not guaranteed. " +
                 "Multi-threading is not supported currently.", ShortName = "nt")]
@@ -91,6 +91,7 @@ namespace Microsoft.ML.Trainers
 
             /// <summary>
             /// Number of passes over the data.
+            /// The default value is <c>50</c>.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Number of passes over the data.", ShortName = "iter", SortOrder = 50)]
             [TGUI(SuggestedSweeps = "1,5,10,20,30,40,50")]
@@ -100,12 +101,14 @@ namespace Microsoft.ML.Trainers
             /// <summary>
             /// Tolerance for difference in average loss in consecutive passes.
             /// If the reduction on loss is smaller than the specified tolerance in one iteration, the training process will be terminated.
+            /// The default value is <c>1e-4</c>.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Tolerance for difference in average loss in consecutive passes.", ShortName = "tol")]
             public float Tolerance = Defaults.Tolerance;
 
             /// <summary>
             /// Learning rate. A larger value can potentially reduce the training time but incur numerical instability and over-fitting.
+            /// The default is <see langword="null"/>, which tunes the learning rate automatically.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Learning rate", ShortName = "lr", NullName = "<Auto>", SortOrder = 51)]
             [TGUI(SuggestedSweeps = "<Auto>,1e1,1e0,1e-1,1e-2,1e-3")]
@@ -114,6 +117,7 @@ namespace Microsoft.ML.Trainers
 
             /// <summary>
             /// L2 regularization.
+            /// The default value is <c>0</c>.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "L2 regularization", ShortName = "l2", SortOrder = 52)]
             [TGUI(SuggestedSweeps = "0.0,1e-5,1e-5,1e-6,1e-7")]
@@ -123,6 +127,7 @@ namespace Microsoft.ML.Trainers
             /// <summary>
             /// The number of iterations each thread learns a local model until combining it with the
             /// global model. Low value means more updated global model and high value means less cache traffic.
+            /// The default is <see langword="null"/>, which tunes the update frequency automatically.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "The number of iterations each thread learns a local model until combining it with the " +
                 "global model. Low value means more updated global model and high value means less cache traffic.", ShortName = "freq", NullName = "<Auto>")]
@@ -132,18 +137,21 @@ namespace Microsoft.ML.Trainers
 
             /// <summary>
             /// The acceleration memory budget in MB.
+            /// The default value is <c>1024</c>.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "The acceleration memory budget in MB", ShortName = "accelMemBudget")]
             public long MemorySize = Defaults.MemorySize;
 
             /// <summary>
             /// Set to <see langword="true" /> causes the data to shuffle.
+            /// The default value is <see langword="true"/>.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Shuffle data?", ShortName = "shuf")]
             public bool Shuffle = Defaults.Shuffle;
 
             /// <summary>
             /// Apply weight to the positive class, for imbalanced data.
+            /// The default value is <c>1</c>.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Apply weight to the positive class, for imbalanced data", ShortName = "piw")]
             public float PositiveInstanceWeight = Defaults.PositiveInstanceWeight;

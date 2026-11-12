@@ -107,6 +107,7 @@ namespace Microsoft.ML.Trainers
         {
             /// <summary>
             /// Initial learning rate.
+            /// The default value is <c>0.1</c>.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Initial learning rate", ShortName = "lr", SortOrder = 1)]
             [TlcModule.SweepableFloatParam(0.001f, 1.0f, isLogScale: true)]
@@ -114,6 +115,7 @@ namespace Microsoft.ML.Trainers
 
             /// <summary>
             /// Number of training iterations.
+            /// The default value is <c>5</c>.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Number of training iterations", ShortName = "iters,iter", SortOrder = 2)]
             [TlcModule.SweepableLongParam(1, 100)]
@@ -121,6 +123,7 @@ namespace Microsoft.ML.Trainers
 
             /// <summary>
             /// Latent space dimension.
+            /// The default value is <c>20</c>.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Latent space dimension", ShortName = "d", SortOrder = 3)]
             [TlcModule.SweepableLongParam(4, 100)]
@@ -128,6 +131,7 @@ namespace Microsoft.ML.Trainers
 
             /// <summary>
             /// Regularization coefficient of linear weights.
+            /// The default value is <c>0.0001</c>.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Regularization coefficient of linear weights", ShortName = "lambdaLinear", SortOrder = 4)]
             [TlcModule.SweepableFloatParam(1e-8f, 1f, isLogScale: true)]
@@ -135,6 +139,7 @@ namespace Microsoft.ML.Trainers
 
             /// <summary>
             /// Regularization coefficient of latent weights.
+            /// The default value is <c>0.0001</c>.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Regularization coefficient of latent weights", ShortName = "lambdaLatent", SortOrder = 5)]
             [TlcModule.SweepableFloatParam(1e-8f, 1f, isLogScale: true)]
@@ -142,6 +147,7 @@ namespace Microsoft.ML.Trainers
 
             /// <summary>
             /// Whether to normalize the input vectors so that the concatenation of all fields' feature vectors is unit-length.
+            /// The default value is <see langword="true"/>.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Whether to normalize the input vectors so that the concatenation of all fields' feature vectors is unit-length", ShortName = "norm", SortOrder = 6)]
             public new bool NormalizeFeatures = true;
@@ -149,6 +155,7 @@ namespace Microsoft.ML.Trainers
             /// <summary>
             /// Extra feature column names. The column named <see cref="TrainerInputBase.FeatureColumnName"/> stores features from the first field.
             /// The i-th string in <see cref="ExtraFeatureColumns"/> stores the name of the (i+1)-th field's feature column.
+            /// The default is <see langword="null"/>, meaning there are no extra feature columns.
             /// </summary>
             [Argument(ArgumentType.Multiple, HelpText = "Extra columns to use for feature vectors. The i-th specified string denotes the column containing features form the (i+1)-th field." +
                 " Note that the first field is specified by \"feat\" instead of \"exfeat\".",
@@ -157,18 +164,21 @@ namespace Microsoft.ML.Trainers
 
             /// <summary>
             /// Whether to shuffle for each training iteration.
+            /// The default value is <see langword="true"/>.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Whether to shuffle for each training iteration", ShortName = "shuf", SortOrder = 90)]
             public bool Shuffle = true;
 
             /// <summary>
             /// Report traning progress or not.
+            /// The default value is <see langword="true"/>.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Report traning progress or not", ShortName = "verbose", SortOrder = 91)]
             public bool Verbose = true;
 
             /// <summary>
             /// Radius of initial latent factors.
+            /// The default value is <c>0.5</c>.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Radius of initial latent factors", ShortName = "rad", SortOrder = 110)]
             [TlcModule.SweepableFloatParam(0.1f, 1f)]

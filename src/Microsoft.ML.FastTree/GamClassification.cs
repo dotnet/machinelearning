@@ -65,6 +65,7 @@ namespace Microsoft.ML.Trainers.FastTree
         {
             /// <summary>
             /// Whether to use derivatives optimized for unbalanced training data.
+            /// The default value is <see langword="false"/>.
             /// </summary>
             [Argument(ArgumentType.LastOccurrenceWins, HelpText = "Should we use derivatives optimized for unbalanced sets", ShortName = "us")]
             [TGUI(Label = "Optimize for unbalanced")]
