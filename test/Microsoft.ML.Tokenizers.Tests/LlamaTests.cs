@@ -103,6 +103,34 @@ namespace Microsoft.ML.Tokenizers.Tests
                 new (int Index, int Length)[] { (0, 0), (0, 6), (6, 1), (7, 6), (13, 1) }
             };
 
+            // Of the pairs with the same score, the leftmost merges first, as in SentencePiece
+            yield return new object[]
+            {
+                _llamaTokenizer,
+                "____",
+                new int[] { 1, 903, 22359 },
+                new string[] { "<s>", "▁_", "___" },
+                new (int Index, int Length)[] { (0, 0), (0, 2), (2, 3) }
+            };
+
+            yield return new object[]
+            {
+                _llamaTokenizer,
+                "......",
+                new int[] { 1, 13035, 636 },
+                new string[] { "<s>", "▁....", ".." },
+                new (int Index, int Length)[] { (0, 0), (0, 5), (5, 2) }
+            };
+
+            yield return new object[]
+            {
+                _llamaTokenizer,
+                "~~~~",
+                new int[] { 1, 3695, 7377, 30022 },
+                new string[] { "<s>", "▁~", "~~", "~" },
+                new (int Index, int Length)[] { (0, 0), (0, 2), (2, 2), (4, 1) }
+            };
+
             yield return new object[]
             {
                 _llamaTokenizer,
