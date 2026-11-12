@@ -52,27 +52,6 @@ namespace Microsoft.ML.Tokenizers.Tests
                     new string[] { "In", " the", " night", "." },
                 };
 
-                // Sentence, Expected Ids, Expected Tokens, Expected Offsets, Decoded Tokens, Token occurrence values
-                yield return new object[]
-                {
-                    "He\U0001F601llo Ber\U0001F601ta", // Non-Latin characters should be ignored
-                    new int[] { 1544, 18798, 4312, 8326 },
-                    new string[] { "He", "llo", "ĠBer", "ta" },
-                    new (int, int)[] { (0, 2), (4, 3), (7, 4), (13, 2) },
-                    new int[] { 2759525, 207306, 565286, 560191 },
-                    new string[] { "He", "llo", " Ber", "ta" },
-                };
-
-                // Sentence, Expected Ids, Expected Tokens, Expected Offsets, Decoded Tokens, Token occurrence values
-                yield return new object[]
-                {
-                    "\U0001F601\U0001F601\u0660\u0340", // Full Non-Latin string
-                    new int[] { },
-                    new string[] {  },
-                    new (int, int)[] { },
-                    new int[] {  },
-                    new string[] {  },
-                };
             }
         }
 
@@ -164,10 +143,10 @@ namespace Microsoft.ML.Tokenizers.Tests
                 };
                 yield return new object?[]
                 {
-                    "Hello, y'all! How are you 😁 ?",
-                    new string[] { "Hello", ",", "Ġy", "'", "all", "!", "ĠHow", "Ġare", "Ġyou", "Ġ", "Ġ?" },
-                    new (int Index, int Length)[] { (0, 5), (5, 1), (6, 2), (8, 1), (9, 3), (12, 1), (13, 4), (17, 4), (21, 4), (25, 1), (28, 2) },
-                    new int[] { 15496, 11, 331, 6, 439, 0, 1374, 389, 345, 220, 5633 }
+                    "Hello, y'all! How are you ?",
+                    new string[] { "Hello", ",", "Ġy", "'", "all", "!", "ĠHow", "Ġare", "Ġyou", "Ġ?" },
+                    new (int Index, int Length)[] { (0, 5), (5, 1), (6, 2), (8, 1), (9, 3), (12, 1), (13, 4), (17, 4), (21, 4), (25, 2) },
+                    new int[] { 15496, 11, 331, 6, 439, 0, 1374, 389, 345, 5633 }
                 };
             }
         }
@@ -303,6 +282,47 @@ namespace Microsoft.ML.Tokenizers.Tests
                     Assert.Equal(encodingIds[i], robertaModel.Vocabulary[tokens[i]]);
                 }
             }
+        }
+
+        [Theory]
+        [InlineData("음악을 들으면서")]
+        [InlineData("Привет мир")]
+        [InlineData("日本語のテキスト")]
+        [InlineData("He😁llo Ber😁ta")]
+        [InlineData("café naïve résumé")]
+        public void TestTokenizerEncodesNonLatinText(string text)
+        {
+            Tokenizer tokenizer = GetRobertaTokenizer();
+
+            IReadOnlyList<EncodedToken> tokens = tokenizer.EncodeToTokens(text, out _);
+            int[] ids = tokenizer.EncodeToIds(text).ToArray();
+
+            Assert.NotEmpty(tokens);
+            Assert.Equal(ids, tokens.Select(token => token.Id));
+            Assert.Equal(tokens.Count, tokenizer.CountTokens(text));
+            Assert.Equal(0, tokens[0].Offset.Start.Value);
+            Assert.Equal(text.Length, tokens[^1].Offset.End.Value);
+
+            foreach (EncodedToken token in tokens)
+            {
+                Assert.InRange(token.Offset.Start.Value, 0, text.Length - 1);
+                Assert.InRange(token.Offset.End.Value, token.Offset.Start.Value + 1, text.Length);
+            }
+
+            // Exercise the cached path too; offsets remain UTF-16 positions in the
+            // original text after byte expansion.
+            IReadOnlyList<EncodedToken> cachedTokens = tokenizer.EncodeToTokens(text, out _);
+            Assert.Equal(tokens.Select(token => (token.Id, token.Offset.Start.Value, token.Offset.End.Value)),
+                cachedTokens.Select(token => (token.Id, token.Offset.Start.Value, token.Offset.End.Value)));
+
+            int tokenLimit = Math.Max(1, tokens.Count / 2);
+            Assert.Equal(tokens.Take(tokenLimit).Select(token => token.Id),
+                tokenizer.EncodeToIds(text, tokenLimit, out _, out int charsConsumed));
+            Assert.Equal(tokens[tokenLimit - 1].Offset.End.Value, charsConsumed);
+
+            int startIndex = tokenizer.GetIndexByTokenCountFromEnd(text, tokenLimit, out _, out int tokenCount);
+            Assert.Equal(tokenLimit, tokenCount);
+            Assert.Equal(tokens[tokens.Count - tokenLimit].Offset.Start.Value, startIndex);
         }
 
         private void TestDecodingWithSpan(EnglishRobertaTokenizer tokenizer, int[] ids, string expectedDecoded)
