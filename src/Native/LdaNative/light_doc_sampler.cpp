@@ -190,7 +190,7 @@ namespace lda
         {
             if (i % num_threads == thread_id)
             {
-                word_topic_table_[i] = model_block.get_row(i, rehashing_buf_);
+                word_topic_table_[i] = model_block.get_row(i, rehashing_buf_, 2 * static_cast<size_t>(K_));
             }
         }
     }

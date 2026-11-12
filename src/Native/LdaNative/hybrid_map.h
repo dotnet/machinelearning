@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 #pragma once
+#include <algorithm>
 #include <cstring>
 #include <fstream>
 #include <iostream>
@@ -10,6 +11,7 @@
 #include <string>
 #include <cassert>
 #include <map>
+#include <stdexcept>
 
 // The probing method:
 // Linear probing
@@ -29,7 +31,7 @@ namespace lda
     public:
         hybrid_map();
         hybrid_map(int32_t *memory, int32_t is_dense, int32_t capacity, int32_t num_deleted_key
-            , int32_t *external_rehash_buf_);
+            , int32_t *external_rehash_buf_, size_t external_rehash_buf_size);
         hybrid_map(const hybrid_map &other);
         hybrid_map& operator=(const hybrid_map &other);
 
@@ -67,6 +69,7 @@ namespace lda
 
         int32_t num_deleted_key_;
         int32_t* external_rehash_buf_;
+        size_t external_rehash_buf_size_;
     };
 
     inline int32_t hybrid_map::nonzero_num() const
@@ -123,7 +126,14 @@ namespace lda
     {
         if (!is_dense_)
         {
-            memcpy(external_rehash_buf_, memory_, 2 * capacity_ * sizeof(int32_t));
+            if (capacity_ < 0)
+                throw std::length_error("Hash table capacity cannot be negative.");
+
+            size_t element_count = 2 * static_cast<size_t>(capacity_);
+            if (external_rehash_buf_ == nullptr || external_rehash_buf_size_ < element_count)
+                throw std::length_error("Hash table rehash buffer is too small or null.");
+
+            std::copy_n(memory_, element_count, external_rehash_buf_);
             int32_t *key = external_rehash_buf_;
             int32_t *value = external_rehash_buf_ + capacity_;
             memset(memory_, 0, 2 * capacity_ * sizeof(int32_t));
