@@ -1,7 +1,7 @@
 ML.NET Release Process
 ======================
 
-This document describes the different kinds of ML.NET releases, how those releases are versioned, and how they are built.
+This document describes the different kinds of ML.NET releases, how those releases are versioned, and how they are built, validated, and published.
 
 Types of releases
 --------------------
@@ -90,28 +90,66 @@ When creating a new `release/<version>` branch:
    dotnet msbuild .\src\Microsoft.ML.Tokenizers\Microsoft.ML.Tokenizers.csproj -nologo -getProperty:PackageVersion
    ```
 
+Publishing a preview
+--------------------
+
+1. Select a successful, signed build from `main` or the intended release branch in the [official pipeline](https://dev.azure.com/dnceng/internal/_build?definitionId=1110) (requires access). Use a build with `VERSIONKIND` unset for build-stamped preview versions.
+1. Add release notes under `docs/release-notes/`.
+1. [Validate and publish the packages](#validating-and-publishing-packages).
+1. Create a GitHub Release tagged at the **exact shipped build commit**, and mark it as a prerelease. This is for announced previews.
+
+Publishing a servicing release
+------------------------------
+
+After publishing a GA release, prepare `release/<version>` for servicing: advance both `PatchVersion` values in `eng/BranchInfo.props` from `0` to `1`, set `PreReleaseVersionLabel` to `servicing` in `eng/Versions.props`, and update the stable compatibility baselines to the last-shipped versions ([example](https://github.com/dotnet/machinelearning/pull/7905)).
+
+1. Before building a servicing release, ensure both `PatchVersion` values in `eng/BranchInfo.props` are one higher than the last shipped patch.
+1. Queue the official build with `VERSIONKIND=release` to remove the prerelease suffix ([Arcade versioning](https://github.com/dotnet/arcade/blob/main/Documentation/Versioning.md#build-kind)).
+1. Add release notes under `docs/release-notes/` to both `main` and the release branch, including stable, experimental, and Tokenizers/data package versions.
+1. [Validate and publish the final packages](#validating-and-publishing-packages).
+1. Create a GitHub Release tagged at the **exact shipped build commit**, not the branch tip or a later release-notes commit.
+1. Advance both `PatchVersion` values on the release branch for the next servicing release ([example](https://github.com/dotnet/machinelearning/pull/7805)).
+
+Validating and publishing packages
+----------------------------------
+
+1. Confirm the build succeeded and review warnings, including Component Governance findings. Resolve release blockers.
+1. Record the build ID and full source commit SHA. Download its shipping `.nupkg` files into an empty directory and check package IDs and versions against the build manifest.
+1. Verify signatures and the expected signing identity:
+
+   ```powershell
+   dotnet nuget verify ".\*.nupkg" --all --verbosity normal
+   ```
+
+   Stop on failure. [`--all` checks signatures](https://learn.microsoft.com/en-us/dotnet/core/tools/dotnet-nuget-verify), not functionality.
+
+1. Run the [package integration tests](#local-package-integration-tests) against the exact packages being shipped. Review skipped tests and retain the results.
+1. [Publish the validated shipping packages to nuget.org](https://learn.microsoft.com/en-us/nuget/nuget-org/publish-a-package) without rebuilding or repacking them.
+1. Confirm every expected package/version can be restored from nuget.org with a fresh cache before announcing the release.
+
 Local package integration tests
 -------------------------------
 
-Run the existing nightly test project against packages from a specific official
-build published to `dotnet-libraries`. ML.NET is not built from source.
+[`Microsoft.ML.NightlyBuild.Tests`](../../test/Microsoft.ML.NightlyBuild.Tests/Microsoft.ML.NightlyBuild.Tests.csproj)
+runs the existing `Microsoft.ML.IntegrationTests` sources and native dependency
+checks against selected packages, not source-built ML.NET.
 
 Use PowerShell 7.2+, a .NET 10 SDK/runtime (or a newer SDK with the .NET 10 runtime),
 and Azure CLI signed in with read access to `dnceng/internal`
 (or set `AZURE_DEVOPS_ACCESS_TOKEN`). From the repository root:
 
 ```powershell
+[int]$buildId = Read-Host 'Official build ID'
 $selection = Join-Path ([IO.Path]::GetTempPath()) 'mlnet-selected-build.json'
-.\eng\testing\Resolve-PublishedPackages.ps1 -BuildId 3103962 -OutputPath $selection
+.\eng\testing\Resolve-PublishedPackages.ps1 -BuildId $buildId -OutputPath $selection
 .\eng\testing\Run-PackageIntegrationTests.ps1 -SelectionPath $selection
 ```
 
-The runner supplies exact package versions to both the nightly project and its
-test helper. It disables repository-native copying and uses fresh build outputs
-and a fresh package cache. Package-only checks require the ONNX and MKL native
-libraries on supported platforms. The shared integration tests keep their normal
-capability-based skips.
+For package validation, use the scripts rather than running the nightly project
+directly. They select an official build, pin its package versions, use fresh outputs
+and a fresh package cache, and enable package-native checks without copying
+repository-built native libraries.
+Logs, resolved versions, and TRX results are saved in the run's `diagnostics` folder.
 
-Use `-Filter` to select tests, or `-WorkingDirectory` to choose an empty directory
-outside the checkout. Logs, resolved packages, and TRX results are retained in its
-`diagnostics` folder.
+**Limitation:** the runner only supports `dotnet-libraries` feed.
+Those builds need separate validation of the exact final packages before publishing.
