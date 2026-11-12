@@ -69,6 +69,8 @@
     <MyProjects Remove="..\test\Microsoft.ML.PerformanceTests\Microsoft.ML.PerformanceTests.csproj" />
     <MyProjects Remove="..\test\Microsoft.ML.TestFrameworkCommon\Microsoft.ML.TestFrameworkCommon.csproj" />
     <MyProjects Remove="..\test\RemoteExecutorConsoleApp\RemoteExecutorConsoleApp.csproj" />
+    <MyProjects Remove="..\test\Microsoft.ML.Core.Tests\AssemblyLoadingFixtures\RuntimeTests\Microsoft.ML.RuntimeTests.csproj" />
+    <MyProjects Remove="..\test\Microsoft.ML.Core.Tests\AssemblyLoadingFixtures\CosmosClientApi\CosmosClientApi.csproj" />
     <MyProjects Remove="..\test\Microsoft.ML.NugetPackageVersionUpdater\Microsoft.ML.NugetPackageVersionUpdater.csproj" />
     <MyProjects Remove="..\test\Microsoft.ML.Benchmarks.Tests\Microsoft.ML.Benchmarks.Tests.csproj" />
     <MyProjects Remove="..\test\Microsoft.ML.TorchSharp.Tests\Microsoft.ML.TorchSharp.Tests.csproj" Condition="'$(BuildArchitecture)' != 'x64'"/>
