@@ -115,7 +115,7 @@ namespace Microsoft.ML.AutoML
             const int crossValRowCountThreshold = 15000;
 
             var rowCount = DatasetDimensionsUtil.CountRows(trainData, crossValRowCountThreshold);
-            var samplingKeyColumnName = GetSamplingKey(columnInformation?.GroupIdColumnName, columnInformation?.SamplingKeyColumnName);
+            var samplingKeyColumnName = GetSamplingKey(columnInformation?.GroupIdColumnName, columnInformation?.SamplingKeyColumnName, columnInformation?.LabelColumnName);
             if (rowCount < crossValRowCountThreshold)
             {
                 const int numCrossValFolds = 10;
@@ -129,9 +129,9 @@ namespace Microsoft.ML.AutoML
             }
         }
 
-        private string GetSamplingKey(string groupIdColumnName, string samplingKeyColumnName)
+        private string GetSamplingKey(string groupIdColumnName, string samplingKeyColumnName, string labelColumnName)
         {
-            UserInputValidationUtil.ValidateSamplingKey(samplingKeyColumnName, groupIdColumnName, _task);
+            UserInputValidationUtil.ValidateSamplingKey(samplingKeyColumnName, groupIdColumnName, labelColumnName, _task);
             if (_task == TaskKind.Ranking)
                 return groupIdColumnName ?? DefaultColumnNames.GroupId;
             return samplingKeyColumnName;
@@ -219,7 +219,7 @@ namespace Microsoft.ML.AutoML
             IProgress<CrossValidationRunDetail<TMetrics>> progressHandler = null)
         {
             UserInputValidationUtil.ValidateNumberOfCVFoldsArg(numberOfCVFolds);
-            var samplingKeyColumnName = GetSamplingKey(columnInformation?.GroupIdColumnName, columnInformation?.SamplingKeyColumnName);
+            var samplingKeyColumnName = GetSamplingKey(columnInformation?.GroupIdColumnName, columnInformation?.SamplingKeyColumnName, columnInformation?.LabelColumnName);
             var splitResult = SplitUtil.CrossValSplit(Context, trainData, numberOfCVFolds, samplingKeyColumnName);
             return ExecuteCrossVal(splitResult.trainDatasets, columnInformation, splitResult.validationDatasets, preFeaturizer, progressHandler);
         }
@@ -230,7 +230,8 @@ namespace Microsoft.ML.AutoML
         /// <param name="trainData">The training data to be used by the AutoML experiment.</param>
         /// <param name="numberOfCVFolds">The number of cross validation folds into which the training data should be divided when fitting a model.</param>
         /// <param name="labelColumnName">The name of the label column.</param>
-        /// <param name="samplingKeyColumn">The name of the sampling key column.</param>
+        /// <param name="samplingKeyColumn">The name of the sampling key column.
+        /// See <see cref="ColumnInformation.SamplingKeyColumnName"/> for more information.</param>
         /// <param name="preFeaturizer">Pre-featurizer that AutoML will apply to the data during an
         /// experiment. (The pre-featurizer will be fit only on the training data split to produce a
         /// trained transform. Then, the trained transform will be applied to both the training

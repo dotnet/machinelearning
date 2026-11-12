@@ -125,9 +125,12 @@ namespace Microsoft.ML
         /// <param name="estimator">The estimator to fit.</param>
         /// <param name="numberOfFolds">Number of cross-validation folds.</param>
         /// <param name="labelColumnName">The label column (for evaluation).</param>
-        /// <param name="samplingKeyColumnName">Optional name of the column to use as a stratification column. If two examples share the same value of the <paramref name="samplingKeyColumnName"/>
-        /// (if provided), they are guaranteed to appear in the same subset (train or test). Use this to make sure there is no label leakage from train to the test set.
-        /// If this optional parameter is not provided, a stratification columns will be generated, and its values will be random numbers .</param>
+        /// <param name="samplingKeyColumnName">Name of a column to use for grouping rows. If two examples share the same value of the <paramref name="samplingKeyColumnName"/>,
+        /// they are guaranteed to appear in the same subset (train or test). Use this to keep related rows together, for example all rows from the same user or session,
+        /// so that information about a group does not leak from the train set into the test set.
+        /// Do not use the label column as the <paramref name="samplingKeyColumnName"/>: all rows with the same label value would end up in the same subset,
+        /// so the train or test set could be missing some label values entirely. Grouping rows is not the same as stratifying by label.
+        /// If <see langword="null"/> no row grouping will be performed.</param>
         /// <param name="seed">Optional parameter used in combination with the <paramref name="samplingKeyColumnName"/>.
         /// If the <paramref name="samplingKeyColumnName"/> is not provided, the random numbers generated to create it, will use this seed as value.
         /// And if it is not provided, the default value will be used.</param>
