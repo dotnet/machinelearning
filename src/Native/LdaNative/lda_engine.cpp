@@ -13,6 +13,7 @@
 #include <fstream>
 #include <thread>
 #include <algorithm>
+#include <iomanip>
 #include <stdlib.h>
 
 #include "timer.h"
@@ -64,7 +65,7 @@ namespace lda {
             unsigned int uNumCPU = std::thread::hardware_concurrency();
             num_threads_ = std::max(1, (int)(uNumCPU - 2));
         }
-        printf("using %d thread(s) to do train/test\n", num_threads_);
+        std::cout << "using " << num_threads_ << " thread(s) to do train/test\n";
 
         bAlphaSumMultiplied = false;
         atomic_stats_.reset(new LDAEngineAtomics());
@@ -296,7 +297,7 @@ namespace lda {
             thr = std::thread(&LdaEngine::Training_Thread, this);
         }
 
-        printf("started training with %d threads\n", num_threads_);
+        std::cout << "started training with " << num_threads_ << " threads\n";
         for (auto& thr : threads) {
             thr.join();
         }
@@ -323,7 +324,7 @@ namespace lda {
             thr = std::thread(&LdaEngine::Testing_Thread, this);
         }
 
-        printf("started testing with %d threads\n", num_threads_);
+        std::cout << "started testing with " << num_threads_ << " threads\n";
 
         for (auto& thr : threads) {
             thr.join();
@@ -506,14 +507,16 @@ namespace lda {
             //output the ll once
             for (size_t i = 0; i < llcontainer.size(); i++)
             {
-                printf("loglikelihood @iter%04d = %f\n", llcontainer[i].first, llcontainer[i].second);
+                std::cout << "loglikelihood @iter" << std::setfill('0') << std::setw(4) << llcontainer[i].first
+                    << std::setfill(' ') << " = " << std::fixed << std::setprecision(6) << llcontainer[i].second
+                    << std::defaultfloat << '\n';
             }
         }
 
         process_barrier_->wait();
 
-        snprintf(tmDebug.m_szMessage, 200, "thread_id = %d, training iterations", thread_id);
-        tmDebug.InnerTag();
+        std::string message = "thread_id = " + std::to_string(thread_id) + ", training iterations";
+        tmDebug.Tag(message);
     }
 
     void LdaEngine::Testing_Thread()
@@ -620,7 +623,8 @@ namespace lda {
         }
 
         double total_end = lda::get_time();
-        printf("thread_id = %d, Total time for burnin iterations : %f sec.\n", thread_id, total_end - total_start);
+        std::cout << "thread_id = " << thread_id << ", Total time for burnin iterations : "
+            << std::fixed << std::setprecision(6) << total_end - total_start << std::defaultfloat << " sec.\n";
     }
 
     void LdaEngine::AllocateDataMemory(int num_document, int64_t corpus_size)
@@ -794,7 +798,7 @@ namespace lda {
             alpha_sum_ = alpha_sum_ * avgDocLength;
             bAlphaSumMultiplied = true;
         }
-        printf("alpha_sum was set to %f", alpha_sum_);
+        std::cout << "alpha_sum was set to " << std::fixed << std::setprecision(6) << alpha_sum_ << std::defaultfloat;
     }
 
     bool LdaEngine::ClearData()

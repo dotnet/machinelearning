@@ -4,6 +4,9 @@
 
 #pragma once
 #include <chrono>
+#include <iomanip>
+#include <iostream>
+#include <string>
 using namespace std::chrono;
 class CTimer
 {
@@ -13,8 +16,6 @@ private:
     steady_clock::time_point startPerfomanceCount;
     steady_clock::time_point endPerfomanceCount;
     duration<float> totalElapsed;
-public:
-    char m_szMessage[1024];
 
 public:
     CTimer()
@@ -43,23 +44,11 @@ public:
     }
 
     // time unit: seconds
-    void Tag(const char* pszMsg = NULL)
+    void Tag(const std::string& message)
     {
         endPerfomanceCount = std::chrono::steady_clock::now();
         totalElapsed += duration_cast<duration<float>> (endPerfomanceCount - startPerfomanceCount);
-        OutputStatistics(pszMsg);
-        //start next round
-        Start();
-    }
-
-    // time unit: seconds
-    void InnerTag()
-    {
-        endPerfomanceCount = std::chrono::steady_clock::now();
-        totalElapsed += duration_cast<duration<float>> (endPerfomanceCount - startPerfomanceCount);
-
-        OutputStatistics(m_szMessage);
-
+        OutputStatistics(message);
         //start next round
         Start();
     }
@@ -85,9 +74,11 @@ public:
         return duration_cast<duration<float>> (endPerfomanceCount - startPerfomanceCount).count();
     }
 
-    void OutputStatistics(const char* pszMsg = NULL)
+    void OutputStatistics(const std::string& message)
     {
-        printf("Time Cost totally: %f, last time span(%s): %f seconds.\n", GetTotalElaps(), pszMsg, GetTaggedTimeSpan());
+        std::cout << "Time Cost totally: " << std::fixed << std::setprecision(6) << GetTotalElaps()
+            << ", last time span(" << message << "): " << GetTaggedTimeSpan()
+            << std::defaultfloat << " seconds.\n";
     }
 
 private:

@@ -20,11 +20,12 @@ namespace lda
         key_(nullptr),
         value_(nullptr),
         num_deleted_key_(0),
-        external_rehash_buf_(nullptr)
+        external_rehash_buf_(nullptr),
+        external_rehash_buf_size_(0)
     {
     }
     hybrid_map::hybrid_map(int32_t *memory, int32_t is_dense, int32_t capacity, int32_t num_deleted_key
-        , int32_t *external_rehash_buf_)
+        , int32_t *external_rehash_buf_, size_t external_rehash_buf_size)
         : memory_(memory),
         is_dense_(is_dense),
         capacity_(capacity),
@@ -33,7 +34,8 @@ namespace lda
         key_(nullptr),
         value_(nullptr),
         num_deleted_key_(num_deleted_key),
-        external_rehash_buf_(external_rehash_buf_)
+        external_rehash_buf_(external_rehash_buf_),
+        external_rehash_buf_size_(external_rehash_buf_size)
     {
         if (is_dense_ == 0) {
             key_ = memory_;
@@ -50,6 +52,7 @@ namespace lda
         deleted_key_ = other.deleted_key_;
         num_deleted_key_ = other.num_deleted_key_;
         external_rehash_buf_ = other.external_rehash_buf_;
+        external_rehash_buf_size_ = other.external_rehash_buf_size_;
         if (this->is_dense_)
         {
             this->key_ = nullptr;
@@ -71,6 +74,7 @@ namespace lda
         deleted_key_ = other.deleted_key_;
         num_deleted_key_ = other.num_deleted_key_;
         external_rehash_buf_ = other.external_rehash_buf_;
+        external_rehash_buf_size_ = other.external_rehash_buf_size_;
         if (this->is_dense_)
         {
             this->key_ = nullptr;

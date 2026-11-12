@@ -13,6 +13,7 @@ namespace lda
 {
     hybrid_alias_map::hybrid_alias_map()
         :memory_(nullptr),
+        memory_size_(0),
         is_dense_(1),
         kv_(nullptr),
         idx_(nullptr),
@@ -23,8 +24,9 @@ namespace lda
         beta_mass_(0.0)
     {
     }
-    hybrid_alias_map::hybrid_alias_map(int32_t *memory, int32_t is_dense, int32_t capacity)
+    hybrid_alias_map::hybrid_alias_map(int32_t *memory, size_t memory_size, int32_t is_dense, int32_t capacity)
         :memory_(memory),
+        memory_size_(memory_size),
         is_dense_(is_dense),
         capacity_(capacity),
         kv_(nullptr),
@@ -49,6 +51,7 @@ namespace lda
     hybrid_alias_map::hybrid_alias_map(const hybrid_alias_map &other)
     {
         this->memory_ = other.memory_;
+        this->memory_size_ = other.memory_size_;
         this->is_dense_ = other.is_dense_;
         this->capacity_ = other.capacity_;
 
@@ -64,6 +67,7 @@ namespace lda
     hybrid_alias_map& hybrid_alias_map::operator=(const hybrid_alias_map &other)
     {
         this->memory_ = other.memory_;
+        this->memory_size_ = other.memory_size_;
         this->is_dense_ = other.is_dense_;
         this->capacity_ = other.capacity_;
 
@@ -137,7 +141,7 @@ namespace lda
             {
                 return;
             }
-            alias_rng.SetProportionMass(q_w_proportion, mass_, memory_, &height_, rng);
+            alias_rng.SetProportionMass(q_w_proportion, mass_, memory_, memory_size_, &height_, rng);
 
         }
         else
