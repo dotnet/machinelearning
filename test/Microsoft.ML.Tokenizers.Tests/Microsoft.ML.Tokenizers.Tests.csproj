@@ -9,10 +9,6 @@
     <DefineConstants>$(DefineConstants);Test</DefineConstants>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(TargetFramework)' == 'net8.0'">
-    <SuppressTfmSupportBuildWarnings>true</SuppressTfmSupportBuildWarnings>
-  </PropertyGroup>
-
   <!-- Import the test signing certificate -->
   <Import Project="../Cert.props" />
 

@@ -47,7 +47,7 @@ dotnet test test/Microsoft.ML.Tests/Microsoft.ML.Tests.csproj --filter "FullyQua
 dotnet test Microsoft.ML.sln
 ```
 
-Test projects multi-target `net8.0;net48;net9.0` on Windows, `net8.0` only on Linux/macOS/arm64.
+Test projects default to `net10.0;net11.0` on all platforms and architectures. CI explicitly covers .NET 10 and .NET 11 on x64/arm64, plus .NET Framework 4.8 on Windows.
 
 ### Format
 

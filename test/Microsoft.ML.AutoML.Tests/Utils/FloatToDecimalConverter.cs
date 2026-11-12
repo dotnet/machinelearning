@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Globalization;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -17,7 +18,9 @@ namespace Microsoft.ML.AutoML.Test
 
         public override void Write(Utf8JsonWriter writer, float value, JsonSerializerOptions options)
         {
-            writer.WriteNumberValue(Convert.ToDecimal(value));
+            // Preserve the snapshot's seven significant digits across runtime versions.
+            var normalized = decimal.Parse(value.ToString("G7", CultureInfo.InvariantCulture), NumberStyles.Float, CultureInfo.InvariantCulture);
+            writer.WriteNumberValue(normalized);
         }
     }
 }

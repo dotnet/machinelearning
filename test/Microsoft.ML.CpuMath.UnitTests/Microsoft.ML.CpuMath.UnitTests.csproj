@@ -6,7 +6,7 @@
     <PackageReference Include="Microsoft.DotNet.RemoteExecutor" />
   </ItemGroup>
 
-  <ItemGroup Condition="!$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net8.0'))">
+  <ItemGroup Condition="!$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net10.0'))">
     <NativeAssemblyReference Include="CpuMathNative" />
   </ItemGroup>
 

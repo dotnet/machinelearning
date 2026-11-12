@@ -200,13 +200,16 @@ namespace Microsoft.ML.Transforms.Onnx
 
             if (onnxSessionOptions.CreateSessionOptions != null)
             {
-                _session = new InferenceSession(modelFile, onnxSessionOptions.CreateSessionOptions());
+                SessionOptions sessionOptions = onnxSessionOptions.CreateSessionOptions();
+                _session = new InferenceSession(modelFile, sessionOptions);
+                // ONNX Runtime passes the raw options handle to native session creation.
+                GC.KeepAlive(sessionOptions);
             }
             else if (gpuDeviceId != null)
             {
                 try
                 {
-                    SessionOptions sessionOptions = SessionOptions.MakeSessionOptionWithCudaProvider(gpuDeviceId.Value);
+                    using SessionOptions sessionOptions = SessionOptions.MakeSessionOptionWithCudaProvider(gpuDeviceId.Value);
                     onnxSessionOptions.CopyTo(sessionOptions);
 
                     sessionOptions.InterOpNumThreads = interOpNumThreads.HasValue ? interOpNumThreads.GetValueOrDefault() : onnxSessionOptions.InterOpNumThreads;
@@ -218,7 +221,7 @@ namespace Microsoft.ML.Transforms.Onnx
                 {
                     if (fallbackToCpu)
                     {
-                        SessionOptions sessionOptions = new SessionOptions();
+                        using SessionOptions sessionOptions = new SessionOptions();
                         onnxSessionOptions.CopyTo(sessionOptions);
 
                         sessionOptions.InterOpNumThreads = interOpNumThreads.HasValue ? interOpNumThreads.GetValueOrDefault() : onnxSessionOptions.InterOpNumThreads;
@@ -233,7 +236,7 @@ namespace Microsoft.ML.Transforms.Onnx
             }
             else
             {
-                SessionOptions sessionOptions = new SessionOptions();
+                using SessionOptions sessionOptions = new SessionOptions();
                 onnxSessionOptions.CopyTo(sessionOptions);
 
                 sessionOptions.InterOpNumThreads = interOpNumThreads.HasValue ? interOpNumThreads.GetValueOrDefault() : onnxSessionOptions.InterOpNumThreads;
