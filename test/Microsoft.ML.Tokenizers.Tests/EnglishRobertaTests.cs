@@ -290,6 +290,7 @@ namespace Microsoft.ML.Tokenizers.Tests
         [InlineData("日本語のテキスト")]
         [InlineData("He😁llo Ber😁ta")]
         [InlineData("café naïve résumé")]
+        [InlineData("日本語のテキスト日本語のテキスト日本語のテキスト日本語のテキスト日本語のテキスト日本語のテキスト日本語のテキスト日本語のテキスト")]
         public void TestTokenizerEncodesNonLatinText(string text)
         {
             Tokenizer tokenizer = GetRobertaTokenizer();

@@ -878,11 +878,6 @@ namespace Microsoft.ML.Tokenizers
         /// </summary>
         private List<EncodedToken> EncodeToTokens(Span<char> token, Span<int> indexMapping, ReadOnlySpan<char> originalText)
         {
-            if (token.Length == 0)
-            {
-                return [];
-            }
-
             string[] charToString = ByteToUnicodeEncoding.Instance.CharToString;
 
             if (token.Length == 1)
