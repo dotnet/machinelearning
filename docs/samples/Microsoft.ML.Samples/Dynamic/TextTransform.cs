@@ -25,7 +25,7 @@ namespace Samples.Dynamic
 
                 new SampleSentimentData { Sentiment = true,
                     SentimentText = "Until the next game," +
-                    "this is the best Xbox game!" } };
+                    "this is the best XBOX game!" } };
 
             // Convert IEnumerable to IDataView.
             var trainData = ml.Data.LoadFromEnumerable(data);
@@ -35,7 +35,7 @@ namespace Samples.Dynamic
             // Sentiment    SentimentText
             // true         Best game I've ever played.
             // false        ==RUDE== Dude, 2.
-            // true          Until the next game, this is the best Xbox game!
+            // true          Until the next game, this is the best XBOX game!
 
             // A pipeline for featurization of the "SentimentText" column, and
             // placing the output in a new column named "DefaultTextFeatures". The
