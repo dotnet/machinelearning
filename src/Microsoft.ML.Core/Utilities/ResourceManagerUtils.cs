@@ -278,6 +278,12 @@ namespace Microsoft.ML.Internal.Utilities
             {
                 return e;
             }
+            catch (IOException e)
+            {
+                // A permanent file system error (full disk, missing directory, ...): surface it
+                // instead of waiting for the download timeout.
+                return e;
+            }
 
             using (downloadLock)
             {
@@ -353,7 +359,7 @@ namespace Microsoft.ML.Internal.Utilities
                 {
                     return new FileStream(lockPath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None, 1, FileOptions.None);
                 }
-                catch (IOException)
+                catch (IOException e) when (IsLockContention(lockPath, e))
                 {
                     // Another thread or process holds the lock; wait and retry.
                     await Task.Delay(100, ct).ConfigureAwait(false);
@@ -364,6 +370,15 @@ namespace Microsoft.ML.Internal.Utilities
                 }
             }
         }
+
+        /// <summary>
+        /// Tells lock contention apart from other I/O failures. The sharing violation error code differs
+        /// per platform, so instead of matching it, rely on the fact that the lock file is never deleted:
+        /// if it exists and could not be opened, another handle holds it. A missing directory, a full disk
+        /// or an invalid path never get here with an existing lock file.
+        /// </summary>
+        private static bool IsLockContention(string lockPath, IOException e)
+            => !(e is DirectoryNotFoundException) && !(e is PathTooLongException) && File.Exists(lockPath);
 
         /// <summary>
         /// Detects the faulty aka.ms links that redirect to Microsoft's homepage

@@ -19,9 +19,15 @@ using Xunit.Abstractions;
 
 namespace Microsoft.ML.Core.Tests.UnitTests
 {
+    // DownloadStreamsBodyToDisk measures process-wide allocations, so this class must not run
+    // alongside other test collections.
+    [CollectionDefinition(nameof(ResourceDownloadNoParallelizationDefinition), DisableParallelization = true)]
+    public class ResourceDownloadNoParallelizationDefinition { }
+
     /// <summary>
     /// Local, network-free tests for <see cref="ResourceManagerUtils.DownloadResource"/>.
     /// </summary>
+    [Collection(nameof(ResourceDownloadNoParallelizationDefinition))]
     public class TestResourceDownloadBehavior : BaseTestBaseline
     {
         public TestResourceDownloadBehavior(ITestOutputHelper output)
@@ -42,25 +48,33 @@ namespace Microsoft.ML.Core.Tests.UnitTests
 
                 using (var ch = env.Start("test"))
                 {
+#if NET
                     long allocatedBefore = GC.GetTotalAllocatedBytes(precise: true);
+#endif
                     var clock = Stopwatch.StartNew();
 
                     Exception result = await ResourceManagerUtils.Instance.DownloadResource(
                         env, ch, new HttpClient(), new Uri(server.Url), path, "payload.bin", CancellationToken.None);
 
                     clock.Stop();
-                    long allocated = GC.GetTotalAllocatedBytes(precise: true) - allocatedBefore;
 
                     Assert.Null(result);
                     Assert.Equal(payloadSize, new FileInfo(path).Length);
                     Assert.Equal(1, server.Requests);
 
-                    // The body must stream to disk: allocating the payload in memory would need >= 64 MB.
+#if NET
+                    // GC.GetTotalAllocatedBytes is not available on .NET Framework, so the allocation
+                    // check only runs on .NET. The body must stream to disk: allocating the payload in
+                    // memory would need >= 64 MB.
+                    long allocated = GC.GetTotalAllocatedBytes(precise: true) - allocatedBefore;
                     Assert.True(
                         allocated < payloadSize / 2,
                         $"Expected the download to stream, but {allocated / (1024 * 1024)} MB were allocated for a {payloadSize / (1024 * 1024)} MB payload.");
 
                     Log($"64 MB in {clock.Elapsed.TotalSeconds:F2}s, {allocated / (1024 * 1024)} MB allocated.");
+#else
+                    Log($"64 MB in {clock.Elapsed.TotalSeconds:F2}s.");
+#endif
                 }
             }
         }
@@ -172,6 +186,30 @@ namespace Microsoft.ML.Core.Tests.UnitTests
         /// <summary>
         /// Minimal loopback HTTP server: serves a fixed-size payload, a status code, or a redirect.
         /// </summary>
+        [Fact]
+        public async Task DownloadReturnsIOExceptionImmediatelyForMissingDirectory()
+        {
+            using (var server = new LocalPayloadServer(1024))
+            using (var workspace = new TempWorkspace())
+            {
+                // A permanent file system error must not be retried until the download timeout.
+                string path = Path.Combine(workspace.Path, "missing", "payload.bin");
+                var env = CreateEnvironment();
+
+                using (var ch = env.Start("test"))
+                {
+                    var clock = Stopwatch.StartNew();
+
+                    Exception result = await ResourceManagerUtils.Instance.DownloadResource(
+                        env, ch, new HttpClient(), new Uri(server.Url), path, "payload.bin", CancellationToken.None);
+
+                    Assert.IsAssignableFrom<IOException>(result);
+                    Assert.True(clock.Elapsed < TimeSpan.FromSeconds(10), $"Took {clock.Elapsed.TotalSeconds:F1}s to report the error.");
+                    Assert.Equal(0, server.Requests);
+                }
+            }
+        }
+
         private sealed class LocalPayloadServer : IDisposable
         {
             private const int ChunkSize = 64 * 1024;
@@ -247,7 +285,8 @@ namespace Microsoft.ML.Core.Tests.UnitTests
                     }
 
                     var buffer = new byte[ChunkSize];
-                    Array.Fill(buffer, (byte)'A');
+                    for (int i = 0; i < buffer.Length; i++)
+                        buffer[i] = (byte)'A';
                     response.ContentType = "application/octet-stream";
                     response.ContentLength64 = _payloadSize;
 
@@ -258,7 +297,7 @@ namespace Microsoft.ML.Core.Tests.UnitTests
                             await Task.Delay(_delayMs).ConfigureAwait(false);
 
                         int count = (int)Math.Min(ChunkSize, _payloadSize - sent);
-                        await response.OutputStream.WriteAsync(buffer.AsMemory(0, count)).ConfigureAwait(false);
+                        await response.OutputStream.WriteAsync(buffer, 0, count).ConfigureAwait(false);
                         sent += count;
                     }
 
