@@ -745,8 +745,7 @@ namespace Microsoft.ML.Tokenizers
 
         private void Encode(ReadOnlySpan<byte> normalized, Span<BestPathNode> bestPathEndsAt)
         {
-            Debug.Assert(normalized.Length > 0);
-
+            // normalized can be empty when normalization removes every character, e.g. whitespace only input.
             int size = normalized.Length;
             float unkScore = _minScore - UnkPenalty;
 

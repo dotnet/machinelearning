@@ -317,8 +317,8 @@ namespace Microsoft.ML.Tokenizers
         }
 
         // Returns the longest consumed prefix of |input| that can be normalized.
-        // if we return normalizedPrefix == default, means no normalization and the original input span should be used.
-        private int NormalizePrefix(ReadOnlySpan<byte> input, out Memory<byte> normalizedPrefix)
+        // normalizedPrefix is what should be written for that prefix. It can be empty when the charsmap deletes the prefix.
+        private int NormalizePrefix(ReadOnlySpan<byte> input, out ReadOnlySpan<byte> normalizedPrefix)
         {
             Debug.Assert(!input.IsEmpty);
 
@@ -354,12 +354,12 @@ namespace Microsoft.ML.Tokenizers
                     // Found a malformed utf8.
                     // The rune is set to be 0xFFFD (REPLACEMENT CHARACTER), which is a valid Unicode of three bytes in utf8, but here we only consume one byte.
                     result = 1;
-                    normalizedPrefix = new Memory<byte>(_replacementBytes, 0, 3);
+                    normalizedPrefix = _replacementBytes.AsSpan(0, 3);
                 }
                 else
                 {
                     result = length;
-                    normalizedPrefix = default;
+                    normalizedPrefix = input.Slice(0, length);
                 }
             }
             else
@@ -374,7 +374,7 @@ namespace Microsoft.ML.Tokenizers
                 {
                     normalizedLength++;
                 }
-                normalizedPrefix = new Memory<byte>(_normalized, longestValue, normalizedLength - longestValue);
+                normalizedPrefix = _normalized.AsSpan(longestValue, normalizedLength - longestValue);
             }
 
             return result;
@@ -427,17 +427,16 @@ namespace Microsoft.ML.Tokenizers
             {
                 while (!input.IsEmpty)
                 {
-                    int p = NormalizePrefix(input, out Memory<byte> normalizedPrefix);
+                    int p = NormalizePrefix(input, out ReadOnlySpan<byte> normalizedPrefix);
 
                     Debug.Assert(p > 0);
 
-                    if (p != 1)
+                    if (p != 1 || normalizedPrefix.IsEmpty)
                     {
                         break;
                     }
 
-                    ReadOnlySpan<byte> normalizedByte = normalizedPrefix.Length == 0 ? input.Slice(0, p) : normalizedPrefix.Span;
-                    if (normalizedByte[0] != (byte)' ')
+                    if (normalizedPrefix[0] != (byte)' ')
                     {
                         break;
                     }
@@ -466,8 +465,7 @@ namespace Microsoft.ML.Tokenizers
 
             while (!input.IsEmpty)
             {
-                int p = NormalizePrefix(input, out Memory<byte> normalizedPrefix);
-                ReadOnlySpan<byte> sp = normalizedPrefix.Length == 0 ? input.Slice(0, p) : normalizedPrefix.Span;
+                int p = NormalizePrefix(input, out ReadOnlySpan<byte> sp);
 
                 // Removes heading spaces in sentence piece, if the previous sentence piece ends with whitespace.
                 while (isPrevSpace && sp.Length > 0 && sp[0] == (byte)' ')
