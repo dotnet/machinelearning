@@ -9,7 +9,7 @@ updates:
   - package-ecosystem: "nuget"
     directory: "/" # Location of package manifests
     schedule:
-      interval: "monthly"
+      interval: "weekly"
     groups:
       test-and-tooling:
         applies-to: version-updates
@@ -24,7 +24,7 @@ updates:
           - "MSTest.*"
           - "Xunit.Combinatorial"
         update-types: ["minor", "patch"]
-    # Other unmatched build/test-only packages retain unrestricted monthly update proposals.
+    # Other unmatched build/test-only packages retain unrestricted weekly update proposals.
     ignore:
       # Nightly runs refresh these test placeholders before testing. Maintain usable baseline
       # versions for initial restore/manual use.
