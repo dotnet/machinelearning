@@ -201,14 +201,14 @@ These agents run from a local Copilot CLI session and use the operator's authent
 
 Test-generation skills and agents come from the shared [dotnet-test plugin](https://github.com/dotnet/skills/tree/main/plugins/dotnet-test), rather than repository-local copies.
 
-Install it explicitly in Copilot CLI:
+`.github/copilot/settings.json` enables it for Copilot CLI and Copilot cloud agent. Other clients may need a manual install:
 
 ```text
 copilot plugin marketplace add dotnet/skills
 copilot plugin install dotnet-test@dotnet-agent-skills
 ```
 
-Restart the client, then check `/skills` for `code-testing` and `/agents` for `test-engineer`. See the [upstream installation instructions](https://github.com/dotnet/skills#installation) for other supported clients. This repository does not automatically install the plugin.
+Check `/skills` for `code-testing` and `/agents` for `test-engineer`. See the [upstream installation instructions](https://github.com/dotnet/skills#installation) for other clients.
 
 When available, use `code-testing` for test generation and repair, or `test-engineer` for broader test work. If the current host does not load the plugin, follow this file's Build & Test and Test Conventions sections directly.
 
