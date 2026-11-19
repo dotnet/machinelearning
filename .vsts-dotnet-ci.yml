@@ -39,16 +39,18 @@ resources:
   - container: CentosContainer
     image: mcr.microsoft.com/dotnet-buildtools/prereqs:centos-stream8-mlnet
 
-  - container: UbuntuContainer
-    image: mcr.microsoft.com/dotnet-buildtools/prereqs:ubuntu-22.04-mlnet
+  - container: AzureLinuxCrossX64Container
+    image: mcr.microsoft.com/dotnet-buildtools/prereqs:azurelinux-4.0-net11.0-cross-amd64
+    env:
+      LDFLAGS: -fuse-ld=lld
 
   - container: AzureLinuxCrossArmContainer
-    image: mcr.microsoft.com/dotnet-buildtools/prereqs:azurelinux-3.0-net8.0-cross-arm
+    image: mcr.microsoft.com/dotnet-buildtools/prereqs:azurelinux-4.0-net11.0-cross-arm
     env:
       LDFLAGS: -fuse-ld=lld
 
   - container: AzureLinuxCrossArm64Container
-    image: mcr.microsoft.com/dotnet-buildtools/prereqs:azurelinux-3.0-net8.0-cross-arm64
+    image: mcr.microsoft.com/dotnet-buildtools/prereqs:azurelinux-4.0-net11.0-cross-arm64
     env:
       LDFLAGS: -fuse-ld=lld
 
@@ -56,7 +58,7 @@ jobs:
 - template: /build/ci/job-template.yml
   parameters:
     architecture: arm
-    name: Ubuntu_x64_cross_arm
+    name: AzureLinux_x64_cross_arm
     rootfsDir: '/crossrootfs/arm'
     buildScript: ./build.sh
     container: AzureLinuxCrossArmContainer
@@ -80,7 +82,7 @@ jobs:
 - template: /build/ci/job-template.yml
   parameters:
     architecture: arm64
-    name: Ubuntu_x64_cross_arm64
+    name: AzureLinux_x64_cross_arm64
     rootfsDir: '/crossrootfs/arm64'
     buildScript: ./build.sh
     container: AzureLinuxCrossArm64Container
@@ -114,9 +116,10 @@ jobs:
 
 - template: /build/ci/job-template.yml
   parameters:
-    name: Ubuntu_x64
+    name: AzureLinux_x64_cross_x64
+    rootfsDir: '/crossrootfs/x64'
     buildScript: ./build.sh
-    container: UbuntuContainer
+    container: AzureLinuxCrossX64Container
     innerLoop: true
     pool:
       name: NetCore-Public
