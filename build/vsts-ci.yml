@@ -51,6 +51,9 @@ extends:
     featureFlags:
       autoBaseline: true
     sdl:
+      codeql:
+        ${{ if startsWith(variables['Build.SourceBranch'], 'refs/heads/release/') }}:
+          enabledOnNonDefaultBranches: true
       binskim:
         enabled: true
         break: true
