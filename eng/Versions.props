@@ -83,7 +83,6 @@
     <!-- Test-only Dependencies -->
     <ApprovalTestsVersion>7.0.0</ApprovalTestsVersion>
     <BenchmarkDotNetVersion>0.13.12</BenchmarkDotNetVersion>
-    <DotNetRuntime60Version>6.0.36</DotNetRuntime60Version>
     <DotNetRuntime100Version>10.0.15</DotNetRuntime100Version>
     <DotNetRuntime110Version>11.0.0</DotNetRuntime110Version>
     <MicrosoftCodeAnalysisTestingVersion>1.1.2</MicrosoftCodeAnalysisTestingVersion>
