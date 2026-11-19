@@ -196,13 +196,3 @@ Repository-local Copilot skills in `.github/skills/`:
 | `repo-health-groom` | Maintain the repository-health dashboard conservatively |
 
 These agents run from a local Copilot CLI session and use the operator's authenticated tools. GitHub writes require explicit approval. Scheduled GitHub Agentic Workflows can be introduced later when repository billing and authentication are available.
-
-### Shared Test Plugin
-
-Test-generation skills and agents come from the shared [dotnet-test plugin](https://github.com/dotnet/skills/tree/main/plugins/dotnet-test), rather than repository-local copies.
-
-`.github/copilot/settings.json` enables it for Copilot CLI and Copilot cloud agent. Check `/skills` for `code-testing` and `/agents` for `test-engineer`.
-
-When available, use `code-testing` for test generation and repair, or `test-engineer` for broader test work. If the current host does not load the plugin, follow this file's Build & Test and Test Conventions sections directly.
-
-Repository-specific guidance in this file takes precedence over generic plugin recommendations. Preserve the existing test framework, fixtures, naming, and xUnit `Assert.*` assertions. Do not add assertion libraries or change test frameworks to follow plugin defaults.
