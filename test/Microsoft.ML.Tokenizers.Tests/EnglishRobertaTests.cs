@@ -6,6 +6,7 @@ using System;
 using System.IO;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 
 using Xunit;
 using System.Buffers;
@@ -324,6 +325,29 @@ namespace Microsoft.ML.Tokenizers.Tests
             int startIndex = tokenizer.GetIndexByTokenCountFromEnd(text, tokenLimit, out _, out int tokenCount);
             Assert.Equal(tokenLimit, tokenCount);
             Assert.Equal(tokens[tokens.Count - tokenLimit].Offset.Start.Value, startIndex);
+        }
+
+        [Theory]
+        [InlineData("\uD800")]
+        [InlineData("\uDC00")]
+        [InlineData("a\uD800b")]
+        [InlineData("a\uDC00b")]
+        public void TestTokenizerReplacesUnpairedSurrogates(string text)
+        {
+            Tokenizer tokenizer = GetRobertaTokenizer();
+            string replacementFallbackText = Encoding.UTF8.GetString(Encoding.UTF8.GetBytes(text));
+
+            Assert.Equal(tokenizer.EncodeToIds(replacementFallbackText), tokenizer.EncodeToIds(text));
+
+            IReadOnlyList<EncodedToken> tokens = tokenizer.EncodeToTokens(text, out _);
+            Assert.NotEmpty(tokens);
+            Assert.Equal(0, tokens[0].Offset.Start.Value);
+            Assert.Equal(text.Length, tokens[^1].Offset.End.Value);
+            foreach (EncodedToken token in tokens)
+            {
+                Assert.InRange(token.Offset.Start.Value, 0, text.Length - 1);
+                Assert.InRange(token.Offset.End.Value, token.Offset.Start.Value + 1, text.Length);
+            }
         }
 
         private void TestDecodingWithSpan(EnglishRobertaTokenizer tokenizer, int[] ids, string expectedDecoded)

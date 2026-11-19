@@ -692,8 +692,16 @@ namespace Microsoft.ML.Tokenizers
                             Helpers.ArrayPoolGrow(ref indexMapping, requiredCapacity);
                         }
 
+                        ReadOnlySpan<char> charsToEncode = text.Slice(i, charLength);
+                        if (charLength == 1 && char.IsSurrogate(text[i]))
+                        {
+                            // Match Encoding.UTF8's replacement fallback for an unpaired
+                            // surrogate instead of emitting an invalid UTF-8 sequence.
+                            charsToEncode = "\uFFFD";
+                        }
+
                         int encodedByteLength = Helpers.EncodeToUtf8AndTransform(
-                            text.Slice(i, charLength),
+                            charsToEncode,
                             token.AsSpan(encodedLength),
                             indexMapping.AsSpan(encodedLength));
                         indexMapping.AsSpan(encodedLength, encodedByteLength).Fill(i);
