@@ -31,7 +31,7 @@ namespace Microsoft.ML.TorchSharp.NasBert
     /// </summary>
     /// <remarks>
     /// <format type="text/markdown"><![CDATA[
-    /// To create this trainer, use [TextClassification](xref:Microsoft.ML.TorchSharpCatalog.TextClassification(Microsoft.ML.MulticlassClassificationCatalog.MulticlassClassificationTrainers,Int32,System.String,System.String,System.String,System.String,Int32,Int32,Int32,Microsoft.ML.TorchSharp.NasBert.BertArchitecture,Microsoft.ML.IDataView)).
+    /// To create this trainer, use <xref:Microsoft.ML.TorchSharp.TorchSharpCatalog.SentenceSimilarity*>.
     ///
     /// ### Input and output columns
     /// The input label column data must be type <xref:System.Single> and the sentence columns must be of type <xref:Microsoft.ML.Data.TextDataViewType>.

@@ -208,7 +208,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
     /// </summary>
     /// <remarks>
     /// <format type="text/markdown"><![CDATA[
-    /// To create this estimator, use [ForecastBySsa](xref:Microsoft.ML.TimeSeriesCatalog.ForecastBySsa(Microsoft.ML.ForecastingCatalog,System.String,System.String,System.Int32,System.Int32,System.Int32,System.Int32,System.Boolean,System.Single,Microsoft.ML.Transforms.TimeSeries.RankSelectionMethod,System.Int32?,System.Int32?,System.Boolean,System.Boolean,Microsoft.ML.Transforms.TimeSeries.GrowthRatio?,System.String,System.String,System.Single,System.Boolean))
+    /// To create this estimator, use <xref:Microsoft.ML.TimeSeriesCatalog.ForecastBySsa*>.
     ///
     /// [!include[io](~/../docs/samples/docs/api-reference/io-time-series-ssa-forecast.md)]
     ///
