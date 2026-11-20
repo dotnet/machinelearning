@@ -199,4 +199,4 @@ Repository-local Copilot skills in `.github/skills/`:
 | `repo-health-investigate` | Investigate one health finding and draft an evidence-based report |
 | `repo-health-groom` | Maintain the repository-health dashboard conservatively |
 
-These agents run from a local Copilot CLI session and use the operator's authenticated tools. GitHub writes require explicit approval. Scheduled GitHub Agentic Workflows can be introduced later when repository billing and authentication are available.
+When these skills run locally using the operator's credentials, GitHub writes require explicit user approval. Publish reviews to GitHub only when authorized by the user's request or the configured review workflow. Scheduled GitHub Agentic Workflows can be introduced later when repository billing and authentication are available.
