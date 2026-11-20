@@ -93,6 +93,8 @@ test/
 
 ## Conventions
 
+Use the `code-review` skill when reviewing pull requests.
+
 ### Public API changes
 
 Every public API addition, modification, or removal requires prior maintainer approval recorded in a GitHub issue labelled `api-approved`. This includes protected APIs available to consumers through inheritance and APIs in preview or experimental packages. For changes requiring review, follow the [API review process](../docs/project-docs/api-review-process.md) before implementing the change or opening an implementation PR.
@@ -188,6 +190,7 @@ Repository-local Copilot skills in `.github/skills/`:
 
 | Skill | Purpose |
 |-------|---------|
+| `code-review` | Review a PR or code change against ML.NET conventions and compatibility rules |
 | `code-testing-agent` | Generate tests through a repository-aware multi-agent pipeline |
 | `ci-scan` | Analyze recurring `MachineLearning-CI` failures and draft Known Build Error issues |
 | `ci-scan-feedback` | Audit scanner quality and draft methodology improvements |
@@ -196,4 +199,4 @@ Repository-local Copilot skills in `.github/skills/`:
 | `repo-health-investigate` | Investigate one health finding and draft an evidence-based report |
 | `repo-health-groom` | Maintain the repository-health dashboard conservatively |
 
-These agents run from a local Copilot CLI session and use the operator's authenticated tools. GitHub writes require explicit approval. Scheduled GitHub Agentic Workflows can be introduced later when repository billing and authentication are available.
+When these skills run locally using the operator's credentials, GitHub writes require explicit user approval. Publish reviews to GitHub only when authorized by the user's request or the configured review workflow. Scheduled GitHub Agentic Workflows can be introduced later when repository billing and authentication are available.
