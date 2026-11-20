@@ -1,4 +1,4 @@
-# Holistic PR Assessment
+# PR Assessment
 
 Review-only criteria for assessing a pull request as a whole. Coding conventions live in `.github/copilot-instructions.md`. Use these criteria to write the Motivation, Approach, and Summary fields of the review.
 

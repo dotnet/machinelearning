@@ -5,7 +5,7 @@ description: Review code changes in dotnet/machinelearning for correctness, comp
 
 # ML.NET Code Review
 
-Review code changes against the conventions and contracts ML.NET maintainers enforce. This skill is adapted from the [dotnet/runtime `code-review` skill](https://github.com/dotnet/runtime/tree/main/.github/skills/code-review).
+Review code changes against the conventions and contracts ML.NET maintainers enforce.
 
 **Reviewer mindset:** Be polite but skeptical. Your job is to help maintainers review faster, which includes finding problems the author missed and questioning whether the PR is worth taking at all. Treat the PR description and linked issues as claims to verify, not facts to accept. Back every concern with evidence. When you cannot confirm a concern, raise it as an explicit low-confidence question.
 
@@ -20,7 +20,7 @@ Use this skill when:
 
 ### Step 0: Load Relevant Instructions
 
-Load `.github/skills/code-review/pr-assessment.md` (the holistic criteria you will assess against) and `.github/copilot-instructions.md` (repository conventions) if they are not already in context. If the two conflict, `copilot-instructions.md` wins.
+Load `.github/skills/code-review/pr-assessment.md` (the criteria for assessing the whole change) and `.github/copilot-instructions.md` (repository conventions) if they are not already in context. If the two conflict, `copilot-instructions.md` wins.
 
 ### Step 1: Gather Code Context (No PR Narrative Yet)
 
@@ -101,7 +101,7 @@ When the environment supports launching sub-agents with different models (for ex
    - If multiple standard-tier models exist in the same family, pick the one with the highest version number. Prefer "-codex" variants over general-purpose for code review tasks.
 2. Launch a sub-agent for each selected model in parallel, giving each the same review prompt: the PR diff, the review rules from this skill, and instructions to produce findings in the severity format defined above.
 3. Wait for all agents to complete, then synthesize: deduplicate findings that appear across models, elevate issues flagged by multiple models (higher confidence), and include unique findings from individual models that meet the confidence bar. **Timeout handling:** If a sub-agent has not completed after 10 minutes and you have results from other agents, proceed with the results you have. Note in the output which models contributed.
-4. Present a single unified review, noting when an issue was flagged by multiple models. If the user asked you to post it, do so once, then immediately exit. Do not wait for remaining sub-agents or retry a successful post.
+4. Present a single unified review, noting when an issue was flagged by multiple models. After posting the review, immediately exit. Do not wait for remaining sub-agents or retry a successful post.
 
 ---
 
@@ -109,12 +109,12 @@ When the environment supports launching sub-agents with different models (for ex
 
 Use this structure when presenting the final review, whether as a PR comment or as output to the user. GitHub's built-in Copilot code review controls its own comment format, so this format applies when you produce the review text yourself.
 
-> 📝 **AI-generated content disclosure:** When posting review content to GitHub under a user's credentials (not a dedicated bot or Copilot app account such as `github-actions[bot]` or `copilot`), you **MUST** include a concise, visible note (for example a `> [!NOTE]` alert) at the bottom indicating the content was AI/Copilot-generated. Skip this only if the user explicitly asks you to omit it. Do not post anything to GitHub unless the user asked you to.
+> 📝 **AI-generated content disclosure:** When posting review content to GitHub under a user's credentials (not a dedicated bot or Copilot app account such as `github-actions[bot]` or `copilot`), you **MUST** include a concise, visible note (for example a `> [!NOTE]` alert) at the bottom indicating the content was AI/Copilot-generated. Skip this only if the user explicitly asks you to omit it.
 
 ### Structure
 
 ```
-## Holistic Review
+## Code Review
 
 **Motivation**: <1-2 sentences on whether the PR is justified and the problem is real>
 
@@ -137,7 +137,7 @@ Use this structure when presenting the final review, whether as a PR comment or 
 
 ### Guidelines
 
-- Begin the review body with `## Holistic Review`, followed by the `**Motivation**:`, `**Approach**:`, and `**Summary**:` fields in that order.
+- Begin the review body with `## Code Review`, followed by the `**Motivation**:`, `**Approach**:`, and `**Summary**:` fields in that order.
 - **Detailed Findings** use emoji-prefixed headers: ✅ verified correct, ⚠️ warning, ❌ error, 💡 suggestion.
 - Include cross-cutting analysis when relevant (sibling types, callers, other platforms).
 - Assess test quality as its own finding when the PR includes tests.
