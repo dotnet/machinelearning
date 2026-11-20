@@ -381,7 +381,8 @@ namespace lda
                 dict_[i].is_dense_,
                 dict_[i].capacity_,
                 0,
-                nullptr);
+                nullptr,
+                0);
             tfs[i] = row.nonzero_num();
         }
     }

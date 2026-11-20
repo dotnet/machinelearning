@@ -1,4 +1,5 @@
 #include <cstdlib>
+#include <iomanip>
 #include <iostream>
 #include "daal.h"
 #include "../Stdafx.h"
@@ -9,28 +10,21 @@ using namespace daal::algorithms;
 using namespace daal::services;
 using namespace daal::data_management;
 
-
-bool getVerboseVariable()
+namespace
 {
-    bool verbose = false;
-    #ifdef linux
-    if (const char* env_p = std::getenv("MLNET_BACKEND_VERBOSE"))
-    #elif _WIN32
-    // WL Merge Note: std::getenv cause compilation error, use _dupenv_s in win, need to validate correctness.
-    char * env_p;
-    size_t size;
-    errno_t err = _dupenv_s(&env_p, &size, "MLNET_BACKEND_VERBOSE");
-    if(!err && env_p)
-    #else
-    if(false)
-    #endif
-        verbose = true;
-    #ifdef _WIN32
-    free(env_p);
-    #endif
-
-    return verbose;
+    bool IsBackendVerboseEnabled()
+    {
+#ifdef _WIN32
+        size_t requiredSize = 0;
+        return getenv_s(&requiredSize, nullptr, 0, "MLNET_BACKEND_VERBOSE") == 0 && requiredSize != 0;
+#else
+        // This non-security-sensitive setting is established before training. Only test for
+        // presence; do not dereference or retain environment-owned storage.
+        return std::getenv("MLNET_BACKEND_VERBOSE") != nullptr;
+#endif
+    }
 }
+
 /*
     Decision Forest regression tree traveler
 */
@@ -132,8 +126,8 @@ public:
 
         if (_verbose)
         {
-            printf("Number of leaves: %d\n", -_currentLeaf - 1);
-            printf("Number of nodes: %lu\n", _currentNode);
+            std::cout << "Number of leaves: " << -_currentLeaf - 1 << '\n';
+            std::cout << "Number of nodes: " << _currentNode << '\n';
         }
     }
 
@@ -175,17 +169,17 @@ int decisionForestRegressionComputeTemplate(
     int numberOfThreads, float featureFractionPerSplit, int numberOfTrees, int numberOfLeaves, int minimumExampleCountPerLeaf, int maxBins,
     int * lteChildPtr, int * gtChildPtr, int * splitFeaturePtr, FPType * featureThresholdPtr, FPType * leafValuesPtr, byte* modelPtr)
 {
-    bool verbose = getVerboseVariable();
+    const bool verbose = IsBackendVerboseEnabled();
     if (verbose)
     {
-        printf("%s\n", "Decision Forest Regression parameters:");
-        printf("\t%s - %d\n", "numberOfThreads", numberOfThreads);
-        printf("\t%s - %d\n", "numberOfTrees", numberOfTrees);
-        printf("\t%s - %.6f\n", "featureFractionPerSplit", featureFractionPerSplit);
-        printf("\t%s - %d\n", "featureFractionPerSplit(int)", (int)(nColumns * featureFractionPerSplit));
-        printf("\t%s - %d\n", "numberOfLeaves", numberOfLeaves);
-        printf("\t%s - %d\n", "minimumExampleCountPerLeaf", minimumExampleCountPerLeaf);
-        printf("\t%s - %d\n", "maxBins", maxBins);
+        std::cout << "Decision Forest Regression parameters:\n";
+        std::cout << "\tnumberOfThreads - " << numberOfThreads << '\n';
+        std::cout << "\tnumberOfTrees - " << numberOfTrees << '\n';
+        std::cout << "\tfeatureFractionPerSplit - " << std::fixed << std::setprecision(6) << featureFractionPerSplit << std::defaultfloat << '\n';
+        std::cout << "\tfeatureFractionPerSplit(int) - " << (int)(nColumns * featureFractionPerSplit) << '\n';
+        std::cout << "\tnumberOfLeaves - " << numberOfLeaves << '\n';
+        std::cout << "\tminimumExampleCountPerLeaf - " << minimumExampleCountPerLeaf << '\n';
+        std::cout << "\tmaxBins - " << maxBins << '\n';
     }
 
     if (numberOfThreads != 0)
@@ -240,30 +234,30 @@ int decisionForestRegressionComputeTemplate(
 
         if (verbose)
         {
-            printf("lteChild:\n");
+            std::cout << "lteChild:\n";
             for (size_t j = 0; j < numberOfLeaves - 1; ++j)
-                printf("%d ", lteChildPtr[i * (numberOfLeaves - 1) + j]);
-            printf("\n");
+                std::cout << lteChildPtr[i * (numberOfLeaves - 1) + j] << ' ';
+            std::cout << '\n';
 
-            printf("gtChild:\n");
+            std::cout << "gtChild:\n";
             for (size_t j = 0; j < numberOfLeaves - 1; ++j)
-                printf("%d ", gtChildPtr[i * (numberOfLeaves - 1) + j]);
-            printf("\n");
+                std::cout << gtChildPtr[i * (numberOfLeaves - 1) + j] << ' ';
+            std::cout << '\n';
 
-            printf("splitFeature:\n");
+            std::cout << "splitFeature:\n";
             for (size_t j = 0; j < numberOfLeaves - 1; ++j)
-                printf("%d ", splitFeaturePtr[i * (numberOfLeaves - 1) + j]);
-            printf("\n");
+                std::cout << splitFeaturePtr[i * (numberOfLeaves - 1) + j] << ' ';
+            std::cout << '\n';
 
-            printf("featureThreshold:\n");
+            std::cout << "featureThreshold:\n";
             for (size_t j = 0; j < numberOfLeaves - 1; ++j)
-                printf("%f ", featureThresholdPtr[i * (numberOfLeaves - 1) + j]);
-            printf("\n");
+                std::cout << std::fixed << std::setprecision(6) << featureThresholdPtr[i * (numberOfLeaves - 1) + j] << ' ';
+            std::cout << std::defaultfloat << '\n';
 
-            printf("leafValues:\n");
+            std::cout << "leafValues:\n";
             for (size_t j = 0; j < numberOfLeaves; ++j)
-                printf("%f ", leafValuesPtr[i * numberOfLeaves + j]);
-            printf("\n");
+                std::cout << std::fixed << std::setprecision(6) << leafValuesPtr[i * numberOfLeaves + j] << ' ';
+            std::cout << std::defaultfloat << '\n';
         }
     }
 
@@ -388,8 +382,8 @@ public:
 
         if (_verbose)
         {
-            printf("Number of leaves: %d\n", -_currentLeaf - 1);
-            printf("Number of nodes: %lu\n", _currentNode);
+            std::cout << "Number of leaves: " << -_currentLeaf - 1 << '\n';
+            std::cout << "Number of nodes: " << _currentNode << '\n';
         }
     }
 
@@ -431,17 +425,17 @@ int decisionForestClassificationComputeTemplate(
     int numberOfThreads, float featureFractionPerSplit, int numberOfTrees, int numberOfLeaves, int minimumExampleCountPerLeaf, int maxBins,
     int * lteChildPtr, int * gtChildPtr, int * splitFeaturePtr, FPType * featureThresholdPtr, FPType * leafValuesPtr, byte* modelPtr)
 {
-    bool verbose = getVerboseVariable();
+    const bool verbose = IsBackendVerboseEnabled();
     if (verbose)
     {
-        printf("%s\n", "Decision Forest Classification parameters:");
-        printf("\t%s - %d\n", "numberOfThreads", numberOfThreads);
-        printf("\t%s - %d\n", "numberOfTrees", numberOfTrees);
-        printf("\t%s - %.6f\n", "featureFractionPerSplit", featureFractionPerSplit);
-        printf("\t%s - %d\n", "featureFractionPerSplit(int)", (int)(nColumns * featureFractionPerSplit));
-        printf("\t%s - %d\n", "numberOfLeaves", numberOfLeaves);
-        printf("\t%s - %d\n", "minimumExampleCountPerLeaf", minimumExampleCountPerLeaf);
-        printf("\t%s - %d\n", "maxBins", maxBins);
+        std::cout << "Decision Forest Classification parameters:\n";
+        std::cout << "\tnumberOfThreads - " << numberOfThreads << '\n';
+        std::cout << "\tnumberOfTrees - " << numberOfTrees << '\n';
+        std::cout << "\tfeatureFractionPerSplit - " << std::fixed << std::setprecision(6) << featureFractionPerSplit << std::defaultfloat << '\n';
+        std::cout << "\tfeatureFractionPerSplit(int) - " << (int)(nColumns * featureFractionPerSplit) << '\n';
+        std::cout << "\tnumberOfLeaves - " << numberOfLeaves << '\n';
+        std::cout << "\tminimumExampleCountPerLeaf - " << minimumExampleCountPerLeaf << '\n';
+        std::cout << "\tmaxBins - " << maxBins << '\n';
     }
 
     if (numberOfThreads != 0)
@@ -496,30 +490,30 @@ int decisionForestClassificationComputeTemplate(
 
         if (verbose)
         {
-            printf("lteChild:\n");
+            std::cout << "lteChild:\n";
             for (size_t j = 0; j < numberOfLeaves - 1; ++j)
-                printf("%d ", lteChildPtr[i * (numberOfLeaves - 1) + j]);
-            printf("\n");
+                std::cout << lteChildPtr[i * (numberOfLeaves - 1) + j] << ' ';
+            std::cout << '\n';
 
-            printf("gtChild:\n");
+            std::cout << "gtChild:\n";
             for (size_t j = 0; j < numberOfLeaves - 1; ++j)
-                printf("%d ", gtChildPtr[i * (numberOfLeaves - 1) + j]);
-            printf("\n");
+                std::cout << gtChildPtr[i * (numberOfLeaves - 1) + j] << ' ';
+            std::cout << '\n';
 
-            printf("splitFeature:\n");
+            std::cout << "splitFeature:\n";
             for (size_t j = 0; j < numberOfLeaves - 1; ++j)
-                printf("%d ", splitFeaturePtr[i * (numberOfLeaves - 1) + j]);
-            printf("\n");
+                std::cout << splitFeaturePtr[i * (numberOfLeaves - 1) + j] << ' ';
+            std::cout << '\n';
 
-            printf("featureThreshold:\n");
+            std::cout << "featureThreshold:\n";
             for (size_t j = 0; j < numberOfLeaves - 1; ++j)
-                printf("%f ", featureThresholdPtr[i * (numberOfLeaves - 1) + j]);
-            printf("\n");
+                std::cout << std::fixed << std::setprecision(6) << featureThresholdPtr[i * (numberOfLeaves - 1) + j] << ' ';
+            std::cout << std::defaultfloat << '\n';
 
-            printf("leafValues:\n");
+            std::cout << "leafValues:\n";
             for (size_t j = 0; j < numberOfLeaves; ++j)
-                printf("%f ", leafValuesPtr[i * numberOfLeaves + j]);
-            printf("\n");
+                std::cout << std::fixed << std::setprecision(6) << leafValuesPtr[i * numberOfLeaves + j] << ' ';
+            std::cout << std::defaultfloat << '\n';
         }
     }
 
@@ -545,20 +539,20 @@ template <typename FPType>
 void logisticRegressionLBFGSComputeTemplate(FPType * featuresPtr, int * labelsPtr, FPType * weightsPtr, bool useSampleWeights, FPType * betaPtr,
     long long nRows, int nColumns, int nClasses, float l1Reg, float l2Reg, float accuracyThreshold, int nIterations, int m, int nThreads)
 {
-    bool verbose = getVerboseVariable();
+    const bool verbose = IsBackendVerboseEnabled();
     if (verbose)
     {
-        printf("%s\n", "Logistic Regression parameters:");
-        printf("%s - %.12f\n", "l1Reg", l1Reg);
-        printf("%s - %.12f\n", "l2Reg", l2Reg);
-        printf("%s - %.12f\n", "accuracyThreshold", accuracyThreshold);
-        printf("%s - %d\n", "nIterations", nIterations);
-        printf("%s - %d\n", "m", m);
-        printf("%s - %d\n", "nClasses", nClasses);
-        printf("%s - %d\n", "nThreads", nThreads);
+        std::cout << "Logistic Regression parameters:\n";
+        std::cout << "l1Reg - " << std::fixed << std::setprecision(12) << l1Reg << std::defaultfloat << '\n';
+        std::cout << "l2Reg - " << std::fixed << std::setprecision(12) << l2Reg << std::defaultfloat << '\n';
+        std::cout << "accuracyThreshold - " << std::fixed << std::setprecision(12) << accuracyThreshold << std::defaultfloat << '\n';
+        std::cout << "nIterations - " << nIterations << '\n';
+        std::cout << "m - " << m << '\n';
+        std::cout << "nClasses - " << nClasses << '\n';
+        std::cout << "nThreads - " << nThreads << '\n';
 
         const size_t nThreadsOld = Environment::getInstance()->getNumberOfThreads();
-        printf("%s - %zd\n", "nThreadsOld", nThreadsOld); //Note: %lu cause compilation error, modify to %d
+        std::cout << "nThreadsOld - " << nThreadsOld << '\n';
     }
 
     Environment::getInstance()->setNumberOfThreads(nThreads);
@@ -618,11 +612,11 @@ void logisticRegressionLBFGSComputeTemplate(FPType * featuresPtr, int * labelsPt
     NumericTablePtr betaTable = modelPtr->getBeta();
     if (betaTable->getNumberOfRows() != nClasses)
     {
-        printf("Wrong number of classes in beta table\n");
+        std::cout << "Wrong number of classes in beta table\n";
     }
     if (betaTable->getNumberOfColumns() != nColumns + 1)
     {
-        printf("Wrong number of features in beta table\n");
+        std::cout << "Wrong number of features in beta table\n";
     }
 
     BlockDescriptor<FPType> betaBlock;
@@ -642,14 +636,14 @@ void logisticRegressionLBFGSComputeTemplate(FPType * featuresPtr, int * labelsPt
 
     if (verbose)
     {
-        printf("Intercepts and coefficients:\n");
+        std::cout << "Intercepts and coefficients:\n";
         for (size_t i = 0; i < nClasses; ++i)
         {
             for (size_t j = 0; j < nColumns + 1; ++j)
             {
-                printf("%f ", betaPtr[i * (nColumns + 1) + j]);
+                std::cout << std::fixed << std::setprecision(6) << betaPtr[i * (nColumns + 1) + j] << ' ';
             }
-            printf("\n");
+            std::cout << std::defaultfloat << '\n';
         }
         optimization_solver::iterative_solver::ResultPtr solverResult = lbfgsAlgorithm->getResult();
         NumericTablePtr nIterationsTable = solverResult->get(optimization_solver::iterative_solver::nIterations);
@@ -657,7 +651,7 @@ void logisticRegressionLBFGSComputeTemplate(FPType * featuresPtr, int * labelsPt
         nIterationsTable->getBlockOfRows(0, 1, readWrite, nIterationsBlock);
         int * nIterationsPtr = nIterationsBlock.getBlockPtr();
 
-        printf("Solver iterations: %d\n", nIterationsPtr[0]);
+        std::cout << "Solver iterations: " << nIterationsPtr[0] << '\n';
 
         logistic_regression::prediction::Batch<FPType> predictionAlgorithm(nClasses == 1 ? 2 : nClasses);
         // predictionAlgorithm.parameter().resultsToEvaluate |=
@@ -680,7 +674,7 @@ void logisticRegressionLBFGSComputeTemplate(FPType * featuresPtr, int * labelsPt
         accuracy /= nRows;
         predictionsTable->releaseBlockOfRows(predictionsBlock);
         nIterationsTable->releaseBlockOfRows(nIterationsBlock);
-        printf("oneDAL LogReg traning accuracy: %f\n", accuracy);
+        std::cout << "oneDAL LogReg traning accuracy: " << std::fixed << std::setprecision(6) << accuracy << std::defaultfloat << '\n';
     }
 
     betaTable->releaseBlockOfRows(betaBlock);
