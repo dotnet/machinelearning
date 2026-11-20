@@ -43,6 +43,8 @@ If you want to cross compile for arm you will also need from the 'Individual com
   * MSVC v142 - VS 2019 C++ ARM build tools
   * MSVC v142 - VS 2019 C++ ARM64 build tools
 
+Use a current C++ toolset that supports `/guard:cast`.
+
 ## Building Instructions
 
 In order to fetch dependencies which come through Git submodules the following command needs to be run before building: `git submodule update --init`.
