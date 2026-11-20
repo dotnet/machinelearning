@@ -38,6 +38,11 @@ namespace Microsoft.ML.Tokenizers
                 throw new ArgumentException("The BOS, EOS, or UNK token is not present in the vocabulary.");
             }
 
+            // As in a model built from a vocabulary, BOS and EOS are optional: T5, for instance, is trained without BOS
+            // (bos_id = -1). An absent one keeps the id -1 rather than 0, and requesting it throws.
+            BeginningOfSentenceId = CheckSpecialId(addBos, modelProto.TrainerSpec.BosId, "addBeginningOfSentence");
+            EndOfSentenceId = CheckSpecialId(addEos, modelProto.TrainerSpec.EosId, "addEndOfSentence");
+
             _vocabReverse = new (string Piece, float Score, ModelProto.Types.SentencePiece.Types.Type Type)[modelProto.Pieces.Count];
 
             _minScore = float.MaxValue;
@@ -78,16 +83,21 @@ namespace Microsoft.ML.Tokenizers
             // SentencePiece specifically handles the BOS, EOS, and UNK tokens, while the PAD token is optional.
 
             Debug.Assert(modelProto.TrainerSpec.UnkId >= 0);
-            Debug.Assert(modelProto.TrainerSpec.BosId >= 0);
-            Debug.Assert(modelProto.TrainerSpec.EosId >= 0);
 
             _vocab[modelProto.TrainerSpec.UnkPiece] = modelProto.TrainerSpec.UnkId;
-            _vocab[modelProto.TrainerSpec.BosPiece] = modelProto.TrainerSpec.BosId;
-            _vocab[modelProto.TrainerSpec.EosPiece] = modelProto.TrainerSpec.EosId;
-
-            _vocabReverse[modelProto.TrainerSpec.BosId] = (modelProto.TrainerSpec.BosPiece, 0f, ModelProto.Types.SentencePiece.Types.Type.Control);
-            _vocabReverse[modelProto.TrainerSpec.EosId] = (modelProto.TrainerSpec.EosPiece, 0f, ModelProto.Types.SentencePiece.Types.Type.Control);
             _vocabReverse[modelProto.TrainerSpec.UnkId] = (modelProto.TrainerSpec.UnkPiece, 0f, ModelProto.Types.SentencePiece.Types.Type.Unknown);
+
+            if (BeginningOfSentenceId >= 0)
+            {
+                _vocab[modelProto.TrainerSpec.BosPiece] = BeginningOfSentenceId;
+                _vocabReverse[BeginningOfSentenceId] = (modelProto.TrainerSpec.BosPiece, 0f, ModelProto.Types.SentencePiece.Types.Type.Control);
+            }
+
+            if (EndOfSentenceId >= 0)
+            {
+                _vocab[modelProto.TrainerSpec.EosPiece] = EndOfSentenceId;
+                _vocabReverse[EndOfSentenceId] = (modelProto.TrainerSpec.EosPiece, 0f, ModelProto.Types.SentencePiece.Types.Type.Control);
+            }
 
             if (modelProto.TrainerSpec.PadId >= 0)
             {
