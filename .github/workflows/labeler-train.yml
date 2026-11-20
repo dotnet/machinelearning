@@ -79,7 +79,7 @@ jobs:
       - check-issues-data
     steps:
       - name: "Train Model for Issues"
-        uses: dotnet/issue-labeler/train@afbd24af4240b32693fbfe93233b7a58e468abbb # v2.3.0
+        uses: dotnet/issue-labeler/train@aa45ae7ffeeb096eb3e408f64f07eeb1787b6193 # v2.3.0
         with:
           type: "issues"
           data_cache_key: ${{ env.CACHE_KEY }}
