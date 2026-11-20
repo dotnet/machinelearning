@@ -107,12 +107,22 @@ namespace Microsoft.ML.Tokenizers.Tests
 
             yield return new object[]
             {
-                "\u001f",  // string start with control character
-                "▁\u001f",
+                "\u001f",  // control character that the charsmap deletes
                 "",
-                new int[] { 5, 0 },
-                new string[] { "▁", "\u001f"},
-                new Range[] { new Range(0, 1), new Range(1, 2) }
+                "",
+                new int[0],
+                new string[0],
+                new Range[0]
+            };
+
+            yield return new object[]
+            {
+                "   ",  // whitespace only
+                "",
+                "",
+                new int[0],
+                new string[0],
+                new Range[0]
             };
 
             yield return new object[]
@@ -665,6 +675,54 @@ namespace Microsoft.ML.Tokenizers.Tests
                 Assert.Equal(modelIds[i] + 1, jsonIds[i]);
             }
         }
+
+        public static IEnumerable<object[]> CharsMapDeletedCodePoints()
+        {
+            // nmt_nfkc maps these code points to an empty string, so SentencePiece and Hugging Face delete them.
+            int[] codePoints = [0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x0B, 0x0E, 0x0F, 0x10, 0x11, 0x12, 0x13, 0x14,
+                                0x15, 0x16, 0x17, 0x18, 0x19, 0x1A, 0x1B, 0x1C, 0x1D, 0x1E, 0x1F, 0x7F, 0x8F, 0x9F];
+            foreach (int codePoint in codePoints)
+            {
+                yield return new object[] { codePoint, false };
+                yield return new object[] { codePoint, true };
+            }
+        }
+
+        [Theory]
+        [MemberData(nameof(CharsMapDeletedCodePoints))]
+        public void CharsMapEmptyReplacementDeletesInputTest(int codePoint, bool fromTokenizerJson)
+        {
+            SentencePieceTokenizer tokenizer = fromTokenizerJson ? CreateFromParaphraseTokenizerJson() : _unigramTokenizer;
+            string c = ((char)codePoint).ToString();
+
+            Assert.Equal(EncodeIds(tokenizer, "ab"), EncodeIds(tokenizer, $"a{c}b"));
+            Assert.Equal(EncodeIds(tokenizer, "hello world"), EncodeIds(tokenizer, $"hello{c} world"));
+            Assert.Equal(EncodeIds(tokenizer, "hello"), EncodeIds(tokenizer, $"{c}hello"));
+            Assert.Equal(EncodeIds(tokenizer, "hello"), EncodeIds(tokenizer, $"{c} hello"));
+            Assert.Equal(EncodeIds(tokenizer, "hello"), EncodeIds(tokenizer, $"hello{c}"));
+            Assert.Equal(EncodeIds(tokenizer, "ab"), EncodeIds(tokenizer, $"a{c}{c}b"));
+            Assert.DoesNotContain(tokenizer.UnknownId, EncodeIds(tokenizer, $"a{c}b{c}{c}c"));
+        }
+
+        [Fact]
+        public void CharsMapNonEmptyReplacementStillAppliedTest()
+        {
+            foreach (SentencePieceTokenizer tokenizer in new[] { _unigramTokenizer, CreateFromParaphraseTokenizerJson() })
+            {
+                // Tab is mapped to a space by the charsmap, not deleted.
+                Assert.Equal(EncodeIds(tokenizer, "a b"), EncodeIds(tokenizer, "a\tb"));
+                Assert.NotEqual(EncodeIds(tokenizer, "ab"), EncodeIds(tokenizer, "a\tb"));
+            }
+        }
+
+        private static SentencePieceTokenizer CreateFromParaphraseTokenizerJson()
+        {
+            using Stream jsonStream = File.OpenRead(Path.Combine("Paraphrase-multilingual-MiniLM-L12-v2", "tokenizer.json"));
+            return SentencePieceTokenizer.CreateFromTokenizerJson(jsonStream, addBeginningOfSentence: false, addEndOfSentence: false);
+        }
+
+        private static IReadOnlyList<int> EncodeIds(SentencePieceTokenizer tokenizer, string text) =>
+            tokenizer.EncodeToIds(text, addBeginningOfSentence: false, addEndOfSentence: false);
 
         [Fact]
         public void CreateFromVocabNoSpecialTokensTest()
