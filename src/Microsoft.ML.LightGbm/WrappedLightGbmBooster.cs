@@ -78,18 +78,18 @@ namespace Microsoft.ML.Trainers.LightGbm
         {
             int bufLen = 2 << 15;
             byte[] buffer = new byte[bufLen];
-            int size = 0;
+            long size = 0;
             fixed (byte* ptr = buffer)
                 LightGbmInterfaceUtils.Check(WrappedLightGbmInterface.BoosterSaveModelToString(Handle, 0, BestIteration, 0, bufLen, ref size, ptr));
             // If buffer size is not enough, reallocate buffer and get again.
             if (size > bufLen)
             {
-                bufLen = size;
+                bufLen = checked((int)size);
                 buffer = new byte[bufLen];
                 fixed (byte* ptr = buffer)
                     LightGbmInterfaceUtils.Check(WrappedLightGbmInterface.BoosterSaveModelToString(Handle, 0, BestIteration, 0, bufLen, ref size, ptr));
             }
-            byte[] content = new byte[size];
+            byte[] content = new byte[checked((int)size)];
             Array.Copy(buffer, content, size);
             fixed (byte* ptr = content)
                 return LightGbmInterfaceUtils.GetString((IntPtr)ptr);
