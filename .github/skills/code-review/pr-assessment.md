@@ -36,7 +36,7 @@ Before reviewing individual lines, decide whether the change is justified, takes
 
 ## Risk & Compatibility
 
-- **Public API changes need recorded approval.** Changes to the public API or its documented contract need an `api-approved` issue (see `docs/project-docs/api-review-process.md`). Bug fixes that restore the intended contract do not.
+- **Public API changes need recorded approval.** Changes to the public API or its intended contract need an `api-approved` issue (see `docs/project-docs/api-review-process.md`). Bug fixes that restore the intended contract do not.
 - **Flag breaking changes.** Source, binary, behavioral, and saved-model compatibility breaks need the `breaking-change` label, an explained migration path, and explicit approval.
 - **Scale scrutiny to blast radius.** Changes to core data pipeline types (`Microsoft.ML.Core`, `Microsoft.ML.Data`), widely used trainers, or native code need stronger validation.
 - **Never invoke `/backport` yourself.** Recommend it when appropriate and leave the command to a maintainer.
