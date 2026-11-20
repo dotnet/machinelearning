@@ -63,7 +63,8 @@ namespace Microsoft.ML.AutoML
         /// <param name="experiment"><see cref="AutoMLExperiment"/></param>
         /// <param name="dataset">dataset for cross-validation split.</param>
         /// <param name="fold">number of cross-validation folds</param>
-        /// <param name="samplingKeyColumnName">column name for sampling key</param>
+        /// <param name="samplingKeyColumnName">Name of a column to use for grouping rows. Rows that share the same value of this column are always placed in the same fold.
+        /// Use this to keep related rows together, for example all rows from the same user or session. Do not use the label column here.</param>
         /// <returns><see cref="AutoMLExperiment"/></returns>
         public static AutoMLExperiment SetDataset(this AutoMLExperiment experiment, IDataView dataset, int fold = 10, string samplingKeyColumnName = null)
         {
