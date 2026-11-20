@@ -39,57 +39,68 @@ namespace Microsoft.ML.TorchSharp.AutoFormerV2
         {
             /// <summary>
             /// The label column name.
+            /// The default value is <c>Label</c>.
             /// </summary>
             public string LabelColumnName = DefaultColumnNames.Label;
 
             /// <summary>
             /// The label column name.
+            /// The default value is <c>PredictedLabel</c>.
             /// </summary>
             public string PredictedLabelColumnName = DefaultColumnNames.PredictedLabel;
 
             /// <summary>
             /// The Bounding Box column name.
+            /// The default value is <c>BoundingBoxes</c>.
             /// </summary>
             public string BoundingBoxColumnName = "BoundingBoxes";
 
             /// <summary>
             /// The Predicted Bounding Box column name.
+            /// The default value is <c>PredictedBoundingBoxes</c>.
             /// </summary>
             public string PredictedBoundingBoxColumnName = "PredictedBoundingBoxes";
 
             /// <summary>
             /// The Image column name.
+            /// The default value is <c>Image</c>.
             /// </summary>
             public string ImageColumnName = "Image";
 
             /// <summary>
             /// The Confidence column name.
+            /// The default value is <c>Score</c>.
             /// </summary>
             public string ScoreColumnName = DefaultColumnNames.Score;
 
             /// <summary>
             /// Gets or sets the IOU threshold for removing duplicate bounding boxes.
+            /// The default value is <c>0.5</c>.
             /// </summary>
             [System.Diagnostics.CodeAnalysis.SuppressMessage("Naming", "MSML_GeneralName:This name should be PascalCased", Justification = "<Pending>")]
             public double IOUThreshold = 0.5;
 
             /// <summary>
             /// Gets or sets the confidenct threshold for bounding box category.
+            /// The default value is <c>0.5</c>.
             /// </summary>
             public double ScoreThreshold = 0.5;
 
             /// <summary>
             /// Gets or sets the epoch steps in learning rate scheduler to reduce learning rate.
+            /// The default value is <c>[6]</c>.
             /// </summary>
             public List<int> Steps = new List<int> { 6 };
 
             /// <summary>
             /// Stop training when reaching this number of epochs.
+            /// The default value is <c>10</c>.
             /// </summary>
             public int MaxEpoch = 10;
 
             /// <summary>
             /// The validation set used while training to improve model quality.
+            /// The default value is <see langword="null"/>.
             /// </summary>
             public IDataView ValidationSet = null;
 
@@ -100,16 +111,19 @@ namespace Microsoft.ML.TorchSharp.AutoFormerV2
 
             /// <summary>
             /// Gets or sets the initial learning rate in optimizer.
+            /// The default value is <c>1.0</c>.
             /// </summary>
             public double InitLearningRate = 1.0;
 
             /// <summary>
             /// Gets or sets the weight decay in optimizer.
+            /// The default value is <c>0.0</c>.
             /// </summary>
             public double WeightDecay = 0.0;
 
             /// <summary>
             /// How often to log the loss.
+            /// The default value is <c>50</c>.
             /// </summary>
             public int LogEveryNStep = 50;
         }

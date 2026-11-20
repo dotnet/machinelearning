@@ -226,25 +226,42 @@ namespace Microsoft.ML.Vision
 
             /// <summary>
             /// Minimum change in the monitored quantity to be considered as an improvement.
+            /// The default is <c>0.01</c>.
             /// </summary>
             public float MinDelta { get; set; }
 
             /// <summary>
             /// Number of epochs to wait after no improvement is seen consecutively
             /// before stopping the training.
+            /// The default is <c>20</c>.
             /// </summary>
             public int Patience { get; set; }
 
             /// <summary>
             /// Whether the monitored quantity is to be increasing (eg. Accuracy, CheckIncreasing = true)
             /// or decreasing (eg. Loss, CheckIncreasing = false).
+            /// The default is <see langword="true"/> for the default accuracy metric; loss uses
+            /// <see langword="false"/>.
             /// </summary>
             public bool CheckIncreasing { get; set; }
 
-            /// <param name="minDelta"></param>
-            /// <param name="patience"></param>
-            /// <param name="metric"></param>
-            /// <param name="checkIncreasing"></param>
+            /// <summary>
+            /// Initializes a new instance of <see cref="EarlyStopping"/> with the specified stopping criteria.
+            /// </summary>
+            /// <param name="minDelta">
+            /// Minimum change in the monitored metric considered an improvement. Its absolute value is used.
+            /// </param>
+            /// <param name="patience">
+            /// Number of consecutive epochs without improvement before training stops.
+            /// </param>
+            /// <param name="metric">
+            /// The metric to monitor.
+            /// </param>
+            /// <param name="checkIncreasing">
+            /// Whether an increase in the monitored metric represents an improvement.
+            /// This value is overridden to <see langword="true"/> for <see cref="EarlyStoppingMetric.Accuracy"/>
+            /// and <see langword="false"/> for <see cref="EarlyStoppingMetric.Loss"/>.
+            /// </param>
             public EarlyStopping(float minDelta = 0.01f, int patience = 20, EarlyStoppingMetric metric = EarlyStoppingMetric.Accuracy, bool checkIncreasing = true)
             {
                 _bestMetricValue = 0.0f;
@@ -364,13 +381,15 @@ namespace Microsoft.ML.Vision
             public float LearningRate = 0.01f;
 
             /// <summary>
-            /// Early stopping technique parameters to be used to terminate training when training metric stops improving. By default EarlyStopping is turned on and the monitoring metric is Accuracy.
+            /// Early stopping technique parameters to be used to terminate training when training metric stops improving.
+            /// The default is a new instance of <see cref="EarlyStopping"/> constructed with its default parameters.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Early stopping technique parameters to be used to terminate training when training metric stops improving.", SortOrder = 15)]
             public EarlyStopping EarlyStoppingCriteria = new EarlyStopping();
 
             /// <summary>
-            /// Specifies the model architecture to be used in the case of image classification training using transfer learning. The default Architecture is Resnet_v2_50.
+            /// The model architecture used in transfer learning for image classification.
+            /// The default is <see cref="Architecture.ResnetV250"/>.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Model architecture to be used in transfer learning for image classification.", SortOrder = 15)]
             public Architecture Arch = Architecture.ResnetV250;
@@ -400,7 +419,8 @@ namespace Microsoft.ML.Vision
             public Action<ImageClassificationMetrics> MetricsCallback = null;
 
             /// <summary>
-            /// Indicates the path where the image bottleneck cache files and trained model are saved, default is a new temporary directory.
+            /// Indicates the path where the image bottleneck cache files and trained model are saved.
+            /// The default is <see langword="null"/>, which uses a new temporary directory.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Indicates the path where the models get downloaded to and cache files saved, default is a new temporary directory.", SortOrder = 15)]
             public string WorkspacePath = null;
@@ -425,6 +445,8 @@ namespace Microsoft.ML.Vision
 
             /// <summary>
             /// Validation set.
+            /// The default is <see langword="null"/>. When validation data is needed, the trainer can split the
+            /// training set according to <see cref="ValidationSetFraction"/>.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Validation set.", SortOrder = 15)]
             public IDataView ValidationSet;
@@ -450,7 +472,8 @@ namespace Microsoft.ML.Vision
             public string ValidationSetBottleneckCachedValuesFileName = "validationSetBottleneckFile.csv";
 
             /// <summary>
-            /// A class that performs learning rate scheduling. The default learning rate scheduler is exponential learning rate decay.
+            /// A class that performs learning rate scheduling.
+            /// The default is a new instance of <see cref="ExponentialLRDecay"/> constructed with its default parameters.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "A class that performs learning rate scheduling.", SortOrder = 15)]
             public LearningRateScheduler LearningRateScheduler = new ExponentialLRDecay();

@@ -78,6 +78,7 @@ namespace Microsoft.ML.Trainers.LightGbm
 
             /// <summary>
             /// The number of boosting iterations. A new tree is created in each iteration, so this is equivalent to the number of trees.
+            /// The default value is <c>100</c>.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Number of iterations.", SortOrder = 1, ShortName = "iter")]
             [TGUI(Label = "Number of boosting iterations", SuggestedSweeps = "10,20,50,100,150,200")]
@@ -86,6 +87,8 @@ namespace Microsoft.ML.Trainers.LightGbm
 
             /// <summary>
             /// The shrinkage rate for trees, used to prevent over-fitting.
+            /// The default is <see langword="null"/>, which selects the learning rate automatically from the training
+            /// data.
             /// </summary>
             /// <value>
             /// Valid range is (0,1].
@@ -99,6 +102,8 @@ namespace Microsoft.ML.Trainers.LightGbm
 
             /// <summary>
             /// The maximum number of leaves in one tree.
+            /// The default is <see langword="null"/>, which selects the number of leaves automatically from the
+            /// training data.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Maximum leaves for trees.",
                 SortOrder = 2, ShortName = "nl", NullName = "<Auto>")]
@@ -108,6 +113,8 @@ namespace Microsoft.ML.Trainers.LightGbm
 
             /// <summary>
             /// The minimal number of data points required to form a new tree leaf.
+            /// The default is <see langword="null"/>, which selects the minimum automatically from the training data
+            /// and number of leaves.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Minimum number of instances needed in a child.",
                 SortOrder = 2, ShortName = "mil", NullName = "<Auto>")]
@@ -117,6 +124,7 @@ namespace Microsoft.ML.Trainers.LightGbm
 
             /// <summary>
             /// The maximum number of bins that feature values will be bucketed in.
+            /// The default value is <c>255</c>.
             /// </summary>
             /// <remarks>
             /// The small number of bins may reduce training accuracy but may increase general power (deal with over-fitting).
@@ -138,12 +146,14 @@ namespace Microsoft.ML.Trainers.LightGbm
 
             /// <summary>
             /// Determines whether to output progress status during training and evaluation.
+            /// The default value is <see langword="false"/>.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Verbose", ShortName = "v")]
             public bool Verbose = false;
 
             /// <summary>
             /// Controls the logging level in LighGBM.
+            /// The default value is <see langword="true"/>.
             /// </summary>
             /// <value>
             /// <see langword="true"/> means only output Fatal errors. <see langword="false"/> means output Fatal, Warning, and Info level messages.
@@ -153,12 +163,14 @@ namespace Microsoft.ML.Trainers.LightGbm
 
             /// <summary>
             /// Determines the number of threads used to run LightGBM.
+            /// The default is <see langword="null"/>, which lets LightGBM choose the number of threads.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Number of parallel threads used to run LightGBM.", ShortName = "nt")]
             public int? NumberOfThreads;
 
             /// <summary>
             /// Determines the number of rounds, after which training will stop if validation metric doesn't improve.
+            /// The default value is <c>0</c>.
             /// </summary>
             /// <value>
             /// 0 means disable early stopping.
@@ -169,12 +181,15 @@ namespace Microsoft.ML.Trainers.LightGbm
 
             /// <summary>
             /// Number of data points per batch, when loading data.
+            /// The default value is <c>1024 * 1024</c>.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Number of entries in a batch when loading data.", Hide = true)]
             public int BatchSize = 1 << 20;
 
             /// <summary>
             /// Whether to enable categorical split or not.
+            /// The default is <see langword="null"/>, which selects whether to enable categorical splits
+            /// automatically based on the training data.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Enable categorical split or not.", ShortName = "cat")]
             [TlcModule.SweepableDiscreteParam("UseCat", new object[] { true, false })]
@@ -182,6 +197,7 @@ namespace Microsoft.ML.Trainers.LightGbm
 
             /// <summary>
             /// Whether to enable special handling of missing value or not.
+            /// The default value is <see langword="true"/>.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Enable special handling of missing value or not.", ShortName = "hmv")]
             [TlcModule.SweepableDiscreteParam("UseMissing", new object[] { true, false })]
@@ -189,6 +205,7 @@ namespace Microsoft.ML.Trainers.LightGbm
 
             /// <summary>
             /// Whether to enable the usage of zero (0) as missing value.
+            /// The default value is <see langword="false"/>.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Enable usage of zero (0) as missing value.", ShortName = "uzam")]
             [TlcModule.SweepableDiscreteParam("UseZeroAsMissing", new object[] { true, false })]
@@ -196,6 +213,7 @@ namespace Microsoft.ML.Trainers.LightGbm
 
             /// <summary>
             /// The minimum number of data points per categorical group.
+            /// The default value is <c>100</c>.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Minimum number of instances per categorical group.", ShortName = "mdpg")]
             [TlcModule.Range(Inf = 0, Max = int.MaxValue)]
@@ -204,6 +222,7 @@ namespace Microsoft.ML.Trainers.LightGbm
 
             /// <summary>
             /// Maximum categorical split points to consider when splitting on a categorical feature.
+            /// The default value is <c>32</c>.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Max number of categorical thresholds.", ShortName = "maxcat")]
             [TlcModule.Range(Inf = 0, Max = int.MaxValue)]
@@ -213,6 +232,7 @@ namespace Microsoft.ML.Trainers.LightGbm
             /// <summary>
             /// Laplace smooth term in categorical feature split.
             /// This can reduce the effect of noises in categorical features, especially for categories with few data.
+            /// The default value is <c>10</c>.
             /// </summary>
             /// <value>
             /// Constraints: <see cref="CategoricalSmoothing"/> >= 0.0
@@ -224,6 +244,7 @@ namespace Microsoft.ML.Trainers.LightGbm
 
             /// <summary>
             /// L2 regularization for categorical split.
+            /// The default value is <c>10</c>.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "L2 Regularization for categorical split.")]
             [TlcModule.Range(Min = 0.0)]
@@ -232,6 +253,7 @@ namespace Microsoft.ML.Trainers.LightGbm
 
             /// <summary>
             /// The random seed for LightGBM to use.
+            /// The default is <see langword="null"/>, which generates a seed from the host environment.
             /// </summary>
             /// <value>
             /// If not specified, <see cref="MLContext"/> will generate a random seed to be used.
@@ -241,18 +263,21 @@ namespace Microsoft.ML.Trainers.LightGbm
 
             /// <summary>
             /// Setting this to true should ensure the stable results when using the same data and the same parameters and different num_threads.
+            /// The default value is <see langword="false"/>.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Whether to use deterministic algorithm.")]
             public bool Deterministic = false;
 
             /// <summary>
             /// Whether to force column-wise histogram building.
+            /// The default value is <see langword="false"/>.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Whether to force column-wise histogram building.")]
             public bool ForceColumnWise = false;
 
             /// <summary>
             /// Whether to force row-wise histogram building.
+            /// The default value is <see langword="false"/>.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Whether to force row-wise histogram building.")]
             public bool ForceRowWise = false;
@@ -266,6 +291,8 @@ namespace Microsoft.ML.Trainers.LightGbm
 
             /// <summary>
             /// Booster parameter to use
+            /// The default value of this property is <see langword="null"/>; if left unchanged, training uses a
+            /// gradient booster.
             /// </summary>
             public BoosterParameterBase.OptionsBase Booster
             {

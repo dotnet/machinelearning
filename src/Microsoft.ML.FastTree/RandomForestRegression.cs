@@ -301,6 +301,7 @@ namespace Microsoft.ML.Trainers.FastTree
         {
             /// <summary>
             /// Whether to shuffle the labels on every iteration.
+            /// The default value is <see langword="false"/>.
             /// </summary>
             [Argument(ArgumentType.LastOccurrenceWins, HelpText = "Shuffle the labels on every iteration. " +
                 "Useful probably only if using this tree as a tree leaf featurizer for multiclass.")]

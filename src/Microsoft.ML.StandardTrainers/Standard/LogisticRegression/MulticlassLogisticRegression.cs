@@ -102,6 +102,7 @@ namespace Microsoft.ML.Trainers
         {
             /// <summary>
             /// If set to <value>true</value> training statistics will be generated at the end of training.
+            /// The default value is <see langword="false"/>.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Show statistics of training examples.", ShortName = "stat, ShowTrainingStats", SortOrder = 50)]
             public bool ShowTrainingStatistics = false;

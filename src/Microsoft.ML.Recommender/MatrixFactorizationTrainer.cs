@@ -143,23 +143,27 @@ namespace Microsoft.ML.Trainers
             /// <summary>
             /// The name of variable (i.e., Column in a <see cref="IDataView"/> type system) used as matrix's column index.
             /// The column data must be <see cref="System.Single"/>.
+            /// The default value is <see langword="null"/>.
             /// </summary>
             public string MatrixColumnIndexColumnName;
 
             /// <summary>
             /// The name of variable (i.e., column in a <see cref="IDataView"/> type system) used as matrix's row index.
             /// The column data must be <see cref="Microsoft.ML.Data.KeyDataViewType"/>.
+            /// The default value is <see langword="null"/>.
             /// </summary>
             public string MatrixRowIndexColumnName;
 
             /// <summary>
             /// The name variable (i.e., column in a <see cref="IDataView"/> type system) used as matrix's element value.
             /// The column data must be <see cref="Microsoft.ML.Data.KeyDataViewType"/>.
+            /// The default value is <see langword="null"/>.
             /// </summary>
             public string LabelColumnName;
 
             /// <summary>
             /// Loss function minimized for finding factor matrices.
+            /// The default value is <see cref="LossFunctionType.SquareLossRegression"/>.
             /// </summary>
             /// <remarks>
             /// Two values are allowed, <see cref="LossFunctionType.SquareLossRegression"/> or <see cref="LossFunctionType.SquareLossOneClass"/>.
@@ -173,6 +177,7 @@ namespace Microsoft.ML.Trainers
 
             /// <summary>
             /// Regularization parameter.
+            /// The default value is <c>0.1</c>.
             /// </summary>
             /// <remarks>
             /// It's the weight of factor matrices Frobenius norms in the objective function minimized by matrix factorization's algorithm. A small value could cause over-fitting.
@@ -186,6 +191,7 @@ namespace Microsoft.ML.Trainers
 
             /// <summary>
             /// Rank of approximation matrices.
+            /// The default value is <c>8</c>.
             /// </summary>
             /// <remarks>
             /// If input data has size of m-by-n we would build two approximation matrices m-by-k and k-by-n where k is approximation rank.
@@ -199,6 +205,7 @@ namespace Microsoft.ML.Trainers
 
             /// <summary>
             /// Number of training iterations.
+            /// The default value is <c>20</c>.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Training iterations; that is, the times that the training algorithm iterates through the whole training data once.", ShortName = "iter,numiterations")]
             [TGUI(SuggestedSweeps = "10,20,40")]
@@ -207,6 +214,7 @@ namespace Microsoft.ML.Trainers
 
             ///<summary>
             /// Initial learning rate. It specifies the speed of the training algorithm.
+            /// The default value is <c>0.1</c>.
             ///</summary>
             ///<remarks>
             /// Small value may increase the number of iterations needed to achieve a reasonable result.
@@ -220,6 +228,7 @@ namespace Microsoft.ML.Trainers
 
             /// <summary>
             /// Importance of unobserved entries' loss in one-class matrix factorization. Applicable if <see cref="LossFunction"/> set to <see cref="LossFunctionType.SquareLossOneClass"/>
+            /// The default value is <c>0.0001</c>.
             /// </summary>
             /// <remarks>
             /// Importance of unobserved (i.e., negative) entries' loss in one-class matrix factorization.
@@ -240,6 +249,7 @@ namespace Microsoft.ML.Trainers
 
             /// <summary>
             /// Desired negative entries value in one-class matrix factorization. Applicable if <see cref="LossFunction"/> set to <see cref="LossFunctionType.SquareLossOneClass"/>
+            /// The default value is <c>0.000001</c>.
             /// </summary>
             /// <remarks>
             /// In one-class matrix factorization, all matrix values observed are one (which can be viewed as positive cases in binary classification)
@@ -252,18 +262,21 @@ namespace Microsoft.ML.Trainers
 
             /// <summary>
             /// Number of threads will be used during training. If unspecified all available threads will be use.
+            /// The default is <see langword="null"/>, which uses the available processor count.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Number of threads can be used in the training procedure.", ShortName = "t,numthreads")]
             public int? NumberOfThreads;
 
             /// <summary>
             /// Suppress writing additional information to output.
+            /// The default value is <see langword="false"/>.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Suppress writing additional information to output.")]
             public bool Quiet = Defaults.Quiet;
 
             /// <summary>
             /// Force the factor matrices to be non-negative.
+            /// The default value is <see langword="false"/>.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Force the factor matrices to be non-negative.", ShortName = "nn")]
             public bool NonNegative = Defaults.NonNegative;

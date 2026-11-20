@@ -74,10 +74,8 @@ namespace Microsoft.ML.Trainers
 
             /// <summary>
             /// A custom <a href="https://en.wikipedia.org/wiki/Loss_function">loss</a>.
+            /// The default is <see langword="null"/>, which uses <see cref="SquaredLoss"/>.
             /// </summary>
-            /// <value>
-            /// Defaults to <see cref="SquaredLoss"/>
-            /// </value>
             public ISupportSdcaRegressionLoss LossFunction { get; set; }
 
             /// <summary>
