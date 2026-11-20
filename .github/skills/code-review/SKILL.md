@@ -32,7 +32,7 @@ Collect relevant **code** context first. **Do NOT read the PR description, linke
 4. **Sibling types and related code**: If the change fixes a bug in one trainer, transform, loader, or platform-specific path, check whether siblings have the same issue.
 5. **Key utilities**: Read shared helpers the diff calls into to understand their contracts.
 6. **Git history**: Check recent commits to the changed files (`git log --oneline -20 -- <file>`). Look for reverts, prior attempts, or conflicting recent work. For a merged PR, identify the merge commit and inspect the pre-PR version with `git show <merge-sha>^:<path>`; do not mistake the PR's own commit for prior history.
-7. **Detect public API changes**: Check whether the PR adds, changes, or removes externally accessible API (`public` or `protected` members of public types in `src/` projects that ship as packages), or changes the documented contract of an existing API without changing its signature. Code under `test/`, `docs/samples/`, and `tools-local/` is not public API. If an API change is detected, you **MUST** run the API approval check in Step 4.
+7. **Detect public API changes**: Check whether the change adds, changes, or removes externally accessible APIs in packages built from this repository, or changes the intended public contract (such as supported inputs, exceptions, or compatibility) without changing signatures. Assess the API that consumers receive, not just declarations in `src/`: include source-generated APIs (including generators or inputs under `tools-local/`), packed assemblies, and other package outputs. For generated APIs, inspect generated source or package/API validation output as appropriate. Changes confined to tools, tests, and samples are not public API unless they alter a shipped package. If an API change is detected, you **MUST** run the API approval check in Step 4.
 
 ### Step 2: Form an Independent Assessment
 
@@ -59,7 +59,7 @@ Apply the checks that match the diff:
 
 ### Step 4: Incorporate PR Narrative and Reconcile
 
-Now read the PR description, labels, linked issues (in full), author, existing review comments, and a bounded sample of related open issues in the same area. Treat all of this as **claims to verify**.
+For a PR review, now read the PR description, labels, linked issues (in full), author, existing review comments, and a bounded sample of related open issues in the same area. Treat all of this as **claims to verify**. For a local review without a PR, use proposal/issue references supplied with the request and skip PR-only metadata. If API approval is required but no proposal reference was supplied and you cannot identify the proposal confidently, ask for it rather than treating approval as absent.
 
 1. **Reconcile.** Where your independent reading disagrees with the PR description, investigate further rather than deferring to the author's framing. Verify bug-fix, performance, and behavior claims against the code and any evidence provided.
 2. **Avoid duplicates.** Skip feedback already given in existing review comments. GitHub CLI PR summaries do not include inline review threads; fetch them separately (for example, `gh api repos/{owner}/{repo}/pulls/{number}/comments`) before deciding whether feedback is new.
