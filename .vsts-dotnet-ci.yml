@@ -61,16 +61,16 @@ jobs:
     buildScript: ./build.sh
     container: AzureLinuxCrossArmContainer
     customMatrixes:
-      Debug_Build:
+      Debug_Net10_Build:
         _configuration: Debug
-        _config_short: DI
+        _config_short: DI10
         _includeBenchmarkData: false
-        _targetFramework: net8.0
-      Release_Build:
+        _targetFramework: net10.0
+      Release_Net10_Build:
         _configuration: Release
-        _config_short: RI
+        _config_short: RI10
         _includeBenchmarkData: true
-        _targetFramework: net8.0
+        _targetFramework: net10.0
     innerLoop: true
     pool:
       name: NetCore-Public
@@ -85,16 +85,26 @@ jobs:
     buildScript: ./build.sh
     container: AzureLinuxCrossArm64Container
     customMatrixes:
-      Debug_Build:
+      Debug_Net10_Build:
         _configuration: Debug
-        _config_short: DI
+        _config_short: DI10
         _includeBenchmarkData: false
-        _targetFramework: net8.0
-      Release_Build:
+        _targetFramework: net10.0
+      Release_Net10_Build:
         _configuration: Release
-        _config_short: RI
+        _config_short: RI10
         _includeBenchmarkData: true
-        _targetFramework: net8.0
+        _targetFramework: net10.0
+      Debug_Net11_Build:
+        _configuration: Debug
+        _config_short: DI11
+        _includeBenchmarkData: false
+        _targetFramework: net11.0
+      Release_Net11_Build:
+        _configuration: Release
+        _config_short: RI11
+        _includeBenchmarkData: true
+        _targetFramework: net11.0
     innerLoop: true
     pool:
       name: NetCore-Public
@@ -138,16 +148,26 @@ jobs:
     name: MacOS_arm64
     buildScript: ./build.sh
     customMatrixes:
-      Debug_Build:
+      Debug_Net10_Build:
         _configuration: Debug
-        _config_short: DI
+        _config_short: DI10
         _includeBenchmarkData: false
-        _targetFramework: net8.0
-      Release_Build:
+        _targetFramework: net10.0
+      Release_Net10_Build:
         _configuration: Release
-        _config_short: RI
+        _config_short: RI10
         _includeBenchmarkData: true
-        _targetFramework: net8.0
+        _targetFramework: net10.0
+      Debug_Net11_Build:
+        _configuration: Debug
+        _config_short: DI11
+        _includeBenchmarkData: false
+        _targetFramework: net11.0
+      Release_Net11_Build:
+        _configuration: Release
+        _config_short: RI11
+        _includeBenchmarkData: true
+        _targetFramework: net11.0
     innerLoop: true
     pool:
       vmImage: macOS-15-arm64
@@ -159,16 +179,26 @@ jobs:
     name: Windows_cross_arm64
     buildScript: build.cmd
     customMatrixes:
-      Debug_Build:
+      Debug_Net10_Build:
         _configuration: Debug
-        _config_short: DI
+        _config_short: DI10
         _includeBenchmarkData: false
-        _targetFramework:  net8.0
-      Release_Build:
+        _targetFramework: net10.0
+      Release_Net10_Build:
         _configuration: Release
-        _config_short: RI
+        _config_short: RI10
         _includeBenchmarkData: false
-        _targetFramework:  net8.0
+        _targetFramework: net10.0
+      Debug_Net11_Build:
+        _configuration: Debug
+        _config_short: DI11
+        _includeBenchmarkData: false
+        _targetFramework: net11.0
+      Release_Net11_Build:
+        _configuration: Release
+        _config_short: RI11
+        _includeBenchmarkData: false
+        _targetFramework: net11.0
     innerLoop: true
     vsTestConfiguration: "/Framework:.NETCoreApp,Version=v6.0"
     pool:
