@@ -188,7 +188,6 @@ Repository-local Copilot skills in `.github/skills/`:
 
 | Skill | Purpose |
 |-------|---------|
-| `code-testing-agent` | Generate tests through a repository-aware multi-agent pipeline |
 | `ci-scan` | Analyze recurring `MachineLearning-CI` failures and draft Known Build Error issues |
 | `ci-scan-feedback` | Audit scanner quality and draft methodology improvements |
 | `issue-triage` | Classify one issue and draft labels and a maintainer response |
