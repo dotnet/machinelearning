@@ -14,6 +14,8 @@ While ML.NET is cross-platform, there are some limitations for specific operatin
 
 > Symbolic SGD on macOS requires the Homebrew `libomp` package.
 >
+> On Linux x64, Symbolic SGD and other Intel MKL-based components (such as OLS and TimeSeries SSA) need the OpenMP runtime `libiomp5.so`. On Debian or Ubuntu, install `libomp-dev`. On Azure Linux, install `libomp` and create a `libiomp5.so` symlink pointing to `libomp.so` in the system library directory (typically `/usr/lib64`). For a custom library directory, add it to `LD_LIBRARY_PATH`.
+>
 > Failures for unsupported native components vary by package. Some are reported by an MSBuild platform check; others occur when the required native library cannot be loaded.
 
 If you are blocked by any of these limitations or would like to see different behavior when hitting them, please let us know by [filing an issue](https://github.com/dotnet/machinelearning/issues/new?assignees=&labels=&template=suggest-a-feature.md&title=).
