@@ -594,7 +594,7 @@ namespace Microsoft.ML.Trainers
     /// Note that the $c$-th value in the output score column is just $\hat{y}^c$.
     ///
     /// ### Training Algorithm Details
-    /// See the documentation of [SdcaMulticlassTrainerBase](xref:Microsoft.ML.Trainers.SdcaMulticlassTrainerBase).
+    /// See the documentation of [SdcaMulticlassTrainerBase](xref:Microsoft.ML.Trainers.SdcaMulticlassTrainerBase`1).
     ///
     /// Check the See Also section for links to usage examples.
     /// ]]>
