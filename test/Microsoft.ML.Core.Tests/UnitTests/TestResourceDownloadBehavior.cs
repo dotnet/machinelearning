@@ -183,9 +183,6 @@ namespace Microsoft.ML.Core.Tests.UnitTests
             }
         }
 
-        /// <summary>
-        /// Minimal loopback HTTP server: serves a fixed-size payload, a status code, or a redirect.
-        /// </summary>
         [Fact]
         public async Task DownloadReturnsIOExceptionImmediatelyForMissingDirectory()
         {
@@ -210,6 +207,88 @@ namespace Microsoft.ML.Core.Tests.UnitTests
             }
         }
 
+        [Fact]
+        public async Task DownloadReturnsCancellationWhenBodyStalls()
+        {
+            using (var server = new LocalPayloadServer(8 * 1024 * 1024, stallBody: true))
+            using (var workspace = new TempWorkspace())
+            {
+                string path = Path.Combine(workspace.Path, "stalled.bin");
+                var env = CreateEnvironment();
+
+                using (var cts = new CancellationTokenSource())
+                using (var ch = env.Start("test"))
+                {
+                    var clock = Stopwatch.StartNew();
+
+                    Task<Exception> download = ResourceManagerUtils.Instance.DownloadResource(
+                        env, ch, new HttpClient(), new Uri(server.Url), path, "stalled.bin", cts.Token);
+
+                    // Cancel only once the body is in flight, so the stalled read is what gets aborted.
+                    Assert.True(await Task.WhenAny(server.FirstChunkSent, Task.Delay(TimeSpan.FromSeconds(10))) == server.FirstChunkSent);
+                    cts.Cancel();
+
+                    Exception result = await download;
+
+                    Assert.IsAssignableFrom<OperationCanceledException>(result);
+                    Assert.True(clock.Elapsed < TimeSpan.FromSeconds(10), $"Took {clock.Elapsed.TotalSeconds:F1}s to give up on the stalled body.");
+                }
+
+                Assert.False(File.Exists(path));
+                Assert.Empty(Directory.GetFiles(workspace.Path, "temp-resource-*"));
+
+                // The download lock must have been released.
+                using (new FileStream(path + ".lock", FileMode.Open, FileAccess.ReadWrite, FileShare.None))
+                {
+                }
+            }
+        }
+
+        [Fact]
+        public async Task DownloadReturnsUnauthorizedAccessWhenLockFileIsReadOnly()
+        {
+            using (var server = new LocalPayloadServer(1024))
+            using (var workspace = new TempWorkspace())
+            {
+                string path = Path.Combine(workspace.Path, "payload.bin");
+                string lockPath = path + ".lock";
+                File.WriteAllText(lockPath, string.Empty);
+                File.SetAttributes(lockPath, FileAttributes.ReadOnly);
+
+                try
+                {
+                    try
+                    {
+                        using (new FileStream(lockPath, FileMode.Open, FileAccess.ReadWrite, FileShare.None))
+                        {
+                        }
+
+                        // Permissions are not enforced (for example when running as root), so the
+                        // scenario cannot be reproduced.
+                        return;
+                    }
+                    catch (UnauthorizedAccessException)
+                    {
+                    }
+
+                    Exception result = await DownloadAsync(server, path);
+
+                    // Downloading without the lock would race with other callers at File.Move.
+                    Assert.IsType<UnauthorizedAccessException>(result);
+                    Assert.Equal(0, server.Requests);
+                    Assert.False(File.Exists(path));
+                }
+                finally
+                {
+                    File.SetAttributes(lockPath, FileAttributes.Normal);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Minimal loopback HTTP server: serves a fixed-size payload, a status code, a redirect, or a
+        /// body that stalls after the first chunk.
+        /// </summary>
         private sealed class LocalPayloadServer : IDisposable
         {
             private const int ChunkSize = 64 * 1024;
@@ -221,18 +300,24 @@ namespace Microsoft.ML.Core.Tests.UnitTests
             private readonly int _status;
             private readonly string _location;
             private readonly int _delayMs;
+            private readonly bool _stallBody;
+            private readonly TaskCompletionSource<bool> _firstChunkSent = new TaskCompletionSource<bool>();
             private int _requests;
 
             public string Url { get; }
 
+            // Completes once a stalling body has flushed its first chunk, so a test can cancel mid-body.
+            public Task FirstChunkSent => _firstChunkSent.Task;
+
             public int Requests => Volatile.Read(ref _requests);
 
-            public LocalPayloadServer(long payloadSize, int status = 200, string location = null, int delayMs = 0)
+            public LocalPayloadServer(long payloadSize, int status = 200, string location = null, int delayMs = 0, bool stallBody = false)
             {
                 _payloadSize = payloadSize;
                 _status = status;
                 _location = location;
                 _delayMs = delayMs;
+                _stallBody = stallBody;
 
                 int port = FindFreePort();
                 Url = $"http://127.0.0.1:{port}/payload";
@@ -299,6 +384,14 @@ namespace Microsoft.ML.Core.Tests.UnitTests
                         int count = (int)Math.Min(ChunkSize, _payloadSize - sent);
                         await response.OutputStream.WriteAsync(buffer, 0, count).ConfigureAwait(false);
                         sent += count;
+
+                        if (_stallBody)
+                        {
+                            // Headers and the first chunk are out; hold the rest until the server stops.
+                            await response.OutputStream.FlushAsync().ConfigureAwait(false);
+                            _firstChunkSent.TrySetResult(true);
+                            await Task.Delay(Timeout.Infinite, _cts.Token).ConfigureAwait(false);
+                        }
                     }
 
                     response.OutputStream.Close();

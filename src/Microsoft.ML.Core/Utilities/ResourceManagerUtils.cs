@@ -278,10 +278,10 @@ namespace Microsoft.ML.Internal.Utilities
             {
                 return e;
             }
-            catch (IOException e)
+            catch (Exception e) when (e is IOException || e is UnauthorizedAccessException)
             {
-                // A permanent file system error (full disk, missing directory, ...): surface it
-                // instead of waiting for the download timeout.
+                // A permanent file system error (full disk, missing directory, read-only lock file, ...):
+                // surface it instead of waiting for the download timeout or downloading unsynchronized.
                 return e;
             }
 
@@ -312,7 +312,20 @@ namespace Microsoft.ML.Internal.Utilities
 
                         var stream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
 
-                        await stream.CopyToAsync(ws, blockSize, ct).ConfigureAwait(false);
+                        // On .NET Framework a pending body read ignores the token, so a server that stalls
+                        // after the headers would keep the download lock held. Disposing the response
+                        // aborts the read.
+                        using (ct.Register(response.Dispose))
+                        {
+                            try
+                            {
+                                await stream.CopyToAsync(ws, blockSize, ct).ConfigureAwait(false);
+                            }
+                            catch (Exception e) when (ct.IsCancellationRequested && !(e is OperationCanceledException))
+                            {
+                                throw new OperationCanceledException(ct);
+                            }
+                        }
                     }
 
                     if (ct.IsCancellationRequested)
@@ -347,8 +360,7 @@ namespace Microsoft.ML.Internal.Utilities
         /// <summary>
         /// Serializes downloads of the same file across threads and processes by holding an exclusive
         /// handle on a sibling ".lock" file. The OS releases the lock if the process dies, so it cannot
-        /// be left permanently held. Returns null when the directory is not writable; the download
-        /// itself will then surface the real error.
+        /// be left permanently held. Only lock contention is retried; any other failure propagates.
         /// </summary>
         private static async Task<FileStream> AcquireDownloadLockAsync(string path, CancellationToken ct)
         {
@@ -359,26 +371,26 @@ namespace Microsoft.ML.Internal.Utilities
                 {
                     return new FileStream(lockPath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None, 1, FileOptions.None);
                 }
-                catch (IOException e) when (IsLockContention(lockPath, e))
+                catch (IOException e) when (IsLockContention(e))
                 {
                     // Another thread or process holds the lock; wait and retry.
                     await Task.Delay(100, ct).ConfigureAwait(false);
-                }
-                catch (UnauthorizedAccessException)
-                {
-                    return null;
                 }
             }
         }
 
         /// <summary>
-        /// Tells lock contention apart from other I/O failures. The sharing violation error code differs
-        /// per platform, so instead of matching it, rely on the fact that the lock file is never deleted:
-        /// if it exists and could not be opened, another handle holds it. A missing directory, a full disk
-        /// or an invalid path never get here with an existing lock file.
+        /// Tells lock contention apart from other I/O failures by the error code. Windows reports
+        /// ERROR_SHARING_VIOLATION (32) or ERROR_LOCK_VIOLATION (33) in the low 16 bits of the HResult;
+        /// on Unix a failed flock surfaces the raw errno, EWOULDBLOCK (11 on Linux, 35 on macOS/BSD).
         /// </summary>
-        private static bool IsLockContention(string lockPath, IOException e)
-            => !(e is DirectoryNotFoundException) && !(e is PathTooLongException) && File.Exists(lockPath);
+        private static bool IsLockContention(IOException e)
+        {
+            int code = e.HResult & 0xFFFF;
+            return RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+                ? code == 32 || code == 33
+                : code == 11 || code == 35;
+        }
 
         /// <summary>
         /// Detects the faulty aka.ms links that redirect to Microsoft's homepage
