@@ -55,7 +55,7 @@ Apply the checks that match the diff:
 - **Native and platform behavior**: Changes under `src/Native/`, P/Invoke signatures, or native package references must work on Windows, Linux, and macOS (x64 and arm64 where supported). Tests using `NativeDependencyFact` are skipped, not failed, when a native library cannot load, so a "passing" run may hide a broken native load.
 - **SIMD code (`Microsoft.ML.CpuMath` or hardware intrinsics anywhere)**: Results must match the scalar path. Check remainder/tail handling, alignment assumptions, and fallbacks when an instruction set is unavailable.
 - **Baselines**: Changes to files under `test/BaselineOutput/` must be explained by the code change. Unexplained metric or output shifts suggest a behavior regression.
-- **Validation and errors**: Prefer `Contracts.Check*`/`Contracts.Except*` and host `ch.Check*` over raw `throw`. User-facing errors need clear messages.
+- **Validation and errors**: Follow the owning library's validation pattern as described in `copilot-instructions.md` (`Contracts.Check*`/`Contracts.Except*` in ML host code, the existing exception patterns in standalone libraries such as Tokenizers and DataFrame). User-facing errors need clear messages.
 
 ### Step 4: Incorporate PR Narrative and Reconcile
 

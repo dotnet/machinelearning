@@ -9,7 +9,7 @@ Bug fixes that restore the existing intended contract, purely internal changes, 
 For a PR, find the proposal issue that covers each API change from the PR description and links. For a local review, use an issue reference supplied with the request. Each API change must map to its own relevant proposal; an unrelated approved issue does not satisfy this check. Use `gh` or GitHub MCP tools to inspect the proposal and its current labels.
 
 - If a local review needs API approval but no proposal reference is available and the proposal cannot be identified confidently, ask for the issue reference. Do not treat unavailable PR metadata or an unsearched proposal as proof that approval is absent.
-- **If the relevant proposal is confirmed not to have `api-approved`**: Report ❌ error "This API change has no approved proposal. Public API changes need approval before implementation (see `docs/project-docs/api-review-process.md`). Do not recommend making an existing public API internal, since that is itself a breaking change."
+- **If the relevant proposal is confirmed not to have `api-approved`**: Report ❌ error "This API change has no approved proposal. Public API changes need approval before implementation (see `docs/project-docs/api-review-process.md`)." Do not recommend making an existing public API internal, since that is itself a breaking change.
 - `api-suggestion`, `api-needs-work`, and `api-ready-for-review` are **not** approval.
 
 ## 2. Find the Current Recorded Approval
