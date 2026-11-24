@@ -95,6 +95,6 @@ Follow the [contribution guidelines](../docs/project-docs/contributing.md).
 
 ## Task-Specific Guidance
 
-Reusable procedures are in [.github/skills](skills/), and prompt templates in [.github/prompts](prompts/). Read the relevant procedure when the task calls for it rather than loading every workflow. Availability and automatic discovery depend on the coding client.
+Reusable procedures are in [.github/skills](skills/), and prompt templates in [.github/prompts](prompts/). Read the relevant procedure when the task calls for it rather than loading every workflow. Use the [code-review](skills/code-review/SKILL.md) skill when reviewing pull requests. Availability and automatic discovery depend on the coding client.
 
 The [Copilot setup workflow](workflows/copilot-setup-steps.yml) bootstraps the cloud-agent environment. Do not assume its setup has already run in a local session.
