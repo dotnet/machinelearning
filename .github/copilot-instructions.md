@@ -47,7 +47,7 @@ On Linux/macOS:
 ./.dotnet/dotnet test test/Microsoft.ML.Core.Tests/Microsoft.ML.Core.Tests.csproj -f net10.0 --filter "FullyQualifiedName~ClassName.MethodName"
 ```
 
-Replace the example project and filter with those covering the change. Select supported frameworks from the affected project and [test/Directory.Build.props](../test/Directory.Build.props), which defines the default `net10.0;net11.0` targets and a `TestTargetFramework` override. A single-framework run does not cover all target frameworks.
+Replace the example project and filter with those covering the change. Select supported frameworks from the affected project and [test/Directory.Build.props](../test/Directory.Build.props), which defines the default `net10.0;net11.0` targets (plus `net48` on Windows x64) and a `TestTargetFramework` override. A single-framework run does not cover all target frameworks.
 
 - Run the smallest checks that exercise the changed behavior. For bug fixes, verify that the regression test fails for the intended reason without the fix and passes with it when practical.
 - Confirm selected tests actually ran and inspect relevant skips. `NativeDependencyFact` skips when its native library cannot load. A skipped native-dependent test does not validate native behavior.
