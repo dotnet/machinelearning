@@ -109,6 +109,8 @@ namespace Microsoft.ML.Tokenizers
 
         internal Dictionary<int, string>? SpecialTokensReverse { get; }
 
+        internal virtual bool IsControlId(int id) => false;
+
         internal int MaxByteId { get; set; } // the maximum value of the byte id.;
 
         internal int ByteCodeToIdOffset { get; set; } // offset of mapping byte code to the to the Ids.
@@ -399,6 +401,10 @@ namespace Microsoft.ML.Tokenizers
                 {
                     token = specialToken;
                 }
+                else if (model.IsControlId(id))
+                {
+                    model.TryMapIdToToken(id, out token);
+                }
 
                 if (token is not null && considerSpecialTokens)
                 {
@@ -636,6 +642,10 @@ namespace Microsoft.ML.Tokenizers
                 else
                 {
                     model.SpecialTokensReverse?.TryGetValue(id, out specialToken);
+                    if (specialToken is null && model.IsControlId(id))
+                    {
+                        model.TryMapIdToToken(id, out specialToken);
+                    }
                 }
 
                 isSpecialToken = specialToken is not null;

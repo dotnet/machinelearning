@@ -812,6 +812,31 @@ namespace Microsoft.ML.Tokenizers.Tests
         }
 
         [Fact]
+        public void Synthetic_UnigramModel_WithoutBeginningOfSentence_DecodeHidesPad()
+        {
+            // T5 output starts with <pad> (id 0), its decoder start token.
+            byte[] model = MakeModelProto(
+                MakeUnigramTrainerSpec(bosId: -1, eosId: 1),
+                null,
+                MakePiece("<pad>", type: 3),
+                MakePiece("</s>", type: 3),
+                MakePiece("<unk>", type: 2),
+                MakePiece("▁Hello", -1f),
+                MakePiece("▁world", -2f));
+
+            SentencePieceTokenizer tokenizer = CreateFromSyntheticModel(model, addBos: false, addEos: true);
+            int[] ids = { 0, 3, 4, 1 };
+
+            Assert.Equal("Hello world", tokenizer.Decode(ids));
+            Assert.Equal("<pad>Hello world</s>", tokenizer.Decode(ids, considerSpecialTokens: true));
+
+            char[] buffer = new char[32];
+            Assert.Equal(System.Buffers.OperationStatus.Done, tokenizer.Decode(ids, buffer, out int idsConsumed, out int charsWritten));
+            Assert.Equal(ids.Length, idsConsumed);
+            Assert.Equal("Hello world", new string(buffer, 0, charsWritten));
+        }
+
+        [Fact]
         public void Synthetic_UnigramModel_WithoutBeginningOfSentence_RequestingItThrows()
         {
             byte[] model = MakeModelProto(

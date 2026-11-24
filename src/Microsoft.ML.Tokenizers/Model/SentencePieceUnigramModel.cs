@@ -426,6 +426,9 @@ namespace Microsoft.ML.Tokenizers
             return true;
         }
 
+        internal override bool IsControlId(int id)
+            => (uint)id < (uint)_vocabReverse.Length && _vocabReverse[id].Type == ModelProto.Types.SentencePiece.Types.Type.Control;
+
         private void StoreNormalizedTextFromEnd(ReadOnlySpan<char> text, ref char[] normalizedString, ref int normalizedStringCountFromEnd)
         {
             int remainingLength = normalizedString.Length - normalizedStringCountFromEnd;
