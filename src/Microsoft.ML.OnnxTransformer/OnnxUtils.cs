@@ -203,6 +203,7 @@ namespace Microsoft.ML.Transforms.Onnx
                 SessionOptions sessionOptions = onnxSessionOptions.CreateSessionOptions();
                 _session = new InferenceSession(modelFile, sessionOptions);
                 // ONNX Runtime passes the raw options handle to native session creation.
+                // When upgrading ONNX Runtime, check whether GC.KeepAlive is still needed.
                 GC.KeepAlive(sessionOptions);
             }
             else if (gpuDeviceId != null)
