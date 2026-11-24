@@ -17,7 +17,8 @@ namespace Microsoft.ML.Tokenizers
     /// </summary>
     internal sealed class BertNormalizer : Normalizer
     {
-        // string.Normalize returns its input unchanged when globalization-invariant mode is enabled.
+        // string.Normalize returns its input unchanged in globalization-invariant mode. There's no public API
+        // to detect that mode yet (https://github.com/dotnet/runtime/issues/81429), so check Normalize directly.
         private static readonly bool _isNormalizationSupported = "\u00E9".Normalize(NormalizationForm.FormD).Length == 2;
 
         private readonly bool _lowerCase;
