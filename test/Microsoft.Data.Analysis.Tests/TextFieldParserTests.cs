@@ -19,7 +19,12 @@ namespace Microsoft.Data.Analysis.Tests
 
         private Stream GetStream(string streamData)
         {
-            return new MemoryStream(Encoding.Default.GetBytes(streamData));
+            return new MemoryStream(Encoding.UTF8.GetBytes(streamData));
+        }
+
+        private TextFieldParser GetParser(string data)
+        {
+            return new TextFieldParser(GetStream(data), Encoding.UTF8);
         }
 
         [Fact]
@@ -27,10 +32,10 @@ namespace Microsoft.Data.Analysis.Tests
         {
             string data = @"abc123";
 
-            // public TextFieldParser(System.IO.Stream stream)
+            // public TextFieldParser(System.IO.Stream stream, System.Text.Encoding defaultEncoding)
             using (var stream = GetStream(data))
             {
-                using (var parser = new TextFieldParser(stream))
+                using (var parser = new TextFieldParser(stream, Encoding.UTF8))
                 {
                 }
                 Assert.Throws<ObjectDisposedException>(() => stream.ReadByte());
@@ -61,26 +66,26 @@ namespace Microsoft.Data.Analysis.Tests
             string data = @"abc123";
             using (var stream = GetStream(data))
             {
-                using (var parser = new TextFieldParser(stream))
+                using (var parser = new TextFieldParser(stream, Encoding.UTF8))
                 {
                     parser.Close();
                 }
             }
 
-            using (var parser = new TextFieldParser(GetStream(data)))
+            using (var parser = GetParser(data))
             {
                 parser.Close();
             }
 
             {
-                var parser = new TextFieldParser(GetStream(data));
+                var parser = GetParser(data);
                 parser.Close();
                 parser.Close();
             }
 
             {
                 TextFieldParser parser;
-                using (parser = new TextFieldParser(GetStream(data)))
+                using (parser = GetParser(data))
                 {
                 }
                 parser.Close();
@@ -93,7 +98,7 @@ namespace Microsoft.Data.Analysis.Tests
 
             string data = @"abc123";
 
-            using (var parser = new TextFieldParser(GetStream(data)))
+            using (var parser = GetParser(data))
             {
                 Assert.Null(parser.CommentTokens);
                 parser.CommentTokens = new[] { "[", "]" };
@@ -132,7 +137,7 @@ namespace Microsoft.Data.Analysis.Tests
             string data = @"abc
 123";
 
-            using (var parser = new TextFieldParser(GetStream(data)))
+            using (var parser = GetParser(data))
             {
                 Assert.False(parser.EndOfData);
 
@@ -144,7 +149,7 @@ namespace Microsoft.Data.Analysis.Tests
                 Assert.True(parser.EndOfData);
             }
 
-            using (var parser = new TextFieldParser(GetStream(data)))
+            using (var parser = GetParser(data))
             {
                 Assert.Equal("abc", parser.ReadLine());
                 Assert.Equal(2, parser.LineNumber);
@@ -155,7 +160,7 @@ namespace Microsoft.Data.Analysis.Tests
                 Assert.True(parser.EndOfData);
             }
 
-            using (var parser = new TextFieldParser(GetStream(data)))
+            using (var parser = GetParser(data))
             {
                 Assert.Equal("abc", parser.ReadLine());
                 Assert.Equal(2, parser.LineNumber);
@@ -178,7 +183,7 @@ namespace Microsoft.Data.Analysis.Tests
 def 45
 ghi 789";
 
-            using (var parser = new TextFieldParser(GetStream(data)))
+            using (var parser = GetParser(data))
             {
                 parser.TextFieldType = FieldType.FixedWidth;
                 parser.SetFieldWidths(new[] { 3, 4 });
@@ -205,27 +210,27 @@ ghi 789";
         {
             string data = @""""", "" "" ,""abc"", "" 123 "" ,";
 
-            using (var parser = new TextFieldParser(GetStream(data)))
+            using (var parser = GetParser(data))
             {
                 parser.SetDelimiters(new[] { "," });
                 Assert.Equal(new[] { "", "", "abc", "123", "" }, parser.ReadFields());
             }
 
-            using (var parser = new TextFieldParser(GetStream(data)))
+            using (var parser = GetParser(data))
             {
                 parser.TrimWhiteSpace = false;
                 parser.SetDelimiters(new[] { "," });
                 Assert.Equal(new[] { "", " ", "abc", " 123 ", "" }, parser.ReadFields());
             }
 
-            using (var parser = new TextFieldParser(GetStream(data)))
+            using (var parser = GetParser(data))
             {
                 parser.HasFieldsEnclosedInQuotes = false;
                 parser.SetDelimiters(new[] { "," });
                 Assert.Equal(new[] { @"""""", @""" """, @"""abc""", @""" 123 """, "" }, parser.ReadFields());
             }
 
-            using (var parser = new TextFieldParser(GetStream(data)))
+            using (var parser = GetParser(data))
             {
                 parser.TrimWhiteSpace = false;
                 parser.HasFieldsEnclosedInQuotes = false;
@@ -234,7 +239,7 @@ ghi 789";
             }
 
             data = @""","", "", """;
-            using (var parser = new TextFieldParser(GetStream(data)))
+            using (var parser = GetParser(data))
             {
                 parser.TrimWhiteSpace = false;
                 parser.SetDelimiters(new[] { "," });
@@ -249,7 +254,7 @@ ghi 789";
 def,456
 ghi,789";
 
-            using (var parser = new TextFieldParser(GetStream(data)))
+            using (var parser = GetParser(data))
             {
                 Assert.Throws<ArgumentException>(() => parser.PeekChars(0));
 
@@ -284,7 +289,7 @@ ghi,789";
 def,456
 ghi,789";
 
-            using (var parser = new TextFieldParser(GetStream(data)))
+            using (var parser = GetParser(data))
             {
                 parser.TextFieldType = FieldType.FixedWidth;
 
@@ -311,7 +316,7 @@ ghi,789";
 def,456
 ghi,789";
 
-            using (var parser = new TextFieldParser(GetStream(data)))
+            using (var parser = GetParser(data))
             {
                 Assert.Equal(1, parser.LineNumber);
 
@@ -336,7 +341,7 @@ ghi,789";
 ,
 ";
 
-            using (var parser = new TextFieldParser(GetStream(data)))
+            using (var parser = GetParser(data))
             {
                 Assert.Equal(1, parser.LineNumber);
 
@@ -361,7 +366,7 @@ ghi,789";
         {
             string data = @""""", """;
 
-            using (var parser = new TextFieldParser(GetStream(data)))
+            using (var parser = GetParser(data))
             {
                 parser.SetDelimiters(new[] { "," });
                 Assert.Throws<Exception>(() => parser.ReadFields());
@@ -376,7 +381,7 @@ ghi,789";
 def,456
 ghi,789";
 
-            using (var parser = new TextFieldParser(GetStream(data)))
+            using (var parser = GetParser(data))
             {
                 Assert.Equal(1, parser.LineNumber);
 
@@ -402,7 +407,7 @@ ghi,789";
 ,
 ";
 
-            using (var parser = new TextFieldParser(GetStream(data)))
+            using (var parser = GetParser(data))
             {
                 Assert.Equal(1, parser.LineNumber);
 

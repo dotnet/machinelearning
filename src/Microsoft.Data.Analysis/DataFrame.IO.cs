@@ -19,6 +19,7 @@ namespace Microsoft.Data.Analysis
     public partial class DataFrame
     {
         private const int DefaultStreamReaderBufferSize = 1024;
+        private static readonly Encoding Utf8NoBom = new UTF8Encoding(false);
 
         private static Type DefaultGuessTypeFunction(IEnumerable<string> columnValues)
         {
@@ -674,7 +675,7 @@ namespace Microsoft.Data.Analysis
 
             if (encoding is null)
             {
-                encoding = Encoding.ASCII;
+                encoding = Utf8NoBom;
             }
 
             using (StreamWriter csvFile = new StreamWriter(csvStream, encoding, bufferSize: DefaultStreamReaderBufferSize, leaveOpen: true))

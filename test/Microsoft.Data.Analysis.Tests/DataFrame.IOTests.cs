@@ -1005,6 +1005,21 @@ CMT,1,1,null";
         }
 
         [Fact]
+        public void TestSaveCsvUsesUtf8WithoutBomByDefault()
+        {
+            const string nonAsciiText = "café Řeřicha 東京";
+            var dataFrame = new DataFrame(new StringDataFrameColumn("Text", [nonAsciiText]));
+            using var csvStream = new MemoryStream();
+
+            DataFrame.SaveCsv(dataFrame, csvStream);
+
+            byte[] csvBytes = csvStream.ToArray();
+            byte[] utf8Preamble = Encoding.UTF8.GetPreamble();
+            Assert.False(csvBytes.StartsWith(utf8Preamble));
+            Assert.Contains(nonAsciiText, new UTF8Encoding(false, true).GetString(csvBytes));
+        }
+
+        [Fact]
         public void TestSaveCsvWithCultureInfoRomanianAndSemiColon()
         {
             DataFrame dataFrame = DataFrameTests.MakeDataFrameWithNumericColumns(10, true);
