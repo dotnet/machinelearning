@@ -6,9 +6,13 @@ using System;
 using System.Buffers;
 using System.Collections.Generic;
 using System.Diagnostics.Tracing;
+using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
+using Microsoft.DotNet.RemoteExecutor;
 using Xunit;
 
 namespace Microsoft.ML.Tokenizers.Tests
@@ -297,6 +301,122 @@ namespace Microsoft.ML.Tokenizers.Tests
                 File.Delete(vocabFile);
             }
         }
+
+#if NETCOREAPP
+        [ConditionalFact(typeof(RemoteExecutor), nameof(RemoteExecutor.IsSupported))]
+        public void TestWithAccentMarksInInvariantGlobalizationMode()
+        {
+            RemoteExecutor.Invoke(static () =>
+            {
+                AssertInvariantGlobalizationMode();
+
+                //                  Ids:   0        1        2        3        4       5    6    7      8       9      10      11     12       13       14           15          16         17        18       19
+                string[] vocabTokens = ["[PAD]", "[UNK]", "[CLS]", "[SEP]", "[MASK]", "!", ",", "?", "Café", "cafe", "café", "Über", "über", "uber", "Ångström", "ångström", "angstrom", "Résumé", "résumé", "resume",
+                //                  Ids:  20     21        22         23
+                                        "Cafe", "Uber", "Angstrom", "Resume"];
+                string vocabFile = WordPieceTests.CreateVocabFile(vocabTokens);
+
+                try
+                {
+                    string text = "Café Über Ångström Résumé!";
+
+                    BertTokenizer bertTokenizer = BertTokenizer.Create(vocabFile, new BertOptions { RemoveNonSpacingMarks = true }); // lowercasing and accent stripping
+                    IReadOnlyList<EncodedToken> tokens = bertTokenizer.EncodeToTokens(text, out string? normalizedText);
+                    Assert.Equal("cafe uber angstrom resume!", normalizedText);
+                    Assert.Equal(
+                        [
+                            new EncodedToken(9, "cafe", new Range(0, 4)),
+                            new EncodedToken(13, "uber", new Range(5, 9)),
+                            new EncodedToken(16, "angstrom", new Range(10, 18)),
+                            new EncodedToken(19, "resume", new Range(19, 25)),
+                            new EncodedToken(5, "!", new Range(25, 26)),
+                        ],
+                        tokens);
+
+                    bertTokenizer = BertTokenizer.Create(vocabFile, new BertOptions { LowerCaseBeforeTokenization = false, RemoveNonSpacingMarks = true }); // no lowercasing and accent stripping
+                    tokens = bertTokenizer.EncodeToTokens(text, out normalizedText);
+                    Assert.Equal("Cafe Uber Angstrom Resume!", normalizedText);
+                    Assert.Equal(
+                        [
+                            new EncodedToken(20, "Cafe", new Range(0, 4)),
+                            new EncodedToken(21, "Uber", new Range(5, 9)),
+                            new EncodedToken(22, "Angstrom", new Range(10, 18)),
+                            new EncodedToken(23, "Resume", new Range(19, 25)),
+                            new EncodedToken(5, "!", new Range(25, 26)),
+                        ],
+                        tokens);
+                }
+                finally
+                {
+                    File.Delete(vocabFile);
+                }
+            }, CreateInvariantGlobalizationOptions()).Dispose();
+        }
+
+        [ConditionalFact(typeof(RemoteExecutor), nameof(RemoteExecutor.IsSupported))]
+        public void TestRemoveNonSpacingMarksForAllCharactersInInvariantGlobalizationMode()
+        {
+            // Strip the accents of every character decomposing to non-spacing marks while string.Normalize is supported, then
+            // check that the results are the same in globalization-invariant mode, where string.Normalize does nothing.
+            Normalizer normalizer = CreateAccentStrippingNormalizer();
+            Dictionary<int, string> expected = new();
+            for (int codePoint = 0; codePoint <= 0x10FFFF; codePoint++)
+            {
+                UnicodeCategory category = CharUnicodeInfo.GetUnicodeCategory(codePoint);
+                if (category is UnicodeCategory.OtherNotAssigned or UnicodeCategory.Surrogate or UnicodeCategory.NonSpacingMark)
+                {
+                    continue;
+                }
+
+                string text = char.ConvertFromUtf32(codePoint);
+                if (text.Normalize(NormalizationForm.FormD).EnumerateRunes().Any(rune => Rune.GetUnicodeCategory(rune) == UnicodeCategory.NonSpacingMark))
+                {
+                    expected.Add(codePoint, normalizer.Normalize(text));
+                }
+            }
+
+            Assert.True(expected.Count > 500, $"Only {expected.Count} characters decompose to non-spacing marks.");
+
+            string expectedFile = Path.GetTempFileName();
+            try
+            {
+                File.WriteAllText(expectedFile, JsonSerializer.Serialize(expected));
+
+                RemoteExecutor.Invoke(static (path) =>
+                {
+                    AssertInvariantGlobalizationMode();
+
+                    Normalizer normalizer = CreateAccentStrippingNormalizer();
+                    Dictionary<int, string> expected = JsonSerializer.Deserialize<Dictionary<int, string>>(File.ReadAllText(path))!;
+                    List<string> mismatches = expected
+                        .Where(pair => normalizer.Normalize(char.ConvertFromUtf32(pair.Key)) != pair.Value)
+                        .Select(pair => $"U+{pair.Key:X4}")
+                        .ToList();
+                    Assert.True(mismatches.Count == 0, $"{mismatches.Count} of {expected.Count} characters are normalized differently: {string.Join(", ", mismatches)}");
+                }, expectedFile, CreateInvariantGlobalizationOptions()).Dispose();
+            }
+            finally
+            {
+                File.Delete(expectedFile);
+            }
+        }
+
+        private static RemoteInvokeOptions CreateInvariantGlobalizationOptions() =>
+            new() { RuntimeConfigurationOptions = { ["System.Globalization.Invariant"] = true } };
+
+        private static void AssertInvariantGlobalizationMode()
+        {
+            // string.Normalize returns its input unchanged when globalization-invariant mode is enabled.
+            Assert.Equal("\u00E9", "\u00E9".Normalize(NormalizationForm.FormD));
+        }
+
+        // No lowercasing, so that only the accent stripping is compared.
+        private static Normalizer CreateAccentStrippingNormalizer()
+        {
+            using MemoryStream vocabStream = new(Encoding.UTF8.GetBytes("[PAD]\n[UNK]\n[CLS]\n[SEP]\n[MASK]\n"));
+            return BertTokenizer.Create(vocabStream, new BertOptions { LowerCaseBeforeTokenization = false, RemoveNonSpacingMarks = true }).Normalizer!;
+        }
+#endif
 
         [Fact]
         public async Task TestChineseCharacters()

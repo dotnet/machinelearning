@@ -17,6 +17,9 @@ namespace Microsoft.ML.Tokenizers
     /// </summary>
     internal sealed class BertNormalizer : Normalizer
     {
+        // string.Normalize returns its input unchanged when globalization-invariant mode is enabled.
+        private static readonly bool _isNormalizationSupported = "\u00E9".Normalize(NormalizationForm.FormD).Length == 2;
+
         private readonly bool _lowerCase;
         private readonly bool _individuallyTokenizeCjk;
         private readonly bool _removeNonSpacingMarks;
@@ -35,7 +38,7 @@ namespace Microsoft.ML.Tokenizers
 
             if (_removeNonSpacingMarks)
             {
-                original = original.Normalize(NormalizationForm.FormD);
+                original = _isNormalizationSupported ? original.Normalize(NormalizationForm.FormD) : NonSpacingMarkRemover.Remove(original);
             }
 
             Span<char> casingBuffer = stackalloc char[10];
