@@ -1,0 +1,140 @@
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text;
+
+namespace GenerateNonSpacingMarkTable
+{
+    /// <summary>
+    /// Program that takes the paths to UnicodeData.txt and DerivedNormalizationProps.txt and generates NonSpacingMarkRemover.Data.cs,
+    /// the table that Microsoft.ML.Tokenizers uses to remove non-spacing marks when string.Normalize isn't supported.
+    /// </summary>
+    internal static class Program
+    {
+        private const string OutputFileName = "NonSpacingMarkRemover.Data.cs";
+        private const int CodePointsPerLine = 12;
+
+        public static int Main(string[] args)
+        {
+            if (args.Length != 2)
+            {
+                Console.Error.WriteLine("Usage: dotnet run -- <path to UnicodeData.txt> <path to DerivedNormalizationProps.txt>");
+                return 1;
+            }
+
+            var unicodeData = new UnicodeData(args[0], args[1]);
+            SortedDictionary<int, List<int>> table = CreateTable(unicodeData);
+            File.WriteAllText(OutputFileName, CreateSource(unicodeData.Version, table), new UTF8Encoding(encoderShouldEmitUTF8Identifier: true));
+
+            Console.WriteLine($"Generated {Path.GetFullPath(OutputFileName)} from Unicode {unicodeData.Version}, with {table.Count} code points.");
+            Console.WriteLine("Use it to replace the one in src/Microsoft.ML.Tokenizers/Normalizer.");
+            return 0;
+        }
+
+        /// <summary>
+        /// Maps every code point that isn't a non-spacing mark but whose full canonical decomposition contains one,
+        /// to the canonical composition (NFC) of that decomposition without its non-spacing marks.
+        /// </summary>
+        private static SortedDictionary<int, List<int>> CreateTable(UnicodeData unicodeData)
+        {
+            var table = new SortedDictionary<int, List<int>>();
+            for (int codePoint = 0; codePoint <= UnicodeData.MaxCodePoint; codePoint++)
+            {
+                if ((codePoint is >= 0xD800 and <= 0xDFFF) || unicodeData.IsNonSpacingMark(codePoint))
+                {
+                    continue;
+                }
+
+                List<int> decomposition = unicodeData.Reorder(unicodeData.Decompose(codePoint));
+                if (!decomposition.Any(unicodeData.IsNonSpacingMark))
+                {
+                    continue;
+                }
+
+                List<int> replacement = unicodeData.Compose(decomposition.Where(c => !unicodeData.IsNonSpacingMark(c)));
+                if (replacement.Count != 1 || replacement[0] != codePoint)
+                {
+                    table.Add(codePoint, replacement);
+                }
+            }
+
+            return table;
+        }
+
+        private static string CreateSource(string unicodeVersion, SortedDictionary<int, List<int>> table)
+        {
+            var codePointLines = new List<string>();
+            var replacementLines = new List<string>();
+            foreach (KeyValuePair<int, List<int>>[] entries in table.Chunk(CodePointsPerLine))
+            {
+                codePointLines.Add("            " + string.Join(", ", entries.Select(entry => $"0x{entry.Key:X4}")) + ",");
+
+                var replacements = new StringBuilder();
+                foreach (KeyValuePair<int, List<int>> entry in entries)
+                {
+                    string replacement = string.Concat(entry.Value.Select(char.ConvertFromUtf32));
+                    if (replacement.Length is < 1 or > 2)
+                    {
+                        throw new InvalidOperationException($"The replacement of U+{entry.Key:X4} isn't one or two UTF-16 code units long.");
+                    }
+
+                    foreach (char c in replacement)
+                    {
+                        replacements.Append(Escape(c));
+                    }
+
+                    // Each replacement takes two UTF-16 code units, the second one being '\0' when unused.
+                    if (replacement.Length == 1)
+                    {
+                        replacements.Append(@"\0");
+                    }
+                }
+
+                replacementLines.Add($"            \"{replacements}\"");
+            }
+
+            string source = $$"""
+                // Licensed to the .NET Foundation under one or more agreements.
+                // The .NET Foundation licenses this file to you under the MIT license.
+                // See the LICENSE file in the project root for more information.
+
+                namespace Microsoft.ML.Tokenizers
+                {
+                    internal static partial class NonSpacingMarkRemover
+                    {
+                        // THE FOLLOWING DATA IS AUTO GENERATED BY GenerateNonSpacingMarkTable program UNDER THE tools-local FOLDER
+                        // PLEASE DON'T MODIFY BY HAND
+                        // IF YOU NEED TO UPDATE UNICODE VERSION FOLLOW THE GUIDE AT tools-local/GenerateNonSpacingMarkTable/Readme.md
+
+                        // Unicode version: {{unicodeVersion}}
+                        // _codePoints lists, in ascending order, every code point that is not itself a non-spacing mark
+                        // (General_Category=Mn) but whose full canonical decomposition contains one. For each of them, Replacements
+                        // holds two UTF-16 code units: the NFC form of the decomposition with its non-spacing marks removed, padded
+                        // with '\0' when it is a single code unit. Each line of Replacements matches the same line of _codePoints.
+                        private static readonly int[] _codePoints =
+                        [
+                {{string.Join("\n", codePointLines)}}
+                        ];
+
+                        private const string Replacements =
+                {{string.Join(" +\n", replacementLines)}};
+                    }
+                }
+
+                """;
+
+            return source.ReplaceLineEndings(Environment.NewLine);
+        }
+
+        // Keeps ASCII letters as they are and escapes the other UTF-16 code units.
+        private static string Escape(char c)
+        {
+            return c is (>= 'A' and <= 'Z') or (>= 'a' and <= 'z') ? c.ToString() : $"\\u{(int)c:X4}";
+        }
+    }
+}
