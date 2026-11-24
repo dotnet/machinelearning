@@ -12,6 +12,8 @@ Every public API addition, modification, or removal requires prior maintainer ap
 
 If required approval is missing, prepare a proposal rather than implementing the change. A linked issue, `api-ready-for-review`, or PR approval is not API approval. Link the approval comment in the PR, implement the approved design, and obtain renewed approval if that design changes.
 
+When creating an API proposal follow *Phase 4: Draft Proposal* of [the dotnet/runtime API proposal skill](https://github.com/dotnet/runtime/blob/main/.github/skills/api-proposal/SKILL.md). Use the other phases of the skill only when explicitly asked for an API change prototype.
+
 Purely internal implementation changes, documentation or test fixes, and bug fixes restoring the existing intended contract do not require API approval. If the public-contract impact is unclear, ask a maintainer in the issue before implementing.
 
 ## Build and Test
