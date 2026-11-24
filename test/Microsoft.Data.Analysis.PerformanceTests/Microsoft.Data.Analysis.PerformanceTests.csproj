@@ -5,6 +5,7 @@
     <ImplicitUsings>disable</ImplicitUsings>
     <TargetFrameworks>net8.0</TargetFrameworks>
     <GenerateProgramFile>false</GenerateProgramFile>
+    <UsesBenchmarkDotNet>true</UsesBenchmarkDotNet>
   </PropertyGroup>
 
   <ItemGroup>

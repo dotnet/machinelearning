@@ -26,6 +26,10 @@
 
     <!-- temporarily suppress NETSDK 1206 until we can update OnnxRuntime to fix https://github.com/dotnet/machinelearning/issues/6916 -->
     <NoWarn>$(NoWarn);NETSDK1206</NoWarn>
+
+    <!-- Arcade controls output paths. BenchmarkDotNet passes ArtifactsPath when building benchmarks, which would otherwise
+         switch on the SDK artifacts layout and drop the target framework from Arcade's intermediate paths. -->
+    <UseArtifactsOutput>false</UseArtifactsOutput>
   </PropertyGroup>
 
     <PropertyGroup>

@@ -13,6 +13,7 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <IsUnitTestProject>false</IsUnitTestProject>
     <IsPerformanceTestProject>true</IsPerformanceTestProject>
+    <UsesBenchmarkDotNet>true</UsesBenchmarkDotNet>
   </PropertyGroup>
 
   <ItemGroup>

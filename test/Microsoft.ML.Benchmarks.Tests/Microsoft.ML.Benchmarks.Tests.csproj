@@ -1,5 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
+  <PropertyGroup>
+    <UsesBenchmarkDotNet>true</UsesBenchmarkDotNet>
+  </PropertyGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\Microsoft.ML.PerformanceTests\Microsoft.ML.PerformanceTests.csproj" />
 

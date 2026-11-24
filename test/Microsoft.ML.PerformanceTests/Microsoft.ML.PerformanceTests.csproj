@@ -5,6 +5,7 @@
     <GenerateProgramFile>false</GenerateProgramFile>
     <IsUnitTestProject>false</IsUnitTestProject>
     <IsPerformanceTestProject>true</IsPerformanceTestProject>
+    <UsesBenchmarkDotNet>true</UsesBenchmarkDotNet>
   </PropertyGroup>
   <ItemGroup>
     <Compile Remove="BenchmarkDotNet.Artifacts\**" />
