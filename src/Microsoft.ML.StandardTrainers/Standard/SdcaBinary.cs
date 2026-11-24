@@ -202,11 +202,9 @@ namespace Microsoft.ML.Trainers
 
             /// <summary>
             /// The maximum number of passes to perform over the data.
-            /// The option value is <see langword="null"/> by default.
+            /// The default is <see langword="null"/>, which selects the maximum number of iterations automatically.
+            /// Set to 1 to simulate online learning.
             /// </summary>
-            /// <value>
-            /// Set to 1 to simulate online learning. Defaults to automatic.
-            /// </value>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Maximum number of iterations; set to 1 to simulate online learning. Defaults to automatic.", NullName = "<Auto>", ShortName = "iter, MaxIterations, NumberOfIterations")]
             [TGUI(Label = "Max number of iterations", SuggestedSweeps = "<Auto>,10,20,100")]
             [TlcModule.SweepableDiscreteParam("MaxIterations", new object[] { "<Auto>", 10, 20, 100 })]
@@ -226,11 +224,9 @@ namespace Microsoft.ML.Trainers
 
             /// <summary>
             /// Determines the frequency of checking for convergence in terms of number of iterations.
-            /// The option value is <see langword="null"/> by default.
+            /// The default is <see langword="null"/>, which uses <see cref="NumberOfThreads"/>.
+            /// Set to zero or a negative value to disable checking.
             /// </summary>
-            /// <value>
-            /// Set to zero or negative value to disable checking. If <see langword="null"/>, it defaults to <see cref="NumberOfThreads"/>."
-            /// </value>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Convergence check frequency (in terms of number of iterations). Set as negative or zero for not checking at all. If left blank, it defaults to check after every 'numThreads' iterations.", NullName = "<Auto>", ShortName = "checkFreq, CheckFrequency")]
             public int? ConvergenceCheckFrequency;
 
@@ -1699,11 +1695,8 @@ namespace Microsoft.ML.Trainers
 
             /// <summary>
             /// The custom <a href="https://en.wikipedia.org/wiki/Loss_function">loss</a>.
-            /// The option value is <see langword="null"/> by default.
+            /// The default is <see langword="null"/>, which uses <see cref="LogLoss"/>.
             /// </summary>
-            /// <value>
-            /// If unspecified, <see cref="LogLoss"/> will be used.
-            /// </value>
             public ISupportSdcaClassificationLoss LossFunction { get; set; }
         }
 
@@ -1854,11 +1847,9 @@ namespace Microsoft.ML.Trainers
 
             /// <summary>
             /// The degree of lock-free parallelism used by SGD.
-            /// The option value is <see langword="null"/> by default.
+            /// The default is <see langword="null"/>, which selects the number of threads automatically
+            /// depending on data sparseness. Determinism is not guaranteed.
             /// </summary>
-            /// <value>
-            /// Defaults to automatic depending on data sparseness. Determinism is not guaranteed.
-            /// </value>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Degree of lock-free parallelism. Defaults to automatic depending on data sparseness. Determinism not guaranteed.", ShortName = "nt,t,threads, NumThreads", SortOrder = 50)]
             [TGUI(Label = "Number of threads", SuggestedSweeps = "1,2,4")]
             public int? NumberOfThreads;
@@ -1918,11 +1909,8 @@ namespace Microsoft.ML.Trainers
 
             /// <summary>
             /// Determines the frequency of checking for convergence in terms of number of iterations.
-            /// The option value is <see langword="null"/> by default.
+            /// The default is <see langword="null"/>, which uses <see cref="NumberOfThreads"/>.
             /// </summary>
-            /// <value>
-            /// Default equals <see cref="NumberOfThreads"/>."
-            /// </value>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Convergence check frequency (in terms of number of iterations). Default equals number of threads", ShortName = "checkFreq")]
             public int? CheckFrequency;
 
