@@ -21,7 +21,7 @@
     "NumberOfTrees": 4,
     "MaximumBinCountPerFeature": 255,
     "FeatureFraction": 1,
-    "LearningRate": 0.10,
+    "LearningRate": 0.1,
     "LabelColumnName": "Label",
     "FeatureColumnName": "Feature",
     "DiskTranspose": false

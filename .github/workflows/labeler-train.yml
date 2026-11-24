@@ -1,4 +1,4 @@
-# Train and test a staged issues model.
+# Train staged issues models and test cached models.
 name: "Labeler: Training"
 
 on:
@@ -15,7 +15,7 @@ on:
           - "Train Model"
           - "Test Model"
       cache_key_suffix:
-        description: "Staged data/model cache suffix. Use a fresh suffix for each training run."
+        description: "Data/model cache suffix. Use a fresh suffix for training or an existing model suffix (e.g. ACTIVE) for testing."
         required: true
         default: "staged"
 
@@ -43,7 +43,7 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
 
   check-issues-data:
-    if: ${{ always() && contains(fromJSON('["All", "Train Model", "Test Model"]'), inputs.steps) && contains(fromJSON('["success", "skipped"]'), needs.download-issues.result) }}
+    if: ${{ always() && contains(fromJSON('["All", "Train Model"]'), inputs.steps) && contains(fromJSON('["success", "skipped"]'), needs.download-issues.result) }}
     runs-on: ubuntu-latest
     permissions: {}
     needs: download-issues
@@ -86,13 +86,11 @@ jobs:
           model_cache_key: ${{ env.CACHE_KEY }}
 
   test-issues:
-    if: ${{ always() && contains(fromJSON('["All", "Test Model"]'), inputs.steps) && needs.check-issues-data.outputs.has_training_data == 'true' && contains(fromJSON('["success", "skipped"]'), needs.train-issues.result) }}
+    if: ${{ always() && contains(fromJSON('["All", "Test Model"]'), inputs.steps) && (inputs.steps == 'Test Model' || needs.train-issues.result == 'success') }}
     runs-on: ubuntu-latest
     permissions:
       issues: read
-    needs:
-      - check-issues-data
-      - train-issues
+    needs: train-issues
     steps:
       - name: "Test Model for Issues"
         uses: dotnet/issue-labeler/test@94442c952121cb5448aaa7e247f65be93c07632e # v2.3.0

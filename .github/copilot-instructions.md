@@ -1,199 +1,102 @@
 ---
-description: "Guidance for GitHub Copilot when working on ML.NET (dotnet/machinelearning). Use for any task in this repo: code changes, test writing, PR reviews, issue investigation, build troubleshooting, or documentation."
+description: "Shared guidance for coding agents working on ML.NET (dotnet/machinelearning)."
 ---
 
 # ML.NET Development Guide
 
-## Repository Overview
+ML.NET is a cross-platform machine learning framework for .NET, with managed libraries and native dependencies. These are the canonical repository-wide instructions for coding agents.
 
-ML.NET is a cross-platform, open-source machine learning framework for .NET. It provides APIs for training, evaluating, and deploying ML models across classification, regression, clustering, ranking, anomaly detection, time series, and recommendation.
+## Public API Changes
 
-### Key Technologies
+Every public API addition, modification, or removal requires prior maintainer approval recorded in a GitHub issue labelled `api-approved`, before implementation or an implementation PR. This includes protected APIs, preview and experimental packages, and changes to the intended public contract even when signatures stay the same. Follow the [API review process](../docs/project-docs/api-review-process.md).
 
-- .NET SDK version selected by `global.json`
-- Build system: Microsoft Arcade SDK (`eng/common/`)
-- Test framework: xUnit (with `Xunit.Combinatorial`)
-- Native dependencies: MKL, OpenMP, libmf, oneDNN
-- Major dependencies: TorchSharp, ONNX Runtime, TensorFlow, LightGBM
-- Central package management: `Directory.Packages.props`
+If required approval is missing, prepare a proposal rather than implementing the change. A linked issue, `api-ready-for-review`, or PR approval is not API approval. Link the approval comment in the PR, implement the approved design, and obtain renewed approval if that design changes.
 
-## Build & Test
+When creating an API proposal follow *Phase 4: Draft Proposal* of [the dotnet/runtime API proposal skill](https://github.com/dotnet/runtime/blob/main/.github/skills/api-proposal/SKILL.md). Use the other phases of the skill only when explicitly asked for an API change prototype.
 
-### Build
+Purely internal implementation changes, documentation or test fixes, and bug fixes restoring the existing intended contract do not require API approval. If the public-contract impact is unclear, ask a maintainer in the issue before implementing.
 
-```bash
-# Linux/macOS
-./build.sh
+## Build and Test
 
-# Windows
-build.cmd
+### First Build
 
-# Build specific project
-dotnet build src/Microsoft.ML.Core/Microsoft.ML.Core.csproj
+Run commands from the repository root. Before building a fresh checkout:
+
+1. Initialize submodules with `git submodule update --init`.
+2. Follow the [Windows](../docs/building/windows-instructions.md) or [Linux/macOS](../docs/building/unix-instructions.md) prerequisites. Windows needs the documented Visual Studio workloads and CMake. Linux/macOS use `eng/install-dependencies.sh` as described in the platform guide.
+3. Run the root build once before building or testing individual projects:
+
+| Platform | Bootstrap and build |
+|---|---|
+| Windows | `.\build.cmd` |
+| Linux/macOS | `./build.sh` |
+
+The root build uses Microsoft Arcade to restore and build managed and native code. Arcade selects the SDK from `global.json`'s `tools.dotnet`, not `sdk.version`. Use the SDK installed or selected by the bootstrap for subsequent commands (`.dotnet` by default), rather than an unrelated `dotnet` on `PATH`. Check its `--version` against `tools.dotnet`.
+
+### Incremental Work
+
+After bootstrap, build the affected project and run focused tests. For example, on Windows with the default local SDK installation:
+
+```powershell
+.\.dotnet\dotnet.exe build .\src\Microsoft.ML.Core\Microsoft.ML.Core.csproj
+.\.dotnet\dotnet.exe test .\test\Microsoft.ML.Core.Tests\Microsoft.ML.Core.Tests.csproj -f net10.0 --filter "FullyQualifiedName~ClassName.MethodName"
 ```
 
-The repo uses Arcade SDK. `build.sh`/`build.cmd` wraps `eng/common/build.sh`/`eng/common/build.ps1` with `--restore --build`. On Linux, native dependencies require `eng/install-dependencies.sh`.
+On Linux/macOS:
 
-### Test
-
-```bash
-# Run tests for a specific project
-dotnet test test/Microsoft.ML.Tests/Microsoft.ML.Tests.csproj
-
-# Run tests with filter
-dotnet test test/Microsoft.ML.Tests/Microsoft.ML.Tests.csproj --filter "FullyQualifiedName~ClassName.MethodName"
-
-# Run all tests (slow, prefer specific projects)
-dotnet test Microsoft.ML.sln
+```sh
+./.dotnet/dotnet build src/Microsoft.ML.Core/Microsoft.ML.Core.csproj
+./.dotnet/dotnet test test/Microsoft.ML.Core.Tests/Microsoft.ML.Core.Tests.csproj -f net10.0 --filter "FullyQualifiedName~ClassName.MethodName"
 ```
 
-Test projects multi-target `net8.0;net48;net9.0` on Windows, `net8.0` only on Linux/macOS/arm64.
+Replace the example project and filter with those covering the change. Select supported frameworks from the affected project and [test/Directory.Build.props](../test/Directory.Build.props), which defines the default `net10.0;net11.0` targets (plus `net48` on Windows x64) and a `TestTargetFramework` override. A single-framework run does not cover all target frameworks.
 
-### Format
+- Run the smallest checks that exercise the changed behavior. For bug fixes, verify that the regression test fails for the intended reason without the fix and passes with it when practical.
+- Confirm selected tests actually ran and inspect relevant skips. `NativeDependencyFact` skips when its native library cannot load. A skipped native-dependent test does not validate native behavior.
+- State material validation blockers or gaps accurately. Do not treat skipped tests, unmatched filters, or stale binaries as successful coverage.
+- Format changed files or the smallest relevant project, then inspect the diff. Do not use solution-wide formatting to introduce unrelated style changes.
+- Documentation-only changes do not need a product build. Broaden validation when the affected behavior, platform, or shared infrastructure requires it.
 
-```bash
-dotnet format Microsoft.ML.sln --no-restore
-```
+See the [developer guide](../docs/project-docs/developer-guide.md) for additional build, architecture, and baseline-update commands. PR validation is defined in `.vsts-dotnet-ci.yml`, and the official build in `build/vsts-ci.yml`.
 
-The repo has `.editorconfig` and `EnforceCodeStyleInBuild=true`.
+## Code Conventions
 
-## Project Structure
+- Follow the applicable [.editorconfig](../.editorconfig) rules and nearby code. Preserve the owning area's namespace rather than deriving it from the assembly or directory name. Do not mix unrelated cleanup or language modernization into a functional change.
+- Normal product and test C# files require the three-line .NET Foundation MIT header. Respect the configured exceptions for `docs/**/*.cs` samples and `test/Microsoft.ML.TestFrameworkCommon/Utility/*.cs` imported code.
+- Use `Contracts.Check*` / `Contracts.Except*` where the owning library uses ML host validation. Preserve the established exception patterns in standalone libraries such as Tokenizers and DataFrame. Do not add a core-ML dependency solely to use `Contracts`.
+- Follow existing friend-assembly and `[BestFriend]` conventions for cross-assembly internal access. `[BestFriend]` participates in analyzer checks and does not itself grant assembly access.
+- Document public product APIs with XML comments. Update related documentation when the change makes it inaccurate or leaves a necessary contract undocumented.
+- Keep package versions in the existing central configuration: [Directory.Packages.props](../Directory.Packages.props) and shared properties in [eng/Versions.props](../eng/Versions.props).
+- Do not edit `eng/common` directly. It is mirrored from Arcade and changes are overwritten by automation. See its [AGENTS.md](../eng/common/AGENTS.md).
 
-```
-src/
-├── Microsoft.ML.Core/              # Core types, contracts, host environment
-├── Microsoft.ML.Data/              # Data pipeline, DataView, schema
-├── Microsoft.ML/                   # MLContext, public API surface
-├── Microsoft.ML.StandardTrainers/  # Built-in trainers (logistic regression, SVM, etc.)
-├── Microsoft.ML.Transforms/        # Data transforms (normalize, featurize, etc.)
-├── Microsoft.ML.AutoML/            # Automated ML pipeline selection
-├── Microsoft.ML.FastTree/          # Tree-based trainers
-├── Microsoft.ML.LightGbm/          # LightGBM integration
-├── Microsoft.ML.Recommender/       # Matrix factorization recommenders
-├── Microsoft.ML.TimeSeries/        # Time series analysis
-├── Microsoft.ML.Tokenizers/        # BPE/WordPiece/SentencePiece tokenizers
-├── Microsoft.ML.TorchSharp/        # TorchSharp-based trainers
-├── Microsoft.ML.OnnxTransformer/   # ONNX model inference
-├── Microsoft.ML.TensorFlow/        # TensorFlow model inference
-├── Microsoft.ML.Vision/            # Image classification
-├── Microsoft.ML.ImageAnalytics/    # Image transforms
-├── Microsoft.ML.CpuMath/           # SIMD-optimized math operations
-├── Microsoft.Data.Analysis/        # DataFrame API
-├── Native/                         # C/C++ native library sources
-└── Common/                         # Shared internal code
-test/
-├── Microsoft.ML.TestFramework/      # Base test classes and helpers
-├── Microsoft.ML.TestFrameworkCommon/ # Shared test utilities
-├── Microsoft.ML.Tests/              # Main functional tests
-├── Microsoft.ML.Core.Tests/         # Core unit tests
-├── Microsoft.ML.IntegrationTests/   # End-to-end integration tests
-├── Microsoft.ML.Tokenizers.Tests/   # Tokenizer tests
-└── ... (30+ test projects)
-```
+## Test Conventions
 
-## Conventions
+- Use the affected project's existing xUnit fixtures, `[Fact]`/`[Theory]` patterns, and `Assert.*` assertions. Prefer extending an existing relevant test class and use descriptive PascalCase test names.
+- In suites using the ML test infrastructure, use the appropriate existing base (`TestDataPipeBase`, `BaseTestClass`, or an area-specific subclass). These are not universal requirements. Tokenizers suppresses `MSML_ExtendBaseTestClass`, and code-analyzer tests have their own fixtures.
+- `BaseTestClass` descendants provide `ITestOutputHelper`, `GetDataPath`, and an `en-US` current culture for stable baselines. Preserve that default. Culture-specific tests must restore any temporary culture changes.
+- Use the affected project's existing data fixtures. ML test-base suites resolve `GetDataPath` under `test/data`. Baselines live in `test/BaselineOutput`. Update them only for understood, intended output changes, not merely to make a failing test pass.
+- The internal analyzer is enabled by default for applicable C# test projects. Follow project-specific settings and diagnostic exemptions rather than assuming every rule applies everywhere.
 
-### Public API changes
+## Architecture and Navigation
 
-Every public API addition, modification, or removal requires prior maintainer approval recorded in a GitHub issue labelled `api-approved`. This includes protected APIs available to consumers through inheritance and APIs in preview or experimental packages. For changes requiring review, follow the [API review process](../docs/project-docs/api-review-process.md) before implementing the change or opening an implementation PR.
-
-If a change requires review and approval is missing, prepare a proposal for review rather than implementing the API change. Do not treat a linked issue, `api-ready-for-review`, or a PR approval as API approval. Link the approval comment in the PR, implement the approved design, and obtain renewed issue approval if that design changes.
-
-### Code Style
-
-Every `.cs` file starts with the 3-line .NET Foundation MIT license header. This is enforced across the codebase and must not be omitted.
-
-Namespaces match assembly name (`Microsoft.ML`, `Microsoft.ML.Data`, `Microsoft.ML.Trainers`). Order usings as `System.*` first, then `Microsoft.*`, then others.
-
-Use `[BestFriend]` attribute for internal members shared across assemblies. The repo has many assemblies that need to share types without making them public; `[BestFriend]` provides controlled cross-assembly visibility for this.
-
-Use `Contracts.Check*` / `Contracts.Except*` for argument and state validation rather than raw `throw` statements. This ensures consistent error messages and lets the ML.NET host environment intercept validation failures.
-
-XML docs with `<summary>` tags are required on all public types and members.
-
-When editing an existing file, match its style even if it differs from general guidelines. Consistency within a file matters more than global uniformity.
-
-Follow [dotnet/runtime coding-style](https://github.com/dotnet/runtime/blob/main/docs/coding-guidelines/coding-style.md).
-
-### Test Conventions
-
-Framework: xUnit (`[Fact]`, `[Theory]`, `[InlineData]`).
-
-Inherit from `TestDataPipeBase` (for data pipeline tests) or `BaseTestClass` (for simpler tests). Both provide `ITestOutputHelper`, test data paths, and locale pinning to `en-US`.
-
-```csharp
-public class MyFeatureTests : TestDataPipeBase
-{
-    public MyFeatureTests(ITestOutputHelper output) : base(output) { }
-
-    [Fact]
-    public void MyFeatureBasicTest()
-    {
-        // ...
-    }
-}
-```
-
-Name test classes as `{Feature}Tests`, test methods as PascalCase descriptive names (e.g., `RandomizedPcaTrainerBaselineTest`). Do not use `Test_` prefixes or `_Should_` patterns.
-
-Use the built-in `Assert.*` (xUnit) assertions. Do not use `Assert.That` (NUnit style) or additional assertion libraries.
-
-Test data: use `Microsoft.ML.TestDatabases` package or files in `test/data/`, referenced via `GetDataPath("filename")` from the base class. Baseline output comparison uses files in `test/BaselineOutput/`. Update baselines carefully since they are the source of truth for output format stability.
-
-Gotchas: the base class pins locale to `en-US` (don't override). `AllowUnsafeBlocks` is enabled in test projects for native interop testing. XML doc warnings (CS1573, CS1591, CS1712) are suppressed in test code.
-
-### Architecture
-
-`MLContext` is the main entry point, exposing catalogs for each ML task (classification, regression, etc.).
-
-Data flows through `IDataView`, a lazy, columnar, cursor-based data pipeline. This design avoids loading entire datasets into memory, which matters for ML workloads.
-
-Trainers implement the `IEstimator<T>` to `ITransformer` pattern: call `Fit()` to train, then `Transform()` to apply. New trainers go in their own project under `src/`. New test projects mirror source naming: `Microsoft.ML.Foo` to `Microsoft.ML.Foo.Tests`.
+- `MLContext`, the public entry point, is implemented in `src/Microsoft.ML.Data/MLContext.cs`. `src/Microsoft.ML` is the umbrella packaging project, not its implementation.
+- `IDataView` is a lazy, columnar, cursor-based pipeline. Preserve laziness rather than materializing an entire dataset unnecessarily.
+- Trainers follow the `IEstimator<T>` / `ITransformer` pattern (`Fit`, then `Transform`). Extend the owning area where appropriate. A new trainer does not automatically require a new project.
+- Native sources live in `src/Native`. Account for the relevant platform and architecture when changing native code or interop.
 
 ## Git Workflow
 
-- Default branch: `main`
-- Never commit directly to `main`, always create a feature branch
-- Branch naming: `feature/description`, `fix/description`
-- PRs are squash-merged
-- Reference a filed issue in PR description
-- Address review feedback in additional commits (don't amend/force-push)
-- Use `git rebase` for conflict resolution, not merge commits
+Follow the [contribution guidelines](../docs/project-docs/contributing.md).
 
-## CI
+- Never commit directly to `main`. Reuse the assigned feature branch, or create one if needed.
+- Keep each PR focused on one concern, with a brief description and references to relevant issues.
+- Address review feedback in additional commits rather than amending or force-pushing.
+- Prefer `git rebase` over merge commits for conflict resolution. If this requires rewriting published history, obtain explicit authorization first.
+- Squash merge is the default, with exceptions described in the contribution guidelines.
+- GitHub writes require explicit approval for the intended action. Preparing a draft or loading a skill does not authorize publication.
 
-CI uses Azure DevOps Pipelines. `.vsts-dotnet-ci.yml` defines PR validation, and `build/vsts-ci.yml` defines the official signed build. Builds run on Windows, Linux, and macOS, covering both managed (.NET) and native components. Code coverage uses `coverlet.collector`. A custom internal Roslyn analyzer (`Microsoft.ML.InternalCodeAnalyzer`) runs on all test projects.
+## Task-Specific Guidance
 
-## AI Infrastructure
+Reusable procedures are in [.github/skills](skills/), and prompt templates in [.github/prompts](prompts/). Read the relevant procedure when the task calls for it rather than loading every workflow. Use the [code-review](skills/code-review/SKILL.md) skill when reviewing pull requests. Availability and automatic discovery depend on the coding client.
 
-### Workflows
-
-GitHub Actions in `.github/workflows/`:
-
-| Workflow | Trigger | Purpose |
-|----------|---------|---------|
-| `copilot-setup-steps.yml` | Manual | Remote Copilot Coding Agent build environment |
-
-### Prompts
-
-Reusable prompt templates in `.github/prompts/`:
-
-| Prompt | Purpose |
-|--------|---------|
-| `release-notes.prompt.md` | Generate classified release notes between commits |
-
-### Local Skills
-
-Repository-local Copilot skills in `.github/skills/`:
-
-| Skill | Purpose |
-|-------|---------|
-| `code-testing-agent` | Generate tests through a repository-aware multi-agent pipeline |
-| `ci-scan` | Analyze recurring `MachineLearning-CI` failures and draft Known Build Error issues |
-| `ci-scan-feedback` | Audit scanner quality and draft methodology improvements |
-| `issue-triage` | Classify one issue and draft labels and a maintainer response |
-| `repo-health-check` | Collect repository-health data and draft dashboard updates |
-| `repo-health-investigate` | Investigate one health finding and draft an evidence-based report |
-| `repo-health-groom` | Maintain the repository-health dashboard conservatively |
-
-These agents run from a local Copilot CLI session and use the operator's authenticated tools. GitHub writes require explicit approval. Scheduled GitHub Agentic Workflows can be introduced later when repository billing and authentication are available.
+The [Copilot setup workflow](workflows/copilot-setup-steps.yml) bootstraps the cloud-agent environment. Do not assume its setup has already run in a local session.
