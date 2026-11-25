@@ -1,11 +1,11 @@
 ---
 name: pull-request
-description: Write or update the title and description of a dotnet/machinelearning pull request. Use when opening, creating, or editing a PR, or when asked for a PR title, PR description, or squash commit message.
+description: Write or update the title and description of a dotnet/machinelearning pull request. Use when opening, creating, or editing a PR, or when asked for a PR title or description.
 ---
 
 # ML.NET Pull Request Descriptions
 
-The repo squash-merges using the PR title and body as the commit message. Write for a maintainer reading `git log` years from now. Reviewers already have the Files tab, so do not repeat the diff.
+Write for a reader who needs to understand the reason and behavior without re-reading the diff. Reviewers already have the Files tab, so do not repeat it.
 
 ## Title
 
@@ -31,11 +31,13 @@ Add only what helps a future reader:
 Leave out:
 
 - File, method, or test inventories and `Summary`/`Changes`/`Tests`/`Validation` section scaffolding.
-- Restating the title, checklists, and template boilerplate.
+- Restating the title or repeating the checklist in the description.
 - `Not in this PR` lists, unless they prevent a wrong assumption.
 - CI run links, long scripts, and test logs.
 
 Use `Fixes #N` only when the PR fully closes the issue. For partial or tracking work, use `Relates to #N`.
+
+Keep the PR template checklist at the end and tick the items that apply.
 
 ## Validation and blockers
 

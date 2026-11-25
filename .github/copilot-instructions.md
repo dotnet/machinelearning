@@ -90,7 +90,7 @@ Follow the [contribution guidelines](../docs/project-docs/contributing.md).
 
 - Never commit directly to `main`. Reuse the assigned feature branch, or create one if needed.
 - Keep each PR focused on one concern, with a brief description and references to relevant issues.
-- The PR title and description become the squash commit message. Use a specific imperative title and state why and the resulting behavior in a few sentences. Do not list files or tests, add `Summary`/`Changes`/`Tests` sections, or paste logs. Keep validation notes and CI links out of the description and report them in chat or a PR comment when relevant. See the [pull-request](skills/pull-request/SKILL.md) skill.
+- Keep PR descriptions concise and focused on why and behavior. See the [pull-request](skills/pull-request/SKILL.md) skill for details.
 - Address review feedback in additional commits rather than amending or force-pushing.
 - Prefer `git rebase` over merge commits for conflict resolution. If this requires rewriting published history, obtain explicit authorization first.
 - Squash merge is the default, with exceptions described in the contribution guidelines.

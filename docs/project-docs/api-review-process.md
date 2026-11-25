@@ -55,7 +55,7 @@ For changes requiring review, wait until the issue is marked `api-approved` and 
 
 1. Implement the approved API shape and behaviour.
 2. Include the necessary tests, XML documentation, usage samples, and any affected API or test baselines.
-3. Link both the proposal issue and its approval comment in the pull request description.
+3. Link both the proposal issue and its approval comment in the pull request, and complete the API-review item in the pull request template.
 
 If implementation reveals a need to change the approved API, update the proposal and ask the maintainer to move it out of `api-approved` for further review. Obtain renewed approval in the issue before implementing the revised design. The earlier approval covers only the design that was reviewed.
 
