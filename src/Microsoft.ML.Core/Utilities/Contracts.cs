@@ -307,9 +307,9 @@ namespace Microsoft.ML.Runtime
         public static Exception ExceptParam(this IExceptionContext ctx, string paramName, string msg, params object[] args)
             => Process(new ArgumentOutOfRangeException(paramName, GetMsg(msg, args)), ctx);
         public static Exception ExceptParamValue<T>(T value, string paramName, string msg)
-            => Process(new ArgumentOutOfRangeException(msg, value, paramName));
+            => Process(new ArgumentOutOfRangeException(paramName, value, msg));
         public static Exception ExceptParamValue<T>(this IExceptionContext ctx, T value, string paramName, string msg)
-            => Process(new ArgumentOutOfRangeException(msg, value, paramName), ctx);
+            => Process(new ArgumentOutOfRangeException(paramName, value, msg), ctx);
         public static Exception ExceptParamValue<T>(T value, string paramName, string msg, params object[] args)
             => Process(new ArgumentOutOfRangeException(paramName, value, GetMsg(msg, args)));
         public static Exception ExceptParamValue<T>(this IExceptionContext ctx, T value, string paramName, string msg, params object[] args)
