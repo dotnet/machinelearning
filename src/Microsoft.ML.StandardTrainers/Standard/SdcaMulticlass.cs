@@ -613,10 +613,8 @@ namespace Microsoft.ML.Trainers
         {
             /// <summary>
             /// Loss function minimized by this trainer.
+            /// The default is <see langword="null"/>, which uses <see cref="LogLoss"/>.
             /// </summary>
-            /// <value>
-            /// If unspecified, <see cref="LogLoss"/> will be used.
-            /// </value>
             public ISupportSdcaClassificationLoss Loss
             {
                 get { return InternalLoss; }

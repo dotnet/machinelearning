@@ -106,6 +106,7 @@ namespace Microsoft.ML.Trainers
         {
             /// <summary>
             /// The number of clusters.
+            /// The default value is <c>5</c>.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "The number of clusters", SortOrder = 50, Name = "K")]
             [TGUI(SuggestedSweeps = "5,10,20,40")]
@@ -114,12 +115,14 @@ namespace Microsoft.ML.Trainers
 
             /// <summary>
             /// Cluster initialization algorithm.
+            /// The default value is <see cref="InitializationAlgorithm.KMeansYinyang"/>.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Cluster initialization algorithm", ShortName = "init")]
             public InitializationAlgorithm InitializationAlgorithm = InitializationAlgorithm.KMeansYinyang;
 
             /// <summary>
             /// Tolerance parameter for trainer convergence. Low = slower, more accurate.
+            /// The default value is <c>1e-7</c>.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Tolerance parameter for trainer convergence. Low = slower, more accurate",
                 Name = "OptTol", ShortName = "ot")]
@@ -128,6 +131,7 @@ namespace Microsoft.ML.Trainers
 
             /// <summary>
             /// Maximum number of iterations.
+            /// The default value is <c>1000</c>.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Maximum number of iterations.", ShortName = "maxiter, NumberOfIterations")]
             [TGUI(Label = "Max Number of Iterations")]
@@ -135,6 +139,7 @@ namespace Microsoft.ML.Trainers
 
             /// <summary>
             /// Memory budget (in MBs) to use for KMeans acceleration.
+            /// The default value is <c>4096</c>.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Memory budget (in MBs) to use for KMeans acceleration",
                 Name = "AccelMemBudgetMb", ShortName = "accelMemBudgetMb")]
@@ -143,6 +148,7 @@ namespace Microsoft.ML.Trainers
 
             /// <summary>
             /// Degree of lock-free parallelism. Defaults to automatic. Determinism not guaranteed.
+            /// The default is <see langword="null"/>, which selects the number of threads automatically.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Degree of lock-free parallelism. Defaults to automatic. Determinism not guaranteed.", ShortName = "nt,t,threads", SortOrder = 50)]
             [TGUI(Label = "Number of threads")]

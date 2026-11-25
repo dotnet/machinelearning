@@ -80,22 +80,38 @@ namespace Microsoft.ML.Trainers
         /// </summary>
         public sealed class Options : OnlineLinearOptions
         {
+            /// <summary>
+            /// The regularization constant.
+            /// The default value is <c>0.001</c>.
+            /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Regularizer constant", ShortName = "lambda", SortOrder = 50)]
             [TGUI(SuggestedSweeps = "0.00001-0.1;log;inc:10")]
             [TlcModule.SweepableFloatParamAttribute("Lambda", 0.00001f, 0.1f, 10, isLogScale: true)]
             [Range(1e-6f, 1f, 1e-4f, true)]
             public float Lambda = 0.001f;
 
+            /// <summary>
+            /// The number of examples in each batch.
+            /// The default value is <c>1</c>.
+            /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Batch size", ShortName = "batch", SortOrder = 190)]
             [TGUI(Label = "Batch Size")]
             [Range(1, 128, 1, true)]
             public int BatchSize = 1;
 
+            /// <summary>
+            /// Whether to project the model weights during training.
+            /// The default value is <see langword="false"/>.
+            /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Perform projection to unit-ball? Typically used with batch size > 1.", ShortName = "project", SortOrder = 50)]
             [TlcModule.SweepableDiscreteParam("PerformProjection", null, isBool: true)]
             [BooleanChoice(defaultValue: false)]
             public bool PerformProjection = false;
 
+            /// <summary>
+            /// Whether to omit the bias term.
+            /// The default value is <see langword="false"/>.
+            /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "No bias")]
             [TlcModule.SweepableDiscreteParam("NoBias", null, isBool: true)]
             [BooleanChoice(defaultValue: false)]
@@ -109,6 +125,7 @@ namespace Microsoft.ML.Trainers
 
             /// <summary>
             /// Column to use for example weight.
+            /// The default value is <see langword="null"/>.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Column to use for example weight", ShortName = "weight,WeightColumn", SortOrder = 4, Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
             public string ExampleWeightColumnName = null;

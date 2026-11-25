@@ -29,46 +29,57 @@ namespace Microsoft.ML.TorchSharp
         {
             /// <summary>
             /// The label column name.
+            /// The default value is <c>Label</c>.
             /// </summary>
             public string LabelColumnName = DefaultColumnNames.Label;
 
             /// <summary>
             /// The Score column name.
+            /// The default value is <c>Score</c>.
             /// </summary>
             public string ScoreColumnName = DefaultColumnNames.Score;
 
             /// <summary>
             /// The Prediction column name.
+            /// The default value is <c>PredictedLabel</c>.
             /// </summary>
             public string PredictionColumnName = DefaultColumnNames.PredictedLabel;
 
             /// <summary>
             /// Number of samples to use for mini-batch training.
+            /// The default value is <c>32</c>.
             /// </summary>
             public int BatchSize = 32;
 
             /// <summary>
             /// The start learning rate for polynomial decay scheduler.
+            /// The default value is <c>0.1</c>.
             /// </summary>
             public double StartLearningRateRatio = .1;
 
             /// <summary>
             /// The final learning rate for polynomial decay scheduler.
+            /// The default value is <c>0.9</c>.
             /// </summary>
             public double FinalLearningRateRatio = .9;
 
             /// <summary>
             /// Coefficiency of weight decay. Should be within [0, +Inf).
+            /// The default is <c>0</c>, except for sentence similarity and question answering, where it is
+            /// <c>0.01</c>.
             /// </summary>
             public double WeightDecay = 0;
 
             /// <summary>
             /// Stop training when reaching this number of epochs.
+            /// The default is <c>100</c>, except for text classification and sentence similarity, where it is
+            /// <c>10</c>.
             /// </summary>
             public int MaxEpoch = 100;
 
             /// <summary>
             /// The validation set used while training to improve model quality.
+            /// The default value is <see langword="null"/>.
             /// </summary>
             public IDataView ValidationSet = null;
 
