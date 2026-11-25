@@ -28,7 +28,7 @@ cd tools-local\GenerateNonSpacingMarkTable
 dotnet run -- "%TEMP%\UnicodeData.txt" "%TEMP%\DerivedNormalizationProps.txt"
 move /y NonSpacingMarkRemover.Data.cs ..\..\src\Microsoft.ML.Tokenizers\Normalizer\
 cd ..\..
-.dotnet\dotnet.exe test test\Microsoft.ML.Tokenizers.Tests\Microsoft.ML.Tokenizers.Tests.csproj -f net8.0 --filter "FullyQualifiedName~BertTokenizerTests"
+.dotnet\dotnet.exe test test\Microsoft.ML.Tokenizers.Tests\Microsoft.ML.Tokenizers.Tests.csproj -f net10.0 --filter "FullyQualifiedName~BertTokenizerTests"
 ```
 
 Linux/macOS (bash):
@@ -41,5 +41,5 @@ cd tools-local/GenerateNonSpacingMarkTable
 dotnet run -- "$ucd/UnicodeData.txt" "$ucd/DerivedNormalizationProps.txt"
 mv NonSpacingMarkRemover.Data.cs ../../src/Microsoft.ML.Tokenizers/Normalizer/
 cd ../..
-./.dotnet/dotnet test test/Microsoft.ML.Tokenizers.Tests/Microsoft.ML.Tokenizers.Tests.csproj -f net8.0 --filter "FullyQualifiedName~BertTokenizerTests"
+./.dotnet/dotnet test test/Microsoft.ML.Tokenizers.Tests/Microsoft.ML.Tokenizers.Tests.csproj -f net10.0 --filter "FullyQualifiedName~BertTokenizerTests"
 ```
