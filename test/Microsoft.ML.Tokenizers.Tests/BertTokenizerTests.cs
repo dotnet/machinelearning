@@ -345,6 +345,9 @@ namespace Microsoft.ML.Tokenizers.Tests
                             new EncodedToken(5, "!", new Range(25, 26)),
                         ],
                         tokens);
+
+                    // Characters without non-spacing marks are kept even if they look accented.
+                    Assert.Equal("Straße Øresund", bertTokenizer.Normalizer!.Normalize("Straße Øresund"));
                 }
                 finally
                 {
