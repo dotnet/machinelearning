@@ -3,26 +3,25 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Globalization;
 using System.Text;
 
 namespace Microsoft.ML.Tokenizers
 {
     /// <summary>
-    /// Removes the non-spacing marks (for example, accents) from text without using <see cref="string.Normalize(NormalizationForm)"/>,
-    /// which returns its input unchanged when globalization-invariant mode is enabled.
+    /// Removes the non-spacing marks (for example, accents) that are part of precomposed characters, without using
+    /// <see cref="string.Normalize(NormalizationForm)"/>, which returns its input unchanged when globalization-invariant mode is enabled.
     /// </summary>
     internal static partial class NonSpacingMarkRemover
     {
-        // No character below this one is a non-spacing mark or decomposes to one.
+        // No character below this one is in the table.
         private const char FirstCandidate = '\u00C0';
 
         /// <summary>
-        /// Removes all the non-spacing marks from the text, including the ones that are part of precomposed characters.
-        /// For example, "Café" becomes "Cafe".
+        /// Replaces each precomposed character that contains non-spacing marks with the character without them.
+        /// For example, "Café" becomes "Cafe". Like decomposing the text (NFD), it leaves standalone non-spacing marks for the caller to remove.
         /// </summary>
         /// <param name="text">The text to remove the non-spacing marks from.</param>
-        /// <returns>The text without non-spacing marks, or <paramref name="text"/> itself when it has none.</returns>
+        /// <returns>The text with those characters replaced, or <paramref name="text"/> itself when it has none.</returns>
         internal static string Remove(string text)
         {
             ValueStringBuilder result = default;
@@ -45,10 +44,9 @@ namespace Microsoft.ML.Tokenizers
                     charCount = 2;
                 }
 
-                bool isNonSpacingMark = CharUnicodeInfo.GetUnicodeCategory(text, i) == UnicodeCategory.NonSpacingMark;
-                int index = isNonSpacingMark ? -1 : Array.BinarySearch(_codePoints, codePoint);
+                int index = Array.BinarySearch(_codePoints, codePoint);
 
-                if (isNonSpacingMark || index >= 0)
+                if (index >= 0)
                 {
                     if (!changed)
                     {
@@ -59,14 +57,11 @@ namespace Microsoft.ML.Tokenizers
                     result.Append(text.AsSpan(pendingStart, i - pendingStart));
                     pendingStart = i + charCount;
 
-                    if (index >= 0)
+                    // Each replacement takes two UTF-16 code units, the second one being '\0' when unused.
+                    result.Append(Replacements[2 * index]);
+                    if (Replacements[2 * index + 1] != '\0')
                     {
-                        // Each replacement takes two UTF-16 code units, the second one being '\0' when unused.
-                        result.Append(Replacements[2 * index]);
-                        if (Replacements[2 * index + 1] != '\0')
-                        {
-                            result.Append(Replacements[2 * index + 1]);
-                        }
+                        result.Append(Replacements[2 * index + 1]);
                     }
                 }
 
