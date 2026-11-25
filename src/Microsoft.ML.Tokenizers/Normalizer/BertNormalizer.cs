@@ -164,10 +164,14 @@ namespace Microsoft.ML.Tokenizers
         /// <exception cref="PlatformNotSupportedException"><paramref name="removeNonSpacingMarks"/> is <see langword="true"/> and globalization-invariant mode is enabled.</exception>
         public BertNormalizer(bool lowerCase, bool individuallyTokenizeCjk, bool removeNonSpacingMarks)
         {
-            if (removeNonSpacingMarks)
+            if (removeNonSpacingMarks && !UnicodeNormalization.IsSupported)
             {
                 // The accents of precomposed characters only become non-spacing marks that can be removed once string.Normalize decomposes them.
-                UnicodeNormalization.ThrowIfNotSupported("BertOptions.RemoveNonSpacingMarks", "Otherwise, set RemoveNonSpacingMarks to false to keep the accents.");
+                throw new PlatformNotSupportedException(
+                    "BertOptions.RemoveNonSpacingMarks needs Unicode normalization, which isn't available when globalization-invariant mode is enabled. " +
+                    "To use it, set <InvariantGlobalization>false</InvariantGlobalization> in the project file and make sure ICU is available, " +
+                    "for example by using a container image that includes it, such as a chiseled '-extra' image. " +
+                    "Otherwise, set RemoveNonSpacingMarks to false to keep the accents.");
             }
 
             _lowerCase = lowerCase;

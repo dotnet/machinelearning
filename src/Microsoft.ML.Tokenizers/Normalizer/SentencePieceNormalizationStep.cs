@@ -136,9 +136,12 @@ namespace Microsoft.ML.Tokenizers
                 ? typeElement.GetString() : null;
 
             // These steps rely on string.Normalize, which returns its input unchanged when globalization-invariant mode is enabled.
-            if (type is "StripAccents" or "NFC" or "NFD" or "NFKC" or "NFKD")
+            if (!UnicodeNormalization.IsSupported && type is "StripAccents" or "NFC" or "NFD" or "NFKC" or "NFKD")
             {
-                UnicodeNormalization.ThrowIfNotSupported($"The tokenizer.json normalizer '{type}'");
+                throw new PlatformNotSupportedException(
+                    $"The tokenizer.json normalizer '{type}' needs Unicode normalization, which isn't available when globalization-invariant mode is enabled. " +
+                    "To use it, set <InvariantGlobalization>false</InvariantGlobalization> in the project file and make sure ICU is available, " +
+                    "for example by using a container image that includes it, such as a chiseled '-extra' image.");
             }
 
             switch (type)
