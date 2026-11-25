@@ -5,7 +5,7 @@ You can build ML.NET either via the command line or by using Visual Studio.
 ## Required software
 
 1. [Git](https://git-scm.com/download/win).
-2. [Visual Studio 2022](https://visualstudio.microsoft.com/downloads/) with the **Desktop development with C++** and **.NET desktop development** workloads.
+2. [Visual Studio 2026](https://visualstudio.microsoft.com/downloads/) with the **Desktop development with C++** and **.NET desktop development** workloads.
 3. [CMake](https://cmake.org/download/) available on `PATH`.
 
 The build scripts acquire the .NET SDK selected by `global.json`; you do not need to install that exact SDK separately.

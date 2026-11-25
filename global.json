@@ -1,4 +1,14 @@
 {
+  "sdk": {
+    "version": "12.0.100-alpha.1.26555.106",
+    "allowPrerelease": true,
+    "rollForward": "latestMajor",
+    "paths": [
+      ".dotnet",
+      "$host$"
+    ],
+    "errorMessage": "The required .NET SDK wasn't found. Please run ./restore.sh or .\\restore.cmd to install it."
+  },
   "tools": {
     "dotnet": "12.0.100-alpha.1.26555.106",
     "runtimes": {

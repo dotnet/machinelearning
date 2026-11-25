@@ -28,7 +28,7 @@
     <PackageVersion Include="Microsoft.ML.OnnxRuntime.Managed" Version="$(MicrosoftMLOnnxRuntimeVersion)" />
     <PackageVersion Include="MlNetMklDeps" Version="$(MlNetMklDepsVersion)" />
     <PackageVersion Include="Newtonsoft.Json" Version="$(NewtonsoftJsonVersion)" />
-    <PackageVersion Include="NuGet.Packaging.Core" Version="$(NuGetVersion)" />
+    <PackageVersion Include="NuGet.Packaging" Version="$(NuGetVersion)" />
     <PackageVersion Include="NuGet.Resolver" Version="$(NuGetVersion)" />
     <PackageVersion Include="Parquet.Net" Version="$(ParquetDotNetVersion)" />
     <PackageVersion Include="Plotly.NET.CSharp" Version="$(PlotlyNETCSharpVersion)" />
