@@ -161,7 +161,8 @@ OS_ARCH=$(uname -m)
 OS=$(uname)
 
 # If we are cross compiling on Linux we need to set the CMAKE_TOOLCHAIN_FILE
-if [[ ( $OS_ARCH == "amd64" || $OS_ARCH == "x86_64" ) && ( $__build_arch == "arm64" || $__build_arch == "arm" ) && $OS != "Darwin" ]] ; then
+if [[ ( $OS_ARCH == "amd64" || $OS_ARCH == "x86_64" ) && $OS != "Darwin" && \
+      ( $__build_arch == "arm64" || $__build_arch == "arm" || ( $OS == "Linux" && $__build_arch == "x64" && -n "$ROOTFS_DIR" ) ) ]] ; then
     __cmake_defines="${__cmake_defines} -DCMAKE_TOOLCHAIN_FILE=$RootRepo/eng/common/cross/toolchain.cmake"
     export TARGET_BUILD_ARCH=$__build_arch
 
