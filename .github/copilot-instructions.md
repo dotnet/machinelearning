@@ -90,6 +90,7 @@ Follow the [contribution guidelines](../docs/project-docs/contributing.md).
 
 - Never commit directly to `main`. Reuse the assigned feature branch, or create one if needed.
 - Keep each PR focused on one concern, with a brief description and references to relevant issues.
+- The PR title and description become the squash commit message. Use a specific imperative title and state why and the resulting behavior in a few sentences. Do not list files or tests, add `Summary`/`Changes`/`Tests` sections, or paste logs. Keep validation notes and CI links out of the description and report them in chat or a PR comment when relevant. See the [pull-request](skills/pull-request/SKILL.md) skill.
 - Address review feedback in additional commits rather than amending or force-pushing.
 - Prefer `git rebase` over merge commits for conflict resolution. If this requires rewriting published history, obtain explicit authorization first.
 - Squash merge is the default, with exceptions described in the contribution guidelines.
@@ -97,6 +98,6 @@ Follow the [contribution guidelines](../docs/project-docs/contributing.md).
 
 ## Task-Specific Guidance
 
-Reusable procedures are in [.github/skills](skills/), and prompt templates in [.github/prompts](prompts/). Read the relevant procedure when the task calls for it rather than loading every workflow. Use the [code-review](skills/code-review/SKILL.md) skill when reviewing pull requests. Availability and automatic discovery depend on the coding client.
+Reusable procedures are in [.github/skills](skills/), and prompt templates in [.github/prompts](prompts/). Read the relevant procedure when the task calls for it rather than loading every workflow. Use the [code-review](skills/code-review/SKILL.md) skill when reviewing pull requests and the [pull-request](skills/pull-request/SKILL.md) skill when writing a PR title or description. Availability and automatic discovery depend on the coding client.
 
 The [Copilot setup workflow](workflows/copilot-setup-steps.yml) bootstraps the cloud-agent environment. Do not assume its setup has already run in a local session.
