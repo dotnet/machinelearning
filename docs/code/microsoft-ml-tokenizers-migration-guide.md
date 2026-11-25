@@ -72,7 +72,6 @@ IReadOnlyList<int> tokenTypeIds = tokenizer.CreateTokenTypeIdsFromSequences(ques
 
 - For cased models, such as `google-bert/bert-base-cased`, set `LowerCaseBeforeTokenization` and `RemoveNonSpacingMarks` to `false`.
 - `EncodeToIds` adds `[CLS]` and `[SEP]` when you call it on a `BertTokenizer`. `EncodeToTokens`, `CountTokens`, and calls through the base `Tokenizer` type don't add them.
-- `BertTokenizer` joins words that are separated only by `\t`, `\n`, or `\r` ([#7724](https://github.com/dotnet/machinelearning/issues/7724)), so replace those characters with spaces before encoding. It also drops symbols such as `+`, `$`, and emoji, which Hugging Face keeps ([#7725](https://github.com/dotnet/machinelearning/issues/7725)).
 
 #### GPT-2 and RoBERTa
 
