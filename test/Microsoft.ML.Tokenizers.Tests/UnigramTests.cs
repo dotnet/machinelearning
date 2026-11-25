@@ -1266,7 +1266,17 @@ namespace Microsoft.ML.Tokenizers.Tests
                 Utils.AssertInvariantGlobalizationMode();
 
                 // These steps can't do anything without Unicode normalization, so creating the tokenizer fails rather than silently skipping them.
-                foreach (string step in new[] { "StripAccents", "NFC", "NFD", "NFKC", "NFKD" })
+                // The message names the normalization form that each step uses, which for StripAccents is FormD.
+                (string, NormalizationForm)[] steps =
+                [
+                    ("StripAccents", NormalizationForm.FormD),
+                    ("NFC", NormalizationForm.FormC),
+                    ("NFD", NormalizationForm.FormD),
+                    ("NFKC", NormalizationForm.FormKC),
+                    ("NFKD", NormalizationForm.FormKD),
+                ];
+
+                foreach ((string step, NormalizationForm form) in steps)
                 {
                     string[] normalizers =
                     [
@@ -1277,7 +1287,7 @@ namespace Microsoft.ML.Tokenizers.Tests
                     foreach (string normalizer in normalizers)
                     {
                         PlatformNotSupportedException exception = Assert.Throws<PlatformNotSupportedException>(() => JsonUnigramTokens(CreateJson(normalizer), "a"));
-                        Assert.Contains($"'{step}'", exception.Message);
+                        Assert.Contains(form.ToString(), exception.Message);
                         Assert.Contains("https://aka.ms/GlobalizationInvariantMode", exception.Message);
                     }
                 }

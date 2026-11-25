@@ -76,12 +76,12 @@ namespace Microsoft.ML.Tokenizers
 
         // string.Normalize returns its input unchanged when globalization-invariant mode is enabled. The steps relying on it call this
         // from their constructors, so that creating the tokenizer fails rather than the steps silently leaving the text unchanged.
-        private static void ThrowIfUnicodeNormalizationNotSupported(string type)
+        private static void ThrowIfUnicodeNormalizationNotSupported(NormalizationForm form)
         {
             if (!UnicodeNormalization.IsSupported)
             {
                 throw new PlatformNotSupportedException(
-                    $"The tokenizer.json normalizer '{type}' requires Unicode normalization, which isn't available in globalization-invariant mode. " +
+                    $"The tokenizer.json normalizer requires Unicode normalization ({form}), which isn't available in globalization-invariant mode. " +
                     "See https://aka.ms/GlobalizationInvariantMode for more information.");
             }
         }
@@ -190,13 +190,13 @@ namespace Microsoft.ML.Tokenizers
                     return new StripAccentsStep();
 
                 case "NFC":
-                    return new UnicodeStep("NFC", NormalizationForm.FormC);
+                    return new UnicodeStep(NormalizationForm.FormC);
                 case "NFD":
-                    return new UnicodeStep("NFD", NormalizationForm.FormD);
+                    return new UnicodeStep(NormalizationForm.FormD);
                 case "NFKC":
-                    return new UnicodeStep("NFKC", NormalizationForm.FormKC);
+                    return new UnicodeStep(NormalizationForm.FormKC);
                 case "NFKD":
-                    return new UnicodeStep("NFKD", NormalizationForm.FormKD);
+                    return new UnicodeStep(NormalizationForm.FormKD);
 
                 case "Prepend":
                     {
@@ -284,7 +284,7 @@ namespace Microsoft.ML.Tokenizers
         private sealed class StripAccentsStep : SentencePieceNormalizationStep
         {
             // Not a singleton: if a static instance's constructor threw, the type would stay unusable for the rest of the process.
-            public StripAccentsStep() => ThrowIfUnicodeNormalizationNotSupported("StripAccents");
+            public StripAccentsStep() => ThrowIfUnicodeNormalizationNotSupported(NormalizationForm.FormD);
 
             public override string Normalize(string text)
             {
@@ -325,9 +325,9 @@ namespace Microsoft.ML.Tokenizers
         {
             private readonly NormalizationForm _form;
 
-            public UnicodeStep(string type, NormalizationForm form)
+            public UnicodeStep(NormalizationForm form)
             {
-                ThrowIfUnicodeNormalizationNotSupported(type);
+                ThrowIfUnicodeNormalizationNotSupported(form);
                 _form = form;
             }
 
