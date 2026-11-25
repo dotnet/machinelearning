@@ -20,7 +20,7 @@
     <MicrosoftExtensionsOptionsVersion>9.0.4</MicrosoftExtensionsOptionsVersion>
     <NuGetVersion>6.9.1</NuGetVersion>
     <SkiaSharpVersion>3.119.2</SkiaSharpVersion>
-    <SystemCodeDomVersion>9.0.4</SystemCodeDomVersion>
+    <SystemCodeDomVersion>9.0.5</SystemCodeDomVersion>
     <SystemCollectionsImmutableVersion>9.0.4</SystemCollectionsImmutableVersion>
     <SystemConfigurationConfigurationManagerVersion>9.0.4</SystemConfigurationConfigurationManagerVersion>
     <SystemIOFileSystemAccessControl>5.0.0</SystemIOFileSystemAccessControl>
@@ -39,7 +39,7 @@
     <MicrosoftBclHashCodeVersion>6.0.0</MicrosoftBclHashCodeVersion>
     <MicrosoftBclMemoryVersion>9.0.14</MicrosoftBclMemoryVersion>
     <MicrosoftCodeAnalysisAnalyzersVersion>3.11.0</MicrosoftCodeAnalysisAnalyzersVersion>
-    <MicrosoftCodeAnalysisCSharpVersion>4.13.0</MicrosoftCodeAnalysisCSharpVersion>
+    <MicrosoftCodeAnalysisCSharpVersion>4.14.0</MicrosoftCodeAnalysisCSharpVersion>
     <MicrosoftMLOnnxRuntimeVersion>1.23.2</MicrosoftMLOnnxRuntimeVersion>
     <MlNetMklDepsVersion>0.0.0.12</MlNetMklDepsVersion>
     <!-- runtime.native.System.Data.SqlClient.sni is not updated by dependency flow as it is not produced live anymore. -->
@@ -78,7 +78,7 @@
     <SystemCompositionVersion>9.0.4</SystemCompositionVersion>
     <!-- Test-only Dependencies -->
     <ApprovalTestsVersion>7.0.0</ApprovalTestsVersion>
-    <BenchmarkDotNetVersion>0.13.12</BenchmarkDotNetVersion>
+    <BenchmarkDotNetVersion>0.15.8</BenchmarkDotNetVersion>
     <DotNetRuntime100Version>10.0.15</DotNetRuntime100Version>
     <DotNetRuntime110Version>11.0.0</DotNetRuntime110Version>
     <MicrosoftCodeAnalysisTestingVersion>1.1.2</MicrosoftCodeAnalysisTestingVersion>
