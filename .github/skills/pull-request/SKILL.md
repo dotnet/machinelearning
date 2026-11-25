@@ -33,7 +33,7 @@ Leave out:
 
 - File, method, or test inventories and `Summary`/`Changes`/`Tests`/`Validation` section scaffolding.
 - Restating the title, template greetings, or the template checklist.
-- A play-by-play of PR edits or abandoned approaches. Describe the final change instead.
+- History of changes to the PR (earlier revisions or abandoned approaches). Describe the final change instead.
 - `Not in this PR` lists, unless they prevent a wrong assumption.
 - CI run links, long scripts, and test logs.
 
