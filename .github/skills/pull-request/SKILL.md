@@ -9,7 +9,7 @@ Write for a reader who needs to understand the reason and behavior without re-re
 
 ## Title
 
-- Imperative, specific, at most about 72 characters (for example, `Fix OVA softmax scratch sharing across prediction engines`).
+- Imperative and specific. Keep it concise, aiming for fewer than 80 characters when practical.
 - Name the behavior, not the files. No `fix:` prefix and no issue number.
 
 ## Body
@@ -18,7 +18,7 @@ Use the smallest shape that carries the signal:
 
 - **Trivial or mechanical change:** one line, or title only.
 - **Bug fix:** the symptom, the cause, and the fix in 1-3 sentences, plus `Fixes #N`.
-- **Feature or multi-behavior change:** one short paragraph on why, then at most 5 bullets describing behaviors (never files).
+- **Feature or multi-behavior change:** explain why and describe the behavior. Use additional detail, bullets, or headings when they make a larger or more complex change easier to review.
 
 Add only what helps a future reader:
 
@@ -26,18 +26,20 @@ Add only what helps a future reader:
 - Perf numbers with the measurement method.
 - A compatibility or behavior change.
 - One rejected alternative, if it prevents someone redoing it.
+- Relevant specifications, design notes, or documentation.
 - For public API changes, links to the proposal issue and its `api-approved` comment (required by the [API review process](../../../docs/project-docs/api-review-process.md)).
 
 Leave out:
 
 - File, method, or test inventories and `Summary`/`Changes`/`Tests`/`Validation` section scaffolding.
 - Restating the title, template greetings, or the template checklist.
+- A play-by-play of PR edits or abandoned approaches. Describe the final change instead.
 - `Not in this PR` lists, unless they prevent a wrong assumption.
 - CI run links, long scripts, and test logs.
 
 Use `Fixes #N` only when the PR fully closes the issue. For partial or tracking work, use `Relates to #N`.
 
-Use the [PR template](../../../PULL_REQUEST_TEMPLATE.md) as a pre-submission checklist. After checking its items, remove the template greeting and checklist from the submitted description, including the checkbox lines. Keep the actual issue and API-approval links.
+Use the [PR template](../../../PULL_REQUEST_TEMPLATE.md) as a pre-submission checklist. After checking its items, remove the template greeting and checklist from the submitted description. Keep the actual issue and API-approval links.
 
 ## Validation and blockers
 

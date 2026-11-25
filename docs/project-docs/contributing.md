@@ -19,7 +19,7 @@ Pull Requests
 * **DO** obtain approval for every public API change in an issue labelled `api-approved` before implementing it or opening a PR. Follow the [API review process](api-review-process.md), link the approval comment in your PR, and implement the approved design.
 * **DO** give PRs short-but-descriptive names (for example, "Improve code coverage for System.Console by 10%", not "Fix #1234")
 * **DO** refer to any relevant issues, and include [keywords](https://help.github.com/articles/closing-issues-via-commit-messages/) that automatically close issues when the PR is merged.
-* **DO** keep the PR description short and explain why and the resulting behavior. Reviewers can see the diff, so **DO NOT** list changed files or tests, or paste logs.
+* **DO** keep the PR description concise and explain why and the resulting behavior. Larger features may need more detail. Link relevant specifications or design documents, and describe the final change rather than the PR's revision history. Reviewers can see the diff, so **DO NOT** list changed files or tests, or paste logs.
 * **DO** tag any users that should know about and/or review the change.
 * **DO** ensure each commit successfully builds.  The entire PR must pass all tests in the Continuous Integration (CI) system before it'll be merged.
 * **DO** address PR feedback in an additional commit(s) rather than amending the existing commits, and only rebase/squash them when necessary.  This makes it easier for reviewers to track changes.
