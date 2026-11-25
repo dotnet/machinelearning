@@ -28,6 +28,7 @@ namespace Microsoft.ML.Trainers
 
         /// <summary>
         /// Column to use for features.
+        /// The default value is <c>Features</c>.
         /// </summary>
         [Argument(ArgumentType.AtMostOnce, HelpText = "Column to use for features", ShortName = "feat", SortOrder = 2, Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
         public string FeatureColumnName = DefaultColumnNames.Features;
@@ -59,6 +60,7 @@ namespace Microsoft.ML.Trainers
 
         /// <summary>
         /// Column to use for labels.
+        /// The default value is <c>Label</c>.
         /// </summary>
         [Argument(ArgumentType.AtMostOnce, HelpText = "Column to use for labels", ShortName = "lab", SortOrder = 3, Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
         public string LabelColumnName = DefaultColumnNames.Label;
@@ -75,6 +77,7 @@ namespace Microsoft.ML.Trainers
 
         /// <summary>
         /// Column to use for example weight.
+        /// The default value is <see langword="null"/>.
         /// </summary>
         [Argument(ArgumentType.AtMostOnce, HelpText = "Column to use for example weight", ShortName = "weight", SortOrder = 4, Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
         public string ExampleWeightColumnName = null;
@@ -91,6 +94,7 @@ namespace Microsoft.ML.Trainers
         /// <summary>
         /// The name of the column containing a weight for each training example, or <see langword="null"/>
         /// to give all examples equal weight.
+        /// The default value is <see langword="null"/>.
         /// </summary>
         /// <remarks>
         /// <para>
@@ -134,6 +138,7 @@ namespace Microsoft.ML.Trainers
 
         /// <summary>
         /// Column to use for example groupId.
+        /// The default is <see langword="null"/>; FastTree and LightGBM ranking options use <c>GroupId</c>.
         /// </summary>
         [Argument(ArgumentType.AtMostOnce, HelpText = "Column to use for example groupId", ShortName = "groupId", SortOrder = 5, Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
         public string RowGroupColumnName = null;

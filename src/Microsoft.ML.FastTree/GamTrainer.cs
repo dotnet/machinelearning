@@ -36,12 +36,14 @@ namespace Microsoft.ML.Trainers.FastTree
         {
             /// <summary>
             /// The entropy (regularization) coefficient between 0 and 1.
+            /// The default value is <c>0</c>.
             /// </summary>
             [Argument(ArgumentType.LastOccurrenceWins, HelpText = "The entropy (regularization) coefficient between 0 and 1", ShortName = "e")]
             public double EntropyCoefficient;
 
             /// <summary>
             /// Tree fitting gain confidence requirement. Only consider a gain if its likelihood versus a random choice gain is above this value.
+            /// The default value is <c>0</c>.
             /// </summary>
             /// <value>
             /// Value of 0.95 would mean restricting to gains that have less than a 0.05 chance of being generated randomly through choice of a random split.
@@ -52,6 +54,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
             /// <summary>
             /// Total number of passes over the training data.
+            /// The default value is <c>9500</c>.
             /// </summary>
             [Argument(ArgumentType.LastOccurrenceWins, HelpText = "Total number of iterations over all features", ShortName = "iter", SortOrder = 1)]
             [TGUI(SuggestedSweeps = "200,1500,9500")]
@@ -60,12 +63,14 @@ namespace Microsoft.ML.Trainers.FastTree
 
             /// <summary>
             /// The number of threads to use.
+            /// The default is <see langword="null"/>, which selects the number of threads automatically.
             /// </summary>
             [Argument(ArgumentType.LastOccurrenceWins, HelpText = "The number of threads to use", ShortName = "t", NullName = "<Auto>")]
             public int? NumberOfThreads = null;
 
             /// <summary>
             /// The learning rate.
+            /// The default value is <c>0.002</c>.
             /// </summary>
             [Argument(ArgumentType.LastOccurrenceWins, HelpText = "The learning rate", ShortName = "lr", SortOrder = 4)]
             [TGUI(SuggestedSweeps = "0.001,0.1;log")]
@@ -74,24 +79,29 @@ namespace Microsoft.ML.Trainers.FastTree
 
             /// <summary>
             /// Whether to utilize the disk or the data's native transposition facilities (where applicable) when performing the transpose.
+            /// The default is <see langword="null"/>, which automatically selects transposition based on the input
+            /// data's capabilities.
             /// </summary>
             [Argument(ArgumentType.LastOccurrenceWins, HelpText = "Whether to utilize the disk or the data's native transposition facilities (where applicable) when performing the transpose", ShortName = "dt")]
             public bool? DiskTranspose;
 
             /// <summary>
             /// The maximum number of distinct values (bins) per feature.
+            /// The default value is <c>255</c>.
             /// </summary>
             [Argument(ArgumentType.LastOccurrenceWins, HelpText = "Maximum number of distinct values (bins) per feature", ShortName = "mb")]
             public int MaximumBinCountPerFeature = GamDefaults.MaximumBinCountPerFeature;
 
             /// <summary>
             /// The upper bound on the absolute value of a single tree output.
+            /// The default value is <see cref="double.PositiveInfinity"/>.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Upper bound on absolute value of single output", ShortName = "mo")]
             public double MaximumTreeOutput = double.PositiveInfinity;
 
             /// <summary>
             /// Sample each query 1 in k times in the GetDerivatives function.
+            /// The default value is <c>1</c>.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Sample each query 1 in k times in the GetDerivatives function", ShortName = "sr")]
             public int GetDerivativesSampleRate = 1;
@@ -104,6 +114,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
             /// <summary>
             /// The minimal number of data points required to form a new tree leaf.
+            /// The default value is <c>10</c>.
             /// </summary>
             [Argument(ArgumentType.LastOccurrenceWins, HelpText = "Minimum number of training instances required to form a partition", ShortName = "mi", SortOrder = 3)]
             [TGUI(SuggestedSweeps = "1,10,50")]
@@ -112,12 +123,14 @@ namespace Microsoft.ML.Trainers.FastTree
 
             /// <summary>
             /// Whether to collectivize features during dataset preparation to speed up training.
+            /// The default value is <see langword="true"/>.
             /// </summary>
             [Argument(ArgumentType.LastOccurrenceWins, HelpText = "Whether to collectivize features during dataset preparation to speed up training", ShortName = "flocks", Hide = true)]
             public bool FeatureFlocks = true;
 
             /// <summary>
             /// Enable post-training tree pruning to avoid overfitting. It requires a validation set.
+            /// The default value is <see langword="true"/>.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Enable post-training pruning to avoid overfitting. (a validation set is required)", ShortName = "pruning")]
             public bool EnablePruning = true;

@@ -159,6 +159,8 @@ namespace Microsoft.ML.Trainers
         {
             /// <summary>
             /// The L2 <a href='https://en.wikipedia.org/wiki/Regularization_(mathematics)'>regularization</a> hyperparameter.
+            /// The default is <see langword="null"/>, which selects the regularization automatically from the
+            /// training data.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "L2 regularizer constant. By default the l2 constant is automatically inferred based on data set.", NullName = "<Auto>", ShortName = "l2, L2Const", SortOrder = 1)]
             [TGUI(Label = "L2 Regularizer Constant", SuggestedSweeps = "<Auto>,1e-7,1e-6,1e-5,1e-4,1e-3,1e-2")]
@@ -169,6 +171,8 @@ namespace Microsoft.ML.Trainers
             // REVIEW: make the default positive when we know how to consume a sparse model
             /// <summary>
             /// The L1 <a href='https://en.wikipedia.org/wiki/Regularization_(mathematics)'>regularization</a> hyperparameter.
+            /// The default is <see langword="null"/>, which selects the regularization automatically from the
+            /// training data.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "L1 soft threshold (L1/L2). Note that it is easier to control and sweep using the threshold parameter than the raw L1-regularizer constant. By default the l1 threshold is automatically inferred based on data set.",
                 NullName = "<Auto>", Name = "L1Threshold", ShortName = "l1", SortOrder = 2)]
@@ -179,16 +183,16 @@ namespace Microsoft.ML.Trainers
 
             /// <summary>
             /// The degree of lock-free parallelism.
+            /// The default is <see langword="null"/>, which selects the number of threads automatically
+            /// depending on data sparseness. Determinism is not guaranteed.
             /// </summary>
-            /// <value>
-            /// Defaults to automatic depending on data sparseness. Determinism is not guaranteed.
-            /// </value>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Degree of lock-free parallelism. Defaults to automatic. Determinism not guaranteed.", NullName = "<Auto>", ShortName = "nt,t,threads, NumThreads", SortOrder = 50)]
             [TGUI(Label = "Number of threads", SuggestedSweeps = "<Auto>,1,2,4")]
             public int? NumberOfThreads;
 
             /// <summary>
             /// The tolerance for the ratio between duality gap and primal loss for convergence checking.
+            /// The default is <c>0.1</c>, except for SDCA regression, where it is <c>0.01</c>.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "The tolerance for the ratio between duality gap and primal loss for convergence checking.", ShortName = "tol")]
             [TGUI(SuggestedSweeps = "0.001, 0.01, 0.1, 0.2")]
@@ -198,10 +202,9 @@ namespace Microsoft.ML.Trainers
 
             /// <summary>
             /// The maximum number of passes to perform over the data.
+            /// The default is <see langword="null"/>, which selects the maximum number of iterations automatically.
+            /// Set to 1 to simulate online learning.
             /// </summary>
-            /// <value>
-            /// Set to 1 to simulate online learning. Defaults to automatic.
-            /// </value>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Maximum number of iterations; set to 1 to simulate online learning. Defaults to automatic.", NullName = "<Auto>", ShortName = "iter, MaxIterations, NumberOfIterations")]
             [TGUI(Label = "Max number of iterations", SuggestedSweeps = "<Auto>,10,20,100")]
             [TlcModule.SweepableDiscreteParam("MaxIterations", new object[] { "<Auto>", 10, 20, 100 })]
@@ -221,15 +224,15 @@ namespace Microsoft.ML.Trainers
 
             /// <summary>
             /// Determines the frequency of checking for convergence in terms of number of iterations.
+            /// The default is <see langword="null"/>, which uses <see cref="NumberOfThreads"/>.
+            /// Set to zero or a negative value to disable checking.
             /// </summary>
-            /// <value>
-            /// Set to zero or negative value to disable checking. If <see langword="null"/>, it defaults to <see cref="NumberOfThreads"/>."
-            /// </value>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Convergence check frequency (in terms of number of iterations). Set as negative or zero for not checking at all. If left blank, it defaults to check after every 'numThreads' iterations.", NullName = "<Auto>", ShortName = "checkFreq, CheckFrequency")]
             public int? ConvergenceCheckFrequency;
 
             /// <summary>
             /// The learning rate for adjusting bias from being regularized.
+            /// The default is <c>0</c>, except for SDCA regression, where it is <c>1</c>.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "The learning rate for adjusting bias from being regularized.", ShortName = "blr")]
             [TGUI(SuggestedSweeps = "0, 0.01, 0.1, 1")]
@@ -1692,10 +1695,8 @@ namespace Microsoft.ML.Trainers
 
             /// <summary>
             /// The custom <a href="https://en.wikipedia.org/wiki/Loss_function">loss</a>.
+            /// The default is <see langword="null"/>, which uses <see cref="LogLoss"/>.
             /// </summary>
-            /// <value>
-            /// If unspecified, <see cref="LogLoss"/> will be used.
-            /// </value>
             public ISupportSdcaClassificationLoss LossFunction { get; set; }
         }
 
@@ -1836,6 +1837,7 @@ namespace Microsoft.ML.Trainers
         {
             /// <summary>
             /// The L2 weight for <a href='https://en.wikipedia.org/wiki/Regularization_(mathematics)'>regularization</a>.
+            /// The default value is <c>1e-6</c>.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "L2 Regularization constant", ShortName = "l2, L2Weight", SortOrder = 50)]
             [TGUI(Label = "L2 Regularization Constant", SuggestedSweeps = "1e-7,5e-7,1e-6,5e-6,1e-5")]
@@ -1845,10 +1847,9 @@ namespace Microsoft.ML.Trainers
 
             /// <summary>
             /// The degree of lock-free parallelism used by SGD.
+            /// The default is <see langword="null"/>, which selects the number of threads automatically
+            /// depending on data sparseness. Determinism is not guaranteed.
             /// </summary>
-            /// <value>
-            /// Defaults to automatic depending on data sparseness. Determinism is not guaranteed.
-            /// </value>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Degree of lock-free parallelism. Defaults to automatic depending on data sparseness. Determinism not guaranteed.", ShortName = "nt,t,threads, NumThreads", SortOrder = 50)]
             [TGUI(Label = "Number of threads", SuggestedSweeps = "1,2,4")]
             public int? NumberOfThreads;
@@ -1856,6 +1857,7 @@ namespace Microsoft.ML.Trainers
             /// <summary>
             /// The convergence tolerance. If the exponential moving average of loss reductions falls below this tolerance,
             /// the algorithm is deemed to have converged and will stop.
+            /// The default value is <c>1e-4</c>.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Exponential moving averaged improvement tolerance for convergence", ShortName = "tol")]
             [TGUI(SuggestedSweeps = "1e-2,1e-3,1e-4,1e-5")]
@@ -1865,6 +1867,7 @@ namespace Microsoft.ML.Trainers
 
             /// <summary>
             /// The maximum number of passes through the training dataset.
+            /// The default value is <c>20</c>.
             /// </summary>
             /// <value>
             /// Set to 1 to simulate online learning.
@@ -1877,6 +1880,7 @@ namespace Microsoft.ML.Trainers
 
             /// <summary>
             /// The initial learning rate used by SGD.
+            /// The default value is <c>0.01</c>.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Initial learning rate (only used by SGD)", Name = "InitialLearningRate", ShortName = "ilr,lr,InitLearningRate")]
             [TGUI(Label = "Initial Learning Rate (for SGD)")]
@@ -1905,10 +1909,8 @@ namespace Microsoft.ML.Trainers
 
             /// <summary>
             /// Determines the frequency of checking for convergence in terms of number of iterations.
+            /// The default is <see langword="null"/>, which uses <see cref="NumberOfThreads"/>.
             /// </summary>
-            /// <value>
-            /// Default equals <see cref="NumberOfThreads"/>."
-            /// </value>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Convergence check frequency (in terms of number of iterations). Default equals number of threads", ShortName = "checkFreq")]
             public int? CheckFrequency;
 

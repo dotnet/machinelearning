@@ -4,12 +4,14 @@
 
 #pragma once
 
+#include <algorithm>
 #include <cstring>
 #include <stdint.h>
 #include <random>
 #include <vector>
 #include <queue>
 #include <memory>
+#include <stdexcept>
 #include "rand_int_rng.h"
 #include <iostream>
 #include <assert.h>
@@ -176,10 +178,18 @@ namespace wood
         inline void SetProportionMass(std::vector<float> &proportion,
             float mass,
             int32_t* memory,
+            size_t memory_size,
             int32_t *height,
             xorshift_rng &rng)
         {
             n_ = (int32_t)proportion.size();
+
+            if (n_ <= 0 || static_cast<size_t>(n_) > proportion_int_.size())
+                throw std::length_error("Alias table input or workspace is invalid.");
+
+            size_t element_count = 2 * static_cast<size_t>(n_);
+            if (memory == nullptr || memory_size < element_count)
+                throw std::length_error("Alias table destination is too small or null.");
 
             mass_int_ = 0x7fffffff;
             a_int_ = mass_int_ / n_;
@@ -301,7 +311,7 @@ namespace wood
                 *p = first * a_int_ + second;
                 ++H_head;
             }
-            memcpy(memory, internal_memory_, sizeof(int32_t) * 2 * n_);
+            std::copy_n(internal_memory_, element_count, memory);
         }
 
         inline void SetProportionMass(std::vector<float> &proportion,

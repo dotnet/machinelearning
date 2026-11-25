@@ -4,7 +4,7 @@ set(SOURCES
     MklProxyNative.cpp
 )
 
-find_library(MKL_LIBRARY MklImports HINTS ${MKL_LIB_PATH})
+find_library(MKL_LIBRARY MklImports HINTS ${MKL_LIB_PATH} NO_CMAKE_FIND_ROOT_PATH)
 if(NOT WIN32)
     list(APPEND SOURCES ${VERSION_FILE_PATH})
     if(NOT APPLE)

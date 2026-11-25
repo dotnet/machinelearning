@@ -10,6 +10,21 @@ updates:
     directory: "/" # Location of package manifests
     schedule:
       interval: "weekly"
+    groups:
+      test-and-tooling:
+        applies-to: version-updates
+        patterns:
+          - "BenchmarkDotNet*"
+          - "coverlet.*"
+          - "Microsoft.DotNet.Build.Tasks.Templating"
+          - "Microsoft.DotNet.IBCMerge"
+          - "Microsoft.DotNet.PlatformAbstractions"
+          - "Microsoft.DotNet.RemoteExecutor"
+          - "Microsoft.Extensions.DependencyModel"
+          - "Microsoft.ML.Test*"
+          - "MSTest.*"
+          - "Xunit.Combinatorial"
+        update-types: ["minor", "patch"]
     # Other unmatched build/test-only packages retain unrestricted weekly update proposals.
     ignore:
       # Nightly runs refresh these test placeholders before testing. Maintain usable baseline

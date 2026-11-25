@@ -41,6 +41,7 @@ namespace Microsoft.ML.Trainers
         {
             /// <summary>
             /// L2 regularization weight.
+            /// The default value is <c>1</c>.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "L2 regularization weight", ShortName = "l2, L2Weight", SortOrder = 50)]
             [TGUI(Label = "L2 Weight", Description = "Weight of L2 regularizer term", SuggestedSweeps = "0,0.1,1")]
@@ -50,6 +51,7 @@ namespace Microsoft.ML.Trainers
 
             /// <summary>
             /// L1 regularization weight.
+            /// The default value is <c>1</c>.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "L1 regularization weight", ShortName = "l1, L1Weight", SortOrder = 50)]
             [TGUI(Label = "L1 Weight", Description = "Weight of L1 regularizer term", SuggestedSweeps = "0,0.1,1")]
@@ -59,6 +61,7 @@ namespace Microsoft.ML.Trainers
 
             /// <summary>
             /// Tolerance parameter for optimization convergence. (Low = slower, more accurate).
+            /// The default value is <c>1e-7</c>.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Tolerance parameter for optimization convergence. Low = slower, more accurate",
                 ShortName = "ot, OptTol", SortOrder = 50)]
@@ -69,6 +72,7 @@ namespace Microsoft.ML.Trainers
 
             /// <summary>
             /// Number of previous iterations to remember for estimating the Hessian. Lower values mean faster but less accurate estimates.
+            /// The default value is <c>20</c>.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Memory size for L-BFGS. Low=faster, less accurate", ShortName = "m, MemorySize", SortOrder = 50)]
             [TGUI(Description = "Memory size for L-BFGS", SuggestedSweeps = "5,20,50")]
@@ -78,6 +82,7 @@ namespace Microsoft.ML.Trainers
 
             /// <summary>
             /// Number of iterations.
+            /// The default is <see cref="int.MaxValue"/>.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Maximum iterations.", ShortName = "maxiter, MaxIterations, NumberOfIterations")]
             [TGUI(Label = "Max Number of Iterations")]
@@ -87,6 +92,7 @@ namespace Microsoft.ML.Trainers
 
             /// <summary>
             /// Run SGD to initialize LR weights, converging to this tolerance.
+            /// The default value is <c>0</c>.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Run SGD to initialize LR weights, converging to this tolerance",
                 ShortName = "sgd, SgdInitializationTolerance")]
@@ -94,6 +100,7 @@ namespace Microsoft.ML.Trainers
 
             /// <summary>
             /// Determines whether to produce output during training or not.
+            /// The default value is <see langword="false"/>.
             /// </summary>
             /// <value>
             /// If set to <see langword="true"/> no output is produced.
@@ -104,6 +111,7 @@ namespace Microsoft.ML.Trainers
 
             /// <summary>
             /// Initial weights scale.
+            /// The default value is <c>0</c>.
             /// </summary>
             /// <value>
             /// This property is only used if the provided value is positive.
@@ -122,6 +130,7 @@ namespace Microsoft.ML.Trainers
 
             /// <summary>
             /// Number of threads. Null means use the number of processors.
+            /// The option value is <see langword="null"/> by default.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Number of threads", ShortName = "nt, NumThreads")]
             public int? NumberOfThreads;

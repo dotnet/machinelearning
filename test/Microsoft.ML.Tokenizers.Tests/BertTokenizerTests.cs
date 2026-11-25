@@ -7,6 +7,7 @@ using System.Buffers;
 using System.Collections.Generic;
 using System.Diagnostics.Tracing;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -593,6 +594,119 @@ namespace Microsoft.ML.Tokenizers.Tests
                 Assert.Equal(OperationStatus.Done, status);
                 Assert.Equal(ids1Span.Length, written);
                 Assert.Equal(new int[] { 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1 }, ids1Span.ToArray());
+            }
+            finally
+            {
+                File.Delete(vocabFile);
+            }
+        }
+        // The vocabulary of the tests of the basic tokenization; the expected tokens are those of Hugging Face tokenizers 0.23.3
+        // (BertWordPieceTokenizer, lowercase) with the same vocabulary.
+        private static readonly string[] _basicTokenizationVocab =
+        [
+            "[PAD]", "[UNK]", "[CLS]", "[SEP]", "[MASK]", "one", "line", "##line", "note", "book", "notebook", "costs", "$", "5", "+",
+            "tax", "=", "6", "a", "b", "c", "<", ">", "|", "~", "^", "`", "°c", "©", "2026", "great", "product", "x", "y", "z", "_",
+            "zero", "##width", "d", "e"
+        ];
+
+        [Theory]
+        [InlineData("one\nline", "[CLS] one line [SEP]")]
+        [InlineData("one\tline", "[CLS] one line [SEP]")]
+        [InlineData("one\rline", "[CLS] one line [SEP]")]
+        [InlineData("one\r\nline", "[CLS] one line [SEP]")]
+        [InlineData("one \nline", "[CLS] one line [SEP]")]
+        [InlineData("note\nbook", "[CLS] note book [SEP]")]
+        [InlineData("one\u2028line", "[CLS] one line [SEP]")]
+        public void TestWhiteSpaceControlCharactersSplitWords(string text, string expectedTokens)
+        {
+            AssertTokens(text, expectedTokens);
+        }
+
+        [Theory]
+        [InlineData("costs $5 + tax = $6", "[CLS] costs $ 5 + tax = $ 6 [SEP]")]
+        [InlineData("a+b=c", "[CLS] a + b = c [SEP]")]
+        [InlineData("x<y>z", "[CLS] x < y > z [SEP]")]
+        [InlineData("a|b~c^d`e", "[CLS] a | b ~ c ^ d ` e [SEP]")]
+        [InlineData("a_b", "[CLS] a _ b [SEP]")]
+        [InlineData("5 °C", "[CLS] 5 °c [SEP]")]
+        [InlineData("© 2026", "[CLS] © 2026 [SEP]")]
+        [InlineData("\U0001F4AF great product \U0001F44D", "[CLS] [UNK] great product [UNK] [SEP]")]
+        [InlineData("\U0001F680", "[CLS] [UNK] [SEP]")]
+        [InlineData("zero\u200Bwidth", "[CLS] zero ##width [SEP]")]
+        [InlineData("one\u0378line", "[CLS] [UNK] [SEP]")]
+        [InlineData("one\U00010100line", "[CLS] one [UNK] line [SEP]")]
+        public void TestSymbolsAreKept(string text, string expectedTokens)
+        {
+            AssertTokens(text, expectedTokens);
+        }
+
+        [Fact]
+        public void TestWhiteSpaceControlCharactersOffsets()
+        {
+            string vocabFile = WordPieceTests.CreateVocabFile(_basicTokenizationVocab);
+
+            try
+            {
+                BertTokenizer tokenizer = BertTokenizer.Create(vocabFile);
+                var tokens = tokenizer.EncodeToTokens("one\tline\none", out string? normalizedText);
+                Assert.Equal("one line one", normalizedText);
+                Assert.Equal(
+                    [
+                        new EncodedToken(5, "one", new Range(0, 3)),
+                        new EncodedToken(6, "line", new Range(4, 8)),
+                        new EncodedToken(5, "one", new Range(9, 12))
+                    ],
+                    tokens);
+            }
+            finally
+            {
+                File.Delete(vocabFile);
+            }
+        }
+
+        // Without SplitOnSpecialTokens, a special token written in the text is tokenized as the rest of the text. The cased cases give
+        // the special tokens in the options.
+        [Theory]
+        [InlineData("[CLS] one\tline", true, false, "[CLS] [CLS] one line [SEP]")]
+        [InlineData("[CLS] one\tline", false, false, "[CLS] [UNK] [UNK] [UNK] one line [SEP]")]
+        [InlineData("one\n[SEP]line", true, false, "[CLS] one [SEP] line [SEP]")]
+        [InlineData("one\n[SEP]line", false, false, "[CLS] one [UNK] [UNK] [UNK] line [SEP]")]
+        [InlineData("x<y>z\U0001F680", false, false, "[CLS] x < y > [UNK] [SEP]")]
+        [InlineData("[CLS] one\tline", true, true, "[CLS] [CLS] one line [SEP]")]
+        [InlineData("[CLS] one\tline", false, true, "[CLS] [UNK] [UNK] [UNK] one line [SEP]")]
+        [InlineData("one\n[SEP]line", false, true, "[CLS] one [UNK] [UNK] [UNK] line [SEP]")]
+        public void TestBasicTokenizationWithSpecialTokensInTheText(string text, bool splitOnSpecialTokens, bool casedWithSpecialTokens, string expectedTokens)
+        {
+            BertOptions options = new BertOptions { SplitOnSpecialTokens = splitOnSpecialTokens };
+            if (casedWithSpecialTokens)
+            {
+                options.LowerCaseBeforeTokenization = false;
+                options.SpecialTokens = new Dictionary<string, int> { ["[PAD]"] = 0, ["[UNK]"] = 1, ["[CLS]"] = 2, ["[SEP]"] = 3, ["[MASK]"] = 4 };
+            }
+
+            AssertTokens(text, expectedTokens, options);
+        }
+
+        // Without the basic tokenization, the text is not normalized and is split at whitespace only.
+        [Theory]
+        [InlineData("one\tline", "[CLS] one line [SEP]")]
+        [InlineData("a+b = c", "[CLS] [UNK] = c [SEP]")]
+        [InlineData("costs $5", "[CLS] costs [UNK] [SEP]")]
+        [InlineData("One line", "[CLS] [UNK] line [SEP]")]
+        public void TestWithoutBasicTokenization(string text, string expectedTokens)
+        {
+            AssertTokens(text, expectedTokens, new BertOptions { ApplyBasicTokenization = false });
+        }
+
+        private static void AssertTokens(string text, string expectedTokens, BertOptions? options = null)
+        {
+            string vocabFile = WordPieceTests.CreateVocabFile(_basicTokenizationVocab);
+
+            try
+            {
+                BertTokenizer tokenizer = BertTokenizer.Create(vocabFile, options);
+                IReadOnlyList<int> ids = tokenizer.EncodeToIds(text);
+                Assert.Equal(expectedTokens, string.Join(" ", ids.Select(id => _basicTokenizationVocab[id])));
             }
             finally
             {

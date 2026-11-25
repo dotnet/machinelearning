@@ -9,6 +9,7 @@
 #include <string>
 #include <cassert>
 #include <map>
+#include <stdexcept>
 #include "data_block.h"
 #include "hybrid_map.h"
 #include "hybrid_alias_map.h"
@@ -36,7 +37,7 @@ namespace lda
         LDAModelBlock();
         ~LDAModelBlock();
 
-        inline hybrid_map get_row(int word_id, int32_t *external_buf);
+        inline hybrid_map get_row(int word_id, int32_t *external_buf, size_t external_buf_size = 0);
         inline hybrid_alias_map get_alias_row(int word_id);
         void SetWordInfo(int word_id, int32_t nonzero_num, bool fullSparse);
 
@@ -73,18 +74,24 @@ namespace lda
         const int32_t load_factor_ = 2;
         const int32_t sparse_factor_ = 5;
     };
-    inline hybrid_map LDAModelBlock::get_row(int word_id, int32_t *external_buf)
+    inline hybrid_map LDAModelBlock::get_row(int word_id, int32_t *external_buf, size_t external_buf_size)
     {
         hybrid_map row(mem_block_ + dict_[word_id].offset_,
             dict_[word_id].is_dense_,
             dict_[word_id].capacity_,
             0,
-            external_buf);
+            external_buf,
+            external_buf_size);
         return row;
     }
     inline hybrid_alias_map LDAModelBlock::get_alias_row(int word_id)
     {
+        int64_t memory_size = dict_[word_id].alias_end_offset_ - dict_[word_id].alias_offset_;
+        if (memory_size < 0)
+            throw std::length_error("Alias table allocation has an invalid size.");
+
         hybrid_alias_map row(alias_mem_block_ + dict_[word_id].alias_offset_,
+            static_cast<size_t>(memory_size),
             dict_[word_id].is_alias_dense_,
             dict_[word_id].alias_capacity_);
         return row;
