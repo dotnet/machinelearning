@@ -37,7 +37,7 @@ Leave out:
 
 Use `Fixes #N` only when the PR fully closes the issue. For partial or tracking work, use `Relates to #N`.
 
-Use the [PR template](../../../PULL_REQUEST_TEMPLATE.md) as a pre-submission checklist. Verify its items, then remove all template instructions and checklist text from the description, including HTML comments. Keep the actual issue and API-approval links.
+Use the [PR template](../../../PULL_REQUEST_TEMPLATE.md) as a pre-submission checklist. After checking its items, remove the template greeting and checklist from the submitted description, including the checkbox lines. Keep the actual issue and API-approval links.
 
 ## Validation and blockers
 
