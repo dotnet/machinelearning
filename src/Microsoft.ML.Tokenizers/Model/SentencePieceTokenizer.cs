@@ -549,7 +549,10 @@ namespace Microsoft.ML.Tokenizers
         /// from a <c>WhitespaceSplit</c> pre-tokenizer, defaulting to <see langword="false"/> when none are present, to
         /// match the Hugging Face fast-tokenizer runtime. Normalizers with content-modifying steps (per-character
         /// <c>Replace</c>, <c>Lowercase</c>, <c>StripAccents</c>, Unicode normalization, <c>Nmt</c>, <c>Prepend</c>) are
-        /// applied in full before encoding. Pair-sequence templates and per-token <c>type_id</c>s are not applied.
+        /// applied in full before encoding. The <c>StripAccents</c>, <c>NFC</c>, <c>NFD</c>, <c>NFKC</c>, and <c>NFKD</c>
+        /// steps rely on <see cref="string.Normalize(System.Text.NormalizationForm)"/>, which doesn't normalize when
+        /// globalization-invariant mode is enabled, so in that mode they are rejected with
+        /// <see cref="PlatformNotSupportedException"/>. Pair-sequence templates and per-token <c>type_id</c>s are not applied.
         /// Templates that place a special token in the middle of the sequence are rejected with
         /// <see cref="NotSupportedException"/>. Pre-tokenizer types other than <c>Metaspace</c>, <c>WhitespaceSplit</c>,
         /// <c>Whitespace</c>, and <c>Sequence</c> are also rejected with <see cref="NotSupportedException"/> rather than

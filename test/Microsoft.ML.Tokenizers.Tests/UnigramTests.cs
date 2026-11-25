@@ -10,6 +10,7 @@ using System.Linq;
 using System.Reflection.Metadata;
 using System.Text;
 using System.Text.Json;
+using Microsoft.DotNet.RemoteExecutor;
 using Microsoft.ML.Tokenizers;
 using Xunit;
 
@@ -1255,6 +1256,54 @@ namespace Microsoft.ML.Tokenizers.Tests
             Assert.Throws<NotSupportedException>(() =>
                 SentencePieceTokenizer.CreateFromTokenizerJson(stream, addBeginningOfSentence: false, addEndOfSentence: false));
         }
+
+#if NETCOREAPP
+        [ConditionalFact(typeof(RemoteExecutor), nameof(RemoteExecutor.IsSupported))]
+        public void CreateFromTokenizerJsonUnicodeNormalizationStepsThrowInInvariantGlobalizationMode()
+        {
+            RemoteExecutor.Invoke(static () =>
+            {
+                Utils.AssertInvariantGlobalizationMode();
+
+                // These steps can't do anything without Unicode normalization, so creating the tokenizer fails rather than silently skipping them.
+                foreach (string step in new[] { "StripAccents", "NFC", "NFD", "NFKC", "NFKD" })
+                {
+                    string[] normalizers =
+                    [
+                        $$"""{ "type": "{{step}}" }""",
+                        $$"""{ "type": "Sequence", "normalizers": [ { "type": "Lowercase" }, { "type": "{{step}}" } ] }""",
+                    ];
+
+                    foreach (string normalizer in normalizers)
+                    {
+                        PlatformNotSupportedException exception = Assert.Throws<PlatformNotSupportedException>(() => JsonUnigramTokens(CreateJson(normalizer), "a"));
+                        Assert.Contains($"'{step}'", exception.Message);
+                        Assert.Contains("<InvariantGlobalization>false</InvariantGlobalization>", exception.Message);
+                    }
+                }
+
+                // The precompiled charsmap has its own normalization data and Lowercase doesn't need any, so they keep working.
+                using JsonDocument bundled = JsonDocument.Parse(File.ReadAllText(Path.Combine("Paraphrase-multilingual-MiniLM-L12-v2", "tokenizer.json")));
+                string charsMap = bundled.RootElement.GetProperty("normalizer").GetProperty("precompiled_charsmap").GetString()!;
+                string json = CreateJson($$"""{ "type": "Sequence", "normalizers": [ { "type": "Precompiled", "precompiled_charsmap": "{{charsMap}}" }, { "type": "Lowercase" } ] }""");
+
+                // Full-width "１" (U+FF11) folds to "1" via the charsmap; uppercase "A" lower-cases to "a".
+                Assert.Equal(new[] { "\u25811", "\u2581a" }, JsonUnigramTokens(json, "\uFF11 A"));
+
+                static string CreateJson(string normalizer) => $$"""
+                    {
+                      "normalizer": {{normalizer}},
+                      "pre_tokenizer": { "type": "Metaspace", "replacement": "\u2581", "add_prefix_space": true },
+                      "model": {
+                        "type": "Unigram",
+                        "unk_id": 0,
+                        "vocab": [["<unk>", 0.0], ["\u25811", -1.0], ["\u2581a", -1.0]]
+                      }
+                    }
+                    """;
+            }, Utils.CreateInvariantGlobalizationOptions()).Dispose();
+        }
+#endif
 
         [Fact]
         public void CreateFromTokenizerJsonNullNormalizerTest()

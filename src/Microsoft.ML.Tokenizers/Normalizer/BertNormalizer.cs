@@ -161,8 +161,15 @@ namespace Microsoft.ML.Tokenizers
         /// <param name="lowerCase">Whether to lowercase the input.</param>
         /// <param name="individuallyTokenizeCjk">Whether to tokenize CJK characters.</param>
         /// <param name="removeNonSpacingMarks">Whether to strip accents from the input.</param>
+        /// <exception cref="PlatformNotSupportedException"><paramref name="removeNonSpacingMarks"/> is <see langword="true"/> and globalization-invariant mode is enabled.</exception>
         public BertNormalizer(bool lowerCase, bool individuallyTokenizeCjk, bool removeNonSpacingMarks)
         {
+            if (removeNonSpacingMarks)
+            {
+                // The accents of precomposed characters only become non-spacing marks that can be removed once string.Normalize decomposes them.
+                UnicodeNormalization.ThrowIfNotSupported("BertOptions.RemoveNonSpacingMarks", "Otherwise, set RemoveNonSpacingMarks to false to keep the accents.");
+            }
+
             _lowerCase = lowerCase;
             _individuallyTokenizeCjk = individuallyTokenizeCjk;
             _removeNonSpacingMarks = removeNonSpacingMarks;

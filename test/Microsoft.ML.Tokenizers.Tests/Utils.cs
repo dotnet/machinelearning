@@ -6,7 +6,10 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net.Http;
+using System.Text;
 using System.Threading.Tasks;
+using Microsoft.DotNet.RemoteExecutor;
+using Xunit;
 
 namespace Microsoft.ML.Tokenizers.Tests
 {
@@ -58,6 +61,21 @@ namespace Microsoft.ML.Tokenizers.Tests
             using Stream fileStream = File.Create(fileName);
             typeof(Utils).Assembly.GetManifestResourceStream(resourceName)!.CopyTo(fileStream);
             return fileName;
+        }
+
+        // Runs the remote process in globalization-invariant mode. RuntimeConfigurationOptions would replace the test's
+        // runtimeconfig.dev.json, which coverage builds need to find NuGet assemblies, so set the environment variable instead.
+        public static RemoteInvokeOptions CreateInvariantGlobalizationOptions()
+        {
+            RemoteInvokeOptions options = new();
+            options.StartInfo.Environment["DOTNET_SYSTEM_GLOBALIZATION_INVARIANT"] = "true";
+            return options;
+        }
+
+        public static void AssertInvariantGlobalizationMode()
+        {
+            // string.Normalize returns its input unchanged when globalization-invariant mode is enabled.
+            Assert.Equal("\u00E9", "\u00E9".Normalize(NormalizationForm.FormD));
         }
     }
 }

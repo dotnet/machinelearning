@@ -9,6 +9,7 @@ using System.Diagnostics.Tracing;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.DotNet.RemoteExecutor;
 using Xunit;
 
 namespace Microsoft.ML.Tokenizers.Tests
@@ -297,6 +298,48 @@ namespace Microsoft.ML.Tokenizers.Tests
                 File.Delete(vocabFile);
             }
         }
+
+#if NETCOREAPP
+        [ConditionalFact(typeof(RemoteExecutor), nameof(RemoteExecutor.IsSupported))]
+        public void TestRemoveNonSpacingMarksInInvariantGlobalizationMode()
+        {
+            RemoteExecutor.Invoke(static async () =>
+            {
+                Utils.AssertInvariantGlobalizationMode();
+
+                string vocabFile = WordPieceTests.CreateVocabFile(["[PAD]", "[UNK]", "[CLS]", "[SEP]", "[MASK]", "!", "Café", "café"]);
+
+                try
+                {
+                    // The accents of precomposed characters can't be removed without Unicode normalization, so creating the tokenizer
+                    // fails rather than silently keeping them.
+                    BertOptions options = new() { RemoveNonSpacingMarks = true };
+                    PlatformNotSupportedException exception = Assert.Throws<PlatformNotSupportedException>(() => BertTokenizer.Create(vocabFile, options));
+                    Assert.Contains("BertOptions.RemoveNonSpacingMarks", exception.Message);
+                    Assert.Contains("<InvariantGlobalization>false</InvariantGlobalization>", exception.Message);
+                    await Assert.ThrowsAsync<PlatformNotSupportedException>(() => BertTokenizer.CreateAsync(vocabFile, options));
+
+                    using (Stream vocabStream = File.OpenRead(vocabFile))
+                    {
+                        Assert.Throws<PlatformNotSupportedException>(() => BertTokenizer.Create(vocabStream, options));
+                        vocabStream.Position = 0;
+                        await Assert.ThrowsAsync<PlatformNotSupportedException>(() => BertTokenizer.CreateAsync(vocabStream, options));
+                    }
+
+                    // Without the option, or without the default normalizer that it applies to, nothing needs Unicode normalization.
+                    Assert.Equal(new[] { "café", "!" }, Encode(BertTokenizer.Create(vocabFile), "Café!"));
+                    Assert.Equal(new[] { "Café" }, Encode(BertTokenizer.Create(vocabFile, new BertOptions { RemoveNonSpacingMarks = true, ApplyBasicTokenization = false }), "Café"));
+                    Assert.Equal(new[] { "café", "!" }, Encode(BertTokenizer.Create(vocabFile, new BertOptions { RemoveNonSpacingMarks = true, Normalizer = LowerCaseNormalizer.Instance }), "Café!"));
+                }
+                finally
+                {
+                    File.Delete(vocabFile);
+                }
+
+                static string[] Encode(BertTokenizer tokenizer, string text) => tokenizer.EncodeToTokens(text, out _).Select(token => token.Value).ToArray();
+            }, Utils.CreateInvariantGlobalizationOptions()).Dispose();
+        }
+#endif
 
         [Fact]
         public async Task TestChineseCharacters()

@@ -121,8 +121,9 @@ namespace Microsoft.ML.Tokenizers
 
         /// <summary>
         /// Builds the managed normalizer chain from a <c>tokenizer.json</c> normalizer element. Throws
-        /// <see cref="NotSupportedException"/> for normalizer types that are not modeled so callers fail loudly
-        /// rather than silently mis-tokenizing.
+        /// <see cref="NotSupportedException"/> for normalizer types that are not modeled, and
+        /// <see cref="PlatformNotSupportedException"/> for the steps that need Unicode normalization when
+        /// globalization-invariant mode is enabled, so callers fail loudly rather than silently mis-tokenizing.
         /// </summary>
         public static SentencePieceNormalizationStep Build(JsonElement normalizer)
         {
@@ -133,6 +134,13 @@ namespace Microsoft.ML.Tokenizers
 
             string? type = normalizer.TryGetProperty("type", out JsonElement typeElement) && typeElement.ValueKind == JsonValueKind.String
                 ? typeElement.GetString() : null;
+
+            // These steps rely on string.Normalize, which returns its input unchanged when globalization-invariant mode is enabled.
+            if (type is "StripAccents" or "NFC" or "NFD" or "NFKC" or "NFKD")
+            {
+                UnicodeNormalization.ThrowIfNotSupported($"The tokenizer.json normalizer '{type}'");
+            }
+
             switch (type)
             {
                 case "Sequence":

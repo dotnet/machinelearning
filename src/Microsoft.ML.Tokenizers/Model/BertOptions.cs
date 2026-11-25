@@ -64,6 +64,12 @@ namespace Microsoft.ML.Tokenizers
         /// <summary>
         /// Gets or sets a value indicating whether to remove non-spacing marks.
         /// </summary>
+        /// <remarks>
+        /// Removing the non-spacing marks, such as the accents of precomposed characters, needs Unicode normalization, which isn't
+        /// available when globalization-invariant mode is enabled. In that mode, creating a <see cref="BertTokenizer"/> with this option
+        /// throws <see cref="System.PlatformNotSupportedException"/>, unless <see cref="ApplyBasicTokenization"/> is <see langword="false"/>
+        /// or <see cref="WordPieceOptions.Normalizer"/> is set, as the option only applies to the default normalizer.
+        /// </remarks>
         public bool RemoveNonSpacingMarks { get; set; }
     }
 }
