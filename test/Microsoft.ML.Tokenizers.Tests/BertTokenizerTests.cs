@@ -401,8 +401,13 @@ namespace Microsoft.ML.Tokenizers.Tests
             }
         }
 
-        private static RemoteInvokeOptions CreateInvariantGlobalizationOptions() =>
-            new() { RuntimeConfigurationOptions = { ["System.Globalization.Invariant"] = true } };
+        private static RemoteInvokeOptions CreateInvariantGlobalizationOptions()
+        {
+            // RuntimeConfigurationOptions would replace the test's runtimeconfig.dev.json, which coverage builds need to find NuGet assemblies.
+            RemoteInvokeOptions options = new();
+            options.StartInfo.Environment["DOTNET_SYSTEM_GLOBALIZATION_INVARIANT"] = "true";
+            return options;
+        }
 
         private static void AssertInvariantGlobalizationMode()
         {
