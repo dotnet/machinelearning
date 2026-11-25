@@ -45,6 +45,21 @@ namespace Microsoft.ML.RunTests
             Assert.True(caught, "Exception was not caught at all");
         }
 
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public void ExceptParamValuePreservesParameterNameValueAndMessage(bool withContext)
+        {
+            var count = -7;
+            var exception = Assert.IsType<ArgumentOutOfRangeException>(withContext
+                    ? ((IExceptionContext)new MLContext(1)).ExceptParamValue(count, nameof(count), "Count must be positive.")
+                    : Contracts.ExceptParamValue(count, nameof(count), "Count must be positive."));
+
+            Assert.Equal("count", exception.ParamName);
+            Assert.Equal(-7, exception.ActualValue);
+            Assert.Contains("Count must be positive.", exception.Message);
+        }
+
         [Fact]
         public void ExceptionSensitivity()
         {
