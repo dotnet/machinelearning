@@ -82,6 +82,16 @@ namespace Microsoft.ML.Tokenizers
             // Including these special tokens ensures they are mapped like regular tokens.
             // SentencePiece specifically handles the BOS, EOS, and UNK tokens, while the PAD token is optional.
 
+            // Map control pieces too, such as ALBERT's [CLS] or XLNet's <mask>, as SentencePiece's PieceToId does.
+            for (int i = 0; i < modelProto.Pieces.Count; i++)
+            {
+                if (modelProto.Pieces[i].Type == ModelProto.Types.SentencePiece.Types.Type.Control)
+                {
+                    _vocab[modelProto.Pieces[i].Piece] = i;
+                    _vocabReverse[i] = (modelProto.Pieces[i].Piece, 0f, ModelProto.Types.SentencePiece.Types.Type.Control);
+                }
+            }
+
             Debug.Assert(modelProto.TrainerSpec.UnkId >= 0);
 
             _vocab[modelProto.TrainerSpec.UnkPiece] = modelProto.TrainerSpec.UnkId;

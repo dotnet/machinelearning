@@ -837,6 +837,35 @@ namespace Microsoft.ML.Tokenizers.Tests
         }
 
         [Fact]
+        public void Synthetic_UnigramModel_WithOtherControlPieces()
+        {
+            // Laid out as ALBERT is: no BOS or EOS, with [CLS] and [SEP] as control pieces.
+            byte[] model = MakeModelProto(
+                MakeUnigramTrainerSpec(bosId: -1, eosId: -1),
+                null,
+                MakePiece("<pad>", type: 3),
+                MakePiece("[CLS]", type: 3),
+                MakePiece("<unk>", type: 2),
+                MakePiece("[SEP]", type: 3),
+                MakePiece("▁Hello", -1f),
+                MakePiece("▁world", -2f));
+
+            SentencePieceTokenizer tokenizer = CreateFromSyntheticModel(model, addBos: false, addEos: false);
+            int[] ids = { 1, 4, 5, 3 };
+
+            Assert.Equal(1, tokenizer.Vocabulary["[CLS]"]);
+            Assert.Equal(3, tokenizer.Vocabulary["[SEP]"]);
+            Assert.Equal(new[] { 4, 5 }, tokenizer.EncodeToIds("Hello world"));
+            Assert.Equal("Hello world", tokenizer.Decode(ids));
+            Assert.Equal("[CLS]Hello world[SEP]", tokenizer.Decode(ids, considerSpecialTokens: true));
+
+            char[] buffer = new char[32];
+            Assert.Equal(System.Buffers.OperationStatus.Done, tokenizer.Decode(ids, buffer, out int idsConsumed, out int charsWritten));
+            Assert.Equal(ids.Length, idsConsumed);
+            Assert.Equal("Hello world", new string(buffer, 0, charsWritten));
+        }
+
+        [Fact]
         public void Synthetic_UnigramModel_WithoutBeginningOfSentence_RequestingItThrows()
         {
             byte[] model = MakeModelProto(
