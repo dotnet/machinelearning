@@ -1,10 +1,12 @@
-We are excited to review your PR.
+<!--
+Before submitting, check:
 
-So we can do the best job, please check:
+- The title is descriptive.
+- An issue is linked, unless the change is trivial. Use `Fixes #N` only if this PR closes it, otherwise `Relates to #N`.
+- Public API changes follow the [API review process](https://github.com/dotnet/machinelearning/blob/main/docs/project-docs/api-review-process.md): approval was recorded in an issue labelled `api-approved` before implementation and this PR, the implementation matches the approved design, and the description links both the proposal issue and approval comment.
+- The description briefly explains what changes and why.
+- Necessary tests are included.
 
-- [ ] There's a descriptive title that will make sense to other developers some time from now.
-- [ ] There's associated issues. All PR's should have issue(s) associated - unless a trivial self-evident change such as fixing a typo. You can use the format `Fixes #nnnn` in your description to cause GitHub to automatically close the issue(s) when your PR is merged.
-- [ ] Public API changes follow the [API review process](https://github.com/dotnet/machinelearning/blob/main/docs/project-docs/api-review-process.md): approval was recorded in an issue labelled `api-approved` before implementation and this PR, the approval comment is linked here, and the implementation matches the approved design. Mark N/A if there are no public API changes.
-- [ ] Your change description explains what the change does, why you chose your approach, and anything else that reviewers should know.
-- [ ] You have included any necessary tests in the same PR.
-
+Replace this entire comment with your PR description. Do not include the checklist
+in the submitted description. Keep the actual issue and API-approval links.
+-->

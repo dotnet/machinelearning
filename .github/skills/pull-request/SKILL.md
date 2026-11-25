@@ -31,13 +31,13 @@ Add only what helps a future reader:
 Leave out:
 
 - File, method, or test inventories and `Summary`/`Changes`/`Tests`/`Validation` section scaffolding.
-- Restating the title or repeating the checklist in the description.
+- Restating the title, template greetings, or the template checklist.
 - `Not in this PR` lists, unless they prevent a wrong assumption.
 - CI run links, long scripts, and test logs.
 
 Use `Fixes #N` only when the PR fully closes the issue. For partial or tracking work, use `Relates to #N`.
 
-Keep the PR template checklist at the end and tick the items that apply.
+Use the [PR template](../../../PULL_REQUEST_TEMPLATE.md) as a pre-submission checklist. Verify its items, then remove all template instructions and checklist text from the description, including HTML comments. Keep the actual issue and API-approval links.
 
 ## Validation and blockers
 
