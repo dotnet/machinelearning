@@ -74,6 +74,18 @@ namespace Microsoft.ML.Tokenizers
             return sb is null ? text : sb.ToString();
         }
 
+        // string.Normalize returns its input unchanged when globalization-invariant mode is enabled. The steps relying on it call this
+        // from their constructors, so that creating the tokenizer fails rather than the steps silently leaving the text unchanged.
+        private static void ThrowIfUnicodeNormalizationNotSupported(string type)
+        {
+            if (!UnicodeNormalization.IsSupported)
+            {
+                throw new PlatformNotSupportedException(
+                    $"The tokenizer.json normalizer '{type}' requires Unicode normalization, which isn't available in globalization-invariant mode. " +
+                    "See https://aka.ms/GlobalizationInvariantMode for more information.");
+            }
+        }
+
         /// <summary>
         /// Returns true if the normalizer tree contains a content-modifying step that the charsmap plus
         /// <c>removeExtraWhitespaces</c> approximation in <see cref="SentencePieceNormalizer"/> cannot represent
@@ -134,15 +146,6 @@ namespace Microsoft.ML.Tokenizers
 
             string? type = normalizer.TryGetProperty("type", out JsonElement typeElement) && typeElement.ValueKind == JsonValueKind.String
                 ? typeElement.GetString() : null;
-
-            // These steps rely on string.Normalize, which returns its input unchanged when globalization-invariant mode is enabled.
-            if (!UnicodeNormalization.IsSupported && type is "StripAccents" or "NFC" or "NFD" or "NFKC" or "NFKD")
-            {
-                throw new PlatformNotSupportedException(
-                    $"The tokenizer.json normalizer '{type}' requires Unicode normalization, which isn't available in globalization-invariant mode. " +
-                    "See https://aka.ms/GlobalizationInvariantMode for more information.");
-            }
-
             switch (type)
             {
                 case "Sequence":
@@ -184,16 +187,16 @@ namespace Microsoft.ML.Tokenizers
                     return LowercaseStep.Instance;
 
                 case "StripAccents":
-                    return StripAccentsStep.Instance;
+                    return new StripAccentsStep();
 
                 case "NFC":
-                    return new UnicodeStep(NormalizationForm.FormC);
+                    return new UnicodeStep("NFC", NormalizationForm.FormC);
                 case "NFD":
-                    return new UnicodeStep(NormalizationForm.FormD);
+                    return new UnicodeStep("NFD", NormalizationForm.FormD);
                 case "NFKC":
-                    return new UnicodeStep(NormalizationForm.FormKC);
+                    return new UnicodeStep("NFKC", NormalizationForm.FormKC);
                 case "NFKD":
-                    return new UnicodeStep(NormalizationForm.FormKD);
+                    return new UnicodeStep("NFKD", NormalizationForm.FormKD);
 
                 case "Prepend":
                     {
@@ -280,7 +283,8 @@ namespace Microsoft.ML.Tokenizers
         // Port of the Hugging Face tokenizers "StripAccents" normalizer: decompose (NFD) and drop combining marks.
         private sealed class StripAccentsStep : SentencePieceNormalizationStep
         {
-            public static readonly StripAccentsStep Instance = new StripAccentsStep();
+            // Not a singleton: if a static instance's constructor threw, the type would stay unusable for the rest of the process.
+            public StripAccentsStep() => ThrowIfUnicodeNormalizationNotSupported("StripAccents");
 
             public override string Normalize(string text)
             {
@@ -320,7 +324,13 @@ namespace Microsoft.ML.Tokenizers
         private sealed class UnicodeStep : SentencePieceNormalizationStep
         {
             private readonly NormalizationForm _form;
-            public UnicodeStep(NormalizationForm form) => _form = form;
+
+            public UnicodeStep(string type, NormalizationForm form)
+            {
+                ThrowIfUnicodeNormalizationNotSupported(type);
+                _form = form;
+            }
+
             public override string Normalize(string text) => text.Length == 0 ? text : ReplaceLoneSurrogates(text).Normalize(_form);
         }
 
