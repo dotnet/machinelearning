@@ -71,6 +71,35 @@ namespace Microsoft.ML.Tokenizers
             return new RegexPreTokenizer(WhiteSpaceOrPunctuationRegex(), specialTokens);
         }
 
+        // The basic tokenization of BERT: each punctuation character is a token, and every other run of characters that are not
+        // whitespace is a word. Punctuation is the Unicode punctuation (\p{P}) and every ASCII character that is neither a letter,
+        // a digit nor whitespace, as in BERT and Hugging Face, so the ASCII symbols "$+<=>^`|~" are punctuation too. Other symbols,
+        // such as "°", "©" and emoji, stay in their word, for the model to find them in its vocabulary or map them to its unknown token.
+        private const string BertBasicPattern = /*lang=regex*/ @"[\p{P}!-/:-@\[-`{-~]|[^\s\p{P}!-/:-@\[-`{-~]+";
+        private static PreTokenizer? _bertBasicPreTokenizer;
+#if NET7_0_OR_GREATER
+        [GeneratedRegex(BertBasicPattern, RegexOptions.None, DefaultTimeOutInMilliseconds)]
+        private static partial Regex BertBasicRegex();
+#else
+        private static Regex BertBasicRegex() => new Regex(BertBasicPattern, RegexOptions.Compiled, TimeSpan.FromMilliseconds(DefaultTimeOutInMilliseconds));
+#endif
+
+        /// <summary>
+        /// Create the pre-tokenizer of the basic tokenization of BERT, which splits the text at whitespace and makes each punctuation
+        /// character a token, with the definition of punctuation of BERT.
+        /// </summary>
+        /// <param name="specialTokens">The dictionary containing the special tokens and their corresponding ids.</param>
+        /// <returns>The pre-tokenizer.</returns>
+        internal static PreTokenizer CreateBertBasic(IReadOnlyDictionary<string, int>? specialTokens = null)
+        {
+            if (specialTokens is null)
+            {
+                return _bertBasicPreTokenizer ??= new RegexPreTokenizer(BertBasicRegex(), null);
+            }
+
+            return new RegexPreTokenizer(BertBasicRegex(), specialTokens);
+        }
+
         private const string WordOrNonWordPattern = /*lang=regex*/ @"\w+|[^\w\s]+";
         private static PreTokenizer? _wordOrNonWordPreTokenizer;
 
