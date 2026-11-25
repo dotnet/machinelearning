@@ -15,6 +15,7 @@ updates:
         applies-to: version-updates
         patterns:
           - "BenchmarkDotNet*"
+          - "coverlet.*"
           - "Microsoft.DotNet.Build.Tasks.Templating"
           - "Microsoft.DotNet.IBCMerge"
           - "Microsoft.DotNet.PlatformAbstractions"
