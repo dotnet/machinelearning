@@ -483,6 +483,33 @@ namespace Microsoft.ML.Tokenizers.Tests
         }
 
         [Fact]
+        public void Synthetic_UnigramModel_UserDefinedPieceIsPreferred()
+        {
+            // A user-defined piece is scored with a bonus instead of its own score, so "abc" stays whole even though
+            // its own score is much lower than "a" + "b" + "c".
+            ProtobufWriter ts = new();
+            ts.WriteInt32Field(3, 1);             // model_type = Unigram
+            ts.WriteInt32Field(40, 0);             // unk_id = 0
+            ts.WriteInt32Field(41, 1);             // bos_id = 1
+            ts.WriteInt32Field(42, 2);             // eos_id = 2
+
+            byte[] model = MakeModelProto(
+                ts.ToArray(),
+                null,
+                MakePiece("<unk>", 0f, 2),          // Unknown (index 0)
+                MakePiece("<s>", 0f, 3),             // Control (index 1)
+                MakePiece("</s>", 0f, 3),            // Control (index 2)
+                MakePiece("\u2581", -0.1f, 1),       // Normal (index 3)
+                MakePiece("a", -1f, 1),              // Normal (index 4)
+                MakePiece("b", -1f, 1),              // Normal (index 5)
+                MakePiece("c", -1f, 1),              // Normal (index 6)
+                MakePiece("abc", -100f, 4));         // UserDefined (index 7)
+
+            SentencePieceTokenizer tokenizer = CreateFromSyntheticModel(model, addBos: false);
+            Assert.Equal(new[] { 3, 7 }, tokenizer.EncodeToIds("abc", addBeginningOfSentence: false, addEndOfSentence: false));
+        }
+
+        [Fact]
         public void Synthetic_BpeModel_ParsedFromNonSeekableStream()
         {
             // Exercises the fallback path in ParseFrom (not MemoryStream.TryGetBuffer).

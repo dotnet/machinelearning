@@ -666,6 +666,46 @@ namespace Microsoft.ML.Tokenizers.Tests
             }
         }
 
+        public static IEnumerable<object[]> ScoreTieTestData()
+        {
+            // repeated character, repeat count, Hugging Face tokenizers ids (tokenizer.json), SentencePiece ids (.model)
+            yield return new object[] { 'a', 12, new int[] { 10, 11, 83151, 83151 }, new int[] { 9, 83150, 83150, 10 } };
+            yield return new object[] { '\u0430', 8, new int[] { 252, 59, 11430, 11430, 11430 }, new int[] { 251, 11429, 11429, 11429, 58 } };
+            yield return new object[] { '\u2500', 11, new int[] { 6, 86834, 78744, 78744, 78744, 78744, 78744 }, new int[] { 5, 78743, 78743, 78743, 78743, 78743, 86833 } };
+            yield return new object[] { '0', 26, new int[] { 2445, 181155, 197094, 197094, 197094 }, new int[] { 2444, 197093, 197093, 197093, 181154 } };
+            yield return new object[] { '=', 39, new int[] { 182906, 69112, 69112, 241859, 241859 }, new int[] { 182905, 69111, 241858, 241858, 69111 } };
+        }
+
+        [Theory]
+        [MemberData(nameof(ScoreTieTestData))]
+        public void CreateFromTokenizerJsonResolvesScoreTiesLikeHuggingFace(char repeatedChar, int count, int[] expectedJsonIds, int[] expectedModelIds)
+        {
+            // These inputs have several segmentations with the same total score (the same pieces in a different order).
+            // Hugging Face tokenizers scores in double precision and SentencePiece in single precision, so they resolve
+            // such ties differently. The tokenizer.json tokenizer should match the former and the .model tokenizer the latter.
+            string text = new string(repeatedChar, count);
+
+            Assert.Equal(expectedModelIds, _unigramTokenizer.EncodeToIds(text, addBeginningOfSentence: false, addEndOfSentence: false));
+
+            using Stream jsonStream = File.OpenRead(Path.Combine("Paraphrase-multilingual-MiniLM-L12-v2", "tokenizer.json"));
+            SentencePieceTokenizer jsonTokenizer = SentencePieceTokenizer.CreateFromTokenizerJson(
+                jsonStream, addBeginningOfSentence: false, addEndOfSentence: false);
+
+            Assert.Equal(expectedJsonIds, jsonTokenizer.EncodeToIds(text, addBeginningOfSentence: false, addEndOfSentence: false));
+        }
+
+        [Fact]
+        public void CreateFromTokenizerJsonReadsScoresInDoublePrecision()
+        {
+            // Many tokenizer.json scores are not exact float values. Reading them as float changes how this input is split;
+            // Hugging Face tokenizers reads them as double and gives ▁test, 99, 999, 99.
+            using Stream jsonStream = File.OpenRead(Path.Combine("Paraphrase-multilingual-MiniLM-L12-v2", "tokenizer.json"));
+            SentencePieceTokenizer jsonTokenizer = SentencePieceTokenizer.CreateFromTokenizerJson(
+                jsonStream, addBeginningOfSentence: false, addEndOfSentence: false);
+
+            Assert.Equal(new int[] { 3034, 5046, 65040, 5046 }, jsonTokenizer.EncodeToIds("test9999999", addBeginningOfSentence: false, addEndOfSentence: false));
+        }
+
         [Fact]
         public void CreateFromVocabNoSpecialTokensTest()
         {

@@ -19,13 +19,17 @@ namespace Microsoft.ML.Tokenizers
     internal sealed class SentencePieceUnigramModel : SentencePieceBaseModel
     {
         private readonly SortedDictionary<string, int> _vocab;
-        private readonly (string Piece, float Score, ModelProto.Types.SentencePiece.Types.Type Type)[] _vocabReverse;
+        private readonly (string Piece, double Score, ModelProto.Types.SentencePiece.Types.Type Type)[] _vocabReverse;
         private readonly DoubleArrayTrie _trie;
-        private readonly float _minScore;
+        private readonly double _minScore;
+        // Only used for the user-defined piece bonus, which is computed in single precision.
         private readonly float _maxScore;
         private readonly (int Id, string Token)[] _prefixTokens;
         private readonly (int Id, string Token)[] _suffixTokens;
-        private const float UnkPenalty = 10.0f;
+        // True to keep path scores in double precision as Hugging Face tokenizers does; false to round them to single
+        // precision as SentencePiece does. The two can resolve segmentations with equal total scores differently.
+        private readonly bool _useDoublePrecisionScores;
+        private const double UnkPenalty = 10.0;
 
         public SentencePieceUnigramModel(ModelProto modelProto, bool addBos, bool addEos, IReadOnlyDictionary<string, int>? specialTokens = null) : base(modelProto, addBos, addEos, specialTokens)
         {
@@ -38,7 +42,7 @@ namespace Microsoft.ML.Tokenizers
                 throw new ArgumentException("The BOS, EOS, or UNK token is not present in the vocabulary.");
             }
 
-            _vocabReverse = new (string Piece, float Score, ModelProto.Types.SentencePiece.Types.Type Type)[modelProto.Pieces.Count];
+            _vocabReverse = new (string Piece, double Score, ModelProto.Types.SentencePiece.Types.Type Type)[modelProto.Pieces.Count];
 
             _minScore = float.MaxValue;
             _maxScore = float.MinValue;
@@ -103,7 +107,7 @@ namespace Microsoft.ML.Tokenizers
         // BOS, EOS, and PAD tokens are identified by their names ("<s>", "</s>", "<pad>") in the vocab;
         // if not found by name, they are treated as absent (id = -1) to avoid misidentifying real pieces.
         internal SentencePieceUnigramModel(
-            IReadOnlyList<(string Piece, float Score)> pieces,
+            IReadOnlyList<(string Piece, double Score)> pieces,
             int unkId,
             bool addBos,
             bool addEos,
@@ -113,12 +117,13 @@ namespace Microsoft.ML.Tokenizers
             bool treatWhitespaceAsSuffix,
             bool removeExtraWhitespaces,
             bool byteFallback,
-            IReadOnlyDictionary<string, int>? specialTokens)
+            IReadOnlyDictionary<string, int>? specialTokens,
+            bool useDoublePrecisionScores)
             : this(pieces, unkId, addBos, addEos, precompiledCharsmap, addDummyPrefix, escapeWhiteSpaces,
                    treatWhitespaceAsSuffix, removeExtraWhitespaces, byteFallback, specialTokens,
                    CheckSpecialId(addBos, FindSpecialTokenId(ValidateVocab(pieces, unkId), "<s>"), "addBeginningOfSentence"),
                    CheckSpecialId(addEos, FindSpecialTokenId(pieces, "</s>"), "addEndOfSentence"),
-                   FindSpecialTokenId(pieces, "<pad>"), prefixTokens: null, suffixTokens: null)
+                   FindSpecialTokenId(pieces, "<pad>"), prefixTokens: null, suffixTokens: null, useDoublePrecisionScores)
         {
         }
 
@@ -126,7 +131,7 @@ namespace Microsoft.ML.Tokenizers
         // resolved from a tokenizer.json post_processor template. addBeginningOfSentence gates the prefix list
         // and addEndOfSentence gates the suffix list; an empty list is allowed (no tokens are emitted).
         internal SentencePieceUnigramModel(
-            IReadOnlyList<(string Piece, float Score)> pieces,
+            IReadOnlyList<(string Piece, double Score)> pieces,
             int unkId,
             bool addBos,
             bool addEos,
@@ -139,15 +144,16 @@ namespace Microsoft.ML.Tokenizers
             IReadOnlyDictionary<string, int>? specialTokens,
             IReadOnlyList<(int Id, string Token)> prefixTokens,
             IReadOnlyList<(int Id, string Token)> suffixTokens,
-            int padId)
+            int padId,
+            bool useDoublePrecisionScores)
             : this(pieces, unkId, addBos, addEos, precompiledCharsmap, addDummyPrefix, escapeWhiteSpaces,
                    treatWhitespaceAsSuffix, removeExtraWhitespaces, byteFallback, specialTokens,
-                   FirstId(prefixTokens), FirstId(suffixTokens), padId, prefixTokens, suffixTokens)
+                   FirstId(prefixTokens), FirstId(suffixTokens), padId, prefixTokens, suffixTokens, useDoublePrecisionScores)
         {
         }
 
         private SentencePieceUnigramModel(
-            IReadOnlyList<(string Piece, float Score)> pieces,
+            IReadOnlyList<(string Piece, double Score)> pieces,
             int unkId,
             bool addBos,
             bool addEos,
@@ -160,7 +166,8 @@ namespace Microsoft.ML.Tokenizers
             IReadOnlyDictionary<string, int>? specialTokens,
             int bosId, int eosId, int padId,
             IReadOnlyList<(int Id, string Token)>? prefixTokens,
-            IReadOnlyList<(int Id, string Token)>? suffixTokens)
+            IReadOnlyList<(int Id, string Token)>? suffixTokens,
+            bool useDoublePrecisionScores)
             : base(addBos, addEos,
                    bosId >= 0 && bosId < GetPieceCount(pieces) ? pieces[bosId].Piece : "<s>", bosId,
                    eosId >= 0 && eosId < GetPieceCount(pieces) ? pieces[eosId].Piece : "</s>", eosId,
@@ -170,8 +177,9 @@ namespace Microsoft.ML.Tokenizers
         {
             Debug.Assert(pieces is not null);
 
+            _useDoublePrecisionScores = useDoublePrecisionScores;
             _vocab = new SortedDictionary<string, int>(OrdinalUtf8StringComparer.Instance);
-            _vocabReverse = new (string Piece, float Score, ModelProto.Types.SentencePiece.Types.Type Type)[pieces!.Count];
+            _vocabReverse = new (string Piece, double Score, ModelProto.Types.SentencePiece.Types.Type Type)[pieces!.Count];
             _minScore = float.MaxValue;
             _maxScore = float.MinValue;
 
@@ -205,7 +213,7 @@ namespace Microsoft.ML.Tokenizers
                     _vocabReverse[i] = (piece, score, ModelProto.Types.SentencePiece.Types.Type.Normal);
                     _vocab.Add(piece, i);
                     _minScore = Math.Min(_minScore, score);
-                    _maxScore = Math.Max(_maxScore, score);
+                    _maxScore = Math.Max(_maxScore, (float)score);
                 }
             }
 
@@ -298,10 +306,10 @@ namespace Microsoft.ML.Tokenizers
             }
         }
 
-        private static int GetPieceCount(IReadOnlyList<(string Piece, float Score)>? pieces)
+        private static int GetPieceCount(IReadOnlyList<(string Piece, double Score)>? pieces)
             => pieces?.Count ?? 0;
 
-        private static string GetPieceAtIndex(IReadOnlyList<(string Piece, float Score)>? pieces, int index)
+        private static string GetPieceAtIndex(IReadOnlyList<(string Piece, double Score)>? pieces, int index)
         {
             if (pieces is null)
             {
@@ -324,8 +332,8 @@ namespace Microsoft.ML.Tokenizers
         }
 
         // Validates pieces is not null and unkId is in range; returns pieces unchanged.
-        private static IReadOnlyList<(string Piece, float Score)> ValidateVocab(
-            IReadOnlyList<(string Piece, float Score)>? pieces, int unkId)
+        private static IReadOnlyList<(string Piece, double Score)> ValidateVocab(
+            IReadOnlyList<(string Piece, double Score)>? pieces, int unkId)
         {
             if (pieces is null)
             {
@@ -341,7 +349,7 @@ namespace Microsoft.ML.Tokenizers
         }
 
         // Finds a special token by name; returns -1 if not found.
-        private static int FindSpecialTokenId(IReadOnlyList<(string Piece, float Score)>? pieces, string tokenName)
+        private static int FindSpecialTokenId(IReadOnlyList<(string Piece, double Score)>? pieces, string tokenName)
         {
             if (pieces is null)
             {
@@ -729,7 +737,7 @@ namespace Microsoft.ML.Tokenizers
             public BestPathNode()
             {
                 Id = -1;
-                BestPathScore = 0f;
+                BestPathScore = 0d;
                 StartsAt = -1;
             }
 
@@ -737,18 +745,24 @@ namespace Microsoft.ML.Tokenizers
             public int Id { get; set; }
 
             // The total score of the best path ending at this node.
-            public float BestPathScore { get; set; }
+            public double BestPathScore { get; set; }
 
             // The starting position (in utf-8) of this node. The entire best path can be constructed by backtracking along this link.
             public int StartsAt { get; set; }
         };
+
+        // Rounds a score to single precision unless the model keeps double-precision scores. Rounding the double-precision
+        // sum of two single-precision values gives exactly their single-precision sum, as computed by SentencePiece.
+        private static double RoundScore(double score, bool useDoublePrecisionScores)
+            => useDoublePrecisionScores ? score : (float)score;
 
         private void Encode(ReadOnlySpan<byte> normalized, Span<BestPathNode> bestPathEndsAt)
         {
             Debug.Assert(normalized.Length > 0);
 
             int size = normalized.Length;
-            float unkScore = _minScore - UnkPenalty;
+            bool useDoublePrecisionScores = _useDoublePrecisionScores;
+            double unkScore = RoundScore(_minScore - UnkPenalty, useDoublePrecisionScores);
 
             Debug.Assert(bestPathEndsAt.Length >= size + 1);
 
@@ -765,7 +779,7 @@ namespace Microsoft.ML.Tokenizers
             {
                 int nodePos = 0;
                 int keyPos = startsAt;
-                float bestPathScoreTillHere = bestPathEndsAt[startsAt].BestPathScore;
+                double bestPathScoreTillHere = bestPathEndsAt[startsAt].BestPathScore;
                 bool hasSingleNode = false;
                 int mbLen = Helpers.OneCharLen(normalized[startsAt]);
                 while (keyPos < size)
@@ -788,8 +802,8 @@ namespace Microsoft.ML.Tokenizers
                         int length = keyPos - startsAt;
 
                         // User defined symbol receives extra bonus to always be selected.
-                        float score = _vocabReverse[ret].Type == ModelProto.Types.SentencePiece.Types.Type.UserDefined ? length * _maxScore - 0.1f : _vocabReverse[ret].Score;
-                        float candidateBestPathScore = score + bestPathScoreTillHere;
+                        double score = _vocabReverse[ret].Type == ModelProto.Types.SentencePiece.Types.Type.UserDefined ? length * _maxScore - 0.1f : _vocabReverse[ret].Score;
+                        double candidateBestPathScore = RoundScore(score + bestPathScoreTillHere, useDoublePrecisionScores);
 
                         if (targetNode.StartsAt == -1 || candidateBestPathScore > targetNode.BestPathScore)
                         {
@@ -808,7 +822,7 @@ namespace Microsoft.ML.Tokenizers
                 if (!hasSingleNode)
                 {
                     ref BestPathNode targetNode = ref bestPathEndsAt[startsAt + mbLen];
-                    float candidateBestPathScore = unkScore + bestPathScoreTillHere;
+                    double candidateBestPathScore = RoundScore(unkScore + bestPathScoreTillHere, useDoublePrecisionScores);
 
                     if (targetNode.StartsAt == -1 || candidateBestPathScore > targetNode.BestPathScore)
                     {

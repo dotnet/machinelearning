@@ -512,13 +512,18 @@ namespace Microsoft.ML.Tokenizers
                 throw new ArgumentNullException(nameof(vocab));
             }
 
-            IReadOnlyList<(string Piece, float Score)> pieces = vocab as IReadOnlyList<(string Piece, float Score)>
-                ?? new List<(string Piece, float Score)>(vocab);
+            List<(string Piece, double Score)> pieces = new List<(string Piece, double Score)>();
+            foreach (var (piece, score) in vocab)
+            {
+                pieces.Add((piece, score));
+            }
 
+            // Vocabulary scores given as float keep SentencePiece's single-precision scoring.
             SentencePieceUnigramModel model = new SentencePieceUnigramModel(
                 pieces, unkId, addBeginningOfSentence, addEndOfSentence,
                 precompiledCharsMap, addDummyPrefix, escapeWhiteSpaces,
-                treatWhitespaceAsSuffix, removeExtraWhitespaces: true, byteFallback, specialTokens);
+                treatWhitespaceAsSuffix, removeExtraWhitespaces: true, byteFallback, specialTokens,
+                useDoublePrecisionScores: false);
 
             return new SentencePieceTokenizer(model);
         }
@@ -554,6 +559,12 @@ namespace Microsoft.ML.Tokenizers
         /// <see cref="NotSupportedException"/>. Pre-tokenizer types other than <c>Metaspace</c>, <c>WhitespaceSplit</c>,
         /// <c>Whitespace</c>, and <c>Sequence</c> are also rejected with <see cref="NotSupportedException"/> rather than
         /// silently ignored. The <c>decoder</c> section is not read.
+        /// </para>
+        /// <para>
+        /// Scores are read and accumulated in double precision, as in Hugging Face tokenizers. When several segmentations
+        /// have the same total score, the one chosen can therefore differ from
+        /// <see cref="Create(Stream, bool, bool, IReadOnlyDictionary{string, int})"/> loading the equivalent SentencePiece
+        /// model, which follows SentencePiece's single-precision scoring.
         /// </para>
         /// <para>
         /// When creating the tokenizer, ensure that the JSON stream is sourced from a trusted provider.
@@ -624,7 +635,7 @@ namespace Microsoft.ML.Tokenizers
                 throw new InvalidDataException("The tokenizer.json model does not contain a valid 'vocab' array.");
             }
 
-            List<(string Piece, float Score)> vocab = new List<(string Piece, float Score)>(vocabElement.GetArrayLength());
+            List<(string Piece, double Score)> vocab = new List<(string Piece, double Score)>(vocabElement.GetArrayLength());
             foreach (JsonElement entry in vocabElement.EnumerateArray())
             {
                 if (entry.ValueKind != JsonValueKind.Array || entry.GetArrayLength() < 2)
@@ -643,7 +654,7 @@ namespace Microsoft.ML.Tokenizers
                     throw new InvalidDataException("A piece string in 'model.vocab' is null.");
                 }
 
-                vocab.Add((piece, entry[1].GetSingle()));
+                vocab.Add((piece, entry[1].GetDouble()));
             }
 
             if (unkIsNull)
@@ -742,12 +753,13 @@ namespace Microsoft.ML.Tokenizers
 
             int padId = mergedSpecialTokens.TryGetValue("<pad>", out int p) ? p : FindPieceId(vocab, "<pad>");
 
+            // Score in double precision, as Hugging Face tokenizers does.
             SentencePieceUnigramModel model = new SentencePieceUnigramModel(
                 vocab, unkId, addBeginningOfSentence, addEndOfSentence,
                 precompiledCharsMap is not null ? precompiledCharsMap.AsSpan() : default,
                 addDummyPrefix, escapeWhiteSpaces, treatWhitespaceAsSuffix, removeExtraWhitespaces, byteFallback,
                 mergedSpecialTokens.Count > 0 ? mergedSpecialTokens : null,
-                prefixTokens, suffixTokens, padId);
+                prefixTokens, suffixTokens, padId, useDoublePrecisionScores: true);
 
             if (chainNormalizer is not null)
             {
@@ -796,7 +808,7 @@ namespace Microsoft.ML.Tokenizers
         // Resolves the ordered prefix/suffix special tokens that wrap an encoded sequence, from the post_processor.
         private static void ResolvePostProcessorAffixes(
             JsonElement root,
-            IReadOnlyList<(string Piece, float Score)> vocab,
+            IReadOnlyList<(string Piece, double Score)> vocab,
             IReadOnlyDictionary<string, int> specialTokens,
             out List<(int Id, string Token)> prefixTokens,
             out List<(int Id, string Token)> suffixTokens)
@@ -818,7 +830,7 @@ namespace Microsoft.ML.Tokenizers
 
         private static void ProcessPostProcessor(
             JsonElement postProcessor,
-            IReadOnlyList<(string Piece, float Score)> vocab,
+            IReadOnlyList<(string Piece, double Score)> vocab,
             IReadOnlyDictionary<string, int> specialTokens,
             List<(int Id, string Token)> prefixTokens,
             List<(int Id, string Token)> suffixTokens)
@@ -863,7 +875,7 @@ namespace Microsoft.ML.Tokenizers
         // Parses a TemplateProcessing "single" template into leading (prefix) and trailing (suffix) special tokens.
         private static void ProcessTemplate(
             JsonElement postProcessor,
-            IReadOnlyList<(string Piece, float Score)> vocab,
+            IReadOnlyList<(string Piece, double Score)> vocab,
             IReadOnlyDictionary<string, int> specialTokens,
             List<(int Id, string Token)> prefixTokens,
             List<(int Id, string Token)> suffixTokens)
@@ -917,7 +929,7 @@ namespace Microsoft.ML.Tokenizers
             string tokenName,
             JsonElement? ppSpecialTokens,
             IReadOnlyDictionary<string, int> specialTokens,
-            IReadOnlyList<(string Piece, float Score)> vocab)
+            IReadOnlyList<(string Piece, double Score)> vocab)
         {
             if (ppSpecialTokens is JsonElement st &&
                 st.TryGetProperty(tokenName, out JsonElement entry) &&
@@ -962,7 +974,7 @@ namespace Microsoft.ML.Tokenizers
             JsonElement postProcessor,
             string property,
             List<(int Id, string Token)> target,
-            IReadOnlyList<(string Piece, float Score)> vocab,
+            IReadOnlyList<(string Piece, double Score)> vocab,
             IReadOnlyDictionary<string, int> specialTokens)
         {
             // Roberta/Bert processors store cls/sep as [token, id] arrays.
@@ -988,7 +1000,7 @@ namespace Microsoft.ML.Tokenizers
         private static void AddAffixToken(
             List<(int Id, string Token)> target,
             string tokenName,
-            IReadOnlyList<(string Piece, float Score)> vocab,
+            IReadOnlyList<(string Piece, double Score)> vocab,
             IReadOnlyDictionary<string, int> specialTokens,
             bool required)
         {
@@ -1003,7 +1015,7 @@ namespace Microsoft.ML.Tokenizers
             }
         }
 
-        private static int FindPieceId(IReadOnlyList<(string Piece, float Score)> vocab, string token)
+        private static int FindPieceId(IReadOnlyList<(string Piece, double Score)> vocab, string token)
         {
             for (int i = 0; i < vocab.Count; i++)
             {
