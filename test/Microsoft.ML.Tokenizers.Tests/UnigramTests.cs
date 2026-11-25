@@ -1278,7 +1278,7 @@ namespace Microsoft.ML.Tokenizers.Tests
                     {
                         PlatformNotSupportedException exception = Assert.Throws<PlatformNotSupportedException>(() => JsonUnigramTokens(CreateJson(normalizer), "a"));
                         Assert.Contains($"'{step}'", exception.Message);
-                        Assert.Contains("<InvariantGlobalization>false</InvariantGlobalization>", exception.Message);
+                        Assert.Contains("https://aka.ms/GlobalizationInvariantMode", exception.Message);
                     }
                 }
 

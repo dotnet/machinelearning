@@ -316,7 +316,7 @@ namespace Microsoft.ML.Tokenizers.Tests
                     BertOptions options = new() { RemoveNonSpacingMarks = true };
                     PlatformNotSupportedException exception = Assert.Throws<PlatformNotSupportedException>(() => BertTokenizer.Create(vocabFile, options));
                     Assert.Contains("BertOptions.RemoveNonSpacingMarks", exception.Message);
-                    Assert.Contains("<InvariantGlobalization>false</InvariantGlobalization>", exception.Message);
+                    Assert.Contains("https://aka.ms/GlobalizationInvariantMode", exception.Message);
                     await Assert.ThrowsAsync<PlatformNotSupportedException>(() => BertTokenizer.CreateAsync(vocabFile, options));
 
                     using (Stream vocabStream = File.OpenRead(vocabFile))
