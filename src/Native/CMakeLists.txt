@@ -98,6 +98,10 @@ else()
     add_definitions(-Werror) # treat warnings as errors
     add_compile_options(-g) # generate debug information
 
+    # Use 64-bit time_t and file offsets on 32-bit glibc targets (Y2038), matching dotnet/runtime.
+    add_definitions(-D_FILE_OFFSET_BITS=64)
+    add_definitions(-D_TIME_BITS=64)
+
     # On Unix CMAKE_BUILD_TYPE is not passed in as just Debug/Release, so manually adding the extra flags
     if(${CMAKE_BUILD_TYPE} MATCHES "Release*")
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -DNDEBUG")
