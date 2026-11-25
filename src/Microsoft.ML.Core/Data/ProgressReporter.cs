@@ -145,7 +145,7 @@ internal static class ProgressReporting
         private IProgressChannel StartProgressChannel(int level)
         {
             var newId = Interlocked.Increment(ref _maxSubId);
-            return new SubChannel(this, level, newId);
+            return new SubChannel(this, newId, level);
         }
 
         private void SubChannelStopped(int id)
