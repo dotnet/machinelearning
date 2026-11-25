@@ -69,14 +69,16 @@ extends:
       image: $(WindowsImage)
       os: windows
     containers:
-      CentosContainer: 
-        image: mcr.microsoft.com/dotnet-buildtools/prereqs:centos-stream8-mlnet
+      AzureLinuxCrossX64Container:
+        image: mcr.microsoft.com/dotnet-buildtools/prereqs:azurelinux-4.0-net11.0-cross-amd64
+        env:
+          LDFLAGS: -fuse-ld=lld
       AzureLinuxCrossArmContainer:
-        image: mcr.microsoft.com/dotnet-buildtools/prereqs:azurelinux-3.0-net8.0-cross-arm
+        image: mcr.microsoft.com/dotnet-buildtools/prereqs:azurelinux-4.0-net11.0-cross-arm
         env:
           LDFLAGS: -fuse-ld=lld
       AzureLinuxCrossArm64Container:
-        image: mcr.microsoft.com/dotnet-buildtools/prereqs:azurelinux-3.0-net8.0-cross-arm64
+        image: mcr.microsoft.com/dotnet-buildtools/prereqs:azurelinux-4.0-net11.0-cross-arm64
         env:
           LDFLAGS: -fuse-ld=lld
     stages:
@@ -86,11 +88,13 @@ extends:
       ################################################################################
       - job: Linux_x64
       ################################################################################
+        variables:
+          ROOTFS_DIR: '/crossrootfs/x64'
         pool:
           name: $(DncEngInternalBuildPool)
           image: $(LinuxImage)
           os: linux
-        container: CentosContainer
+        container: AzureLinuxCrossX64Container
         templateContext:
           outputs:
           - output: buildArtifacts

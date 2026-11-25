@@ -59,9 +59,9 @@ The `<target architecture>` can be `x64`, `arm`, or `arm64`. Use an Ubuntu coden
 
 Linux cross-build jobs using `build/ci/job-template.yml` must pass the sysroot path through `rootfsDir` (for example, `/crossrootfs/arm64`). The template does not infer it from the agent image or job name.
 
-### CI build containers
+### CI and official build containers
 
-CI cross-builds use these Azure Linux 4 images:
+CI and official Linux cross-builds use these Azure Linux 4 images:
 
 - `mcr.microsoft.com/dotnet-buildtools/prereqs:azurelinux-4.0-net11.0-cross-amd64`
 - `mcr.microsoft.com/dotnet-buildtools/prereqs:azurelinux-4.0-net11.0-cross-arm`
@@ -74,7 +74,6 @@ set `LDFLAGS=-fuse-ld=lld` to use the bundled LLVM linker.
 
 The nightly pipeline still references the Ubuntu 22.04 ML.NET build image.
 
-The official x64 native-package build retains its CentOS Stream 8 image to avoid
-raising the native libraries' minimum system-library requirements. Updating a
-build container must not silently change the compatibility baseline of shipped
-native assets.
+Changes to the toolchain or sysroots can affect the native libraries' dependencies
+and minimum system-library versions. Check the compatibility of shipped native
+assets when updating them.
