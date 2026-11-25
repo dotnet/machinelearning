@@ -19,7 +19,7 @@ namespace lda
     public:
 
         hybrid_alias_map();
-        hybrid_alias_map(int32_t *memory, int32_t is_dense, int32_t capacity);
+        hybrid_alias_map(int32_t *memory, size_t memory_size, int32_t is_dense, int32_t capacity);
         hybrid_alias_map(const hybrid_alias_map &other);
         hybrid_alias_map& operator=(const hybrid_alias_map &other);
 
@@ -41,6 +41,7 @@ namespace lda
 
     private:
         int32_t *memory_;
+        size_t memory_size_;
         int32_t is_dense_;
         int32_t *kv_;
         int32_t *idx_;

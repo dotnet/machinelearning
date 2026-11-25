@@ -3,6 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 #pragma once
+#include <algorithm>
+#include <stdexcept>
 #include "../Stdafx.h"
 
 using namespace std;
@@ -108,10 +110,16 @@ public:
     }
 
     // This method copies the global models to _localModel and _startModel
-    void ResetModel(float bias, float* globModel, float weightScaling) 
+    void ResetModel(float bias, float* globModel, int globModelSize, float weightScaling)
     {
-        memcpy(&_localModel[0], globModel, _numFreqFeat * sizeof(float));
-        memcpy(&_startModel[0], &_localModel[0], _numFreqFeat * sizeof(float));
+        if (_numFreqFeat > 0)
+        {
+            if (globModel == NULL || globModelSize < _numFreqFeat)
+                throw std::length_error("Global model is too small for the frequent-feature model.");
+
+            std::copy_n(globModel, _numFreqFeat, _localModel);
+            std::copy_n(_localModel, _numFreqFeat, _startModel);
+        }
 
         _bias = bias;
         _startBias = bias;
