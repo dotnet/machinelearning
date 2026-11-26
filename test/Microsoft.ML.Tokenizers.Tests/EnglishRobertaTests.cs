@@ -300,6 +300,7 @@ namespace Microsoft.ML.Tokenizers.Tests
             int[] ids = tokenizer.EncodeToIds(text).ToArray();
 
             Assert.NotEmpty(tokens);
+            Assert.Equal(text, tokenizer.Decode(ids));
             Assert.Equal(ids, tokens.Select(token => token.Id));
             Assert.Equal(tokens.Count, tokenizer.CountTokens(text));
             Assert.Equal(0, tokens[0].Offset.Start.Value);

@@ -767,6 +767,38 @@ namespace Microsoft.ML.Tokenizers
                 throw new ArgumentNullException(nameof(ids));
             }
 
+            if (FilterUnsupportedChars)
+            {
+                byte[] bytes = ArrayPool<byte>.Shared.Rent(128);
+                int length = 0;
+                try
+                {
+                    foreach (int id in ids)
+                    {
+                        if (MapIdToToken(id) is not string token)
+                        {
+                            continue;
+                        }
+
+                        if (bytes.Length - length < token.Length)
+                        {
+                            Helpers.ArrayPoolGrow(ref bytes, length + token.Length);
+                        }
+
+                        for (int i = 0; i < token.Length; i++)
+                        {
+                            bytes[length++] = (byte)token[i];
+                        }
+                    }
+
+                    return Encoding.UTF8.GetString(bytes, 0, length);
+                }
+                finally
+                {
+                    ArrayPool<byte>.Shared.Return(bytes);
+                }
+            }
+
             ValueStringBuilder sb = new ValueStringBuilder();
 
             foreach (int id in ids)
@@ -793,6 +825,23 @@ namespace Microsoft.ML.Tokenizers
             if (ids is null)
             {
                 throw new ArgumentNullException(nameof(ids));
+            }
+
+            if (FilterUnsupportedChars)
+            {
+                int[] allIds = ids.ToArray();
+                string decoded = Decode(allIds);
+                if (decoded.Length > destination.Length)
+                {
+                    idsConsumed = 0;
+                    charsWritten = 0;
+                    return OperationStatus.DestinationTooSmall;
+                }
+
+                decoded.AsSpan().CopyTo(destination);
+                idsConsumed = allIds.Length;
+                charsWritten = decoded.Length;
+                return OperationStatus.Done;
             }
 
             Span<char> buffer = destination;
