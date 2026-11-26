@@ -337,6 +337,15 @@ namespace Microsoft.ML.Tokenizers.Tests
             Assert.Equal(expectedIds, GetRobertaTokenizer().EncodeToIds(text));
         }
 
+        [Fact]
+        public void TestTokenizerGrowsBuffersForMixedScriptWord()
+        {
+            string text = "日" + new string('a', 15);
+            Tokenizer tokenizer = GetRobertaTokenizer();
+
+            Assert.Equal(text, tokenizer.Decode(tokenizer.EncodeToIds(text)));
+        }
+
         [Theory]
         [InlineData("\uD800")]
         [InlineData("\uDC00")]
