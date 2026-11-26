@@ -44,7 +44,8 @@ namespace Samples.Dynamic
             // The 'ApplyWordEmbedding' API requires vector of text as input.
             // The pipeline first normalizes and tokenizes text then applies word
             // embedding transformation.
-            var textPipeline = mlContext.Transforms.Text.NormalizeText("Text")
+            var textPipeline = mlContext.Transforms.Text.NormalizeText("Text",
+                keepPunctuations: false)
                 .Append(mlContext.Transforms.Text.TokenizeIntoWords("Tokens",
                     "Text"))
                 .Append(mlContext.Transforms.Text.ApplyWordEmbedding("Features",
@@ -76,7 +77,7 @@ namespace Samples.Dynamic
 
             //  Expected output:
             //   Number of Features: 9
-            //   Features: -1.0000 0.0000 -100.0000 0.0000 34.0000 -25.6667 1.0000 100.0000 20.0000
+            //   Features: -1.0000 -2.0000 -100.0000 -0.2500 25.0000 -20.0000 1.0000 100.0000 20.0000
         }
 
         private class TextData
