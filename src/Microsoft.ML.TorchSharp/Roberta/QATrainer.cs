@@ -402,22 +402,17 @@ namespace Microsoft.ML.TorchSharp.Roberta
 
                     var contextString = context.ToString();
                     var contextTokens = Tokenizer.EncodeToTokens(contextString, out string normalized);
-                    var contextToken = contextTokens.Select(t => t.Value).ToArray();
                     var contextTokenId = Tokenizer.RobertaModel().ConvertIdsToOccurrenceRanks(contextTokens.Select(t => t.Id).ToArray());
 
-                    var mapping = AlignAnswerPosition(contextToken, contextString);
-                    if (mapping == null)
-                    {
-                        return (null, null, false);
-                    }
+                    var mapping = AlignAnswerPosition(contextTokens, contextString);
                     var questionTokenId = Tokenizer.EncodeToConverted(question.ToString());
 
                     var answerEnd = answerIndex + answer.Length - 1;
-                    if (!mapping.ContainsKey(answerIndex) || !mapping.ContainsKey(answerEnd))
+                    if (!mapping.TryGetValue(answerIndex, out var answerStartTokens) || !mapping.TryGetValue(answerEnd, out var answerEndTokens))
                     {
                         return (null, null, false);
                     }
-                    var targetList = new List<int> { mapping[answerIndex] + 2 + questionTokenId.Count, mapping[answerEnd] + 2 + questionTokenId.Count };
+                    var targetList = new List<int> { answerStartTokens.First + 2 + questionTokenId.Count, answerEndTokens.Last + 2 + questionTokenId.Count };
 
                     var srcTensor = torch.tensor((new[] { 0 /* InitToken */ }).Concat(questionTokenId).Concat(new[] { 2 /* SeparatorToken */ }).Concat(contextTokenId).ToList(), device: Device);
                     // If the end of the answer goes beyond the 512 tokens then set answer start/end index to 0
@@ -435,63 +430,39 @@ namespace Microsoft.ML.TorchSharp.Roberta
                 }
             }
 
-            private Dictionary<int, int> AlignAnswerPosition(IReadOnlyList<string> tokens, string text)
+            private Dictionary<int, (int First, int Last)> AlignAnswerPosition(IReadOnlyList<EncodedToken> tokens, string text)
             {
-                EnglishRobertaTokenizer robertaModel = Tokenizer as EnglishRobertaTokenizer;
-                Debug.Assert(robertaModel is not null);
-
-                var mapping = new Dictionary<int, int>();
+                // Token offsets are source UTF-16 ranges. Several byte-level tokens can
+                // overlap one source character, so retain both boundary token indices.
+                var mapping = new Dictionary<int, (int First, int Last)>();
+                int[] adjustedPosition = new int[text.Length];
                 int surrogateDeduce = 0;
-                for (var (i, j, tid) = (0, 0, 0); i < text.Length && tid < tokens.Count;)
+                for (int i = 0; i < text.Length; i++)
                 {
-                    // Move to a new token
-                    if (j >= tokens[tid].Length)
+                    adjustedPosition[i] = i - surrogateDeduce;
+                    if (i + 1 < text.Length && char.IsSurrogatePair(text[i], text[i + 1]))
                     {
-                        ++tid;
-                        j = 0;
+                        adjustedPosition[i + 1] = adjustedPosition[i];
+                        surrogateDeduce++;
+                        i++;
                     }
-                    // There are a few UTF-32 chars in corpus, which is considered one char in position
-                    else if (i + 1 < text.Length && char.IsSurrogatePair(text[i], text[i + 1]))
+                }
+
+                for (int tokenIndex = 0; tokenIndex < tokens.Count; tokenIndex++)
+                {
+                    int start = tokens[tokenIndex].Offset.Start.Value;
+                    int end = tokens[tokenIndex].Offset.End.Value;
+                    for (int i = start; i < end && i < text.Length; i++)
                     {
-                        i += 2;
-                        ++surrogateDeduce;
-                    }
-                    // White spaces are not included in tokens
-                    else if (char.IsWhiteSpace(text[i]))
-                    {
-                        ++i;
-                    }
-                    // Chars not included in tokenizer will not appear in tokens
-                    else if (!robertaModel.IsSupportedChar(text[i]))
-                    {
-                        mapping[i - surrogateDeduce] = tid;
-                        ++i;
-                    }
-                    // "\\\"", "``" and "''" converted to "\"" in normalizer
-                    else if (i + 1 < text.Length && tokens[tid][j] == '"'
-                        && ((text[i] == '`' && text[i + 1] == '`')
-                         || (text[i] == '\'' && text[i + 1] == '\'')
-                         || (text[i] == '\\' && text[i + 1] == '"')))
-                    {
-                        mapping[i - surrogateDeduce] = mapping[i + 1 - surrogateDeduce] = tid;
-                        i += 2;
-                        j += 1;
-                    }
-                    // Normal match
-                    else if (text[i] == tokens[tid][j])
-                    {
-                        mapping[i - surrogateDeduce] = tid;
-                        ++i;
-                        ++j;
-                    }
-                    // There are a few real \u0120 chars in the corpus, so this rule has to be later than text[i] == tokens[tid][j].
-                    else if (tokens[tid][j] == '\u0120' && j == 0)
-                    {
-                        ++j;
-                    }
-                    else
-                    {
-                        throw new DataMisalignedException("unmatched!");
+                        int key = adjustedPosition[i];
+                        if (mapping.TryGetValue(key, out var existing))
+                        {
+                            mapping[key] = (existing.First, tokenIndex);
+                        }
+                        else
+                        {
+                            mapping[key] = (tokenIndex, tokenIndex);
+                        }
                     }
                 }
 
