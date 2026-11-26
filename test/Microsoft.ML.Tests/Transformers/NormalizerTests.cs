@@ -718,6 +718,48 @@ namespace Microsoft.ML.Tests.Transformers
         }
 
         [Fact]
+        public void WhiteningRejectsRankGreaterThanInputDimension()
+        {
+            var data = ML.Data.LoadFromEnumerable(Array.Empty<DataPointVec>());
+            var estimator = new VectorWhiteningEstimator(ML, "whitened", "Features",
+                kind: WhiteningKind.PrincipalComponentAnalysis, rank: 6);
+
+            var exception = Assert.Throws<ArgumentOutOfRangeException>(() => estimator.Fit(data));
+            Assert.Equal("rank", exception.ParamName);
+        }
+
+        [Theory]
+        [InlineData(WhiteningKind.PrincipalComponentAnalysis, 0)]
+        [InlineData(WhiteningKind.PrincipalComponentAnalysis, 5)]
+        [InlineData(WhiteningKind.ZeroPhaseComponentAnalysis, 6)]
+        public void WhiteningAcceptsValidRank(WhiteningKind kind, int rank)
+        {
+            var data = ML.Data.LoadFromEnumerable(Array.Empty<DataPointVec>());
+            var estimator = new VectorWhiteningEstimator(ML, "whitened", "Features", kind: kind, rank: rank);
+
+            var output = estimator.Fit(data).Transform(data);
+            Assert.Equal(5, ((VectorDataViewType)output.Schema["whitened"].Type).Size);
+        }
+
+        [Fact]
+        public void WhiteningRejectsOversizedRankInLoadedModel()
+        {
+            var data = ML.Data.LoadFromEnumerable(Array.Empty<DataPointVec>());
+            var options = new VectorWhiteningEstimator.ColumnOptions("whitened", "Features",
+                kind: WhiteningKind.PrincipalComponentAnalysis, rank: 6);
+            var transformer = new VectorWhiteningTransformer(ML, new[] { new float[25] }, new float[1][], options);
+
+            using (var stream = new MemoryStream())
+            {
+                ML.Model.Save(transformer, data.Schema, stream);
+                stream.Position = 0;
+                var loaded = ML.Model.Load(stream, out _);
+                var exception = Assert.Throws<ArgumentOutOfRangeException>(() => loaded.Transform(data));
+                Assert.Equal("rank", exception.ParamName);
+            }
+        }
+
+        [Fact]
         public void TestWhiteningCommandLine()
         {
             // typeof helps to load the VectorWhiteningTransformer type.

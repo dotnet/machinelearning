@@ -240,6 +240,13 @@ namespace Microsoft.ML.Transforms
                 ectx.CheckDecode(FloatUtils.IsFinite(model[i]), "Found NaN or infinity in the model.");
         }
 
+        private static void CheckRank(IExceptionContext ectx, VectorWhiteningEstimator.ColumnOptions column, int dimension)
+        {
+            int rank = column.Rank;
+            if (column.Kind == WhiteningKind.PrincipalComponentAnalysis && rank > 0)
+                ectx.CheckParam(rank <= dimension, nameof(rank), "Rank must be at most the dimension of untransformed data.");
+        }
+
         // Sometime GetRowCount doesn't really return the number of rows in the associated IDataView.
         // A more reliable solution is to turely iterate through all rows via a RowCursor.
         private static long GetRowCount(IDataView inputData, params VectorWhiteningEstimator.ColumnOptions[] columns)
@@ -292,6 +299,7 @@ namespace Microsoft.ML.Transforms
                 var reason = TestColumn(srcTypes[i]);
                 if (reason != null)
                     throw env.ExceptParam(nameof(inputData.Schema), reason);
+                CheckRank(env, columns[i], srcTypes[i].GetValueCount());
             }
         }
 
@@ -565,6 +573,7 @@ namespace Microsoft.ML.Transforms
                     if (!InputSchema.TryGetColumnIndex(_parent.ColumnPairs[i].inputColumnName, out _cols[i]))
                         throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", _parent.ColumnPairs[i].inputColumnName);
                     _srcTypes[i] = inputSchema[_cols[i]].Type;
+                    CheckRank(Host, _parent._columns[i], _srcTypes[i].GetValueCount());
                     ValidateModel(Host, _parent._models[i], _srcTypes[i]);
                     if (_parent._columns[i].SaveInv)
                         ValidateModel(Host, _parent._invModels[i], _srcTypes[i]);
