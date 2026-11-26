@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -174,33 +173,56 @@ namespace Microsoft.ML.AutoML.Test
         public async Task AutoMLExperiment_return_current_best_trial_when_ct_is_canceled_with_trial_completed_Async()
         {
             var context = new MLContext(1);
-            var stopWatch = new Stopwatch();
-            stopWatch.Start();
+            var runner = new WaitForCancellationTrialRunner();
             var experiment = context.Auto().CreateExperiment();
-            experiment.SetTrainingTimeInSeconds(10)
-                      .SetTrialRunner((serviceProvider) =>
-                      {
-                          var channel = serviceProvider.GetService<IChannel>();
-                          var settings = serviceProvider.GetService<AutoMLExperiment.AutoMLExperimentSettings>();
-                          return new DummyTrialRunner(settings, 1, channel);
-                      })
+            // at most two trials, so a lost cancellation fails the test instead of starting more trials.
+            experiment.SetMaxModelToExplore(2)
+                      .SetTrialRunner(runner)
                       .SetTuner<RandomSearchTuner>();
 
-            var cts = new CancellationTokenSource();
+            using var cts = new CancellationTokenSource();
+            var runTask = experiment.RunAsync(cts.Token);
 
-            context.Log += (o, e) =>
-            {
-                if (e.RawMessage.Contains("Update Completed Trial"))
-                {
-                    cts.CancelAfter(100);
-                }
-            };
-            var res = await experiment.RunAsync(cts.Token);
+            // cancel once the first trial has completed and the second one is running.
+            var completedTask = await Task.WhenAny(runner.LaterTrialStarted, runTask);
+            cts.Cancel();
+            var res = await runTask;
 
-            stopWatch.Stop();
-            Assert.True(stopWatch.ElapsedMilliseconds <= 5000);
-            Assert.True(cts.IsCancellationRequested);
+            Assert.Same(runner.LaterTrialStarted, completedTask);
+            Assert.Equal(0, res.TrialSettings.TrialId);
             Assert.True(res.Metric > 0);
+        }
+
+        /// <summary>
+        /// Completes the first trial immediately. A later trial throws as soon as it gets canceled; if it isn't canceled within a minute,
+        /// it reports a better metric than the first trial, so the first trial only stays the best one when later trials are canceled.
+        /// </summary>
+        private sealed class WaitForCancellationTrialRunner : ITrialRunner
+        {
+            private readonly TaskCompletionSource<bool> _laterTrialStarted = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+
+            public Task LaterTrialStarted => _laterTrialStarted.Task;
+
+            public async Task<TrialResult> RunAsync(TrialSettings settings, CancellationToken ct)
+            {
+                if (settings.TrialId > 0)
+                {
+                    _laterTrialStarted.TrySetResult(true);
+                    await Task.Delay(TimeSpan.FromMinutes(1), ct);
+                }
+
+                var metric = 1.0 + settings.TrialId;
+                return new TrialResult
+                {
+                    TrialSettings = settings,
+                    Metric = metric,
+                    Loss = -metric,
+                };
+            }
+
+            public void Dispose()
+            {
+            }
         }
 
         [Fact]
