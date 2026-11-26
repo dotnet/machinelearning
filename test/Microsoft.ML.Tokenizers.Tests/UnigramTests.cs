@@ -841,6 +841,14 @@ namespace Microsoft.ML.Tokenizers.Tests
             return tokenizer.EncodeToTokens(text, out _, addBeginningOfSentence: false, addEndOfSentence: false).Select(t => t.Value).ToArray();
         }
 
+        private static string? JsonUnigramNormalizedText(string json, string text)
+        {
+            using Stream stream = new System.IO.MemoryStream(System.Text.Encoding.UTF8.GetBytes(json));
+            SentencePieceTokenizer tokenizer = SentencePieceTokenizer.CreateFromTokenizerJson(stream, addBeginningOfSentence: false, addEndOfSentence: false);
+            tokenizer.EncodeToTokens(text, out string? normalizedText, addBeginningOfSentence: false, addEndOfSentence: false);
+            return normalizedText;
+        }
+
         [Fact]
         public void CreateFromTokenizerJsonAppliesAnchoredRegexReplaceNormalizer()
         {
@@ -958,23 +966,47 @@ namespace Microsoft.ML.Tokenizers.Tests
             Assert.Equal(new[] { "\u25811" }, JsonUnigramTokens(json, "\u2460"));
         }
 
+        // A tokenizer.json with the given normalizer and a vocabulary that tells "cafe" and the precomposed "café" apart.
+        private static string StripAccentsJson(string normalizer) => $$"""
+            {
+              "normalizer": {{normalizer}},
+              "pre_tokenizer": { "type": "Metaspace", "replacement": "\u2581", "add_prefix_space": true },
+              "model": {
+                "type": "Unigram",
+                "unk_id": 0,
+                "vocab": [["<unk>", 0.0], ["\u2581cafe", -1.0], ["\u2581caf\u00e9", -1.0]]
+              }
+            }
+            """;
+
         [Fact]
         public void CreateFromTokenizerJsonAppliesStripAccentsNormalizer()
         {
-            // A StripAccents normalizer step decomposes and drops combining marks, so "café" maps to the "cafe" piece.
-            string json = """
-                {
-                  "normalizer": { "type": "StripAccents" },
-                  "pre_tokenizer": { "type": "Metaspace", "replacement": "\u2581", "add_prefix_space": true },
-                  "model": {
-                    "type": "Unigram",
-                    "unk_id": 0,
-                    "vocab": [["<unk>", 0.0], ["\u2581cafe", -1.0]]
-                  }
-                }
-                """;
+            // Like the Hugging Face one, a StripAccents normalizer step removes the combining marks without decomposing the text: it removes
+            // the separate accent of "cafe\u0301" but keeps the precomposed "café", unless an NFD step decomposes it first.
+            string stripAccents = StripAccentsJson("""{ "type": "StripAccents" }""");
+            Assert.Equal(new[] { "\u2581cafe" }, JsonUnigramTokens(stripAccents, "cafe\u0301"));
+            Assert.Equal(new[] { "\u2581caf\u00e9" }, JsonUnigramTokens(stripAccents, "caf\u00e9"));
+            Assert.Equal(new[] { "\u2581cafe" }, JsonUnigramTokens(StripAccentsJson("""{ "type": "Sequence", "normalizers": [ { "type": "NFD" }, { "type": "StripAccents" } ] }"""), "caf\u00e9"));
+        }
 
-            Assert.Equal(new[] { "\u2581cafe" }, JsonUnigramTokens(json, "caf\u00e9"));
+        // StripAccents removes all the combining marks (the Mark category), as Hugging Face does, not only the non-spacing ones: a spacing
+        // mark (U+093E DEVANAGARI VOWEL SIGN AA), an enclosing mark (U+20DD COMBINING ENCLOSING CIRCLE), and the variation selector (U+FE0F)
+        // and enclosing mark (U+20E3) of a keycap.
+        [Theory]
+        [InlineData("\u0915\u093E", "\u2581\u0915")]
+        [InlineData("a\u20DD", "\u2581a")]
+        [InlineData("1\uFE0F\u20E3", "\u25811")]
+        public void CreateFromTokenizerJsonStripAccentsDropsSpacingAndEnclosingMarks(string text, string expectedNormalizedText)
+        {
+            Assert.Equal(expectedNormalizedText, JsonUnigramNormalizedText(StripAccentsJson("""{ "type": "StripAccents" }"""), text));
+        }
+
+        [Fact]
+        public void CreateFromTokenizerJsonStripAccentsKeepsUFFFE()
+        {
+            // U+FFFE isn't a combining mark, so StripAccents keeps it, as Hugging Face does, rather than throwing like string.Normalize.
+            Assert.Equal("\u2581a\uFFFEb", JsonUnigramNormalizedText(StripAccentsJson("""{ "type": "StripAccents" }"""), "a\uFFFEb"));
         }
 
         [Fact]
@@ -1266,10 +1298,8 @@ namespace Microsoft.ML.Tokenizers.Tests
                 InvariantGlobalization.AssertEnabled();
 
                 // These steps can't do anything without Unicode normalization, so creating the tokenizer fails rather than silently skipping them.
-                // The message names the normalization form that each step uses, which for StripAccents is FormD.
                 (string, NormalizationForm)[] steps =
                 [
-                    ("StripAccents", NormalizationForm.FormD),
                     ("NFC", NormalizationForm.FormC),
                     ("NFD", NormalizationForm.FormD),
                     ("NFKC", NormalizationForm.FormKC),
@@ -1291,6 +1321,12 @@ namespace Microsoft.ML.Tokenizers.Tests
                         Assert.Contains("https://aka.ms/GlobalizationInvariantMode", exception.Message);
                     }
                 }
+
+                // StripAccents doesn't decompose the text, so it works as it does with Unicode normalization: it removes the separate accent
+                // of "cafe\u0301" and keeps the precomposed "café".
+                string stripAccents = StripAccentsJson("""{ "type": "StripAccents" }""");
+                Assert.Equal(new[] { "\u2581cafe" }, JsonUnigramTokens(stripAccents, "cafe\u0301"));
+                Assert.Equal(new[] { "\u2581caf\u00e9" }, JsonUnigramTokens(stripAccents, "caf\u00e9"));
 
                 // The precompiled charsmap has its own normalization data and Lowercase doesn't need any, so they keep working.
                 using JsonDocument bundled = JsonDocument.Parse(File.ReadAllText(Path.Combine("Paraphrase-multilingual-MiniLM-L12-v2", "tokenizer.json")));
