@@ -741,11 +741,12 @@ namespace Microsoft.ML.Tokenizers
                 StartsAt = -1;
             }
 
+            // The total score of the best path ending at this node.
+            // Declared before the int properties so the struct has no padding.
+            public double BestPathScore { get; set; }
+
             // The vocab id. (maybe -1 for UNK)
             public int Id { get; set; }
-
-            // The total score of the best path ending at this node.
-            public double BestPathScore { get; set; }
 
             // The starting position (in utf-8) of this node. The entire best path can be constructed by backtracking along this link.
             public int StartsAt { get; set; }
