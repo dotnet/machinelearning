@@ -318,13 +318,22 @@ namespace Microsoft.ML.Tokenizers.Tests
                 cachedTokens.Select(token => (token.Id, token.Offset.Start.Value, token.Offset.End.Value)));
 
             int tokenLimit = Math.Max(1, tokens.Count / 2);
-            Assert.Equal(tokens.Take(tokenLimit).Select(token => token.Id),
-                tokenizer.EncodeToIds(text, tokenLimit, out _, out int charsConsumed));
-            Assert.Equal(tokens[tokenLimit - 1].Offset.End.Value, charsConsumed);
+            IReadOnlyList<int> limitedIds = tokenizer.EncodeToIds(text, tokenLimit, out _, out int charsConsumed);
+            Assert.True(limitedIds.Count <= tokenLimit);
+            Assert.Equal(limitedIds, tokenizer.EncodeToIds(text[..charsConsumed]));
 
             int startIndex = tokenizer.GetIndexByTokenCountFromEnd(text, tokenLimit, out _, out int tokenCount);
-            Assert.Equal(tokenLimit, tokenCount);
-            Assert.Equal(tokens[tokens.Count - tokenLimit].Offset.Start.Value, startIndex);
+            Assert.True(tokenCount <= tokenLimit);
+            Assert.Equal(tokenCount, tokenizer.EncodeToIds(text[startIndex..]).Count);
+        }
+
+        [Theory]
+        [InlineData("é", new int[] { 2634 })]
+        [InlineData("café naïve résumé", new int[] { 66, 1878, 2634, 41492, 40560, 16345, 2634 })]
+        [InlineData("Ä°stanbul", new int[] { 127, 226, 7200, 24179 })]
+        public void TestTokenizerMatchesByteLevelBpe(string text, int[] expectedIds)
+        {
+            Assert.Equal(expectedIds, GetRobertaTokenizer().EncodeToIds(text));
         }
 
         [Theory]

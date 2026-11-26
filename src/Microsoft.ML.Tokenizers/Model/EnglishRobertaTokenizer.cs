@@ -576,17 +576,26 @@ namespace Microsoft.ML.Tokenizers
                 return tokens.Count;
             }
 
+            int tokenCount = maxTokens;
+            // UTF-8 byte tokens for one source character share the same source offset.
+            // Do not return only part of that character: callers resume from charsConsumed.
+            while (tokenCount > 0 && tokenCount < tokens.Count &&
+                tokens[tokenCount - 1].Offset.End.Value > tokens[tokenCount].Offset.Start.Value)
+            {
+                tokenCount--;
+            }
+
             if (accumulatedIds is not null)
             {
-                for (int i = 0; i < maxTokens; i++)
+                for (int i = 0; i < tokenCount; i++)
                 {
                     accumulatedIds.Add(tokens[i].Id);
                 }
             }
 
-            charsConsumed = tokens[maxTokens - 1].Offset.End.Value;
+            charsConsumed = tokenCount == 0 ? 0 : tokens[tokenCount - 1].Offset.End.Value;
 
-            return maxTokens;
+            return tokenCount;
         }
 
         private int EncodeToIdsFromEndResult(List<EncodedToken> tokens, IList<int>? accumulatedIds, int maxTokens, int fullTextLength, out int textIndex)
@@ -607,17 +616,26 @@ namespace Microsoft.ML.Tokenizers
                 return tokens.Count;
             }
 
+            int firstToken = tokens.Count - maxTokens;
+            // Keep all byte tokens belonging to a source character together.
+            while (firstToken > 0 &&
+                tokens[firstToken - 1].Offset.End.Value > tokens[firstToken].Offset.Start.Value)
+            {
+                firstToken++;
+            }
+
+            int tokenCount = tokens.Count - firstToken;
             if (accumulatedIds is not null)
             {
-                for (int i = tokens.Count - maxTokens; i < tokens.Count; i++)
+                for (int i = firstToken; i < tokens.Count; i++)
                 {
                     accumulatedIds.Add(tokens[i].Id);
                 }
             }
 
-            textIndex = tokens[tokens.Count - maxTokens].Offset.Start.Value;
+            textIndex = tokenCount == 0 ? fullTextLength : tokens[firstToken].Offset.Start.Value;
 
-            return maxTokens;
+            return tokenCount;
         }
 
         private int EncodeToIdsInternal(ReadOnlySpan<char> text, IList<int>? accumulatedIds, out int charsConsumed, int maxTokens)
@@ -665,23 +683,31 @@ namespace Microsoft.ML.Tokenizers
 
             try
             {
-                // Keep the existing single-byte mapping for Latin-1 input so pretrained
-                // models keep receiving the same token ids. Characters outside Latin-1
-                // are encoded as UTF-8 bytes, as required by byte-level RoBERTa BPE.
                 IReadOnlyDictionary<char, char> byteToUnicode = ByteToUnicodeEncoding.Instance.ByteToUnicode;
                 int encodedLength = 0;
                 for (int i = 0; i < text.Length; i++)
                 {
                     uint c = text[i];
-                    if (c <= 0xFFu)
+                    if (c <= 0x7Fu)
                     {
+                        if (encodedLength == token.Length)
+                        {
+                            Helpers.ArrayPoolGrow(ref token, encodedLength + 1);
+                        }
+
+                        if (encodedLength == indexMapping.Length)
+                        {
+                            Helpers.ArrayPoolGrow(ref indexMapping, encodedLength + 1);
+                        }
+
                         token[encodedLength] = byteToUnicode[(char)c];
                         indexMapping[encodedLength++] = i;
                     }
                     else
                     {
                         int charLength = i < text.Length - 1 && char.IsSurrogatePair(text[i], text[i + 1]) ? 2 : 1;
-                        int requiredCapacity = encodedLength + Encoding.UTF8.GetMaxByteCount(charLength);
+                        int maxByteCount = Encoding.UTF8.GetMaxByteCount(charLength);
+                        int requiredCapacity = encodedLength + maxByteCount;
                         if (requiredCapacity > token.Length)
                         {
                             Helpers.ArrayPoolGrow(ref token, requiredCapacity);
@@ -691,6 +717,9 @@ namespace Microsoft.ML.Tokenizers
                         {
                             Helpers.ArrayPoolGrow(ref indexMapping, requiredCapacity);
                         }
+
+                        // The byte and offset arrays may be rented from different pool buckets.
+                        // Reserve only the maximum bytes this scalar can produce in each span.
 
                         ReadOnlySpan<char> charsToEncode = text.Slice(i, charLength);
                         if (charLength == 1 && char.IsSurrogate(text[i]))
@@ -702,8 +731,8 @@ namespace Microsoft.ML.Tokenizers
 
                         int encodedByteLength = Helpers.EncodeToUtf8AndTransform(
                             charsToEncode,
-                            token.AsSpan(encodedLength),
-                            indexMapping.AsSpan(encodedLength));
+                            token.AsSpan(encodedLength, maxByteCount),
+                            indexMapping.AsSpan(encodedLength, maxByteCount));
                         indexMapping.AsSpan(encodedLength, encodedByteLength).Fill(i);
                         encodedLength += encodedByteLength;
                         i += charLength - 1;
