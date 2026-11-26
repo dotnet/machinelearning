@@ -35,7 +35,8 @@ namespace Microsoft.ML.Tokenizers
 
             if (_removeNonSpacingMarks)
             {
-                original = original.Normalize(NormalizationForm.FormD);
+                // string.Normalize throws on lone surrogates and U+FFFE. The loop below removes U+FFFD.
+                original = SentencePieceNormalizationStep.ReplaceLoneSurrogates(original).Replace('\uFFFE', '\uFFFD').Normalize(NormalizationForm.FormD);
             }
 
             Span<char> casingBuffer = stackalloc char[10];
@@ -46,7 +47,7 @@ namespace Microsoft.ML.Tokenizers
             {
                 char c = original[i];
 
-                if (c == '\u0000' || c == '\uFFFD')
+                if (c == '\u0000' || c == '\uFFFD' || c == '\uFFFE')
                 {
                     continue;
                 }

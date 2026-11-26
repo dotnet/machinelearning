@@ -640,6 +640,20 @@ namespace Microsoft.ML.Tokenizers.Tests
             AssertTokens(text, expectedTokens);
         }
 
+        // string.Normalize throws on a lone surrogate, as in a text cut in the middle of an emoji, and on U+FFFE, as in UTF-16 read
+        // with the wrong byte order.
+        [Theory]
+        [InlineData(0xD83D, false)]
+        [InlineData(0xD83D, true)]
+        [InlineData(0xDC4D, true)]
+        [InlineData(0xFFFE, false)]
+        [InlineData(0xFFFE, true)]
+        public void TestLoneSurrogatesAndUFFFEAreRemoved(int c, bool removeNonSpacingMarks)
+        {
+            AssertTokens($"one{(char)c}line", "[CLS] one ##line [SEP]", new BertOptions { RemoveNonSpacingMarks = removeNonSpacingMarks });
+            AssertTokens($"great product {(char)c}", "[CLS] great product [SEP]", new BertOptions { RemoveNonSpacingMarks = removeNonSpacingMarks });
+        }
+
         [Fact]
         public void TestWhiteSpaceControlCharactersOffsets()
         {
