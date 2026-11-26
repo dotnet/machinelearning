@@ -1263,7 +1263,7 @@ namespace Microsoft.ML.Tokenizers.Tests
         {
             RemoteExecutor.Invoke(static () =>
             {
-                Utils.AssertInvariantGlobalizationMode();
+                InvariantGlobalization.AssertEnabled();
 
                 // These steps can't do anything without Unicode normalization, so creating the tokenizer fails rather than silently skipping them.
                 // The message names the normalization form that each step uses, which for StripAccents is FormD.
@@ -1311,7 +1311,7 @@ namespace Microsoft.ML.Tokenizers.Tests
                       }
                     }
                     """;
-            }, Utils.CreateInvariantGlobalizationOptions()).Dispose();
+            }, InvariantGlobalization.CreateRemoteInvokeOptions()).Dispose();
         }
 #endif
 

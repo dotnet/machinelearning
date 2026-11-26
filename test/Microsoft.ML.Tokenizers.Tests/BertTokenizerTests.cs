@@ -305,7 +305,7 @@ namespace Microsoft.ML.Tokenizers.Tests
         {
             RemoteExecutor.Invoke(static async () =>
             {
-                Utils.AssertInvariantGlobalizationMode();
+                InvariantGlobalization.AssertEnabled();
 
                 string vocabFile = WordPieceTests.CreateVocabFile(["[PAD]", "[UNK]", "[CLS]", "[SEP]", "[MASK]", "!", "Café", "café"]);
 
@@ -337,7 +337,7 @@ namespace Microsoft.ML.Tokenizers.Tests
                 }
 
                 static string[] Encode(BertTokenizer tokenizer, string text) => tokenizer.EncodeToTokens(text, out _).Select(token => token.Value).ToArray();
-            }, Utils.CreateInvariantGlobalizationOptions()).Dispose();
+            }, InvariantGlobalization.CreateRemoteInvokeOptions()).Dispose();
         }
 #endif
 
