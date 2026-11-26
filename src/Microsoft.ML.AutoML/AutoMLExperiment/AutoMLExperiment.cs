@@ -205,12 +205,12 @@ namespace Microsoft.ML.AutoML
         }
 
         /// <summary>
-        /// Run experiment and return the best trial result asynchronizely. The experiment returns the current best trial result if there's any trial completed when <paramref name="ct"/> get cancelled,
-        /// and throws <see cref="TimeoutException"/> with message "Training time finished without completing a trial run" when no trial has completed.
-        /// Another thing needs to notice is that this function won't immediately return after <paramref name="ct"/> get cancelled. Instead, it will call <see cref="MLContext.CancelExecution"/> to cancel all training process
-        /// and wait all running trials get cancelled or completed.
+        /// Runs the experiment asynchronously. When <paramref name="ct"/> is canceled, the experiment
+        /// requests cancellation through the running trial's token and waits for that trial to finish.
         /// </summary>
-        /// <returns></returns>
+        /// <param name="ct">The token used to request cancellation of the experiment.</param>
+        /// <returns>The best successful trial result available when the experiment stops.</returns>
+        /// <exception cref="TimeoutException">The experiment stopped without a successful trial result.</exception>
         public async Task<TrialResult> RunAsync(CancellationToken ct = default)
         {
             ValidateSettings();
@@ -246,8 +246,23 @@ namespace Microsoft.ML.AutoML
                     Parameter = Parameter.CreateNestedParameter(),
                     StartedAtUtc = DateTime.UtcNow,
                 };
-                var parameter = tuner.Propose(trialSettings);
-                trialSettings.Parameter = parameter;
+
+                // a tuner that sees the caller's cancellation may throw instead of returning; finish normally so the best trial so far is still returned.
+                try
+                {
+                    var parameter = tuner.Propose(trialSettings);
+                    trialSettings.Parameter = parameter;
+                }
+                catch (OperationCanceledException) when (ct.IsCancellationRequested)
+                {
+                    break;
+                }
+
+                // a stop requested while proposing (e.g. by the tuner) means this trial won't run, so don't report or set it up.
+                if (aggregateTrainingStopManager.IsStopTrainingRequested())
+                {
+                    break;
+                }
 
                 var trialCancellationTokenSource = new CancellationTokenSource();
                 monitor?.ReportRunningTrial(trialSettings);
@@ -270,6 +285,14 @@ namespace Microsoft.ML.AutoML
 
                         performanceMonitor.Start();
                         logger.Trace($"trial setting - {JsonSerializer.Serialize(trialSettings)}");
+
+                        // a stop may have fired OnStopTraining before handler was subscribed, or come from a startup callback such as the
+                        // performance monitor's first sample. Runners may ignore a canceled token, so don't start the trial at all.
+                        if (aggregateTrainingStopManager.IsStopTrainingRequested())
+                        {
+                            break;
+                        }
+
                         var trialResult = await runner.RunAsync(trialSettings, trialCancellationTokenSource.Token);
 
                         var peakCpu = performanceMonitor?.GetPeakCpuUsage();
@@ -280,7 +303,15 @@ namespace Microsoft.ML.AutoML
 
                         performanceMonitor.Pause();
                         monitor?.ReportCompletedTrial(trialResult);
-                        tuner.Update(trialResult);
+                        try
+                        {
+                            tuner.Update(trialResult);
+                        }
+                        catch (OperationCanceledException) when (ct.IsCancellationRequested)
+                        {
+                            // the tuner saw the caller's cancellation; still record this completed trial below, then the loop stops.
+                        }
+
                         trialResultManager?.AddOrUpdateTrialResult(trialResult);
                         aggregateTrainingStopManager.Update(trialResult);
 

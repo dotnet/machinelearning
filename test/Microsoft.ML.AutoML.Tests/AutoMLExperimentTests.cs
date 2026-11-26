@@ -14,6 +14,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.ML.AutoML.CodeGen;
 using Microsoft.ML.Fairlearn.AutoML;
 using Microsoft.ML.Runtime;
+using Microsoft.ML.SearchSpace;
 using Microsoft.ML.TestFramework;
 using Microsoft.ML.TestFramework.Attributes;
 using Xunit;
@@ -221,6 +222,266 @@ namespace Microsoft.ML.AutoML.Test
             }
 
             public void Dispose()
+            {
+            }
+        }
+
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public async Task AutoMLExperiment_return_current_best_trial_when_ct_is_canceled_while_proposing_trial_Async(bool throwOnCancellation)
+        {
+            var context = new MLContext(1);
+            using var cts = new CancellationTokenSource();
+            var experiment = context.Auto().CreateExperiment();
+            // FixedMetricTrialRunner ignores cancellation and scores trial 1 higher than trial 0,
+            // so trial 0 only stays the best one if trial 1 isn't started at all.
+            experiment.SetMaxModelToExplore(2)
+                      .SetRegressionMetric(RegressionMetric.RSquared)
+                      .SetTrialRunner(serviceProvider => new FixedMetricTrialRunner(serviceProvider.GetRequiredService<IMetricManager>()))
+                      .SetTuner(new CancelWhileProposingTuner(cts, throwOnCancellation));
+
+            var res = await experiment.RunAsync(cts.Token);
+
+            Assert.True(cts.IsCancellationRequested);
+            Assert.Equal(0, res.TrialSettings.TrialId);
+            Assert.Equal(0.2, res.Metric);
+        }
+
+        /// <summary>
+        /// Cancels the given <see cref="CancellationTokenSource"/> while proposing the second trial, i.e. after the experiment
+        /// checked whether to stop training but before it starts running that trial. Optionally it then throws, like a tuner
+        /// that observes the cancellation itself.
+        /// </summary>
+        private sealed class CancelWhileProposingTuner : ITuner
+        {
+            private readonly CancellationTokenSource _cts;
+            private readonly bool _throwOnCancellation;
+
+            public CancelWhileProposingTuner(CancellationTokenSource cts, bool throwOnCancellation)
+            {
+                _cts = cts;
+                _throwOnCancellation = throwOnCancellation;
+            }
+
+            public Parameter Propose(TrialSettings settings)
+            {
+                if (settings.TrialId > 0)
+                {
+                    _cts.Cancel();
+                    if (_throwOnCancellation)
+                    {
+                        _cts.Token.ThrowIfCancellationRequested();
+                    }
+                }
+
+                return Parameter.CreateNestedParameter();
+            }
+
+            public void Update(TrialResult result)
+            {
+            }
+        }
+
+        [Fact]
+        public async Task AutoMLExperiment_does_not_set_up_trial_when_ct_is_canceled_while_proposing_Async()
+        {
+            var context = new MLContext(1);
+            using var cts = new CancellationTokenSource();
+            var startupAfterStop = new List<string>();
+            var experiment = context.Auto().CreateExperiment()
+                .SetMaxModelToExplore(2)
+                .SetRegressionMetric(RegressionMetric.RSquared)
+                .SetTuner(new CancelWhileProposingTuner(cts, throwOnCancellation: false))
+                .SetMonitor(new TrialStartMonitor(settings =>
+                {
+                    if (cts.IsCancellationRequested)
+                    {
+                        startupAfterStop.Add($"reported trial {settings.TrialId} as running");
+                    }
+                }))
+                .SetTrialRunner(provider =>
+                {
+                    if (cts.IsCancellationRequested)
+                    {
+                        startupAfterStop.Add("created a runner");
+                    }
+
+                    return new FixedMetricTrialRunner(provider.GetRequiredService<IMetricManager>());
+                });
+
+            var result = await experiment.RunAsync(cts.Token);
+
+            Assert.True(cts.IsCancellationRequested);
+            Assert.Equal(0, result.TrialSettings.TrialId);
+            Assert.Empty(startupAfterStop);
+        }
+
+        /// <summary>
+        /// Calls the given action for every trial reported as running.
+        /// </summary>
+        private sealed class TrialStartMonitor : IMonitor
+        {
+            private readonly Action<TrialSettings> _onRunning;
+
+            public TrialStartMonitor(Action<TrialSettings> onRunning)
+            {
+                _onRunning = onRunning;
+            }
+
+            public void ReportRunningTrial(TrialSettings settings) => _onRunning(settings);
+
+            public void ReportCompletedTrial(TrialResult result)
+            {
+            }
+
+            public void ReportBestTrial(TrialResult result)
+            {
+            }
+
+            public void ReportFailTrial(TrialSettings settings, Exception exception = null)
+            {
+            }
+        }
+
+        [Fact]
+        public async Task AutoMLExperiment_does_not_start_trial_when_ct_is_canceled_during_performance_monitor_start_Async()
+        {
+            var context = new MLContext(1);
+            using var cts = new CancellationTokenSource();
+            // FixedMetricTrialRunner ignores cancellation and scores trial 1 higher than trial 0,
+            // so trial 0 only stays the best one if trial 1 isn't started at all.
+            var experiment = context.Auto().CreateExperiment()
+                .SetMaxModelToExplore(2)
+                .SetRegressionMetric(RegressionMetric.RSquared)
+                .SetTrialRunner(provider => new FixedMetricTrialRunner(provider.GetRequiredService<IMetricManager>()))
+                .SetTuner<RandomSearchTuner>()
+                .SetPerformanceMonitor(provider => new CancelDuringStartupPerformanceMonitor(
+                    provider.GetRequiredService<AutoMLExperiment.AutoMLExperimentSettings>(),
+                    provider.GetRequiredService<IChannel>(), cts));
+
+            var result = await experiment.RunAsync(cts.Token);
+
+            Assert.True(cts.IsCancellationRequested);
+            Assert.Equal(0, result.TrialSettings.TrialId);
+        }
+
+        /// <summary>
+        /// Cancels the given <see cref="CancellationTokenSource"/> from the first sample of the second trial, which
+        /// <see cref="DefaultPerformanceMonitor.Start"/> takes before the trial runner starts.
+        /// </summary>
+        private sealed class CancelDuringStartupPerformanceMonitor : DefaultPerformanceMonitor
+        {
+            private readonly CancellationTokenSource _cts;
+
+            public CancelDuringStartupPerformanceMonitor(AutoMLExperiment.AutoMLExperimentSettings settings, IChannel logger, CancellationTokenSource cts)
+                : base(settings, logger, 2000)
+            {
+                _cts = cts;
+            }
+
+            public override void OnPerformanceMetricsUpdatedHandler(TrialSettings settings, TrialPerformanceMetrics metrics, CancellationTokenSource trialCancellationTokenSource)
+            {
+                if (settings.TrialId == 1)
+                {
+                    _cts.Cancel();
+                }
+            }
+        }
+
+        [Fact]
+        public async Task AutoMLExperiment_return_current_best_trial_when_tuner_update_throws_on_cancellation_Async()
+        {
+            var context = new MLContext(1);
+            using var cts = new CancellationTokenSource();
+            var experiment = context.Auto().CreateExperiment()
+                .SetMaxModelToExplore(2)
+                .SetRegressionMetric(RegressionMetric.RSquared)
+                .SetTrialRunner(provider => new FixedMetricTrialRunner(provider.GetRequiredService<IMetricManager>()))
+                .SetTuner(new CancelWhileUpdatingTuner(cts));
+
+            var result = await experiment.RunAsync(cts.Token);
+
+            Assert.True(cts.IsCancellationRequested);
+            Assert.Equal(0, result.TrialSettings.TrialId);
+            Assert.Equal(0.2, result.Metric);
+        }
+
+        /// <summary>
+        /// Cancels the given <see cref="CancellationTokenSource"/> and throws while it's updated with the first trial's result,
+        /// like a tuner that observes the cancellation itself.
+        /// </summary>
+        private sealed class CancelWhileUpdatingTuner : ITuner
+        {
+            private readonly CancellationTokenSource _cts;
+
+            public CancelWhileUpdatingTuner(CancellationTokenSource cts)
+            {
+                _cts = cts;
+            }
+
+            public Parameter Propose(TrialSettings settings)
+            {
+                return Parameter.CreateNestedParameter();
+            }
+
+            public void Update(TrialResult result)
+            {
+                if (result.TrialSettings.TrialId == 0)
+                {
+                    _cts.Cancel();
+                    _cts.Token.ThrowIfCancellationRequested();
+                }
+            }
+        }
+
+        [Fact]
+        public async Task AutoMLExperiment_throws_tuner_cancellation_not_caused_by_ct_Async()
+        {
+            var context = new MLContext(1);
+            using var stopCts = new CancellationTokenSource();
+            using var tunerCts = new CancellationTokenSource();
+            var experiment = context.Auto().CreateExperiment()
+                .SetMaxModelToExplore(2)
+                .SetRegressionMetric(RegressionMetric.RSquared)
+                .SetTrialRunner(provider => new FixedMetricTrialRunner(provider.GetRequiredService<IMetricManager>()))
+                .SetTuner(new ThrowOwnCancellationWhileProposingTuner(stopCts, tunerCts));
+            // a stop that doesn't come from RunAsync's token, standing in for the training time running out.
+            experiment.ServiceCollection.AddScoped<IStopTrainingManager>(provider => new CancellationTokenStopTrainingManager(stopCts.Token, null));
+
+            var ex = await Assert.ThrowsAsync<OperationCanceledException>(() => experiment.RunAsync());
+
+            Assert.Equal(tunerCts.Token, ex.CancellationToken);
+        }
+
+        /// <summary>
+        /// While proposing the second trial, requests a stop through the given stop source and then throws a cancellation
+        /// of its own, which doesn't come from the token passed to RunAsync.
+        /// </summary>
+        private sealed class ThrowOwnCancellationWhileProposingTuner : ITuner
+        {
+            private readonly CancellationTokenSource _stopCts;
+            private readonly CancellationTokenSource _tunerCts;
+
+            public ThrowOwnCancellationWhileProposingTuner(CancellationTokenSource stopCts, CancellationTokenSource tunerCts)
+            {
+                _stopCts = stopCts;
+                _tunerCts = tunerCts;
+            }
+
+            public Parameter Propose(TrialSettings settings)
+            {
+                if (settings.TrialId == 1)
+                {
+                    _stopCts.Cancel();
+                    _tunerCts.Cancel();
+                    _tunerCts.Token.ThrowIfCancellationRequested();
+                }
+
+                return Parameter.CreateNestedParameter();
+            }
+
+            public void Update(TrialResult result)
             {
             }
         }
