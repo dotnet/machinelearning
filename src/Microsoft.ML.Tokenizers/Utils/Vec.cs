@@ -81,21 +81,20 @@ namespace Microsoft.ML.Tokenizers
                 throw new ArgumentNullException(nameof(match));
             }
 
-            if (_buffer is null)
+            int writeIndex = 0;
+            while (writeIndex < _count && !match(_buffer![writeIndex]))
             {
-                return;
+                writeIndex++;
             }
 
-            int writeIndex = 0;
-            for (int readIndex = 0; readIndex < _count; readIndex++)
+            for (int readIndex = writeIndex + 1; readIndex < _count; readIndex++)
             {
-                if (!match(_buffer[readIndex]))
+                if (!match(_buffer![readIndex]))
                 {
                     _buffer[writeIndex++] = _buffer[readIndex];
                 }
             }
 
-            Array.Clear(_buffer, writeIndex, _count - writeIndex);
             _count = writeIndex;
         }
 
