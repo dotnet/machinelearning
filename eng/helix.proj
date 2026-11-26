@@ -174,7 +174,7 @@
     <Delete Condition="$(HelixTargetQueues.ToLowerInvariant().Contains('osx'))"
       Files="@(LinuxFiles);@(WindowsFiles)" />
 
-    <Delete Condition="$(HelixTargetQueues.ToLowerInvariant().Contains('ubuntu'))"
+    <Delete Condition="$(HelixTargetQueues.ToLowerInvariant().Contains('ubuntu')) Or $(HelixTargetQueues.ToLowerInvariant().Contains('azurelinux'))"
       Files="@(WindowsFiles);@(OsxFiles)" />
 
     <ItemGroup>

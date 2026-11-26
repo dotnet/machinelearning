@@ -122,7 +122,7 @@ jobs:
     pool:
       name: NetCore-Public
       demands: ImageOverride -equals build.azurelinux.3.amd64.open
-    helixQueue: Ubuntu.2204.Amd64.Open@mcr.microsoft.com/dotnet-buildtools/prereqs:centos-stream9-mlnet-helix
+    helixQueue: AzureLinux.4.Amd64.Open@mcr.microsoft.com/dotnet-buildtools/prereqs:centos-stream9-mlnet-helix
 
 - template: /build/ci/job-template.yml
   parameters:
@@ -134,7 +134,7 @@ jobs:
     pool:
       name: NetCore-Public
       demands: ImageOverride -equals build.azurelinux.3.amd64.open
-    helixQueue: Ubuntu.2204.Amd64.Open@mcr.microsoft.com/dotnet-buildtools/prereqs:ubuntu-22.04-mlnet-helix
+    helixQueue: AzureLinux.4.Amd64.Open@mcr.microsoft.com/dotnet-buildtools/prereqs:ubuntu-22.04-mlnet-helix
 
 - template: /build/ci/job-template.yml
   parameters:
