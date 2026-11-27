@@ -63,11 +63,11 @@
 #define	_COM_Outptr_opt_
 #define	_COM_Outptr_result_maybenull_
 #define	_COM_Outptr_opt_result_maybenull_
-#define	_Outptr_result_buffer_(s) 
+#define	_Outptr_result_buffer_(s)
 #define	_Outptr_result_bytebuffer_(s)
 #define	_Outptr_opt_result_buffer_(s)
 #define	_Outptr_opt_result_bytebuffer_(s)
-#define	_Outptr_result_buffer_to_(s, c) 
+#define	_Outptr_result_buffer_to_(s, c)
 #define	_Outptr_result_bytebuffer_to_(s, c)
 #define	_Outptr_opt_result_buffer_to_(s,c)
 #define	_Outptr_opt_result_bytebuffer_to_(s,c)
@@ -105,13 +105,13 @@
 #define	_Ret_writes_bytes_to_
 #define	_Ret_writes_bytes_maybenull_
 #define	_Ret_writes_bytes_to_maybenull_
-#define	_In_range_(low, hi) 
+#define	_In_range_(low, hi)
 #define	_Out_range_(low, hi)
 #define	_Ret_range_(low, hi)
 #define	_Deref_in_range_(low, hi)
 #define	_Deref_out_range_(low, hi)
 #define	_Deref_inout_range_(low, hi)
 #define	_Field_range_(low, hi)
-#define	_Pre_equal_to_(expr) 
+#define	_Pre_equal_to_(expr)
 #define	_Post_equal_to_(expr)
 #define	_Struct_size_bytes_(size)

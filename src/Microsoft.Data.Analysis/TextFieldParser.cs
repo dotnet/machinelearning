@@ -350,11 +350,6 @@ namespace Microsoft.Data.Analysis
             }
         }
 
-        public TextFieldParser(string path)
-        {
-            InitializeFromPath(path, Encoding.ASCII, detectEncoding: true);
-        }
-
         public TextFieldParser(string path, Encoding defaultEncoding)
         {
             InitializeFromPath(path, defaultEncoding, detectEncoding: true);
@@ -363,11 +358,6 @@ namespace Microsoft.Data.Analysis
         public TextFieldParser(string path, Encoding defaultEncoding, bool detectEncoding)
         {
             InitializeFromPath(path, defaultEncoding, detectEncoding);
-        }
-
-        public TextFieldParser(Stream stream)
-        {
-            InitializeFromStream(stream, Encoding.ASCII, detectEncoding: true);
         }
 
         public TextFieldParser(Stream stream, Encoding defaultEncoding)
