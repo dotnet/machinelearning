@@ -1010,11 +1010,13 @@ namespace Microsoft.ML.Tokenizers.Tests
         }
 
         // Lone surrogates become U+FFFD before the normalizer steps run, whatever they are, so Normalizer.Normalize gives the same text as
-        // EncodeToTokens, which converts the text to UTF-8 first. The cases are a high surrogate followed by a letter, a high surrogate at the
-        // end, a lone low surrogate, a text cut in the middle of a surrogate pair at both ends, and a complete surrogate pair, which is kept.
+        // EncodeToTokens, which converts the text to UTF-8 first, and Unicode normalization doesn't throw on them. The cases are a high
+        // surrogate followed by a letter, a high surrogate at the end, a lone low surrogate, a text cut in the middle of a surrogate pair at
+        // both ends, and a complete surrogate pair, which is kept.
         [Theory]
         [InlineData("""{ "type": "StripAccents" }""")]
         [InlineData("""{ "type": "Lowercase" }""")]
+        [InlineData("""{ "type": "NFKC" }""")]
         public void CreateFromTokenizerJsonChainReplacesLoneSurrogates(string normalizer)
         {
             using Stream stream = new System.IO.MemoryStream(System.Text.Encoding.UTF8.GetBytes(TokenizerJson(normalizer)));

@@ -38,9 +38,14 @@ namespace Microsoft.ML.Tokenizers
         /// <summary>Applies this normalization step (or chain of steps) to <paramref name="text"/>.</summary>
         public abstract string Normalize(string text);
 
+        // Applies this step (or chain of steps) to a string from the caller. Lone surrogates become U+FFFD first, once for the whole
+        // chain, so the steps only see well-formed text, as in the byte-level path. That path calls Normalize directly: its text is
+        // decoded from UTF-8, so it has no lone surrogates.
+        internal string NormalizeInput(string text) => Normalize(ReplaceLoneSurrogates(text));
+
         // string.Normalize / NFD throw on lone (unpaired) surrogates, which a caller-supplied string may legitimately
         // contain. Replace any unpaired surrogate with U+FFFD so Unicode normalization degrades gracefully.
-        internal static string ReplaceLoneSurrogates(string text)
+        private static string ReplaceLoneSurrogates(string text)
         {
             StringBuilder? sb = null;
             for (int i = 0; i < text.Length; i++)
@@ -323,7 +328,7 @@ namespace Microsoft.ML.Tokenizers
                 _form = form;
             }
 
-            public override string Normalize(string text) => text.Length == 0 ? text : ReplaceLoneSurrogates(text).Normalize(_form);
+            public override string Normalize(string text) => text.Normalize(_form);
         }
 
         private sealed class PrependStep : SentencePieceNormalizationStep
