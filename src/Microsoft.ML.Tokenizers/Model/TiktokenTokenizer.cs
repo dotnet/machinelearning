@@ -647,7 +647,7 @@ namespace Microsoft.ML.Tokenizers
         {
             if (fromEnd)
             {
-                return LastIndexOf(text, textSpan, settings.MaxTokenCount, settings.ConsiderNormalization, settings.ConsiderNormalization, out normalizedText, out tokenCount);
+                return LastIndexOf(text, textSpan, settings.MaxTokenCount, settings.ConsiderPreTokenization, settings.ConsiderNormalization, out normalizedText, out tokenCount);
             }
 
             tokenCount = CountTokens(text, textSpan, settings.ConsiderPreTokenization, settings.ConsiderNormalization, out normalizedText, out int charsConsumed, settings.MaxTokenCount);
