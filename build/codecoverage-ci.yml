@@ -40,11 +40,11 @@ jobs:
     name: Windows_x64
     buildScript: build.cmd
     customMatrixes:
-      Build_Debug:
+      Debug_Net10_Build:
         _configuration: Debug
-        _config_short: D
+        _config_short: D10
         _includeBenchmarkData: false
-        _targetFramework: net8.0
+        _targetFramework: net10.0
     codeCoverage: true
     pool:
       name: NetCore-Public

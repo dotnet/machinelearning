@@ -381,7 +381,7 @@ EXPORT_API(void) LearnAll(int totalNumInstances, int* instSizes, int** instIndic
             // This variable is used to keep track of how many instances are learned so far to do a reduction
             int instancesLearnedSinceReduction = 0;
 
-            learners[threadId]->ResetModel(bias, weightVector, weightScaling);
+            learners[threadId]->ResetModel(bias, weightVector, numFeat, weightScaling);
             int64_t curPermMultiplier = (VERYLARGEPRIME % myRangeLength);
 
             for (int i = 0; i < numPasses; i++) 
@@ -400,7 +400,7 @@ EXPORT_API(void) LearnAll(int totalNumInstances, int* instSizes, int** instIndic
                     if (instancesLearnedSinceReduction == numLocIter) 
                     {
                         learners[threadId]->Reduction(weightVector, bias, weightScaling);
-                        learners[threadId]->ResetModel(bias, weightVector, weightScaling);
+                        learners[threadId]->ResetModel(bias, weightVector, numFeat, weightScaling);
                         instancesLearnedSinceReduction = 0;
                     }
                 }

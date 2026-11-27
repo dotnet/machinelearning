@@ -594,7 +594,7 @@ namespace Microsoft.ML.Trainers
     /// Note that the $c$-th value in the output score column is just $\hat{y}^c$.
     ///
     /// ### Training Algorithm Details
-    /// See the documentation of [SdcaMulticlassTrainerBase](xref:Microsoft.ML.Trainers.SdcaMulticlassTrainerBase).
+    /// See the documentation of [SdcaMulticlassTrainerBase](xref:Microsoft.ML.Trainers.SdcaMulticlassTrainerBase`1).
     ///
     /// Check the See Also section for links to usage examples.
     /// ]]>
@@ -613,10 +613,8 @@ namespace Microsoft.ML.Trainers
         {
             /// <summary>
             /// Loss function minimized by this trainer.
+            /// The default is <see langword="null"/>, which uses <see cref="LogLoss"/>.
             /// </summary>
-            /// <value>
-            /// If unspecified, <see cref="LogLoss"/> will be used.
-            /// </value>
             public ISupportSdcaClassificationLoss Loss
             {
                 get { return InternalLoss; }

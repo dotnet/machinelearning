@@ -23,6 +23,7 @@ namespace Microsoft.ML.Trainers
     {
         /// <summary>
         /// Number of passes through the training dataset.
+        /// The default is <c>1</c>, except for the averaged perceptron, where it is <c>10</c>.
         /// </summary>
         [Argument(ArgumentType.AtMostOnce, HelpText = "Number of iterations", ShortName = "iter,numIterations", SortOrder = 50)]
         [TGUI(Label = "Number of Iterations", Description = "Number of training iterations through data", SuggestedSweeps = "1,10,100")]
@@ -39,6 +40,7 @@ namespace Microsoft.ML.Trainers
 
         /// <summary>
         /// Initial weights and bias scale.
+        /// The default value is <c>0</c>.
         /// </summary>
         /// <value>
         /// This property is only used if the provided value is positive and <see cref="InitialWeights"/> is not specified.

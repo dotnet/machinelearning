@@ -33,87 +33,109 @@ namespace Microsoft.ML.TorchSharp.NasBert
         {
             /// <summary>
             /// The first sentence column.
+            /// The default value is <c>Sentence</c>.
             /// </summary>
             public string Sentence1ColumnName = "Sentence";
 
             /// <summary>
             /// The second sentence column.
+            /// The default value is <see langword="null"/>.
             /// </summary>
             public string Sentence2ColumnName = default;
 
             /// <summary>
             /// Whether to freeze encoder parameters.
+            /// The default value is <see langword="false"/>.
             /// </summary>
             public bool FreezeEncoder = false;
 
             /// <summary>
             /// Whether to freeze transfer module parameters.
+            /// The default value is <see langword="false"/>.
             /// </summary>
             public bool FreezeTransfer = false;
 
             /// <summary>
             /// Whether to train layer norm parameters.
+            /// The default value is <see langword="false"/>.
             /// </summary>
             public bool LayerNormTraining = false;
 
             /// <summary>
             /// Whether to apply layer normalization before each encoder block.
+            /// The default value is <see langword="true"/>.
             /// </summary>
             public bool EncoderNormalizeBefore = true;
 
             /// <summary>
             /// Dropout rate for general situations. Should be within [0, 1).
+            /// The default value is <c>0.1</c>.
             /// </summary>
             public double Dropout = .1;
 
             /// <summary>
             /// Dropout rate for attention weights. Should be within [0, 1).
+            /// The default value is <c>0.1</c>.
             /// </summary>
             public double AttentionDropout = .1;
 
             /// <summary>
             /// Dropout rate after activation functions in FFN layers. Should be within [0, 1).
+            /// The default value is <c>0</c>.
             /// </summary>
             public double ActivationDropout = 0;
 
             /// <summary>
             /// Whether to use dynamic dropout.
+            /// The default value is <see langword="false"/>.
             /// </summary>
             public bool DynamicDropout = false;
 
             /// <summary>
             /// Dropout rate in the masked language model pooler layers. Should be within [0, 1).
+            /// The default value is <c>0</c>.
             /// </summary>
             public double PoolerDropout = 0;
 
             /// <summary>
             /// Betas for Adam optimizer.
+            /// The default value is <c>[0.9, 0.999]</c>.
             /// </summary>
             public IReadOnlyList<double> AdamBetas = new List<double> { .9, .999 };
 
             /// <summary>
             /// Epsilon for Adam optimizer.
+            /// The default value is <c>1e-8</c>.
             /// </summary>
             public double AdamEps = 1e-8;
 
             /// <summary>
             /// The clipping threshold of gradients. Should be within [0, +Inf). 0 means not to clip norm.
+            /// The default value is <c>5.0</c>.
             /// </summary>
             public double ClipNorm = 5.0;
 
             /// <summary>
             /// Proportion of warmup steps for polynomial decay scheduler.
+            /// The default value is <c>0.06</c>.
             /// </summary>
             public double WarmupRatio = .06;
 
             /// <summary>
             /// Learning rate for the first N epochs; all epochs >N using LR_N.
             /// Note: this may be interpreted differently depending on the scheduler.
+            /// The default is <c>[0.0001]</c>; named entity recognition and sentence similarity use <c>[0.0002]</c>,
+            /// and question answering uses <c>[0.000001]</c>.
             /// </summary>
             public List<double> LearningRate = new List<double> { 1e-4 };
 
             /// <summary>
             /// Task type, which is related to the model head.
+            /// The base default is <see cref="BertTaskType.None"/>.
+            /// Text classification uses <see cref="BertTaskType.TextClassification"/>,
+            /// named entity recognition uses <see cref="BertTaskType.NamedEntityRecognition"/>,
+            /// sentence similarity uses <see cref="BertTaskType.SentenceRegression"/>,
+            /// and question answering uses <see cref="BertTaskType.QuestionAnswering"/>.
             /// </summary>
             public BertTaskType TaskType = BertTaskType.None;
 

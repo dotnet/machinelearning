@@ -38,7 +38,9 @@ On macOS, install Xcode command-line tools and [Homebrew](https://brew.sh/) firs
 
 The build scripts acquire the .NET SDK selected by `global.json`; you do not need to install that exact SDK separately.
 
-### Cross compiling for ARM
+Local tests default to both .NET 10 and .NET 11 on all architectures. CI explicitly runs .NET 10 and .NET 11 tests on both x64 and ARM64 in Debug and Release.
+
+### Cross compiling on Linux
 
 Cross-compilation requires an Ubuntu host, `debootstrap`, and `qemu-user-static`. Build a root file system with the repository script, then set `ROOTFS_DIR` before building:
 
@@ -53,27 +55,24 @@ export ROOTFS_DIR=<new rootfs location>
 ./build.sh -c Release /p:TargetArchitecture=<target architecture>
 ```
 
-The `<target architecture>` is typically `arm` or `arm64`. Use an Ubuntu codename supported by `eng/common/cross/build-rootfs.sh`.
+The `<target architecture>` can be `x64`, `arm`, or `arm64`. Use an Ubuntu codename supported by `eng/common/cross/build-rootfs.sh`.
 
 Linux cross-build jobs using `build/ci/job-template.yml` must pass the sysroot path through `rootfsDir` (for example, `/crossrootfs/arm64`). The template does not infer it from the agent image or job name.
 
 ### CI build containers
 
-Ubuntu x64 validation and nightly builds use
-`mcr.microsoft.com/dotnet-buildtools/prereqs:ubuntu-22.04-mlnet`, which includes
-Clang 14 and OpenMP development packages.
+CI cross-builds use these Azure Linux 4 images:
 
-ARM and ARM64 CI builds use the same cross-build images as dotnet/runtime's
-`release/8.0` branch:
+- `mcr.microsoft.com/dotnet-buildtools/prereqs:azurelinux-4.0-net11.0-cross-amd64`
+- `mcr.microsoft.com/dotnet-buildtools/prereqs:azurelinux-4.0-net11.0-cross-arm`
+- `mcr.microsoft.com/dotnet-buildtools/prereqs:azurelinux-4.0-net11.0-cross-arm64`
 
-- `mcr.microsoft.com/dotnet-buildtools/prereqs:azurelinux-3.0-net8.0-cross-arm`
-- `mcr.microsoft.com/dotnet-buildtools/prereqs:azurelinux-3.0-net8.0-cross-arm64`
+They target Ubuntu Bionic sysroots for x64 and arm64 and Ubuntu Jammy for arm.
+The sysroots include the target OpenMP packages. Set `ROOTFS_DIR` to the matching
+directory (`/crossrootfs/x64`, `/crossrootfs/arm`, or `/crossrootfs/arm64`) and
+set `LDFLAGS=-fuse-ld=lld` to use the bundled LLVM linker.
 
-These images run build tools on Azure Linux 3.0 while targeting Ubuntu Xenial
-sysroots at `/crossrootfs/arm` and `/crossrootfs/arm64`. The sysroots include the
-target OpenMP packages. Keep `ROOTFS_DIR` set to the matching directory when
-using these images, and set `LDFLAGS=-fuse-ld=lld` to use the bundled LLVM linker
-instead of the host's architecture-specific GNU linker.
+The nightly pipeline still references the Ubuntu 22.04 ML.NET build image.
 
 The official x64 native-package build retains its CentOS Stream 8 image to avoid
 raising the native libraries' minimum system-library requirements. Updating a

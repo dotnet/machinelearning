@@ -745,7 +745,7 @@ namespace Microsoft.ML.Transforms
     /// |  |  |
     /// | -- | -- |
     /// | Does this estimator need to look at the data to train its parameters? | No |
-    /// | Input column data type | Scalar or known-size vector of [key](xref:Microsoft.Ml.Data.KeyDataViewType) type. |
+    /// | Input column data type | Scalar or known-size vector of [key](xref:Microsoft.ML.Data.KeyDataViewType) type. |
     /// | Output column data type | A known-size vector of [System.Single](xref:System.Single). |
     /// | Exportable to ONNX | Yes |
     ///

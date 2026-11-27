@@ -40,6 +40,7 @@ namespace Microsoft.ML.Trainers.FastTree
     {
         /// <summary>
         /// The number of data points to be sampled from each leaf to find the distribution of labels.
+        /// The default value is <c>100</c>.
         /// </summary>
         [Argument(ArgumentType.AtMostOnce, HelpText = "Number of labels to be sampled from each leaf to make the distribution", ShortName = "qsc")]
         public int NumberOfQuantileSamples = 100;
@@ -156,6 +157,7 @@ namespace Microsoft.ML.Trainers.FastTree
         {
             /// <summary>
             /// The upper bound on the absolute value of a single tree output.
+            /// The default value is <c>100</c>.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Upper bound on absolute value of single tree output", ShortName = "mo")]
             public Double MaximumOutputMagnitudePerTree = 100;

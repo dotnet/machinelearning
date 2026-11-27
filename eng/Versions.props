@@ -20,10 +20,9 @@
     <MicrosoftExtensionsOptionsVersion>9.0.4</MicrosoftExtensionsOptionsVersion>
     <NuGetVersion>6.9.1</NuGetVersion>
     <SkiaSharpVersion>3.119.2</SkiaSharpVersion>
-    <SystemCodeDomVersion>9.0.4</SystemCodeDomVersion>
+    <SystemCodeDomVersion>9.0.5</SystemCodeDomVersion>
     <SystemCollectionsImmutableVersion>9.0.4</SystemCollectionsImmutableVersion>
     <SystemConfigurationConfigurationManagerVersion>9.0.4</SystemConfigurationConfigurationManagerVersion>
-    <SystemFormatsAsn1Version>9.0.4</SystemFormatsAsn1Version>
     <SystemIOFileSystemAccessControl>5.0.0</SystemIOFileSystemAccessControl>
     <SystemIOPipelinesVersion>9.0.4</SystemIOPipelinesVersion>
     <SystemNumericsTensorsVersion>9.0.4</SystemNumericsTensorsVersion>
@@ -40,7 +39,7 @@
     <MicrosoftBclHashCodeVersion>6.0.0</MicrosoftBclHashCodeVersion>
     <MicrosoftBclMemoryVersion>9.0.14</MicrosoftBclMemoryVersion>
     <MicrosoftCodeAnalysisAnalyzersVersion>3.11.0</MicrosoftCodeAnalysisAnalyzersVersion>
-    <MicrosoftCodeAnalysisCSharpVersion>4.13.0</MicrosoftCodeAnalysisCSharpVersion>
+    <MicrosoftCodeAnalysisCSharpVersion>4.14.0</MicrosoftCodeAnalysisCSharpVersion>
     <MicrosoftMLOnnxRuntimeVersion>1.23.2</MicrosoftMLOnnxRuntimeVersion>
     <MlNetMklDepsVersion>0.0.0.12</MlNetMklDepsVersion>
     <!-- runtime.native.System.Data.SqlClient.sni is not updated by dependency flow as it is not produced live anymore. -->
@@ -58,7 +57,7 @@
     <OneDalMajorBinaryVersion>1</OneDalMajorBinaryVersion>
     <OneDalMinorBinaryVersion>1</OneDalMinorBinaryVersion>
     <MSTestTestAdapterVersion>4.5.2</MSTestTestAdapterVersion>
-    <MSTestTestFrameworkVersion>4.5.2</MSTestTestFrameworkVersion>
+    <MSTestTestFrameworkVersion>4.5.3</MSTestTestFrameworkVersion>
     <NewtonsoftJsonVersion>13.0.3</NewtonsoftJsonVersion>
     <ParquetDotNetVersion>2.1.3</ParquetDotNetVersion>
     <PlotlyNETCSharpVersion>0.11.1</PlotlyNETCSharpVersion>
@@ -66,7 +65,6 @@
     <!-- TensorFlow.NET cannot be updated past 0.100.2 due to https://github.com/SciSharp/TensorFlow.NET/issues/1296, 
      and regression https://github.com/SciSharp/TensorFlow.NET/commit/a7c9a75954d219cb606042fcbfbeb1b176781d7e introduced in 0.100.4 -->
     <TensorflowDotNETVersion>0.100.2</TensorflowDotNETVersion>
-    <TensorFlowMajorVersion>2</TensorFlowMajorVersion>
     <TensorFlowVersion>2.16.0</TensorFlowVersion>
     <TensorFlowWindowsGpuVersion>2.10.3</TensorFlowWindowsGpuVersion>
     <TensorFlowLinuxGpuVersion>2.11.1</TensorFlowLinuxGpuVersion>
@@ -76,20 +74,18 @@
     <CodecovVersion>1.12.4</CodecovVersion>
     <CoverletCollectorVersion>10.1.0</CoverletCollectorVersion>
     <CoverletMsbuildVersion>10.1.0</CoverletMsbuildVersion>
-    <MicrosoftCodeAnalysisCSharpInternalAnalyzerVersion>4.13.0</MicrosoftCodeAnalysisCSharpInternalAnalyzerVersion>
-    <MicrosoftCSharpVersion>4.7.0</MicrosoftCSharpVersion>
     <ReportGeneratorVersion>4.3.6</ReportGeneratorVersion>
     <SystemCompositionVersion>9.0.4</SystemCompositionVersion>
     <!-- Test-only Dependencies -->
     <ApprovalTestsVersion>7.0.0</ApprovalTestsVersion>
-    <BenchmarkDotNetVersion>0.13.12</BenchmarkDotNetVersion>
-    <DotNetRuntime60Version>6.0.36</DotNetRuntime60Version>
-    <DotNetRuntime80Version>8.0.16</DotNetRuntime80Version>
+    <BenchmarkDotNetVersion>0.15.8</BenchmarkDotNetVersion>
+    <DotNetRuntime100Version>10.0.15</DotNetRuntime100Version>
+    <DotNetRuntime110Version>11.0.0</DotNetRuntime110Version>
     <MicrosoftCodeAnalysisTestingVersion>1.1.2</MicrosoftCodeAnalysisTestingVersion>
     <MicrosoftDotNetBuildTasksTemplatingVersion>9.0.0-beta.24212.4</MicrosoftDotNetBuildTasksTemplatingVersion>
     <MicrosoftDotNetPlatformAbstractionsVersion>5.0.0-preview.5.20278.1</MicrosoftDotNetPlatformAbstractionsVersion>
-    <MicrosoftDotNetRemoteExecutorVersion>8.0.0-beta.26560.11</MicrosoftDotNetRemoteExecutorVersion>
-    <MicrosoftDotNetXUnitExtensionsVersion>12.0.0-beta.26565.1</MicrosoftDotNetXUnitExtensionsVersion>
+    <MicrosoftDotNetRemoteExecutorVersion>8.0.0-beta.26561.4</MicrosoftDotNetRemoteExecutorVersion>
+    <MicrosoftDotNetXUnitExtensionsVersion>12.0.0-beta.26569.6</MicrosoftDotNetXUnitExtensionsVersion>
     <MicrosoftExtensionsDependencyModelVersion>9.0.4</MicrosoftExtensionsDependencyModelVersion>
     <MicrosoftMLOnnxTestModelsVersion>0.0.6-test</MicrosoftMLOnnxTestModelsVersion>
     <MicrosoftMLTensorFlowTestModelsVersion>0.0.13-test</MicrosoftMLTensorFlowTestModelsVersion>

@@ -70,7 +70,7 @@ if(${ARCHITECTURE} MATCHES "arm.*")
     list(APPEND SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/../MklImportsArm/MklImportsArm.c)
     set(MKL_LIBRARY "")
 else()
-    find_library(MKL_LIBRARY MklImports HINTS ${MKL_LIB_PATH})
+    find_library(MKL_LIBRARY MklImports HINTS ${MKL_LIB_PATH} NO_CMAKE_FIND_ROOT_PATH)
 endif()
 
 add_definitions(-DUSE_OMP)

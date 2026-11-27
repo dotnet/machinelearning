@@ -74,6 +74,7 @@ namespace Microsoft.ML.Trainers
         {
             /// <summary>
             /// Depth of LDSVM Tree
+            /// The default value is <c>3</c>.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Depth of Local Deep SVM tree", ShortName = "depth", SortOrder = 50)]
             [TGUI(SuggestedSweeps = "1,3,5,7")]
@@ -83,6 +84,7 @@ namespace Microsoft.ML.Trainers
 
             /// <summary>
             ///  Regularizer for classifier parameter W
+            /// The default value is <c>0.1</c>.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Regularizer for classifier parameter W", ShortName = "lw", SortOrder = 50)]
             [TGUI(SuggestedSweeps = "0.1,0.01,0.001")]
@@ -92,6 +94,7 @@ namespace Microsoft.ML.Trainers
 
             /// <summary>
             ///  Regularizer for kernel parameter Theta
+            /// The default value is <c>0.01</c>.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Regularizer for kernel parameter Theta", ShortName = "lt", SortOrder = 50)]
             [TGUI(SuggestedSweeps = "0.1,0.01,0.001")]
@@ -101,6 +104,7 @@ namespace Microsoft.ML.Trainers
 
             /// <summary>
             ///  Regularizer for kernel parameter ThetaPrime
+            /// The default value is <c>0.01</c>.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Regularizer for kernel parameter Thetaprime", ShortName = "lp", SortOrder = 50)]
             [TGUI(SuggestedSweeps = "0.1,0.01,0.001")]
@@ -110,6 +114,7 @@ namespace Microsoft.ML.Trainers
 
             /// <summary>
             ///  Parameter for sigmoid sharpness
+            /// The default value is <c>1</c>.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Parameter for sigmoid sharpness", ShortName = "s", SortOrder = 50)]
             [TGUI(SuggestedSweeps = "1.0,0.1,0.01")]
@@ -119,6 +124,7 @@ namespace Microsoft.ML.Trainers
 
             /// <summary>
             /// Indicates if we should use Bias or not in our model.
+            /// The default value is <see langword="true"/>.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "No bias", ShortName = "bias")]
             [TlcModule.SweepableDiscreteParam("NoBias", null, isBool: true)]
@@ -127,6 +133,7 @@ namespace Microsoft.ML.Trainers
 
             /// <summary>
             /// Number of iterations
+            /// The default value is <c>15000</c>.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce,
                 HelpText = "Number of iterations", ShortName = "iter,NumIterations", SortOrder = 50)]
@@ -141,6 +148,10 @@ namespace Microsoft.ML.Trainers
             [Argument(ArgumentType.AtMostOnce, HelpText = "The maximum number of examples to use when training the calibrator", Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
             internal int MaxCalibrationExamples = 1000000;
 
+            /// <summary>
+            /// Whether to cache the training data before the first iteration.
+            /// The default value is <see langword="true"/>.
+            /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Whether to cache the data before the first iteration")]
             public bool Cache = Defaults.Cache;
 

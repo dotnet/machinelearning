@@ -5,7 +5,7 @@ You can build ML.NET either via the command line or by using Visual Studio.
 ## Required software
 
 1. [Git](https://git-scm.com/download/win).
-2. [Visual Studio 2022](https://visualstudio.microsoft.com/downloads/) with the **Desktop development with C++** and **.NET desktop development** workloads.
+2. [Visual Studio 2026](https://visualstudio.microsoft.com/downloads/) with the **Desktop development with C++** and **.NET desktop development** workloads.
 3. [CMake](https://cmake.org/download/) available on `PATH`.
 
 The build scripts acquire the .NET SDK selected by `global.json`; you do not need to install that exact SDK separately.
@@ -51,6 +51,9 @@ You can then pack them into NuGet packages using the same target architecture:
 - `build.cmd /p:TargetArchitecture=arm64 -pack`
 
 ## Running Tests
+
+Local tests default to .NET 10 and .NET 11, plus .NET Framework 4.8 on x64.
+CI explicitly runs .NET 10 and .NET 11 tests on both x64 and ARM64 in Debug and Release, with separate .NET Framework 4.8 jobs.
 
 ### Running tests from Visual Studio
 

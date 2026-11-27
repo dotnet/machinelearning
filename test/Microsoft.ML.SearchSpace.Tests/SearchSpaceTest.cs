@@ -5,6 +5,7 @@
 using System;
 using System.Buffers.Text;
 using System.Buffers;
+using System.Globalization;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using ApprovalTests;
@@ -368,7 +369,8 @@ namespace Microsoft.ML.SearchSpace.Tests
 
             public override void Write(Utf8JsonWriter writer, double value, JsonSerializerOptions options)
             {
-                writer.WriteNumberValue(Math.Round(Convert.ToDecimal(value), 6));
+                var rounded = Math.Round(Convert.ToDecimal(value), 6);
+                writer.WriteRawValue(rounded.ToString("0.######", CultureInfo.InvariantCulture));
             }
         }
 
@@ -379,7 +381,9 @@ namespace Microsoft.ML.SearchSpace.Tests
 
             public override void Write(Utf8JsonWriter writer, float value, JsonSerializerOptions options)
             {
-                writer.WriteNumberValue(Convert.ToDecimal(value));
+                // Preserve the baseline's seven significant digits across runtime versions.
+                var normalized = decimal.Parse(value.ToString("G7", CultureInfo.InvariantCulture), NumberStyles.Float, CultureInfo.InvariantCulture);
+                writer.WriteNumberValue(normalized);
             }
         }
     }

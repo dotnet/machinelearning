@@ -96,8 +96,7 @@ namespace Microsoft.ML.TimeSeries
     /// </summary>
     /// <remarks>
     /// <format type="text/markdown"><![CDATA[
-    /// To create this detector, use
-    /// [DetectEntireAnomalyBySrCnn](xref:Microsoft.ML.TimeSeriesCatalog.DetectEntireAnomalyBySrCnn(Microsoft.ML.AnomalyDetectionCatalog,Microsoft.ML.IDataView,System.String,System.String,System.Double,System.Int32,System.Double,SrCnnDetectMode))
+    /// To create this detector, use <xref:Microsoft.ML.TimeSeriesCatalog.DetectEntireAnomalyBySrCnn*>.
     ///
     /// ### Background
     /// At Microsoft, we developed a time-series anomaly detection service which helps customers to monitor the time-series continuously

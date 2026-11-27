@@ -101,6 +101,7 @@ namespace Microsoft.ML.Trainers
             /// generating the training statistics might take a few seconds.
             /// More than 1000 weights might take a few minutes. For those cases consider using the instance of <see cref="ComputeLogisticRegressionStandardDeviation"/>
             /// present in the Microsoft.ML.Mkl.Components package. That computes the statistics using hardware acceleration.
+            /// The default value is <see langword="false"/>.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Show statistics of training examples.", ShortName = "stat, ShowTrainingStats", SortOrder = 50)]
             public bool ShowTrainingStatistics = false;
@@ -110,6 +111,7 @@ namespace Microsoft.ML.Trainers
             /// The calculations are not part of Microsoft.ML package, due to the size of MKL.
             /// If you need these calculations, add the Microsoft.ML.Mkl.Components package, and initialize <see cref="LbfgsLogisticRegressionBinaryTrainer.Options.ComputeStandardDeviation"/>.
             /// to the <see cref="ComputeLogisticRegressionStandardDeviation"/> implementation in the Microsoft.ML.Mkl.Components package.
+            /// The default value is <see langword="null"/>.
             /// </summary>
             public ComputeLogisticRegressionStandardDeviation ComputeStandardDeviation;
         }
