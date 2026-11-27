@@ -294,13 +294,13 @@ namespace Microsoft.ML.AutoML.Test
         {
             var context = new MLContext(1);
             using var cts = new CancellationTokenSource();
-            TrialStartMonitor monitor = null;
+            var monitor = new TrialStartMonitor(((IChannelProvider)context).Start(nameof(TrialStartMonitor)));
             var stopRequestedWhenRunnerCreated = new List<bool>();
             var experiment = context.Auto().CreateExperiment()
                 .SetMaxModelToExplore(2)
                 .SetRegressionMetric(RegressionMetric.RSquared)
                 .SetTuner(new CancelWhileProposingTuner(cts, throwOnCancellation: false))
-                .SetMonitor(provider => monitor = new TrialStartMonitor(provider.GetRequiredService<IChannel>()))
+                .SetMonitor(monitor)
                 .SetTrialRunner(provider =>
                 {
                     stopRequestedWhenRunnerCreated.Add(cts.IsCancellationRequested);
