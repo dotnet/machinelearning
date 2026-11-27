@@ -143,7 +143,10 @@ namespace Microsoft.ML.Tokenizers
             {
                 // Chain-mode (content-modifying tokenizer.json normalizer) is an off-the-hot-path branch that runs a
                 // simple string pipeline; the intermediate string here is intentional (see SentencePieceNormalizationStep).
-                return NormalizeCore(NormalizationChain.Normalize(original.ToString()).AsSpan());
+                // Lone surrogates become U+FFFD first, as they do in the byte-level path, which converts the text to UTF-8,
+                // so the steps only see well-formed text.
+                string text = SentencePieceNormalizationStep.ReplaceLoneSurrogates(original.ToString());
+                return NormalizeCore(NormalizationChain.Normalize(text).AsSpan());
             }
 
             return NormalizeCore(original);

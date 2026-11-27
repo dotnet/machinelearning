@@ -40,7 +40,7 @@ namespace Microsoft.ML.Tokenizers
 
         // string.Normalize / NFD throw on lone (unpaired) surrogates, which a caller-supplied string may legitimately
         // contain. Replace any unpaired surrogate with U+FFFD so Unicode normalization degrades gracefully.
-        private static string ReplaceLoneSurrogates(string text)
+        internal static string ReplaceLoneSurrogates(string text)
         {
             StringBuilder? sb = null;
             for (int i = 0; i < text.Length; i++)
@@ -277,9 +277,6 @@ namespace Microsoft.ML.Tokenizers
 
             public override string Normalize(string text)
             {
-                // Lone surrogates become U+FFFD, as they do in the byte-level path, which converts the text to UTF-8 first.
-                text = ReplaceLoneSurrogates(text);
-
                 StringBuilder? sb = null;
                 int i = 0;
                 while (i < text.Length)
