@@ -58,11 +58,18 @@ namespace Microsoft.ML.AutoML
             }
         }
 
-        public static void ValidateSamplingKey(string samplingKeyColumnName, string groupIdColumnName, TaskKind task)
+        public static void ValidateSamplingKey(string samplingKeyColumnName, string groupIdColumnName, string labelColumnName, TaskKind task)
         {
             if (task == TaskKind.Ranking && samplingKeyColumnName != null && samplingKeyColumnName != groupIdColumnName)
             {
                 throw new ArgumentException($"If provided, {nameof(samplingKeyColumnName)} must be the same as {nameof(groupIdColumnName)} for Ranking Experiments", samplingKeyColumnName);
+            }
+
+            if (samplingKeyColumnName != null && samplingKeyColumnName == labelColumnName)
+            {
+                throw new ArgumentException($"Provided sampling key column '{samplingKeyColumnName}' cannot be the same as the label column. " +
+                    "Rows that share a sampling key value are always placed in the same split, so all rows with the same label value would end up in the same split.",
+                    nameof(samplingKeyColumnName));
             }
         }
 

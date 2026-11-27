@@ -79,9 +79,12 @@ namespace Microsoft.ML.AutoML
         /// Gets or sets the dataset column to use for grouping rows.
         /// </summary>
         /// <remarks>
-        /// If two examples share the same sampling key column name,
+        /// If two examples share the same value of the sampling key column,
         /// they are guaranteed to appear in the same subset (train or test).
-        /// This can be used to ensure no label leakage from the train to the test set.
+        /// Use this to keep related rows together, for example all rows from the same user or session,
+        /// so that information about a group does not leak from the train set into the test set.
+        /// This must not be the same column as <see cref="LabelColumnName"/>: all rows with the same label value would end up in the same subset,
+        /// so the train or test set could be missing some label values entirely. Grouping rows is not the same as stratifying by label.
         /// If <see langword="null"/>, no row grouping will be performed.
         /// </remarks>
         public string SamplingKeyColumnName { get; set; }

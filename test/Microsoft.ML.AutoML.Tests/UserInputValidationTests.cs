@@ -100,6 +100,27 @@ namespace Microsoft.ML.AutoML.Test
         }
 
         [Fact]
+        public void ExecuteThrowsWhenSamplingKeyIsLabel()
+        {
+            const string expectedMessage = "Provided sampling key column 'Label' cannot be the same as the label column.";
+            var context = new MLContext(1);
+
+            // A constant label puts every row in one fold, so the check must run before the data is split.
+            var dataBuilder = new ArrayDataViewBuilder(context);
+            dataBuilder.AddColumn(DefaultColumnNames.Label, NumberDataViewType.Single, Enumerable.Repeat(1f, 20).ToArray());
+            dataBuilder.AddColumn("Feature", NumberDataViewType.Single, Enumerable.Range(0, 20).Select(i => (float)i).ToArray());
+            var data = dataBuilder.GetDataView();
+
+            var experiment = context.Auto().CreateRecommendationExperiment(1);
+
+            var ex = Assert.Throws<ArgumentException>(() => experiment.Execute(data, DefaultColumnNames.Label, DefaultColumnNames.Label));
+            Assert.StartsWith(expectedMessage, ex.Message);
+
+            var cvEx = Assert.Throws<ArgumentException>(() => experiment.Execute(data, 5u, DefaultColumnNames.Label, DefaultColumnNames.Label));
+            Assert.StartsWith(expectedMessage, cvEx.Message);
+        }
+
+        [Fact]
         public void ValidateExperimentExecuteArgsTrainValidColCountMismatch()
         {
             var context = new MLContext(1);
