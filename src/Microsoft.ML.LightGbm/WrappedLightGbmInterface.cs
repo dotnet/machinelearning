@@ -88,7 +88,7 @@ namespace Microsoft.ML.Trainers.LightGbm
             int[] sampleNonZeroCntPerColumn,
             int numSampleRow,
             int numTotalLocalRow,
-            int numTotalDistributedRow,
+            long numTotalDistributedRow,
             [MarshalAs(UnmanagedType.LPStr)] string parameters,
             out SafeDataSetHandle ret);
 
@@ -192,8 +192,8 @@ namespace Microsoft.ML.Trainers.LightGbm
             int startIteration,
             int numIteration,
             int featureImportanceType,
-            int bufferLen,
-            ref int outLen,
+            long bufferLen,
+            ref long outLen,
             byte* outStr);
 
         #endregion
@@ -215,7 +215,7 @@ namespace Microsoft.ML.Trainers.LightGbm
         #region API predict
         [DllImport(DllName, EntryPoint = "LGBM_BoosterPredictForMat", CallingConvention = CallingConvention.StdCall)]
         public static extern unsafe int BoosterPredictForMat(SafeBoosterHandle handle, IntPtr data, CApiDType dataType, int nRow, int nCol, int isRowMajor,
-            int predictType, int startIteration, int numIteration, [MarshalAs(UnmanagedType.LPStr)] string parameters, ref int outLen, double* outResult);
+            int predictType, int startIteration, int numIteration, [MarshalAs(UnmanagedType.LPStr)] string parameters, ref long outLen, double* outResult);
         #endregion
 
         #region API parallel
