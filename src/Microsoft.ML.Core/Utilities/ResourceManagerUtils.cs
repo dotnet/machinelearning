@@ -34,6 +34,14 @@ namespace Microsoft.ML.Internal.Utilities
         }
 
         private const string DefaultUrl = "https://aka.ms/mlnet-resources/";
+
+        /// <summary>
+        /// A single client for the whole process: creating one HttpClient per download exhausts sockets
+        /// and discards the connection pool. The timeout is infinite on purpose; the caller enforces its
+        /// own timeout (Task.Delay plus CancellationToken), while the default 100 s used to abort slow
+        /// transfers of large models.
+        /// </summary>
+        private static readonly HttpClient _httpClient = new HttpClient { Timeout = Timeout.InfiniteTimeSpan };
         /// <summary>
         /// The location of the resources to download from. Uses either the default location or a location defined
         /// in an Environment variable.
@@ -91,9 +99,9 @@ namespace Microsoft.ML.Internal.Utilities
         /// downloaded, and an exception if one was thrown.
         /// </summary>
         /// <remarks>
-        /// The function <see cref="ResourceManagerUtils.DownloadResource"/> checks whether or not the absolute URL with the
+        /// The function <see cref="ResourceManagerUtils.DownloadResource"/> detects when the absolute URL with the
         /// default host "aka.ms" formed from <paramref name="relativeUrl"/> redirects to the default Microsoft homepage.
-        /// As such, only absolute URLs with the host "aka.ms" is supported with <see cref="ResourceManagerUtils.EnsureResourceAsync"/>.
+        /// As such, only absolute URLs with the host "aka.ms" are supported with <see cref="ResourceManagerUtils.EnsureResourceAsync"/>.
         /// </remarks>
         /// <param name="env">The host environment.</param>
         /// <param name="ch">A channel to provide information about the download.</param>
@@ -154,23 +162,30 @@ namespace Microsoft.ML.Internal.Utilities
         /// <returns>Returns the error message if an error occurred, null if download was successful.</returns>
         private async Task<string> DownloadFromUrlAsync(IHostEnvironment env, IChannel ch, string url, string fileName, int timeout, string filePath)
         {
-            using (var client = new HttpClient())
             using (var downloadCancel = new CancellationTokenSource())
             {
-                var t = Task.Run(() => DownloadResource(env, ch, client, new Uri(url), filePath, fileName, downloadCancel.Token));
+                var t = Task.Run(() => DownloadResource(env, ch, _httpClient, new Uri(url), filePath, fileName, downloadCancel.Token));
 
                 UpdateTimeout(ref timeout);
-                var timeoutTask = Task.Delay(timeout).ContinueWith(task => default(Exception), TaskScheduler.Default);
                 ch.Info($"Downloading {fileName} from {url} to {filePath}");
-                var completedTask = await Task.WhenAny(t, timeoutTask);
-                if (completedTask != t || completedTask.CompletedResult() != null)
+                var completedTask = await Task.WhenAny(t, Task.Delay(timeout)).ConfigureAwait(false);
+
+                if (completedTask == t)
+                    return (await t.ConfigureAwait(false))?.Message;
+
+                // Timed out. Ask the download to stop, then observe it: it may have completed
+                // successfully between the delay firing and the cancellation, in which case the
+                // file is valid and this is not a failure.
+                downloadCancel.Cancel();
+                try
                 {
-                    downloadCancel.Cancel();
-                    if (File.Exists(filePath))
-                        TryDelete(ch, filePath);
-                    return (await t).Message;
+                    var exception = await t.ConfigureAwait(false);
+                    return exception?.Message;
                 }
-                return null;
+                catch (Exception e)
+                {
+                    return e.Message;
+                }
             }
         }
 
@@ -246,92 +261,156 @@ namespace Microsoft.ML.Internal.Utilities
             return filePath;
         }
 
-        private async Task<Exception> DownloadResource(IHostEnvironment env, IChannel ch, HttpClient httpClient, Uri uri, string path, string fileName, CancellationToken ct)
+        internal async Task<Exception> DownloadResource(IHostEnvironment env, IChannel ch, HttpClient httpClient, Uri uri, string path, string fileName, CancellationToken ct)
         {
             if (File.Exists(path))
                 return null;
 
-            var mutex = new Mutex(false, "Resource" + fileName);
-            mutex.WaitOne();
-            if (File.Exists(path))
-            {
-                mutex.ReleaseMutex();
-                return null;
-            }
-
-            Guid guid = Guid.NewGuid();
-            string tempPath = Path.GetFullPath(Path.Combine(Path.GetDirectoryName(path), "temp-resource-" + guid.ToString()));
+            // Cross-process lock instead of a Mutex: Mutex has thread affinity, and after an await the
+            // continuation can run on a different thread than the one that acquired it, which makes
+            // releasing it throw.
+            FileStream downloadLock;
             try
             {
-                int blockSize = 4096;
+                downloadLock = await AcquireDownloadLockAsync(path, ct).ConfigureAwait(false);
+            }
+            catch (OperationCanceledException e)
+            {
+                return e;
+            }
+            catch (Exception e) when (e is IOException || e is UnauthorizedAccessException)
+            {
+                // A permanent file system error (full disk, missing directory, read-only lock file, ...):
+                // surface it instead of waiting for the download timeout or downloading unsynchronized.
+                return e;
+            }
 
-                var response = await httpClient.GetAsync(uri, ct).ConfigureAwait(false);
-                using (var fh = env.CreateOutputFile(tempPath))
-                using (var ws = fh.CreateWriteStream())
+            using (downloadLock)
+            {
+                if (File.Exists(path))
+                    return null;
+
+                Guid guid = Guid.NewGuid();
+                string tempPath = Path.GetFullPath(Path.Combine(Path.GetDirectoryName(path), "temp-resource-" + guid.ToString()));
+                try
                 {
-                    response.EnsureSuccessStatusCode();
-                    IEnumerable<string> headers;
-                    var hasHeader = response.Headers.TryGetValues("content-length", out headers);
-                    if (uri.Host == "aka.ms" && IsRedirectToDefaultPage(uri.AbsoluteUri))
-                        throw new NotSupportedException($"The provided url ({uri}) redirects to the default url ({DefaultUrl})");
-                    if (!hasHeader || !long.TryParse(headers.First(), out var size))
-                        size = 10000000;
+                    int blockSize = 4096;
 
-                    var stream = await response.EnsureSuccessStatusCode().Content.ReadAsStreamAsync().ConfigureAwait(false);
+                    // ResponseHeadersRead streams the body straight to disk. The default
+                    // (ResponseContentRead) buffers the whole file in memory before returning and
+                    // rejects any body above MaxResponseContentBufferSize (2 GB).
+                    using (var response = await httpClient.GetAsync(uri, HttpCompletionOption.ResponseHeadersRead, ct).ConfigureAwait(false))
+                    using (var fh = env.CreateOutputFile(tempPath))
+                    using (var ws = fh.CreateWriteStream())
+                    {
+                        // Checked before EnsureSuccessStatusCode: with redirects disabled the faulty link
+                        // surfaces as a 3xx, not as an error status.
+                        if (IsRedirectToDefaultPage(response))
+                            throw new NotSupportedException($"The provided url ({uri}) redirects to the default url ({DefaultUrl})");
 
-                    await stream.CopyToAsync(ws, blockSize, ct);
+                        response.EnsureSuccessStatusCode();
+
+                        var stream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
+
+                        // On .NET Framework a pending body read ignores the token, so a server that stalls
+                        // after the headers would keep the download lock held. Disposing the response
+                        // aborts the read.
+                        using (ct.Register(response.Dispose))
+                        {
+                            try
+                            {
+                                await stream.CopyToAsync(ws, blockSize, ct).ConfigureAwait(false);
+                            }
+                            catch (Exception e) when (ct.IsCancellationRequested && !(e is OperationCanceledException))
+                            {
+                                throw new OperationCanceledException(ct);
+                            }
+                        }
+                    }
 
                     if (ct.IsCancellationRequested)
                     {
                         ch.Error($"{fileName}: Download timed out");
                         return ch.Except("Download timed out");
                     }
+
+                    File.Move(tempPath, path);
+                    ch.Info($"{fileName}: Download complete");
+                    return null;
                 }
-                File.Move(tempPath, path);
-                ch.Info($"{fileName}: Download complete");
-                return null;
-            }
-            catch (WebException e)
-            {
-                ch.Error($"{fileName}: Could not download. HttpClient returned the following error: {e.Message}");
-                return e;
-            }
-            finally
-            {
-                TryDelete(ch, tempPath, warn: false);
-                mutex.ReleaseMutex();
+                catch (WebException e)
+                {
+                    ch.Error($"{fileName}: Could not download. HttpClient returned the following error: {e.Message}");
+                    return e;
+                }
+                catch (Exception e) when (e is HttpRequestException || e is OperationCanceledException)
+                {
+                    // HttpClient throws HttpRequestException/TaskCanceledException, which are not
+                    // WebException and used to escape this method unhandled.
+                    ch.Error($"{fileName}: Could not download: {e.Message}");
+                    return e;
+                }
+                finally
+                {
+                    TryDelete(ch, tempPath, warn: false);
+                }
             }
         }
 
-        /// <summary>This method checks whether or not the provided aka.ms url redirects to
-        /// Microsoft's homepage, as the default faulty aka.ms URLs redirect to https://www.microsoft.com/?ref=aka .</summary>
-        /// <param name="url"> The provided url to check </param>
-        public bool IsRedirectToDefaultPage(string url)
+        /// <summary>
+        /// Serializes downloads of the same file across threads and processes by holding an exclusive
+        /// handle on a sibling ".lock" file. The OS releases the lock if the process dies, so it cannot
+        /// be left permanently held. Only lock contention is retried; any other failure propagates.
+        /// </summary>
+        private static async Task<FileStream> AcquireDownloadLockAsync(string path, CancellationToken ct)
         {
-            try
+            string lockPath = path + ".lock";
+            while (true)
             {
-                var request = WebRequest.Create(url);
-                // FileWebRequests cannot be redirected to default aka.ms webpage
-                if (request.GetType() == typeof(FileWebRequest))
-                    return false;
-                HttpWebRequest httpWebRequest = (HttpWebRequest)request;
-                httpWebRequest.AllowAutoRedirect = false;
-                HttpWebResponse httpWebResponse = (HttpWebResponse)httpWebRequest.GetResponse();
+                try
+                {
+                    return new FileStream(lockPath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None, 1, FileOptions.None);
+                }
+                catch (IOException e) when (IsLockContention(e))
+                {
+                    // Another thread or process holds the lock; wait and retry.
+                    await Task.Delay(100, ct).ConfigureAwait(false);
+                }
             }
-            catch (WebException e)
-            {
-                HttpWebResponse webResponse = (HttpWebResponse)e.Response;
-                // Redirects to default url
-                if (webResponse.StatusCode == HttpStatusCode.Redirect && webResponse.Headers["Location"] == "https://www.microsoft.com/?ref=aka")
-                    return true;
-                // Redirects to another url
-                else if (webResponse.StatusCode == HttpStatusCode.MovedPermanently)
-                    return false;
-                else
-                    return false;
-            }
-            return false;
         }
+
+        /// <summary>
+        /// Tells lock contention apart from other I/O failures by the error code. Windows reports
+        /// ERROR_SHARING_VIOLATION (32) or ERROR_LOCK_VIOLATION (33) in the low 16 bits of the HResult;
+        /// on Unix a failed flock surfaces the raw errno, EWOULDBLOCK (11 on Linux, 35 on macOS/BSD).
+        /// </summary>
+        private static bool IsLockContention(IOException e)
+        {
+            int code = e.HResult & 0xFFFF;
+            return RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+                ? code == 32 || code == 33
+                : code == 11 || code == 35;
+        }
+
+        /// <summary>
+        /// Detects the faulty aka.ms links that redirect to Microsoft's homepage
+        /// (https://www.microsoft.com/?ref=aka) instead of a resource. Reuses the response that is already
+        /// in hand, so no extra request is made and no thread is blocked.
+        /// </summary>
+        private static bool IsRedirectToDefaultPage(HttpResponseMessage response)
+        {
+            if (IsDefaultPage(response.RequestMessage?.RequestUri))
+                return true;
+
+            Uri location = response.Headers.Location;
+            return location != null && IsDefaultPage(location);
+        }
+
+        private static bool IsDefaultPage(Uri uri)
+            => uri != null
+            && uri.IsAbsoluteUri
+            && uri.Host.Equals("www.microsoft.com", StringComparison.OrdinalIgnoreCase)
+            && uri.AbsolutePath == "/";
 
         public static ResourceDownloadResults GetErrorMessage(out string errorMessage, params ResourceDownloadResults[] result)
         {
