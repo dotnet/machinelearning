@@ -11,6 +11,7 @@ using Apache.Arrow;
 using Apache.Arrow.Ipc;
 using Apache.Arrow.Types;
 using Microsoft.ML.TestFramework;
+using Microsoft.ML.TestFramework.Attributes;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -166,6 +167,30 @@ namespace Microsoft.Data.Analysis.Tests
                 recordBatch.Dispose();
             }
             Assert.True(foundARecordBatch);
+        }
+
+        [X64Fact("32-bit doesn't allow to allocate more than 2 Gb")]
+        public void TestRecordBatchesAcrossMultipleBuffers()
+        {
+            // Mirrors ReadOnlyDataFrameBuffer<int>.MaxCapacity, the number of values held by a single buffer
+            const int MaxCapacity = 0X7FEFFFFF / sizeof(int);
+
+            // One value more than fits in a buffer, so the column is exported as two record batches
+            PrimitiveDataFrameColumn<int> column = new PrimitiveDataFrameColumn<int>("Int", MaxCapacity + 1L);
+            column[MaxCapacity] = 42;
+            DataFrame df = new DataFrame(column);
+
+            List<RecordBatch> recordBatches = df.ToArrowRecordBatches().ToList();
+
+            Assert.Equal(2, recordBatches.Count);
+            Assert.Equal(MaxCapacity, recordBatches[0].Length);
+            Assert.Single(recordBatches[0].Arrays);
+            Assert.Equal(1, recordBatches[1].Length);
+            Assert.Single(recordBatches[1].Arrays);
+
+            DataFrame lastBatch = DataFrame.FromArrowRecordBatch(recordBatches[1]);
+            Assert.Equal(1, lastBatch.Rows.Count);
+            Assert.Equal(42, lastBatch.Columns["Int"][0]);
         }
 
         [Fact]

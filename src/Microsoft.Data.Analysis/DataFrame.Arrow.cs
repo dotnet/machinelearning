@@ -183,7 +183,6 @@ namespace Microsoft.Data.Analysis
             }
 
             Schema schema = schemaBuilder.Build();
-            List<Apache.Arrow.Array> arrays = new List<Apache.Arrow.Array>();
 
             int recordBatchLength = Int32.MaxValue;
             int numberOfRowsInThisRecordBatch = (int)Math.Min(recordBatchLength, Rows.Count);
@@ -197,6 +196,7 @@ namespace Microsoft.Data.Analysis
                     DataFrameColumn column = Columns[i];
                     numberOfRowsInThisRecordBatch = (int)Math.Min(numberOfRowsInThisRecordBatch, column.GetMaxRecordBatchLength(numberOfRowsProcessed));
                 }
+                List<Apache.Arrow.Array> arrays = new List<Apache.Arrow.Array>();
                 for (int i = 0; i < columnCount; i++)
                 {
                     DataFrameColumn column = Columns[i];
