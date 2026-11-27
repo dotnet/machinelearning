@@ -209,9 +209,13 @@ namespace Microsoft.ML
         /// <remarks>
         /// Keep only those rows that satisfy the range condition: the value of column <paramref name="columnName"/>
         /// must be between <paramref name="lowerBound"/> (inclusive) and <paramref name="upperBound"/> (exclusive).
+        /// The column must be a scalar <see cref="NumberDataViewType.Single"/> or <see cref="NumberDataViewType.Double"/> column.
+        /// Other numeric types, such as integer columns, aren't supported. Convert them first, for example with
+        /// <see cref="ConversionsExtensionsCatalog.ConvertType(TransformsCatalog.ConversionTransforms, string, string, DataKind)"/>.
+        /// Rows where the value is NaN are removed.
         /// </remarks>
         /// <param name="input">The input data.</param>
-        /// <param name="columnName">The name of a column to use for filtering.</param>
+        /// <param name="columnName">The name of a <see cref="NumberDataViewType.Single"/> or <see cref="NumberDataViewType.Double"/> column to use for filtering.</param>
         /// <param name="lowerBound">The inclusive lower bound.</param>
         /// <param name="upperBound">The exclusive upper bound.</param>
         /// <example>
