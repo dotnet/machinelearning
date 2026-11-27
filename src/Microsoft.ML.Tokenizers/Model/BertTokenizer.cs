@@ -655,6 +655,7 @@ namespace Microsoft.ML.Tokenizers
         /// <param name="vocabFilePath">The path to the vocabulary file.</param>
         /// <param name="options">The options to use for the Bert tokenizer.</param>
         /// <returns>A new instance of the <see cref="BertTokenizer"/> class.</returns>
+        /// <exception cref="PlatformNotSupportedException"><see cref="BertOptions.RemoveNonSpacingMarks"/> is <see langword="true"/> for the default normalizer and globalization-invariant mode is enabled.</exception>
         /// <remarks>
         /// When creating the tokenizer, ensure that the vocabulary file is sourced from a trusted provider.
         /// </remarks>
@@ -671,6 +672,7 @@ namespace Microsoft.ML.Tokenizers
         /// <param name="vocabStream">The stream containing the vocabulary file.</param>
         /// <param name="options">The options to use for the Bert tokenizer.</param>
         /// <returns>A new instance of the <see cref="BertTokenizer"/> class.</returns>
+        /// <exception cref="PlatformNotSupportedException"><see cref="BertOptions.RemoveNonSpacingMarks"/> is <see langword="true"/> for the default normalizer and globalization-invariant mode is enabled.</exception>
         /// <remarks>
         /// When creating the tokenizer, ensure that the vocabulary stream is sourced from a trusted provider.
         /// </remarks>
@@ -686,6 +688,7 @@ namespace Microsoft.ML.Tokenizers
         /// <param name="options">The options to use for the Bert tokenizer.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A task that represents the asynchronous creation of the BertTokenizer.</returns>
+        /// <exception cref="PlatformNotSupportedException"><see cref="BertOptions.RemoveNonSpacingMarks"/> is <see langword="true"/> for the default normalizer and globalization-invariant mode is enabled.</exception>
         /// <remarks>
         /// When creating the tokenizer, ensure that the vocabulary stream is sourced from a trusted provider.
         /// </remarks>
@@ -711,6 +714,7 @@ namespace Microsoft.ML.Tokenizers
         /// <param name="options">The options to use for the Bert tokenizer.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A task that represents the asynchronous creation of the BertTokenizer.</returns>
+        /// <exception cref="PlatformNotSupportedException"><see cref="BertOptions.RemoveNonSpacingMarks"/> is <see langword="true"/> for the default normalizer and globalization-invariant mode is enabled.</exception>
         /// <remarks>
         /// When creating the tokenizer, ensure that the vocabulary file is sourced from a trusted provider.
         /// </remarks>

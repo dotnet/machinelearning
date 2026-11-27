@@ -38,6 +38,11 @@ namespace Microsoft.ML.Tokenizers
         /// <summary>Applies this normalization step (or chain of steps) to <paramref name="text"/>.</summary>
         public abstract string Normalize(string text);
 
+        // Applies this step (or chain of steps) to a string from the caller. Lone surrogates become U+FFFD first, once for the whole
+        // chain, so the steps only see well-formed text, as in the byte-level path. That path calls Normalize directly: its text is
+        // decoded from UTF-8, so it has no lone surrogates.
+        internal string NormalizeInput(string text) => Normalize(ReplaceLoneSurrogates(text));
+
         // string.Normalize / NFD throw on lone (unpaired) surrogates, which a caller-supplied string may legitimately
         // contain. Replace any unpaired surrogate with U+FFFD so Unicode normalization degrades gracefully.
         internal static string ReplaceLoneSurrogates(string text)
@@ -121,8 +126,9 @@ namespace Microsoft.ML.Tokenizers
 
         /// <summary>
         /// Builds the managed normalizer chain from a <c>tokenizer.json</c> normalizer element. Throws
-        /// <see cref="NotSupportedException"/> for normalizer types that are not modeled so callers fail loudly
-        /// rather than silently mis-tokenizing.
+        /// <see cref="NotSupportedException"/> for normalizer types that are not modeled, and
+        /// <see cref="PlatformNotSupportedException"/> for the steps that need Unicode normalization when
+        /// globalization-invariant mode is enabled, so callers fail loudly rather than silently mis-tokenizing.
         /// </summary>
         public static SentencePieceNormalizationStep Build(JsonElement normalizer)
         {
@@ -267,51 +273,62 @@ namespace Microsoft.ML.Tokenizers
             public override string Normalize(string text) => text.ToLowerInvariant();
         }
 
-        // Port of the Hugging Face tokenizers "StripAccents" normalizer: decompose (NFD) and drop combining marks.
+        // Port of the Hugging Face tokenizers "StripAccents" normalizer. Like it, this removes the combining marks (the Mark category)
+        // without decomposing the text first, so tokenizer.json files put an NFD or NFKD step before it to strip the accents of
+        // precomposed characters like "é". It doesn't use string.Normalize, so it also works in globalization-invariant mode.
         private sealed class StripAccentsStep : SentencePieceNormalizationStep
         {
             public static readonly StripAccentsStep Instance = new StripAccentsStep();
 
             public override string Normalize(string text)
             {
-                if (text.Length == 0)
-                {
-                    return text;
-                }
-
-                string decomposed = ReplaceLoneSurrogates(text).Normalize(NormalizationForm.FormD);
                 StringBuilder? sb = null;
                 int i = 0;
-                while (i < decomposed.Length)
+                while (i < text.Length)
                 {
                     // Iterate by code point so combining marks encoded as surrogate pairs (astral plane) are
                     // classified and dropped, matching the reference (which filters on full code points).
-                    int charCount = char.IsHighSurrogate(decomposed[i]) && i + 1 < decomposed.Length && char.IsLowSurrogate(decomposed[i + 1]) ? 2 : 1;
-                    if (CharUnicodeInfo.GetUnicodeCategory(decomposed, i) == UnicodeCategory.NonSpacingMark)
+                    int charCount = char.IsSurrogatePair(text, i) ? 2 : 1;
+                    UnicodeCategory category = CharUnicodeInfo.GetUnicodeCategory(text, i);
+                    if (category is UnicodeCategory.NonSpacingMark or UnicodeCategory.SpacingCombiningMark or UnicodeCategory.EnclosingMark)
                     {
                         if (sb is null)
                         {
-                            sb = new StringBuilder(decomposed.Length);
-                            sb.Append(decomposed, 0, i);
+                            sb = new StringBuilder(text.Length);
+                            sb.Append(text, 0, i);
                         }
                     }
                     else
                     {
-                        sb?.Append(decomposed, i, charCount);
+                        sb?.Append(text, i, charCount);
                     }
 
                     i += charCount;
                 }
 
-                return sb is null ? decomposed : sb.ToString();
+                return sb is null ? text : sb.ToString();
             }
         }
 
         private sealed class UnicodeStep : SentencePieceNormalizationStep
         {
             private readonly NormalizationForm _form;
-            public UnicodeStep(NormalizationForm form) => _form = form;
-            public override string Normalize(string text) => text.Length == 0 ? text : ReplaceLoneSurrogates(text).Normalize(_form);
+
+            public UnicodeStep(NormalizationForm form)
+            {
+                // string.Normalize returns its input unchanged when globalization-invariant mode is enabled, so fail when the tokenizer is
+                // created rather than silently leaving the text unchanged.
+                if (!UnicodeNormalization.IsSupported)
+                {
+                    throw new PlatformNotSupportedException(
+                        $"The tokenizer.json normalizer requires Unicode normalization ({form}), which isn't available in globalization-invariant mode. " +
+                        "See https://aka.ms/GlobalizationInvariantMode for more information.");
+                }
+
+                _form = form;
+            }
+
+            public override string Normalize(string text) => text.Normalize(_form);
         }
 
         private sealed class PrependStep : SentencePieceNormalizationStep
