@@ -24,7 +24,7 @@ namespace Samples.Dynamic
              * seasonalityWindowSize: Default value is -1. When set to -1, use the whole input to fit model; 
              * when set to a positive integer, only the first windowSize number of values will be considered.
              * randomnessThreshold: Randomness threshold that specifies how confidence the input values follows 
-             * a predictable pattern recurring as seasonal data. By default, it is set as 0.99. 
+             * a predictable pattern recurring as seasonal data. By default, it is set as 0.95. 
              * The higher the threshold is set, the more strict recurring pattern the 
              * input values should follow to be determined as seasonal data.
              */
