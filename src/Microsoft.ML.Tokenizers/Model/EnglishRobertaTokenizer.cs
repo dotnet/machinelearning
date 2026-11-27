@@ -360,40 +360,13 @@ namespace Microsoft.ML.Tokenizers
                 return [];
             }
 
-            char[] token = ArrayPool<char>.Shared.Rent(text.Length);
-            int[] indexMapping = ArrayPool<int>.Shared.Rent(text.Length);
-
-            int newTokenIndex = 0;
-            IReadOnlyDictionary<char, char> byteToUnicode = ByteToUnicodeEncoding.Instance.ByteToUnicode;
-
-            for (int i = 0; i < text.Length; i++)
-            {
-                if (byteToUnicode.TryGetValue(text[i], out var value))
-                {
-                    token[newTokenIndex] = value;
-                    indexMapping[newTokenIndex] = i;
-                    newTokenIndex++;
-                }
-            }
-
-            if (newTokenIndex == 0)
-            {
-                ArrayPool<char>.Shared.Return(token);
-                ArrayPool<int>.Shared.Return(indexMapping);
-                return [];
-            }
-
             if (_cache.TryGetValue(text, out List<EncodedToken>? hit))
             {
-                ArrayPool<char>.Shared.Return(token);
-                ArrayPool<int>.Shared.Return(indexMapping);
-                return ModifyTokenListOffsets(hit, indexMapping);
+                return hit;
             }
 
-            List<EncodedToken> result = EncodeToTokens(token.AsSpan().Slice(0, newTokenIndex), indexMapping);
+            List<EncodedToken> result = EncodeText(text);
             _cache.Set(text.ToString(), result);
-            ArrayPool<char>.Shared.Return(token);
-            ArrayPool<int>.Shared.Return(indexMapping);
             return result;
         }
 
@@ -603,23 +576,26 @@ namespace Microsoft.ML.Tokenizers
                 return tokens.Count;
             }
 
+            int tokenCount = maxTokens;
+            // UTF-8 byte tokens for one source character share the same source offset.
+            // Do not return only part of that character: callers resume from charsConsumed.
+            while (tokenCount > 0 && tokenCount < tokens.Count &&
+                tokens[tokenCount - 1].Offset.End.Value > tokens[tokenCount].Offset.Start.Value)
+            {
+                tokenCount--;
+            }
+
             if (accumulatedIds is not null)
             {
-                for (int i = 0; i < maxTokens; i++)
+                for (int i = 0; i < tokenCount; i++)
                 {
                     accumulatedIds.Add(tokens[i].Id);
-                    charsConsumed += tokens[i].Offset.End.Value - tokens[i].Offset.Start.Value;
-                }
-            }
-            else
-            {
-                for (int i = 0; i < maxTokens; i++)
-                {
-                    charsConsumed += tokens[i].Offset.End.Value - tokens[i].Offset.Start.Value;
                 }
             }
 
-            return maxTokens;
+            charsConsumed = tokenCount == 0 ? 0 : tokens[tokenCount - 1].Offset.End.Value;
+
+            return tokenCount;
         }
 
         private int EncodeToIdsFromEndResult(List<EncodedToken> tokens, IList<int>? accumulatedIds, int maxTokens, int fullTextLength, out int textIndex)
@@ -640,23 +616,26 @@ namespace Microsoft.ML.Tokenizers
                 return tokens.Count;
             }
 
+            int firstToken = tokens.Count - maxTokens;
+            // Keep all byte tokens belonging to a source character together.
+            while (firstToken > 0 &&
+                tokens[firstToken - 1].Offset.End.Value > tokens[firstToken].Offset.Start.Value)
+            {
+                firstToken++;
+            }
+
+            int tokenCount = tokens.Count - firstToken;
             if (accumulatedIds is not null)
             {
-                for (int i = tokens.Count - maxTokens; i < tokens.Count; i++)
+                for (int i = firstToken; i < tokens.Count; i++)
                 {
                     accumulatedIds.Add(tokens[i].Id);
-                    textIndex -= tokens[i].Offset.End.Value - tokens[i].Offset.Start.Value;
-                }
-            }
-            else
-            {
-                for (int i = tokens.Count - maxTokens; i < tokens.Count; i++)
-                {
-                    textIndex -= tokens[i].Offset.End.Value - tokens[i].Offset.Start.Value;
                 }
             }
 
-            return maxTokens;
+            textIndex = tokenCount == 0 ? fullTextLength : tokens[firstToken].Offset.Start.Value;
+
+            return tokenCount;
         }
 
         private int EncodeToIdsInternal(ReadOnlySpan<char> text, IList<int>? accumulatedIds, out int charsConsumed, int maxTokens)
@@ -672,34 +651,8 @@ namespace Microsoft.ML.Tokenizers
                 return EncodeToIdsResult(hit, accumulatedIds, maxTokens, text.Length, out charsConsumed);
             }
 
-            char[] token = ArrayPool<char>.Shared.Rent(text.Length);
-            int[] indexMapping = ArrayPool<int>.Shared.Rent(text.Length);
-
-            int newTokenIndex = 0;
-            IReadOnlyDictionary<char, char> byteToUnicode = ByteToUnicodeEncoding.Instance.ByteToUnicode;
-
-            for (int i = 0; i < text.Length; i++)
-            {
-                if (byteToUnicode.TryGetValue(text[i], out var value))
-                {
-                    token[newTokenIndex] = value;
-                    indexMapping[newTokenIndex] = i;
-                    newTokenIndex++;
-                }
-            }
-
-            if (newTokenIndex == 0)
-            {
-                ArrayPool<char>.Shared.Return(token);
-                ArrayPool<int>.Shared.Return(indexMapping);
-                charsConsumed = text.Length;
-                return 0;
-            }
-
-            List<EncodedToken> result = EncodeToTokens(token.AsSpan().Slice(0, newTokenIndex), indexMapping);
+            List<EncodedToken> result = EncodeText(text);
             _cache.Set(text.ToString(), result);
-            ArrayPool<char>.Shared.Return(token);
-            ArrayPool<int>.Shared.Return(indexMapping);
 
             return EncodeToIdsResult(result, accumulatedIds, maxTokens, text.Length, out charsConsumed);
         }
@@ -717,36 +670,82 @@ namespace Microsoft.ML.Tokenizers
                 return EncodeToIdsFromEndResult(hit, accumulatedIds, maxTokens, text.Length, out textIndex);
             }
 
+            List<EncodedToken> result = EncodeText(text);
+            _cache.Set(text.ToString(), result);
+
+            return EncodeToIdsFromEndResult(result, accumulatedIds, maxTokens, text.Length, out textIndex);
+        }
+
+        private List<EncodedToken> EncodeText(ReadOnlySpan<char> text)
+        {
             char[] token = ArrayPool<char>.Shared.Rent(text.Length);
             int[] indexMapping = ArrayPool<int>.Shared.Rent(text.Length);
 
-            int newTokenIndex = 0;
-            IReadOnlyDictionary<char, char> byteToUnicode = ByteToUnicodeEncoding.Instance.ByteToUnicode;
-
-            for (int i = 0; i < text.Length; i++)
+            try
             {
-                if (byteToUnicode.TryGetValue(text[i], out var value))
+                IReadOnlyDictionary<char, char> byteToUnicode = ByteToUnicodeEncoding.Instance.ByteToUnicode;
+                int encodedLength = 0;
+                for (int i = 0; i < text.Length; i++)
                 {
-                    token[newTokenIndex] = value;
-                    indexMapping[newTokenIndex] = i;
-                    newTokenIndex++;
-                }
-            }
+                    uint c = text[i];
+                    if (c <= 0x7Fu)
+                    {
+                        if (encodedLength == token.Length)
+                        {
+                            Helpers.ArrayPoolGrow(ref token, encodedLength + 1);
+                        }
 
-            if (newTokenIndex == 0)
+                        if (encodedLength == indexMapping.Length)
+                        {
+                            Helpers.ArrayPoolGrow(ref indexMapping, encodedLength + 1);
+                        }
+
+                        token[encodedLength] = byteToUnicode[(char)c];
+                        indexMapping[encodedLength++] = i;
+                    }
+                    else
+                    {
+                        int charLength = i < text.Length - 1 && char.IsSurrogatePair(text[i], text[i + 1]) ? 2 : 1;
+                        int maxByteCount = Encoding.UTF8.GetMaxByteCount(charLength);
+                        int requiredCapacity = encodedLength + maxByteCount;
+                        if (requiredCapacity > token.Length)
+                        {
+                            Helpers.ArrayPoolGrow(ref token, requiredCapacity);
+                        }
+
+                        if (requiredCapacity > indexMapping.Length)
+                        {
+                            Helpers.ArrayPoolGrow(ref indexMapping, requiredCapacity);
+                        }
+
+                        // The byte and offset arrays may be rented from different pool buckets.
+                        // Reserve only the maximum bytes this scalar can produce in each span.
+
+                        ReadOnlySpan<char> charsToEncode = text.Slice(i, charLength);
+                        if (charLength == 1 && char.IsSurrogate(text[i]))
+                        {
+                            // Match Encoding.UTF8's replacement fallback for an unpaired
+                            // surrogate instead of emitting an invalid UTF-8 sequence.
+                            charsToEncode = "\uFFFD";
+                        }
+
+                        int encodedByteLength = Helpers.EncodeToUtf8AndTransform(
+                            charsToEncode,
+                            token.AsSpan(encodedLength, maxByteCount),
+                            indexMapping.AsSpan(encodedLength, maxByteCount));
+                        indexMapping.AsSpan(encodedLength, encodedByteLength).Fill(i);
+                        encodedLength += encodedByteLength;
+                        i += charLength - 1;
+                    }
+                }
+
+                return EncodeToTokens(token.AsSpan(0, encodedLength), indexMapping.AsSpan(0, encodedLength), text);
+            }
+            finally
             {
                 ArrayPool<char>.Shared.Return(token);
                 ArrayPool<int>.Shared.Return(indexMapping);
-                textIndex = 0;
-                return 0;
             }
-
-            List<EncodedToken> result = EncodeToTokens(token.AsSpan().Slice(0, newTokenIndex), indexMapping);
-            _cache.Set(text.ToString(), result);
-            ArrayPool<char>.Shared.Return(token);
-            ArrayPool<int>.Shared.Return(indexMapping);
-
-            return EncodeToIdsFromEndResult(result, accumulatedIds, maxTokens, text.Length, out textIndex);
         }
 
         /// <summary>
@@ -766,6 +765,38 @@ namespace Microsoft.ML.Tokenizers
             if (ids is null)
             {
                 throw new ArgumentNullException(nameof(ids));
+            }
+
+            if (FilterUnsupportedChars)
+            {
+                byte[] bytes = ArrayPool<byte>.Shared.Rent(128);
+                int length = 0;
+                try
+                {
+                    foreach (int id in ids)
+                    {
+                        if (MapIdToToken(id) is not string token)
+                        {
+                            continue;
+                        }
+
+                        if (bytes.Length - length < token.Length)
+                        {
+                            Helpers.ArrayPoolGrow(ref bytes, length + token.Length);
+                        }
+
+                        for (int i = 0; i < token.Length; i++)
+                        {
+                            bytes[length++] = (byte)token[i];
+                        }
+                    }
+
+                    return Encoding.UTF8.GetString(bytes, 0, length);
+                }
+                finally
+                {
+                    ArrayPool<byte>.Shared.Return(bytes);
+                }
             }
 
             ValueStringBuilder sb = new ValueStringBuilder();
@@ -794,6 +825,23 @@ namespace Microsoft.ML.Tokenizers
             if (ids is null)
             {
                 throw new ArgumentNullException(nameof(ids));
+            }
+
+            if (FilterUnsupportedChars)
+            {
+                int[] allIds = ids.ToArray();
+                string decoded = Decode(allIds);
+                if (decoded.Length > destination.Length)
+                {
+                    idsConsumed = 0;
+                    charsWritten = 0;
+                    return OperationStatus.DestinationTooSmall;
+                }
+
+                decoded.AsSpan().CopyTo(destination);
+                idsConsumed = allIds.Length;
+                charsWritten = decoded.Length;
+                return OperationStatus.Done;
             }
 
             Span<char> buffer = destination;
@@ -908,57 +956,21 @@ namespace Microsoft.ML.Tokenizers
         // Private & Internal methods
         //
 
-        private IReadOnlyList<EncodedToken> ModifyTokenListOffsets(IReadOnlyList<EncodedToken> tokens, Span<int> indexMapping)
-        {
-            int index = 0;
-
-            for (int i = 0; i < tokens.Count; i++)
-            {
-                Debug.Assert(index + tokens[i].Value.Length <= indexMapping.Length);
-
-                if (tokens[i].Offset.Start.Value != indexMapping[index] || tokens[i].Offset.End.Value != indexMapping[index] + tokens[i].Value.Length)
-                {
-                    List<EncodedToken> list = new List<EncodedToken>(tokens.Count);
-                    for (int j = 0; j < i; j++)
-                    {
-                        list.Add(tokens[j]);
-                    }
-
-                    for (int j = i; j < tokens.Count; j++)
-                    {
-                        list.Add(new EncodedToken(tokens[j].Id, tokens[j].Value, new Range(indexMapping[index], indexMapping[index] + tokens[j].Value.Length)));
-                        index += tokens[j].Value.Length;
-                    }
-
-                    return list;
-                }
-
-                index += tokens[i].Value.Length;
-            }
-
-            return tokens;
-        }
-
         private static HighestOccurrenceMapping GetHighestOccurrenceMapping(Stream highestOccurrenceMappingStream) =>
             HighestOccurrenceMapping.Load(highestOccurrenceMappingStream);
 
         /// <summary>
         /// Encode a token into BPE-ed sub-tokens. E.g., "playing" into ["play", "ing"].
         /// </summary>
-        private List<EncodedToken> EncodeToTokens(Span<char> token, Span<int> indexMapping)
+        private List<EncodedToken> EncodeToTokens(Span<char> token, Span<int> indexMapping, ReadOnlySpan<char> originalText)
         {
-            if (token.Length == 0)
-            {
-                return [];
-            }
-
             string[] charToString = ByteToUnicodeEncoding.Instance.CharToString;
 
             if (token.Length == 1)
             {
                 Debug.Assert(token[0] < charToString.Length);
                 string tokenValue = charToString[token[0]];
-                return new List<EncodedToken> { new EncodedToken(_vocab[new StringSpanOrdinalKey(tokenValue)], tokenValue, new Range(indexMapping[0], indexMapping[0] + 1)) };
+                return new List<EncodedToken> { new EncodedToken(_vocab[new StringSpanOrdinalKey(tokenValue)], tokenValue, new Range(indexMapping[0], GetSourceEnd(indexMapping[0], originalText))) };
             }
 
             List<string> word = new(token.Length);
@@ -1047,11 +1059,24 @@ namespace Microsoft.ML.Tokenizers
 
             foreach (string w in word)
             {
-                tokens.Add(new EncodedToken(_vocab[new StringSpanOrdinalKey(w)], w, new Range(indexMapping[index], indexMapping[index] + w.Length)));
+                int sourceStart = indexMapping[index];
+                int sourceEnd = GetSourceEnd(indexMapping[index + w.Length - 1], originalText);
+                tokens.Add(new EncodedToken(_vocab[new StringSpanOrdinalKey(w)], w, new Range(sourceStart, sourceEnd)));
                 index += w.Length;
             }
 
             return tokens;
+        }
+
+        private static int GetSourceEnd(int sourceStart, ReadOnlySpan<char> originalText)
+        {
+            int sourceEnd = sourceStart + 1;
+            if (sourceEnd < originalText.Length && char.IsHighSurrogate(originalText[sourceStart]) && char.IsLowSurrogate(originalText[sourceEnd]))
+            {
+                sourceEnd++;
+            }
+
+            return sourceEnd;
         }
 
         /// <summary>
