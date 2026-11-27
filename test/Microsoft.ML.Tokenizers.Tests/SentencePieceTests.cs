@@ -858,6 +858,7 @@ namespace Microsoft.ML.Tokenizers.Tests
             Assert.Equal(new[] { 4, 5 }, tokenizer.EncodeToIds("Hello world"));
             Assert.Equal("Hello world", tokenizer.Decode(ids));
             Assert.Equal("[CLS]Hello world[SEP]", tokenizer.Decode(ids, considerSpecialTokens: true));
+            Assert.Equal("Hello world", tokenizer.Decode(new[] { 4, 5, 6 }));
 
             char[] buffer = new char[32];
             Assert.Equal(System.Buffers.OperationStatus.Done, tokenizer.Decode(ids, buffer, out int idsConsumed, out int charsWritten));
