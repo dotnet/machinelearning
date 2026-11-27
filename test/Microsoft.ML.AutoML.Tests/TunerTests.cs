@@ -230,6 +230,48 @@ namespace Microsoft.ML.AutoML.Test
         }
 
         [Fact]
+        public void EciCfo_should_propose_pipeline_ending_in_plain_trainer()
+        {
+            var context = new MLContext(1);
+            var mapKeyToValue = SweepableEstimatorFactory.CreateMapKeyToValue(new MapKeyToValueOption
+            {
+                InputColumnName = "input",
+                OutputColumnName = "output",
+            });
+            var trainer = context.BinaryClassification.Trainers.SdcaLogisticRegression();
+            // a plain estimator has no estimated cost, so the tuner uses its default cost for that pipeline.
+            var pipeline = mapKeyToValue.Append(trainer);
+            var searchSpace = new SearchSpace.SearchSpace();
+            searchSpace["_pipeline_"] = pipeline.SearchSpace;
+            var tuner = new EciCostFrugalTuner(pipeline, new AutoMLExperiment.AutoMLExperimentSettings
+            {
+                SearchSpace = searchSpace,
+                Seed = 1,
+            });
+            // the first result initializes the tuner's estimates, the second doesn't improve on it and the third does.
+            var losses = new[] { 0.5, 0.6, 0.4 };
+            var id = 0;
+            foreach (var loss in losses)
+            {
+                var trialSetting = new TrialSettings
+                {
+                    TrialId = id++,
+                    Parameter = Parameter.CreateNestedParameter(),
+                };
+                var parameter = tuner.Propose(trialSetting);
+                trialSetting.Parameter = parameter;
+                var chain = pipeline.BuildFromOption(context, parameter["_pipeline_"]);
+                Assert.Same(trainer, chain.LastEstimator);
+                tuner.Update(new TrialResult
+                {
+                    TrialSettings = trialSetting,
+                    DurationInMilliseconds = 10000,
+                    Loss = loss,
+                });
+            }
+        }
+
+        [Fact]
         public void LSE_maximize_test()
         {
             // this test verify if tuner can find max value for LSE.
