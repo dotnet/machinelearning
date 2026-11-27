@@ -408,6 +408,7 @@ namespace Microsoft.ML.Internal.Utilities
 
         private static bool IsDefaultPage(Uri uri)
             => uri != null
+            && uri.IsAbsoluteUri
             && uri.Host.Equals("www.microsoft.com", StringComparison.OrdinalIgnoreCase)
             && uri.AbsolutePath == "/";
 

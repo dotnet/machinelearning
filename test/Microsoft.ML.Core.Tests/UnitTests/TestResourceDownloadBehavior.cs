@@ -96,6 +96,30 @@ namespace Microsoft.ML.Core.Tests.UnitTests
         }
 
         [Fact]
+        public async Task DownloadHandlesRelativeRedirectLocation()
+        {
+            // A relative Location must not make the default-page check throw InvalidOperationException on Uri.Host.
+            using (var server = new LocalPayloadServer(0, status: 302, location: "/payload"))
+            using (var workspace = new TempWorkspace())
+            {
+                string path = Path.Combine(workspace.Path, "relative-redirect.bin");
+                var env = CreateEnvironment();
+
+                // Redirects are disabled so the 3xx response, with its relative Location, reaches the check.
+                using (var ch = env.Start("test"))
+                using (var client = new HttpClient(new HttpClientHandler { AllowAutoRedirect = false }))
+                {
+                    Exception result = await ResourceManagerUtils.Instance.DownloadResource(
+                        env, ch, client, new Uri(server.Url), path, "relative-redirect.bin", CancellationToken.None);
+
+                    Assert.IsType<HttpRequestException>(result);
+                }
+
+                Assert.False(File.Exists(path));
+            }
+        }
+
+        [Fact]
         public async Task DownloadThrowsWhenRedirectedToDefaultPage()
         {
             using (var server = new LocalPayloadServer(0, status: 302, location: "https://www.microsoft.com/?ref=aka"))
