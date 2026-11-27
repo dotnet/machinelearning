@@ -32,6 +32,8 @@
     <ProjectReference Include="..\..\src\Microsoft.ML.Transforms\Microsoft.ML.Transforms.csproj" />
     <ProjectReference Include="..\Microsoft.ML.TestFramework\Microsoft.ML.TestFramework.csproj" />
     <ProjectReference Include="..\Microsoft.ML.Tests\Microsoft.ML.Tests.csproj" />
+    <ProjectReference Include="AssemblyLoadingFixtures\RuntimeTests\Microsoft.ML.RuntimeTests.csproj" />
+    <ProjectReference Include="AssemblyLoadingFixtures\CosmosClientApi\CosmosClientApi.csproj" />
   </ItemGroup>
 
   <ItemGroup>
