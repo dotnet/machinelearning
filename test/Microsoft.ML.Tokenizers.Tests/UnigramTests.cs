@@ -1010,6 +1010,30 @@ namespace Microsoft.ML.Tokenizers.Tests
         }
 
         [Fact]
+        public void CreateFromTokenizerJsonStripAccentsReplacesLoneSurrogates()
+        {
+            // Normalizer.Normalize replaces lone surrogates with U+FFFD, as EncodeToTokens does when it converts the text to UTF-8: a high surrogate
+            // followed by a letter, a high surrogate at the end, a lone low surrogate, and a text cut in the middle of a surrogate pair at both ends.
+            using Stream stream = new System.IO.MemoryStream(System.Text.Encoding.UTF8.GetBytes(StripAccentsJson("""{ "type": "StripAccents" }""")));
+            SentencePieceTokenizer tokenizer = SentencePieceTokenizer.CreateFromTokenizerJson(stream, addBeginningOfSentence: false, addEndOfSentence: false);
+
+            (string Text, string Expected)[] cases =
+            [
+                ("a\uD800b", "\u2581a\uFFFDb"),
+                ("a\uD800", "\u2581a\uFFFD"),
+                ("a\uDC00b", "\u2581a\uFFFDb"),
+                ("\uDC00a\uD800", "\u2581\uFFFDa\uFFFD"),
+            ];
+
+            foreach ((string text, string expected) in cases)
+            {
+                Assert.Equal(expected, tokenizer.Normalizer!.Normalize(text));
+                tokenizer.EncodeToTokens(text, out string? normalizedText, addBeginningOfSentence: false, addEndOfSentence: false);
+                Assert.Equal(expected, normalizedText);
+            }
+        }
+
+        [Fact]
         public void CreateFromTokenizerJsonStripAccentsDropsAstralCombiningMark()
         {
             // Regression: a combining mark encoded as a surrogate pair (astral plane, e.g. U+1D167) must also be

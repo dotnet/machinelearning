@@ -277,13 +277,16 @@ namespace Microsoft.ML.Tokenizers
 
             public override string Normalize(string text)
             {
+                // Lone surrogates become U+FFFD, as they do in the byte-level path, which converts the text to UTF-8 first.
+                text = ReplaceLoneSurrogates(text);
+
                 StringBuilder? sb = null;
                 int i = 0;
                 while (i < text.Length)
                 {
                     // Iterate by code point so combining marks encoded as surrogate pairs (astral plane) are
                     // classified and dropped, matching the reference (which filters on full code points).
-                    int charCount = char.IsHighSurrogate(text[i]) && i + 1 < text.Length && char.IsLowSurrogate(text[i + 1]) ? 2 : 1;
+                    int charCount = char.IsSurrogatePair(text, i) ? 2 : 1;
                     UnicodeCategory category = CharUnicodeInfo.GetUnicodeCategory(text, i);
                     if (category is UnicodeCategory.NonSpacingMark or UnicodeCategory.SpacingCombiningMark or UnicodeCategory.EnclosingMark)
                     {
