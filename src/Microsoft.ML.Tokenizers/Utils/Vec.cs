@@ -74,6 +74,30 @@ namespace Microsoft.ML.Tokenizers
             _count--;
         }
 
+        public void RemoveAll(Predicate<T> match)
+        {
+            if (match is null)
+            {
+                throw new ArgumentNullException(nameof(match));
+            }
+
+            int writeIndex = 0;
+            while (writeIndex < _count && !match(_buffer![writeIndex]))
+            {
+                writeIndex++;
+            }
+
+            for (int readIndex = writeIndex + 1; readIndex < _count; readIndex++)
+            {
+                if (!match(_buffer![readIndex]))
+                {
+                    _buffer[writeIndex++] = _buffer[readIndex];
+                }
+            }
+
+            _count = writeIndex;
+        }
+
         public void Clear() => _count = 0;
     }
 }

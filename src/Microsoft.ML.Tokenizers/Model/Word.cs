@@ -184,14 +184,9 @@ namespace Microsoft.ML.Tokenizers
                 }
             }
 
-            // Filter out the removed symbols
-            for (int i = _symbols.Count - 1; i >= 0; i--)
-            {
-                if (_symbols[i].Len == 0)
-                {
-                    _symbols.Remove(i);
-                }
-            }
+            // Compact the symbols once instead of repeatedly shifting the list for each
+            // removed symbol. The latter makes long inputs quadratic in the number of merges.
+            _symbols.RemoveAll(static symbol => symbol.Len == 0);
         }
 
         public void PopulateIds(IList<int> accumulatedIds)
