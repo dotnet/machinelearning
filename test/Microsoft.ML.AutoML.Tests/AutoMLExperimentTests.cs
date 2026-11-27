@@ -145,29 +145,32 @@ namespace Microsoft.ML.AutoML.Test
         }
 
         [LightGBMFact]
-        public async Task AutoMLExperiment_lgbm_cancel_trial_when_exceeds_memory_limit_Async()
+        public async Task AutoMLExperiment_lgbm_cancel_trial_when_ct_is_canceled_during_training_Async()
         {
             // this test is to verify that lightGbm can be cancelled during training booster.
             var context = new MLContext(1);
+            using var cts = new CancellationTokenSource();
             context.Log += (o, e) =>
             {
+                // LightGBM logs its objective right before boosting, and the boosting loop checks for cancellation in every iteration.
                 if (e.Message.Contains("LightGBM objective"))
                 {
-                    context.CancelExecution();
+                    cts.Cancel();
                 }
             };
             var data = DatasetUtil.GetUciAdultDataView();
             var experiment = context.Auto().CreateExperiment();
+            // the sweepable trainer is created on the trial's MLContext, which the runner cancels when the trial is canceled.
             var pipeline = context.Auto().Featurizer(data, "_Features_", excludeColumns: new[] { DatasetUtil.UciAdultLabel })
-                                .Append(context.BinaryClassification.Trainers.LightGbm(DatasetUtil.UciAdultLabel, "_Features_", numberOfIterations: 10000));
+                                .Append(context.Auto().BinaryClassification(DatasetUtil.UciAdultLabel, "_Features_", useFastForest: false, useFastTree: false, useLbfgsLogisticRegression: false, useSdcaLogisticRegression: false));
 
             experiment.SetDataset(context.Data.TrainTestSplit(data))
                     .SetBinaryClassificationMetric(BinaryClassificationMetric.AreaUnderRocCurve, DatasetUtil.UciAdultLabel)
                     .SetPipeline(pipeline)
-                    .SetTrainingTimeInSeconds(10)
-                    .SetMaximumMemoryUsageInMegaByte(10);
+                    .SetMaxModelToExplore(1);
 
-            await Assert.ThrowsAsync<TimeoutException>(() => experiment.RunAsync());
+            await Assert.ThrowsAsync<TimeoutException>(() => experiment.RunAsync(cts.Token));
+            Assert.True(cts.IsCancellationRequested);
         }
 
         [Fact]
@@ -206,11 +209,14 @@ namespace Microsoft.ML.AutoML.Test
 
             public async Task<TrialResult> RunAsync(TrialSettings settings, CancellationToken ct)
             {
+                var delay = TimeSpan.Zero;
                 if (settings.TrialId > 0)
                 {
                     _laterTrialStarted.TrySetResult(true);
-                    await Task.Delay(TimeSpan.FromMinutes(1), ct);
+                    delay = TimeSpan.FromMinutes(1);
                 }
+
+                await Task.Delay(delay, ct);
 
                 var metric = 1.0 + settings.TrialId;
                 return new TrialResult
@@ -271,7 +277,7 @@ namespace Microsoft.ML.AutoML.Test
                     _cts.Cancel();
                     if (_throwOnCancellation)
                     {
-                        _cts.Token.ThrowIfCancellationRequested();
+                        throw new OperationCanceledException(_cts.Token);
                     }
                 }
 
@@ -288,25 +294,16 @@ namespace Microsoft.ML.AutoML.Test
         {
             var context = new MLContext(1);
             using var cts = new CancellationTokenSource();
-            var startupAfterStop = new List<string>();
+            TrialStartMonitor monitor = null;
+            var stopRequestedWhenRunnerCreated = new List<bool>();
             var experiment = context.Auto().CreateExperiment()
                 .SetMaxModelToExplore(2)
                 .SetRegressionMetric(RegressionMetric.RSquared)
                 .SetTuner(new CancelWhileProposingTuner(cts, throwOnCancellation: false))
-                .SetMonitor(new TrialStartMonitor(settings =>
-                {
-                    if (cts.IsCancellationRequested)
-                    {
-                        startupAfterStop.Add($"reported trial {settings.TrialId} as running");
-                    }
-                }))
+                .SetMonitor(provider => monitor = new TrialStartMonitor(provider.GetRequiredService<IChannel>()))
                 .SetTrialRunner(provider =>
                 {
-                    if (cts.IsCancellationRequested)
-                    {
-                        startupAfterStop.Add("created a runner");
-                    }
-
+                    stopRequestedWhenRunnerCreated.Add(cts.IsCancellationRequested);
                     return new FixedMetricTrialRunner(provider.GetRequiredService<IMetricManager>());
                 });
 
@@ -314,33 +311,27 @@ namespace Microsoft.ML.AutoML.Test
 
             Assert.True(cts.IsCancellationRequested);
             Assert.Equal(0, result.TrialSettings.TrialId);
-            Assert.Empty(startupAfterStop);
+            // trial 1 is proposed after the stop, so it must not be reported as running or get a runner.
+            Assert.Equal(new[] { 0 }, monitor.RunningTrialIds);
+            Assert.DoesNotContain(true, stopRequestedWhenRunnerCreated);
         }
 
         /// <summary>
-        /// Calls the given action for every trial reported as running.
+        /// The default <see cref="MLContextMonitor"/>, which also records the IDs of the trials reported as running.
         /// </summary>
-        private sealed class TrialStartMonitor : IMonitor
+        private sealed class TrialStartMonitor : MLContextMonitor
         {
-            private readonly Action<TrialSettings> _onRunning;
-
-            public TrialStartMonitor(Action<TrialSettings> onRunning)
-            {
-                _onRunning = onRunning;
-            }
-
-            public void ReportRunningTrial(TrialSettings settings) => _onRunning(settings);
-
-            public void ReportCompletedTrial(TrialResult result)
+            public TrialStartMonitor(IChannel logger)
+                : base(logger, new SweepablePipeline())
             {
             }
 
-            public void ReportBestTrial(TrialResult result)
-            {
-            }
+            public List<int> RunningTrialIds { get; } = new List<int>();
 
-            public void ReportFailTrial(TrialSettings settings, Exception exception = null)
+            public override void ReportRunningTrial(TrialSettings setting)
             {
+                base.ReportRunningTrial(setting);
+                RunningTrialIds.Add(setting.TrialId);
             }
         }
 
@@ -408,8 +399,8 @@ namespace Microsoft.ML.AutoML.Test
         }
 
         /// <summary>
-        /// Cancels the given <see cref="CancellationTokenSource"/> and throws while it's updated with the first trial's result,
-        /// like a tuner that observes the cancellation itself.
+        /// Cancels the given <see cref="CancellationTokenSource"/> and throws when it's updated with a trial's result, like a tuner
+        /// that observes the cancellation itself. The experiment stops after that, so this only happens for the first trial.
         /// </summary>
         private sealed class CancelWhileUpdatingTuner : ITuner
         {
@@ -427,11 +418,8 @@ namespace Microsoft.ML.AutoML.Test
 
             public void Update(TrialResult result)
             {
-                if (result.TrialSettings.TrialId == 0)
-                {
-                    _cts.Cancel();
-                    _cts.Token.ThrowIfCancellationRequested();
-                }
+                _cts.Cancel();
+                throw new OperationCanceledException(_cts.Token);
             }
         }
 
@@ -475,7 +463,7 @@ namespace Microsoft.ML.AutoML.Test
                 {
                     _stopCts.Cancel();
                     _tunerCts.Cancel();
-                    _tunerCts.Token.ThrowIfCancellationRequested();
+                    throw new OperationCanceledException(_tunerCts.Token);
                 }
 
                 return Parameter.CreateNestedParameter();
