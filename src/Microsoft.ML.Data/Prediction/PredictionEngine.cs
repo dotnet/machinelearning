@@ -132,7 +132,7 @@ namespace Microsoft.ML
         private protected virtual Func<DataViewSchema, IRowToRowMapper> TransformerChecker(IExceptionContext ectx, ITransformer transformer)
         {
             ectx.CheckValue(transformer, nameof(transformer));
-            ectx.CheckParam(transformer.IsRowToRowMapper, nameof(transformer), "Must be a row to row mapper");
+            ectx.CheckParam(transformer.IsRowToRowMapper, nameof(transformer), Strings.MustBeARowToRowMapper);
             return transformer.GetRowToRowMapper;
         }
 

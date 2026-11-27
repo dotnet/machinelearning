@@ -130,7 +130,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 : base(options.TrainSize, 0, options.Source, options.Name, options.ConfidenceLowerBoundColumn,
                       options.ConfidenceUpperBoundColumn, name, options.VariableHorizon ? 0 : options.Horizon, env)
             {
-                Host.CheckUserArg(0 <= options.DiscountFactor && options.DiscountFactor <= 1, nameof(options.DiscountFactor), "Must be in the range [0, 1].");
+                Host.CheckUserArg(0 <= options.DiscountFactor && options.DiscountFactor <= 1, nameof(options.DiscountFactor), Strings.MustBeBetweenZeroAndOneInclusive);
                 IsAdaptive = options.IsAdaptive;
                 Horizon = options.Horizon;
                 ConfidenceLevel = options.ConfidenceLevel;

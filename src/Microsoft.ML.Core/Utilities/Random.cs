@@ -185,7 +185,7 @@ namespace Microsoft.ML
 
         public override int Next(int maxValue)
         {
-            Contracts.CheckParam(maxValue >= 0, nameof(maxValue), "maxValue must be non-negative");
+            Contracts.CheckParam(maxValue >= 0, nameof(maxValue), Strings.MaxValueMustBeNonNegative);
             NextState();
             uint u = GetUint();
             ulong uu = (ulong)u * (ulong)maxValue;
@@ -196,7 +196,7 @@ namespace Microsoft.ML
 
         public override int Next(int minValue, int maxValue)
         {
-            Contracts.CheckParam(minValue <= maxValue, nameof(minValue), "minValue must be less than or equal to maxValue.");
+            Contracts.CheckParam(minValue <= maxValue, nameof(minValue), Strings.MinValueMustBeLessThanOrEqualToMaxValue);
 
             long range = (long)maxValue - minValue;
             return (int)((long)(NextDouble() * range) + minValue);

@@ -320,7 +320,7 @@ namespace Microsoft.ML.Transforms.Image
                                             _ => ImageResizeMode.CropAnchorCentral
                                         },
                                     ImageResizingEstimator.ResizingKind.Fill => ImageResizeMode.Fill,
-                                    _ => throw new InvalidOperationException($"Invalid image resizing mode value")
+                                    _ => throw new InvalidOperationException(Strings.InvalidImageResizingModeValue)
                                 });
 
                         dst.Tag = src.Tag;

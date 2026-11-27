@@ -163,11 +163,11 @@ internal static class TlcModule
             {
                 CheckType(value);
                 Contracts.Check(_inf == null,
-                    "The minimum and infimum cannot be both set in a range attribute");
+                    Strings.MinimumAndInfimumMutuallyExclusive);
                 Contracts.Check(_max == null || ((IComparable)_max).CompareTo(value) != -1,
-                    "The minimum must be less than or equal to the maximum");
+                    Strings.MinimumMustNotExceedMaximum);
                 Contracts.Check(_sup == null || ((IComparable)_sup).CompareTo(value) == 1,
-                    "The minimum must be less than the supremum");
+                    Strings.TheMinimumMustBeLessThanTheSupremum);
                 _min = value;
             }
         }
@@ -182,11 +182,11 @@ internal static class TlcModule
             {
                 CheckType(value);
                 Contracts.Check(_sup == null,
-                    "The maximum and supremum cannot be both set in a range attribute");
+                    Strings.MaximumAndSupremumMutuallyExclusive);
                 Contracts.Check(_min == null || ((IComparable)_min).CompareTo(value) != 1,
-                    "The maximum must be greater than or equal to the minimum");
+                    Strings.MaximumMustNotBeLessThanMinimum);
                 Contracts.Check(_inf == null || ((IComparable)_inf).CompareTo(value) == -1,
-                    "The maximum must be greater than the infimum");
+                    Strings.TheMaximumMustBeGreaterThanTheInfimum);
                 _max = value;
             }
         }
@@ -201,11 +201,11 @@ internal static class TlcModule
             {
                 CheckType(value);
                 Contracts.Check(_min == null,
-                    "The infimum and minimum cannot be both set in a range attribute");
+                    Strings.InfimumAndMinimumMutuallyExclusive);
                 Contracts.Check(_max == null || ((IComparable)_max).CompareTo(value) == 1,
-                    "The infimum must be less than the maximum");
+                    Strings.TheInfimumMustBeLessThanTheMaximum);
                 Contracts.Check(_sup == null || ((IComparable)_sup).CompareTo(value) == 1,
-                    "The infimum must be less than the supremum");
+                    Strings.TheInfimumMustBeLessThanTheSupremum);
                 _inf = value;
             }
         }
@@ -220,11 +220,11 @@ internal static class TlcModule
             {
                 CheckType(value);
                 Contracts.Check(_max == null,
-                    "The supremum and maximum cannot be both set in a range attribute");
+                    Strings.SupremumAndMaximumMutuallyExclusive);
                 Contracts.Check(_min == null || ((IComparable)_min).CompareTo(value) == -1,
-                    "The supremum must be greater than the minimum");
+                    Strings.TheSupremumMustBeGreaterThanTheMinimum);
                 Contracts.Check(_inf == null || ((IComparable)_inf).CompareTo(value) == -1,
-                    "The supremum must be greater than the infimum");
+                    Strings.TheSupremumMustBeGreaterThanTheInfimum);
                 _sup = value;
             }
         }
@@ -234,11 +234,11 @@ internal static class TlcModule
             Contracts.CheckValue(val, nameof(val));
             if (_type == null)
             {
-                Contracts.Check(val is IComparable, "Type for range attribute must support IComparable");
+                Contracts.Check(val is IComparable, Strings.TypeForRangeAttributeMustSupportIComparable);
                 _type = val.GetType();
             }
             else
-                Contracts.Check(_type == val.GetType(), "All Range attribute values must be of the same type");
+                Contracts.Check(_type == val.GetType(), Strings.AllRangeAttributeValuesMustBeOfTheSameType);
         }
 
         public void CastToDouble()

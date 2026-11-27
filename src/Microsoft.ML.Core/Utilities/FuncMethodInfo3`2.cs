@@ -32,7 +32,7 @@ namespace Microsoft.ML.Internal.Utilities
             _instanceMethodInfo = ImmutableDictionary<(Type, Type, Type), MethodInfo>.Empty;
 
             Contracts.CheckParam(GenericMethodDefinition.GetGenericArguments().Length == 3, nameof(methodInfo),
-                "Should have exactly three generic type parameters but does not");
+                Strings.ShouldHaveExactlyThreeGenericTypeParametersButDoesNot);
         }
 
         public MethodInfo MakeGenericMethod(Type typeArg1, Type typeArg2, Type typeArg3)

@@ -433,7 +433,7 @@ namespace Microsoft.Data.Analysis
             for (int i = 0; i < Columns.Count; i++)
             {
                 if (Columns[i].Length != rowCount)
-                    throw new ArgumentException(String.Format("{0} {1}", Strings.MismatchedRowCount, Columns[i].Name));
+                    throw new ArgumentException(string.Format(Strings.MismatchedRowCount, Columns[i].Name));
             }
             _columnCollection.RowCount = rowCount;
         }

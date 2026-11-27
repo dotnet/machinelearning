@@ -1,0 +1,367 @@
+﻿<?xml version='1.0' encoding='utf-8'?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="AlertingByMartingaleRequiresMartingaleType" xml:space="preserve">
+    <value>A martingale type should be specified if alerting is based on the martingale score.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.TimeSeries/SequentialAnomalyDetectionTransformBase.cs:176.</comment>
+  </data>
+  <data name="CannotAccomplishNeighborsObtaining" xml:space="preserve">
+    <value>cannot accomplish neighbors obtaining</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.TimeSeries/STL/LocalRegression.cs:42.</comment>
+  </data>
+  <data name="CannotBeSavedAsONNX" xml:space="preserve">
+    <value>Cannot be saved as ONNX.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.TimeSeries/SequentialTransformerBase.cs:902.</comment>
+  </data>
+  <data name="CannotBeSavedAsPFA" xml:space="preserve">
+    <value>Cannot be saved as PFA.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.TimeSeries/SequentialTransformerBase.cs:912.</comment>
+  </data>
+  <data name="GetRowToRowMapperRequiresStatefulRowToRowTransformer" xml:space="preserve">
+    <value>GetRowToRowMapper method called despite IsRowToRowMapper being false. or transformer not being IStatefulTransformer</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.TimeSeries/PredictionEngine.cs:239.</comment>
+  </data>
+  <data name="HasNoPointsInTheGivenAnomalyTimestamp" xml:space="preserve">
+    <value>Has no points in the given anomaly timestamp</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.TimeSeries/ExtensionsCatalog.cs:439.</comment>
+  </data>
+  <data name="ZeroLagSingleWindowShouldUseCopyTransform" xml:space="preserve">
+    <value>If {0}=0 and {1}=1, the transform just copies the column. Use {2} transform instead.</value>
+    <comment>Exception or validation message. Placeholders: {0}=args.Lag, {1}=args.WindowSize, {2}=ColumnCopyingTransformer.LoaderSignature. Source: src/Microsoft.ML.TimeSeries/SlidingWindowTransformBase.cs:72.</comment>
+  </data>
+  <data name="ZeroLagSingleWindowShouldUseCopyColumn" xml:space="preserve">
+    <value>If lag=0 and wnd=1, the transform just copies the column. Use CopyColumn instead.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.TimeSeries/MovingAverageTransform.cs:74.</comment>
+  </data>
+  <data name="InputDataStructureCannotBe0LengthLowess" xml:space="preserve">
+    <value>input data structure cannot be 0-length: lowess</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.TimeSeries/STL/FastLoess.cs:47.</comment>
+  </data>
+  <data name="InputDataStructureCannotBe0Length" xml:space="preserve">
+    <value>input data structure cannot be 0-length</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.TimeSeries/STL/LeastSquares.cs:32.</comment>
+  </data>
+  <data name="InnerStlInputTooShort" xml:space="preserve">
+    <value>input time series length for InnerStl is below {0}</value>
+    <comment>Exception or validation message. Placeholders: {0}=MinTimeSeriesLength. Source: src/Microsoft.ML.TimeSeries/STL/InnerStl.cs:123.</comment>
+  </data>
+  <data name="LoessInputTooShort" xml:space="preserve">
+    <value>input time series length for Loess is below {0}</value>
+    <comment>Exception or validation message. Placeholders: {0}=MinTimeSeriesLength. Source: src/Microsoft.ML.TimeSeries/STL/Loess.cs:53.</comment>
+  </data>
+  <data name="InvalidColValueInGetGetter" xml:space="preserve">
+    <value>Invalid col value in GetGetter</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.TimeSeries/SequentialTransformerBase.cs:666.</comment>
+  </data>
+  <data name="InvalidDetectMode" xml:space="preserve">
+    <value>Invalid detectMode</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.TimeSeries/SrCnnEntireAnomalyDetector.cs:213. Exception or validation message. Source: src/Microsoft.ML.TimeSeries/SrCnnEntireAnomalyDetector.cs:217.</comment>
+  </data>
+  <data name="InvalidTValueInGetGetterExpectedType" xml:space="preserve">
+    <value>Invalid TValue in GetGetter: '{0}', expected type: '{1}'.</value>
+    <comment>Exception or validation message. Placeholders: {0}=typeof(TValue), {1}=getter.GetType().GetGenericArguments().First(). Source: src/Microsoft.ML.TimeSeries/SequentialTransformerBase.cs:1066. Exception or validation message. Placeholders: {0}=typeof(TValue), {1}=originFn.GetType().GetGenericArguments().First(). Source: src/Microsoft.ML.TimeSeries/SequentialTransformerBase.cs:994.</comment>
+  </data>
+  <data name="InvalidTValueInGetPinger" xml:space="preserve">
+    <value>Invalid TValue in GetPinger: '{0}'</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.TimeSeries/SequentialTransformerBase.cs:1000. Exception or validation message. Source: src/Microsoft.ML.TimeSeries/SequentialTransformerBase.cs:675.</comment>
+  </data>
+  <data name="MapperRequiredColumnActiveButItWasNot" xml:space="preserve">
+    <value>Mapper required column '{0}' active but it was not.</value>
+    <comment>Exception or validation message. Placeholders: {0}=input.Schema[c].Name. Source: src/Microsoft.ML.TimeSeries/PredictionEngine.cs:180.</comment>
+  </data>
+  <data name="MustBeNegativeOneOrAtLeastTwelve" xml:space="preserve">
+    <value>Must be -1 or no less than 12.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.TimeSeries/SrCnnEntireAnomalyDetector.cs:207.</comment>
+  </data>
+  <data name="MustBeARowToRowMapperOrIStatefulTransformer" xml:space="preserve">
+    <value>Must be a row to row mapper or IStatefulTransformer</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.TimeSeries/PredictionEngine.cs:268.</comment>
+  </data>
+  <data name="MustBeAnIntegerEqualToOrGreaterThan0" xml:space="preserve">
+    <value>Must be an integer equal to or greater than 0.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.TimeSeries/SrCnnEntireAnomalyDetector.cs:205.</comment>
+  </data>
+  <data name="MustBeAtLeast1" xml:space="preserve">
+    <value>Must be at least 1.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.TimeSeries/SlidingWindowTransformBase.cs:66.</comment>
+  </data>
+  <data name="MustBeAtLeast2" xml:space="preserve">
+    <value>Must be at least 2.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.TimeSeries/SsaAnomalyDetectionBase.cs:194.</comment>
+  </data>
+  <data name="BatchSizeMustCoverFourPeriods" xml:space="preserve">
+    <value>Must be at least four times the length of one period.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.TimeSeries/SrCnnEntireAnomalyDetector.cs:208.</comment>
+  </data>
+  <data name="MustBeBetweenZeroAndOneHundredInclusive" xml:space="preserve">
+    <value>Must be in [0,100].</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.TimeSeries/SrCnnEntireAnomalyDetector.cs:219.</comment>
+  </data>
+  <data name="MustBeBetweenZeroAndOneInclusive" xml:space="preserve">
+    <value>Must be in [0,1]</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.TimeSeries/ExtensionsCatalog.cs:373. Exception or validation message. Source: src/Microsoft.ML.TimeSeries/ExtensionsCatalog.cs:374. Exception or validation message. Source: src/Microsoft.ML.TimeSeries/SequentialAnomalyDetectionTransformBase.cs:182. Exception or validation message. Source: src/Microsoft.ML.TimeSeries/SrCnnEntireAnomalyDetector.cs:210. Exception or validation message. Source: src/Microsoft.ML.TimeSeries/SsaAnomalyDetectionBase.cs:195. Exception or validation message. Source: src/Microsoft.ML.TimeSeries/SsaForecastingBase.cs:133.</comment>
+  </data>
+  <data name="MustBeGreaterThanZeroAndLessThanOne" xml:space="preserve">
+    <value>Must be in (0,1)</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.TimeSeries/SrCnnTransformBase.cs:77.</comment>
+  </data>
+  <data name="MustBeNonNegativeAndNotLargerThanWindowSize" xml:space="preserve">
+    <value>Must be non-negative and not larger than window size</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.TimeSeries/SrCnnTransformBase.cs:74. Exception or validation message. Source: src/Microsoft.ML.TimeSeries/SrCnnTransformBase.cs:75. Exception or validation message. Source: src/Microsoft.ML.TimeSeries/SrCnnTransformBase.cs:76.</comment>
+  </data>
+  <data name="MustBeNonNegative" xml:space="preserve">
+    <value>Must be non-negative.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.TimeSeries/SequentialAnomalyDetectionTransformBase.cs:181. Exception or validation message. Source: src/Microsoft.ML.TimeSeries/SequentialTransformBase.cs:119. Exception or validation message. Source: src/Microsoft.ML.TimeSeries/SequentialTransformBase.cs:120. Exception or validation message. Source: src/Microsoft.ML.TimeSeries/SequentialTransformBase.cs:279. Exception or validation message. Source: src/Microsoft.ML.TimeSeries/SequentialTransformBase.cs:280. Exception or validation message. Source: src/Microsoft.ML.TimeSeries/SequentialTransformerBase.cs:101. Exception or validation message. Source: src/Microsoft.ML.TimeSeries/SequentialTransformerBase.cs:102. Exception or validation message. Source: src/Microsoft.ML.TimeSeries/SequentialTransformerBase.cs:360. Exception or validation message. Source: src/Microsoft.ML.TimeSeries/SequentialTransformerBase.cs:361. Exception or validation message. Source: src/Microsoft.ML.TimeSeries/SrCnnTransformBase.cs:73.</comment>
+  </data>
+  <data name="MustBePositive" xml:space="preserve">
+    <value>Must be positive.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.TimeSeries/SlidingWindowTransformBase.cs:67.</comment>
+  </data>
+  <data name="MustContainExact2Elements" xml:space="preserve">
+    <value>must contain exact 2 elements.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.TimeSeries/STL/PolynomialModel.cs:64.</comment>
+  </data>
+  <data name="MustHasMoreThanOneItem" xml:space="preserve">
+    <value>Must has more than one item</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.TimeSeries/ExtensionsCatalog.cs:429.</comment>
+  </data>
+  <data name="MustHaveFeaturesColumn" xml:space="preserve">
+    <value>Must have features column.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.TimeSeries/AdaptiveSingularSpectrumSequenceModeler.cs:1210.</comment>
+  </data>
+  <data name="NotARowToRowMapper" xml:space="preserve">
+    <value>Not a RowToRowMapper.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.TimeSeries/SequentialTransformerBase.cs:454.</comment>
+  </data>
+  <data name="NotFiniteUnitValue" xml:space="preserve">
+    <value>Not finite unit value</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.TimeSeries/SrCnnEntireAnomalyDetector.cs:1020.</comment>
+  </data>
+  <data name="ObjectIsNotABestDimension" xml:space="preserve">
+    <value>Object is not a BestDimension</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.TimeSeries/RootCauseAnalyzer.cs:788.</comment>
+  </data>
+  <data name="InputSchemaDoesNotMatchMapperSchema" xml:space="preserve">
+    <value>Schema of input row must be the same as the schema the mapper is bound to</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.TimeSeries/SequentialTransformerBase.cs:932.</comment>
+  </data>
+  <data name="ShouldBeAtLeast1" xml:space="preserve">
+    <value>Should be at least 1.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.TimeSeries/MovingAverageTransform.cs:71.</comment>
+  </data>
+  <data name="ShouldBeGreaterThanZeroAndLessThanOne" xml:space="preserve">
+    <value>Should be in (0,1).</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.TimeSeries/SequentialAnomalyDetectionTransformBase.cs:180.</comment>
+  </data>
+  <data name="ShouldBeBetweenZeroAndOneInclusive" xml:space="preserve">
+    <value>Should be in [0, 1].</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.TimeSeries/ExponentialAverageTransform.cs:63.</comment>
+  </data>
+  <data name="ShouldBePositive" xml:space="preserve">
+    <value>Should be positive.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.TimeSeries/MovingAverageTransform.cs:72.</comment>
+  </data>
+  <data name="AlertingScoreOutOfRange" xml:space="preserve">
+    <value>The alerting score can be only (0) RawScore, (1) PValueScore or (2) MartingaleScore.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.TimeSeries/SequentialAnomalyDetectionTransformBase.cs:164.</comment>
+  </data>
+  <data name="ConfidenceLevelMustBeAtLeastZeroAndLessThanOne" xml:space="preserve">
+    <value>The confidence level must be in [0, 1).</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.TimeSeries/AdaptiveSingularSpectrumSequenceModeler.cs:1502.</comment>
+  </data>
+  <data name="DiscountFactorShouldBeBetweenZeroAndOneInclusive" xml:space="preserve">
+    <value>The discount factor should be in [0,1].</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.TimeSeries/AdaptiveSingularSpectrumSequenceModeler.cs:238.</comment>
+  </data>
+  <data name="TheDoublePrecisionMustBePositive" xml:space="preserve">
+    <value>The double precision must be positive.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.TimeSeries/PolynomialUtils.cs:72.</comment>
+  </data>
+  <data name="UnsupportedErrorFunction" xml:space="preserve">
+    <value>The error function should be either (0) SignedDifference, (1) AbsoluteDifference, (2) SignedProportion (3) AbsoluteProportion or (4) SquaredDifference.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.TimeSeries/SsaAnomalyDetectionBase.cs:196. Exception or validation message. Source: src/Microsoft.ML.TimeSeries/SsaAnomalyDetectionBase.cs:77.</comment>
+  </data>
+  <data name="TheForecastIntervalsCannotBeComputedForThisForecastObject" xml:space="preserve">
+    <value>The forecast intervals cannot be computed for this forecast object.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.TimeSeries/AdaptiveSingularSpectrumSequenceModeler.cs:1504.</comment>
+  </data>
+  <data name="TheForecastStandardDeviationValuesAreNotAvailable" xml:space="preserve">
+    <value>The forecast standard deviation values are not available.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.TimeSeries/AdaptiveSingularSpectrumSequenceModeler.cs:1509.</comment>
+  </data>
+  <data name="TheGrowthMustBeNonNegative" xml:space="preserve">
+    <value>The growth must be non-negative.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.TimeSeries/AdaptiveSingularSpectrumSequenceModeler.cs:240.</comment>
+  </data>
+  <data name="TheHorizonParameterShouldBeGreaterThan0" xml:space="preserve">
+    <value>The horizon parameter should be greater than 0.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.TimeSeries/AdaptiveSingularSpectrumSequenceModeler.cs:1420.</comment>
+  </data>
+  <data name="TheHostCannotBeNull" xml:space="preserve">
+    <value>The host cannot be null.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.TimeSeries/SequentialTransformBase.cs:116. Exception or validation message. Source: src/Microsoft.ML.TimeSeries/SequentialTransformerBase.cs:118. Exception or validation message. Source: src/Microsoft.ML.TimeSeries/SequentialTransformerBase.cs:99.</comment>
+  </data>
+  <data name="TheInputDataCannotBeNull" xml:space="preserve">
+    <value>The input data cannot be null.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.TimeSeries/TrajectoryMatrix.cs:119.</comment>
+  </data>
+  <data name="TheInputMatrixMustAtLeastHaveElements" xml:space="preserve">
+    <value>The input matrix must at least have {0} elements</value>
+    <comment>Exception or validation message. Placeholders: {0}=n2. Source: src/Microsoft.ML.TimeSeries/EigenUtils.cs:515.</comment>
+  </data>
+  <data name="TheInputMatrixSizeMustBeStrictlyPositive" xml:space="preserve">
+    <value>The input matrix size must be strictly positive.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.TimeSeries/EigenUtils.cs:513.</comment>
+  </data>
+  <data name="TheInputMustContainNoLessThan12Points" xml:space="preserve">
+    <value>The input must contain no less than 12 points.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.TimeSeries/SrCnnEntireAnomalyDetector.cs:306.</comment>
+  </data>
+  <data name="TheInputSeriesForTrainingCannotBeNull" xml:space="preserve">
+    <value>The input series for training cannot be null.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.TimeSeries/AdaptiveSingularSpectrumSequenceModeler.cs:1168.</comment>
+  </data>
+  <data name="TheInputSeriesForTrainingDoesNotHaveEnoughPoints" xml:space="preserve">
+    <value>The input series for training does not have enough points for training.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.TimeSeries/AdaptiveSingularSpectrumSequenceModeler.cs:1169.</comment>
+  </data>
+  <data name="TheInputSeriesForUpdatingCannotBeNull" xml:space="preserve">
+    <value>The input series for updating cannot be null.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.TimeSeries/AdaptiveSingularSpectrumSequenceModeler.cs:1554.</comment>
+  </data>
+  <data name="TrainingInputMustExceedTwiceWindowSize" xml:space="preserve">
+    <value>The input size for training should be greater than twice the window size.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.TimeSeries/AdaptiveSingularSpectrumSequenceModeler.cs:237.</comment>
+  </data>
+  <data name="InputSeriesShorterThanOriginal" xml:space="preserve">
+    <value>The length of the input series cannot be less than that of the original series.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.TimeSeries/TrajectoryMatrix.cs:137.</comment>
+  </data>
+  <data name="WeightAndDataLengthMismatch" xml:space="preserve">
+    <value>The length of the weight vector is not equal to the length of the data points.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.TimeSeries/STL/LeastSquares.cs:50.</comment>
+  </data>
+  <data name="WindowLongerThanData" xml:space="preserve">
+    <value>The length of the window should be less than or equal to the length of the data.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.TimeSeries/TrajectoryMatrix.cs:123.</comment>
+  </data>
+  <data name="TheLengthParameterMustBeGreaterThan0" xml:space="preserve">
+    <value>The length parameter must be greater than 0.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.TimeSeries/FftUtils.cs:225. Exception or validation message. Source: src/Microsoft.ML.TimeSeries/FftUtils.cs:270. Exception or validation message. Source: src/Microsoft.ML.TimeSeries/FftUtils.cs:327. Exception or validation message. Source: src/Microsoft.ML.TimeSeries/FftUtils.cs:372.</comment>
+  </data>
+  <data name="FourierBufferLengthTooShort" xml:space="preserve">
+    <value>The lengths of inputRe, inputIm, outputRe and outputIm need to be at least equal to the length parameter.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.TimeSeries/FftUtils.cs:227. Exception or validation message. Source: src/Microsoft.ML.TimeSeries/FftUtils.cs:272. Exception or validation message. Source: src/Microsoft.ML.TimeSeries/FftUtils.cs:329. Exception or validation message. Source: src/Microsoft.ML.TimeSeries/FftUtils.cs:374.</comment>
+  </data>
+  <data name="MartingaleTypeOutOfRange" xml:space="preserve">
+    <value>The martingale type can be only (0) None, (1) Power or (2) Mixture.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.TimeSeries/IidChangePointDetector.cs:134.</comment>
+  </data>
+  <data name="MaxRankShouldBeAtLeastOneAndLessThanWindowSize" xml:space="preserve">
+    <value>The max rank should be in [1, windowSize).</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.TimeSeries/AdaptiveSingularSpectrumSequenceModeler.cs:246.</comment>
+  </data>
+  <data name="PercentileValueShouldBeBetweenZeroAndOneHundredInclusive" xml:space="preserve">
+    <value>The percentile value should be in [0, 100].</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.TimeSeries/PercentileThresholdTransform.cs:71.</comment>
+  </data>
+  <data name="RankShouldBeAtLeastOneAndLessThanWindowSize" xml:space="preserve">
+    <value>The rank should be in [1, windowSize).</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.TimeSeries/AdaptiveSingularSpectrumSequenceModeler.cs:257.</comment>
+  </data>
+  <data name="TheSeriesLengthCannotBeGreaterThanTheDataLength" xml:space="preserve">
+    <value>The series length cannot be greater than the data length.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.TimeSeries/TrajectoryMatrix.cs:120.</comment>
+  </data>
+  <data name="TheSeriesLengthShouldBeGreaterThanTheWindowSize" xml:space="preserve">
+    <value>The series length should be greater than the window size.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.TimeSeries/AdaptiveSingularSpectrumSequenceModeler.cs:236.</comment>
+  </data>
+  <data name="SlidingWindowSizeMustBePositive" xml:space="preserve">
+    <value>The size of the sliding window should be at least 1.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.TimeSeries/PValueTransform.cs:75. Exception or validation message. Source: src/Microsoft.ML.TimeSeries/PercentileThresholdTransform.cs:70.</comment>
+  </data>
+  <data name="TimeSeriesInputMustBeFloat" xml:space="preserve">
+    <value>The time series input column has type '{0}', but must be a float.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.TimeSeries/AdaptiveSingularSpectrumSequenceModeler.cs:1558.</comment>
+  </data>
+  <data name="TheTimeSpanMustBeStrictlyPositive" xml:space="preserve">
+    <value>The time span must be strictly positive.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.TimeSeries/AdaptiveSingularSpectrumSequenceModeler.cs:239.</comment>
+  </data>
+  <data name="TheWindowLengthShouldBeGreaterThan0" xml:space="preserve">
+    <value>The window length should be greater than 0.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.TimeSeries/TrajectoryMatrix.cs:118.</comment>
+  </data>
+  <data name="TheWindowSizeCanBeSetOnlyOnce" xml:space="preserve">
+    <value>The window size can be set only once.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.TimeSeries/SequentialTransformBase.cs:117.</comment>
+  </data>
+  <data name="TheWindowSizeShouldBeAtLeast2" xml:space="preserve">
+    <value>The window size should be at least 2.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.TimeSeries/AdaptiveSingularSpectrumSequenceModeler.cs:235.</comment>
+  </data>
+  <data name="LoessAxisLengthMismatch" xml:space="preserve">
+    <value>the x-axis length should be equal to y-axis length!: lowess</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.TimeSeries/STL/Loess.cs:56.</comment>
+  </data>
+  <data name="LeastSquaresAxisLengthMismatch" xml:space="preserve">
+    <value>the x-axis length should be equal to y-axis length!</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.TimeSeries/STL/LeastSquares.cs:34.</comment>
+  </data>
+  <data name="ThereMustBeAtLeast1InputRoot" xml:space="preserve">
+    <value>There must be at least 1 input root.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.TimeSeries/PolynomialUtils.cs:281.</comment>
+  </data>
+  <data name="ThereMustBeAtLeastOneInputCoefficient" xml:space="preserve">
+    <value>There must be at least one input coefficient.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.TimeSeries/PolynomialUtils.cs:73.</comment>
+  </data>
+  <data name="UndefinedValue" xml:space="preserve">
+    <value>Undefined value.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.TimeSeries/SlidingWindowTransformBase.cs:74.</comment>
+  </data>
+  <data name="UnexpectedTValueInGetGetter" xml:space="preserve">
+    <value>Unexpected TValue in GetGetter</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.TimeSeries/SequentialTransformerBase.cs:670.</comment>
+  </data>
+  <data name="ValueIsUndefined" xml:space="preserve">
+    <value>Value is undefined.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.TimeSeries/SequentialAnomalyDetectionTransformBase.cs:173. Exception or validation message. Source: src/Microsoft.ML.TimeSeries/SequentialAnomalyDetectionTransformBase.cs:174. Exception or validation message. Source: src/Microsoft.ML.TimeSeries/SequentialAnomalyDetectionTransformBase.cs:175.</comment>
+  </data>
+  <data name="ValueNotDefined" xml:space="preserve">
+    <value>Value not defined.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.TimeSeries/SsaChangePointDetector.cs:144.</comment>
+  </data>
+  <data name="WeightsAreProvidedButAreExpectedOrNone" xml:space="preserve">
+    <value>{0} weights are provided, but {1} are expected (or none)'</value>
+    <comment>Exception or validation message. Placeholders: {0}=Utils.Size(_weights), {1}=args.WindowSize. Source: src/Microsoft.ML.TimeSeries/MovingAverageTransform.cs:77.</comment>
+  </data>
+  <data name="WindowlessAlertingRequiresRawScore" xml:space="preserve">
+    <value>When there is no windowed buffering (i.e., WindowSize = 0), the alert can be generated only based on the raw score (i.e., AlertOn = RawScore)</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.TimeSeries/SequentialAnomalyDetectionTransformBase.cs:178.</comment>
+  </data>
+  <data name="ColumnIndexMustBeLessThanTheSchemaColumnCount" xml:space="preserve">
+    <value>Column index must be less than the schema column count.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.TimeSeries/SequentialTransformBase.cs:414. Exception or validation message. Source: src/Microsoft.ML.TimeSeries/SequentialTransformerBase.cs:709.</comment>
+  </data>
+  <data name="ColumnMustBeActive" xml:space="preserve">
+    <value>Column must be active.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.TimeSeries/SequentialTransformBase.cs:427. Exception or validation message. Source: src/Microsoft.ML.TimeSeries/SequentialTransformerBase.cs:722.</comment>
+  </data>
+  <data name="QueueCannotBeNull" xml:space="preserve">
+    <value>Queue cannot be null.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.TimeSeries/TimeSeriesUtils.cs:16. Exception or validation message. Source: src/Microsoft.ML.TimeSeries/TimeSeriesUtils.cs:45.</comment>
+  </data>
+</root>

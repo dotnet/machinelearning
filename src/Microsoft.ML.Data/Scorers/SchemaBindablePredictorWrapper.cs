@@ -64,7 +64,7 @@ namespace Microsoft.ML.Data
             if (valueMapper != null)
                 return valueMapper.OutputType;
             throw Contracts.Except(
-                "Predictor score type cannot be determined since it doesn't implement IValueMapper");
+                Strings.PredictorMustImplementIValueMapper);
         }
 
         protected SchemaBindablePredictorWrapperBase(IHostEnvironment env, ModelLoadContext ctx)
@@ -137,14 +137,14 @@ namespace Microsoft.ML.Data
                         DataViewType typeInItemType = typeInVectorType?.ItemType ?? typeIn;
 
                         if (!typeItemType.Equals(typeInItemType))
-                            throw ch.Except("Incompatible features column type item type: '{0}' vs '{1}'", typeItemType, typeInItemType);
+                            throw ch.Except(Strings.IncompatibleFeaturesColumnTypeItemTypeVs, typeItemType, typeInItemType);
                         if ((typeVectorType != null) != (typeInVectorType != null))
-                            throw ch.Except("Incompatible features column type: '{0}' vs '{1}'", type, typeIn);
+                            throw ch.Except(Strings.IncompatibleFeaturesColumnTypeVs, type, typeIn);
                         // typeIn can legally have unknown size.
                         int typeVectorSize = typeVectorType?.Size ?? 0;
                         int typeInVectorSize = typeInVectorType?.Size ?? 0;
                         if (typeVectorSize != typeInVectorSize && typeInVectorSize > 0)
-                            throw ch.Except("Incompatible features column type: '{0}' vs '{1}'", type, typeIn);
+                            throw ch.Except(Strings.IncompatibleFeaturesColumnTypeVs, type, typeIn);
                     }
                 }
                 return BindCore(ch, schema);
@@ -376,7 +376,7 @@ namespace Microsoft.ML.Data
                 case PredictionKind.Clustering:
                     return AnnotationUtils.Const.ScoreColumnKind.Clustering;
                 default:
-                    throw Contracts.Except("Unknown prediction kind, can't map to score column kind: {0}", predictor.PredictionKind);
+                    throw Contracts.Except(Strings.UnknownPredictionKindCantMapToScoreColumnKind, predictor.PredictionKind);
             }
         }
     }
@@ -474,19 +474,19 @@ namespace Microsoft.ML.Data
 
         private void CheckValid(out IValueMapperDist distMapper)
         {
-            Contracts.Check(ScoreType == NumberDataViewType.Single, "Expected predictor result type to be float");
+            Contracts.Check(ScoreType == NumberDataViewType.Single, Strings.ExpectedPredictorResultTypeToBeFloat);
 
             distMapper = Predictor as IValueMapperDist;
             if (distMapper == null)
-                throw Contracts.Except("Predictor does not provide probabilities");
+                throw Contracts.Except(Strings.PredictorDoesNotProvideProbabilities);
 
             // REVIEW: In theory the restriction on input type could be relaxed at the expense
             // of more complicated code in CalibratedRowMapper.GetGetters. Not worth it at this point
             // and no good way to test it.
             Contracts.Check(distMapper.InputType is VectorDataViewType vectorType && vectorType.ItemType == NumberDataViewType.Single,
-                "Invalid input type for the IValueMapperDist");
+                Strings.InvalidInputTypeForTheIValueMapperDist);
             Contracts.Check(distMapper.DistType == NumberDataViewType.Single,
-                "Invalid probability type for the IValueMapperDist");
+                Strings.InvalidProbabilityTypeForTheIValueMapperDist);
         }
 
         private protected override ISchemaBoundMapper BindCore(IChannel ch, RoleMappedSchema schema)
@@ -529,7 +529,7 @@ namespace Microsoft.ML.Data
                     Contracts.Check(typeSrc is VectorDataViewType vectorType
                         && vectorType.IsKnownSize
                         && vectorType.ItemType == NumberDataViewType.Single,
-                        "Invalid feature column type");
+                        Strings.InvalidFeatureColumnType);
                 }
             }
 
@@ -643,13 +643,13 @@ namespace Microsoft.ML.Data
             : base(predictor)
         {
             var qpred = Predictor as IQuantileValueMapper;
-            Contracts.CheckParam(qpred != null, nameof(predictor), "Predictor doesn't implement " + nameof(IQuantileValueMapper));
+            Contracts.CheckParam(qpred != null, nameof(predictor), Strings.PredictorDoesntImplementIQuantileValueMapper);
             _qpred = qpred;
-            Contracts.CheckParam(ScoreType == NumberDataViewType.Single, nameof(predictor), "Unexpected predictor output type");
+            Contracts.CheckParam(ScoreType == NumberDataViewType.Single, nameof(predictor), Strings.UnexpectedPredictorOutputType);
             Contracts.CheckParam(ValueMapper != null && ValueMapper.InputType is VectorDataViewType vectorType
                 && vectorType.ItemType == NumberDataViewType.Single,
-                nameof(predictor), "Unexpected predictor input type");
-            Contracts.CheckNonEmpty(quantiles, nameof(quantiles), "Quantiles must not be empty");
+                nameof(predictor), Strings.UnexpectedPredictorInputType);
+            Contracts.CheckNonEmpty(quantiles, nameof(quantiles), Strings.QuantilesMustNotBeEmpty);
             _quantiles = quantiles;
         }
 

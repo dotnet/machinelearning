@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -90,14 +90,14 @@ namespace Microsoft.ML.Sweeper.Algorithms
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register("Sweeper");
 
-            _host.CheckUserArg(options.NumberInitialPopulation > 1, nameof(options.NumberInitialPopulation), "Must be greater than 1");
-            _host.CheckUserArg(options.HistoryLength > 1, nameof(options.HistoryLength), "Must be greater than 1");
-            _host.CheckUserArg(options.MinimumMutationSpread >= 0, nameof(options.MinimumMutationSpread), "Must be nonnegative");
-            _host.CheckUserArg(0 <= options.ProportionRandom && options.ProportionRandom <= 1, nameof(options.ProportionRandom), "Must be in [0, 1]");
-            _host.CheckUserArg(options.WeightRescalingPower >= 1, nameof(options.WeightRescalingPower), "Must be greater or equal to 1");
+            _host.CheckUserArg(options.NumberInitialPopulation > 1, nameof(options.NumberInitialPopulation), Strings.MustBeGreaterThan1);
+            _host.CheckUserArg(options.HistoryLength > 1, nameof(options.HistoryLength), Strings.MustBeGreaterThan1);
+            _host.CheckUserArg(options.MinimumMutationSpread >= 0, nameof(options.MinimumMutationSpread), Strings.MustBeNonnegative);
+            _host.CheckUserArg(0 <= options.ProportionRandom && options.ProportionRandom <= 1, nameof(options.ProportionRandom), Strings.MustBeBetweenZeroAndOneInclusive);
+            _host.CheckUserArg(options.WeightRescalingPower >= 1, nameof(options.WeightRescalingPower), Strings.MustBeGreaterOrEqualTo1);
 
             _args = options;
-            _host.CheckUserArg(Utils.Size(options.SweptParameters) > 0, nameof(options.SweptParameters), "KDO sweeper needs at least one parameter to sweep over");
+            _host.CheckUserArg(Utils.Size(options.SweptParameters) > 0, nameof(options.SweptParameters), Strings.KDOSweeperNeedsAtLeastOneParameterToSweepOver);
             _sweepParameters = options.SweptParameters.Select(p => p.CreateComponent(_host)).ToArray();
             _randomSweeper = new UniformRandomSweeper(env, new SweeperBase.OptionsBase(), _sweepParameters);
             _redundantSweeper = new UniformRandomSweeper(env, new SweeperBase.OptionsBase { Retries = 0 }, _sweepParameters);
@@ -232,7 +232,7 @@ namespace Microsoft.ML.Sweeper.Algorithms
                     else
                     {
                         var parameterNumeric = sweepParam as INumericValueGenerator;
-                        _host.Check(parameterNumeric != null, "KDO sweeper can only sweep over discrete and numeric parameters");
+                        _host.Check(parameterNumeric != null, Strings.KDOSweeperCanOnlySweepOverDiscreteAndNumericParameters);
                         numericParamIndices.Add(i);
                         numericParamValues.Add(child[i]);
                     }

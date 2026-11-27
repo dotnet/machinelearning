@@ -27,7 +27,7 @@ namespace Microsoft.ML.Data
                 host.CheckNonEmpty(column.outputColumnName, nameof(columns));
 
                 if (!newNames.Add(column.outputColumnName))
-                    throw Contracts.ExceptParam(nameof(columns), $"Name of the result column '{column.outputColumnName}' specified multiple times");
+                    throw Contracts.ExceptParam(nameof(columns), string.Format(Strings.NameOfTheResultColumnSpecifiedMultipleTimes, column.outputColumnName));
             }
 
             ColumnPairs = columns;

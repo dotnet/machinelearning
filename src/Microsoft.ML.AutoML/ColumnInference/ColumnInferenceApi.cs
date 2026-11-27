@@ -122,9 +122,7 @@ namespace Microsoft.ML.AutoML
             if (!splitInference.IsSuccess)
             {
                 throw new InferenceException(InferenceExceptionType.ColumnSplit,
-                    "Unable to split the file provided into multiple, consistent columns. " +
-                    "Readable formats include delimited files such as CSV/TSV. " +
-                    "Check for a consistent number of columns and proper escaping and quoting.");
+                    Strings.UnableToSplitTheFileProvidedIntoMultipleConsistentColumns);
             }
 
             return splitInference;
@@ -149,7 +147,7 @@ namespace Microsoft.ML.AutoML
 
             if (!typeInferenceResult.IsSuccess)
             {
-                throw new InferenceException(InferenceExceptionType.ColumnDataType, "Unable to infer column types of the file provided.");
+                throw new InferenceException(InferenceExceptionType.ColumnDataType, Strings.UnableToInferColumnTypesOfTheFileProvided);
             }
 
             return typeInferenceResult;

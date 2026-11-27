@@ -78,7 +78,7 @@ namespace Microsoft.ML.Data
             var scoreType = score.Type as VectorDataViewType;
             if (scoreType == null || scoreType.Size < 2 || scoreType.ItemType != NumberDataViewType.Single)
                 throw Host.ExceptSchemaMismatch(nameof(schema), "score", score.Name, "vector of two or more items of type Single", score.Type.ToString());
-            Host.CheckParam(schema.Label.HasValue, nameof(schema), "Could not find the label column");
+            Host.CheckParam(schema.Label.HasValue, nameof(schema), Strings.CouldNotFindTheLabelColumn);
             var labelType = schema.Label.Value.Type;
             if (labelType != NumberDataViewType.Single && labelType.GetKeyCount() <= 0)
                 throw Host.ExceptSchemaMismatch(nameof(schema), "label", schema.Label.Value.Name, "Single or Key", labelType.ToString());
@@ -119,7 +119,7 @@ namespace Microsoft.ML.Data
 
         private protected override IRowMapper CreatePerInstanceRowMapper(RoleMappedSchema schema)
         {
-            Host.CheckParam(schema.Label.HasValue, nameof(schema), "Schema must contain a label column");
+            Host.CheckParam(schema.Label.HasValue, nameof(schema), Strings.SchemaMustContainALabelColumn);
             var scoreInfo = schema.GetUniqueColumn(AnnotationUtils.Const.ScoreValueKind.Score);
             int numClasses = scoreInfo.Type.GetVectorSize();
             return new MulticlassPerInstanceEvaluator(Host, schema.Schema, scoreInfo, schema.Label.Value.Name);
@@ -161,9 +161,9 @@ namespace Microsoft.ML.Data
             addAgg =
                 (stratColKey, stratColVal, agg) =>
                 {
-                    Host.Check(agg.Weighted == hasWeight, "All aggregators must either be weighted or unweighted");
+                    Host.Check(agg.Weighted == hasWeight, Strings.AllAggregatorsMustEitherBeWeightedOrUnweighted);
                     Host.Check((agg.UnweightedCounters.OutputTopKAcc > 0) == (aggregator.UnweightedCounters.OutputTopKAcc > 0),
-                        "All aggregators must either compute top-k accuracy or not compute top-k accuracy");
+                        Strings.AggregatorTopKAccuracySettingsMismatch);
 
                     stratCol.Add(stratColKey);
                     stratVal.Add(stratColVal);
@@ -921,10 +921,10 @@ namespace Microsoft.ML.Data
             Host.AssertValue(metrics);
 
             if (!metrics.TryGetValue(MetricKinds.OverallMetrics, out IDataView fold))
-                throw ch.Except("No overall metrics found");
+                throw ch.Except(Strings.NoOverallMetricsFound);
 
             if (!metrics.TryGetValue(MetricKinds.ConfusionMatrix, out IDataView conf))
-                throw ch.Except("No confusion matrix found");
+                throw ch.Except(Strings.NoConfusionMatrixFound);
 
             // Change the name of the Top-k-accuracies collection column & remove redundant old TopK output
             if (_outputTopKAcc != null)
@@ -1036,7 +1036,7 @@ namespace Microsoft.ML.Data
         private protected override IEnumerable<string> GetPerInstanceColumnsToSave(RoleMappedSchema schema)
         {
             Host.CheckValue(schema, nameof(schema));
-            Host.CheckParam(schema.Label.HasValue, nameof(schema), "Schema must contain a label column");
+            Host.CheckParam(schema.Label.HasValue, nameof(schema), Strings.SchemaMustContainALabelColumn);
 
             // Output the label column.
             yield return schema.Label.Value.Name;

@@ -43,7 +43,7 @@ namespace Microsoft.ML.TorchSharp.Extensions
             EnglishRobertaTokenizer model = tokenizer as EnglishRobertaTokenizer;
             if (model is null)
             {
-                throw new InvalidOperationException($"The input tokenizer is not using the EnglishRoberta model.");
+                throw new InvalidOperationException(Strings.TheInputTokenizerIsNotUsingTheEnglishRobertaModel);
             }
 
             return model;

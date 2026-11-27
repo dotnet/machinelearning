@@ -224,8 +224,7 @@ namespace Microsoft.ML.Transforms
             {
                 ValueGetter<VBuffer<TValue>> getter = _getter as ValueGetter<VBuffer<TValue>>;
                 if (getter == null)
-                    throw Ch.Except($"Invalid TValue: '{typeof(TValue)}', " +
-                            $"expected type: '{_getter.GetType().GetGenericArguments().First().GetGenericArguments().First()}'.");
+                    throw Ch.Except(string.Format(Strings.InvalidTValueExpectedType, typeof(TValue), _getter.GetType().GetGenericArguments().First().GetGenericArguments().First()));
                 return getter;
             }
         }

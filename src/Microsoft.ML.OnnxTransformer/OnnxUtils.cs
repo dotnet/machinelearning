@@ -81,8 +81,7 @@ namespace Microsoft.ML.Transforms.Onnx
                     return InitializersInfo[index];
 
                 // If we dont find the index in the input, try find it in the initializers
-                throw Contracts.ExceptParamValue(name, nameof(name), $"Input tensor, {name}, does not exist in the ONNX model. " +
-                    $"Available input names are [{string.Join(",", InputNames)}]. Available initializers are [{string.Join(",", InitializerNames)}]");
+                throw Contracts.ExceptParamValue(name, nameof(name), string.Format(Strings.OnnxInputTensorMissing, name, string.Join(",", InputNames), string.Join(",", InitializerNames)));
             }
 
             /// <summary>
@@ -92,8 +91,7 @@ namespace Microsoft.ML.Transforms.Onnx
             {
                 var index = OutputNames.IndexOf(name);
                 if (index < 0)
-                    throw Contracts.ExceptParamValue(name, nameof(name), $"Ouput tensor, {name}, does not exist in the ONNX model. " +
-                        $"Available output names are [{string.Join(",", OutputNames)}].");
+                    throw Contracts.ExceptParamValue(name, nameof(name), string.Format(Strings.OnnxOutputTensorMissing, name, string.Join(",", OutputNames)));
                 return OutputsInfo[index];
             }
         }
@@ -316,10 +314,7 @@ namespace Microsoft.ML.Transforms.Onnx
                 {
                     if (!CheckOnnxShapeCompatibility(shapeDictionary[name].ToList(), meta.Dimensions.ToList()))
                         throw Contracts.ExceptParamValue(shapeDictionary[name], nameof(shapeDictionary),
-                            "The specified shape " + string.Join(",", shapeDictionary[name]) +
-                            " is not compatible with the shape " + string.Join(",", meta.Dimensions) +
-                            " loaded from the ONNX model file. Only unknown dimension can replace or " +
-                            "be replaced by another dimension.");
+                            string.Format(Strings.OnnxShapeOverrideIncompatible, string.Join(",", shapeDictionary[name]), string.Join(",", meta.Dimensions)));
 
                     if (dataViewType is VectorDataViewType vectorType)
                     {
@@ -534,7 +529,7 @@ namespace Microsoft.ML.Transforms.Onnx
         public static NamedOnnxValue CreateScalarNamedOnnxValue<T>(string name, T data)
         {
             if (!_onnxTypeMap.Contains(typeof(T)))
-                throw new NotImplementedException($"Not implemented type {typeof(T)}");
+                throw new NotImplementedException(string.Format(Strings.NotImplementedType, typeof(T)));
 
             if (typeof(T) == typeof(ReadOnlyMemory<char>))
                 return NamedOnnxValue.CreateFromTensor<string>(name, new DenseTensor<string>(new string[] { data.ToString() }, new int[] { 1, 1 }));
@@ -554,7 +549,7 @@ namespace Microsoft.ML.Transforms.Onnx
         public static NamedOnnxValue CreateNamedOnnxValue<T>(string name, ReadOnlySpan<T> data, OnnxShape shape)
         {
             if (!_onnxTypeMap.Contains(typeof(T)))
-                throw new NotImplementedException($"Not implemented type {typeof(T)}");
+                throw new NotImplementedException(string.Format(Strings.NotImplementedType, typeof(T)));
 
             var dimensions = shape.Select(x => (int)x).ToArray();
 
@@ -579,7 +574,7 @@ namespace Microsoft.ML.Transforms.Onnx
         public static PrimitiveDataViewType OnnxToMlNetType(Type type)
         {
             if (!_typeToKindMap.ContainsKey(type))
-                throw Contracts.ExceptNotSupp("Onnx type not supported", type);
+                throw Contracts.ExceptNotSupp(Strings.OnnxTypeNotSupported, type);
             return ColumnTypeExtensions.PrimitiveTypeFromKind(_typeToKindMap[type]);
         }
     }

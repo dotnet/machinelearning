@@ -103,7 +103,7 @@ namespace Microsoft.ML.Transforms
         {
             Contracts.CheckValue(initial, nameof(initial));
             if (columns.Length != initial.Featurizer.PriorCoef.Length)
-                throw Contracts.ExceptParam(nameof(columns), $"New estimator applied {columns.Length} columns, but old transformer applied to {initial.Featurizer.PriorCoef.Length} columns");
+                throw Contracts.ExceptParam(nameof(columns), string.Format(Strings.NewEstimatorAppliedColumnsButOldTransformerAppliedToColumns, columns.Length, initial.Featurizer.PriorCoef.Length));
             var cols = new ColumnOptionsBase[columns.Length];
             for (int i = 0; i < columns.Length; i++)
             {
@@ -119,8 +119,8 @@ namespace Microsoft.ML.Transforms
             env.CheckNonWhiteSpace(labelColumnName, nameof(labelColumnName));
             env.CheckNonEmpty(columns, nameof(columns));
             _host = env.Register(nameof(CountTableEstimator));
-            _host.CheckParam(columns.All(col => col.PriorCoefficient > 0), nameof(ColumnOptionsBase.PriorCoefficient), "Must be greater than zero");
-            _host.CheckParam(columns.All(col => col.LaplaceScale >= 0), nameof(ColumnOptionsBase.LaplaceScale), "Must be greater than or equal to zero.");
+            _host.CheckParam(columns.All(col => col.PriorCoefficient > 0), nameof(ColumnOptionsBase.PriorCoefficient), Strings.MustBeGreaterThanZero);
+            _host.CheckParam(columns.All(col => col.LaplaceScale >= 0), nameof(ColumnOptionsBase.LaplaceScale), Strings.MustBeGreaterThanOrEqualToZero);
 
             _columns = columns;
             _labelColumnName = labelColumnName;
@@ -130,7 +130,7 @@ namespace Microsoft.ML.Transforms
         {
             var labelCol = input.Schema.GetColumnOrNull(_labelColumnName);
             if (labelCol == null)
-                throw _host.ExceptUserArg(nameof(_labelColumnName), "Label column '{0}' not found", _labelColumnName);
+                throw _host.ExceptUserArg(nameof(_labelColumnName), Strings.LabelColumnNotFound, _labelColumnName);
 
             CheckLabelType(new RoleMappedData(input, roles: RoleMappedSchema.CreatePair(RoleMappedSchema.ColumnRole.Label, _labelColumnName)), out var labelCardinality);
 
@@ -144,7 +144,7 @@ namespace Microsoft.ML.Transforms
             {
                 var col = input.Schema.GetColumnOrNull(_columns[i].InputColumnName);
                 if (col == null)
-                    throw _host.Except($"Could not find column {_columns[i].InputColumnName} in input schema");
+                    throw _host.Except(string.Format(Strings.CouldNotFindColumnInInputSchema, _columns[i].InputColumnName));
                 inputColumns[i] = col.GetValueOrDefault();
             }
 
@@ -206,7 +206,7 @@ namespace Microsoft.ML.Transforms
                         if (cols[i].Type is VectorDataViewType)
                         {
                             vectorGetters[i](ref srcBuffer);
-                            _host.Check(srcBuffer.Length == cols[i].Type.GetVectorSize(), "value count mismatch");
+                            _host.Check(srcBuffer.Length == cols[i].Type.GetVectorSize(), Strings.ValueCountMismatch);
                             IncrementVec(builder, i, ref srcBuffer, (uint)labelKey);
                         }
                         else
@@ -302,7 +302,7 @@ namespace Microsoft.ML.Transforms
             else
             {
                 TrainerUtils.CheckMulticlassLabel(data, out labelCardinality);
-                _host.CheckUserArg(labelCardinality > 1, nameof(_labelColumnName), "Label column type must have known cardinality more than 1");
+                _host.CheckUserArg(labelCardinality > 1, nameof(_labelColumnName), Strings.LabelColumnTypeMustHaveKnownCardinalityMoreThan1);
             }
         }
 
@@ -472,7 +472,7 @@ namespace Microsoft.ML.Transforms
                 estimator = CountTargetEncodingEstimator.LoadFromFile(env, options.InitialCountsModel, options.LabelColumn,
                     options.Columns.Select(col => new InputOutputColumnPair(col.Name, col.Source)).ToArray());
                 if (estimator == null)
-                    throw env.Except($"The file {options.InitialCountsModel} does not contain a CountTableTransformer");
+                    throw env.Except(string.Format(Strings.TheFileDoesNotContainACountTableTransformer, options.InitialCountsModel));
             }
             else if (!options.SharedTable)
             {
@@ -498,7 +498,7 @@ namespace Microsoft.ML.Transforms
                 for (int i = 0; i < options.Columns.Length; i++)
                 {
                     var c = options.Columns[i];
-                    env.CheckUserArg(c.CountTable == null, nameof(c.CountTable), "Can't have non-default count tables if the tables are shared");
+                    env.CheckUserArg(c.CountTable == null, nameof(c.CountTable), Strings.SharedCountTablesMustUseDefaults);
 
                     columnOptions[i] = new CountTableEstimator.SharedColumnOptions(c.Name,
                         c.Source,
@@ -613,7 +613,7 @@ namespace Microsoft.ML.Transforms
                 {
                     var inputCol = InputSchema[_parent.ColumnPairs[i].inputColumnName];
                     var valueCount = inputCol.Type.GetValueCount();
-                    Host.Check((long)valueCount * _parent.Featurizer.NumFeatures < int.MaxValue, "Too large output size");
+                    Host.Check((long)valueCount * _parent.Featurizer.NumFeatures < int.MaxValue, Strings.TooLargeOutputSize);
                     var type = new VectorDataViewType(NumberDataViewType.Single, valueCount, _parent.Featurizer.NumFeatures);
 
                     // We supply slot names if the source is a single-value column, or if it has slot names.

@@ -502,11 +502,11 @@ namespace Microsoft.ML.Trainers.FastTree
             private void CheckConsistency()
             {
                 Contracts.Check(Ratings != null && Boundaries != null && QueryIds != null && DocIds != null && MaxDcg != null,
-                    "DatasetSkeleton is missing a critical field");
+                    Strings.DatasetSkeletonIsMissingACriticalField);
 
-                Contracts.Check(Ratings.Length == DocIds.Length, "Length of label array does not match length of docID array");
-                Contracts.Check(Boundaries.Length == QueryIds.Length + 1, "Length of boundaries array does not match length of queryID array");
-                Contracts.Check(Utils.Size(MaxDcg) == 0 || Utils.Size(MaxDcg[0]) == QueryIds.Length, "Length of MaxDCG does not match number of queries");
+                Contracts.Check(Ratings.Length == DocIds.Length, Strings.LabelAndDocIdLengthsMismatch);
+                Contracts.Check(Boundaries.Length == QueryIds.Length + 1, Strings.BoundaryAndQueryIdLengthsMismatch);
+                Contracts.Check(Utils.Size(MaxDcg) == 0 || Utils.Size(MaxDcg[0]) == QueryIds.Length, Strings.LengthOfMaxDCGDoesNotMatchNumberOfQueries);
             }
 
             public double[] ActualTargets
@@ -576,7 +576,7 @@ namespace Microsoft.ML.Trainers.FastTree
             {
                 // make sure fractions sum to 1.0
                 if (Math.Abs(fraction.Sum() - 1.0) > 1e-6)
-                    throw Contracts.Except("In Dataset.Split(), fractions must sum to 1.0");
+                    throw Contracts.Except(Strings.InDatasetSplitFractionsMustSumTo10);
 
                 // create a deterministic random number generator
                 Random rnd = new Random(randomSeed);
@@ -823,7 +823,7 @@ namespace Microsoft.ML.Trainers.FastTree
                     bool isQuery = partsDatas.First(pd => pd.Data != null).IsQueryLevel;
                     if (partsDatas.Any(pd => pd.Data != null && pd.IsQueryLevel != isQuery))
                     {
-                        throw Contracts.Except("On auxiliary data {0}, disagreement on whether this is query/doc", name);
+                        throw Contracts.Except(Strings.OnAuxiliaryDataDisagreementOnWhetherThisIsQueryDoc, name);
                     }
                     Array concatArray = ConcatArrays(partsDatas.Select(pd => pd.Data).ToArray(), isQuery ? queryLengths : docLengths, name);
                     concat.SetData(name, concatArray, isQuery);
@@ -843,7 +843,7 @@ namespace Microsoft.ML.Trainers.FastTree
                 if (arrays.Any(x => x != null && t != x.GetType().GetElementType()))
                 {
                     IEnumerable<string> typeNameEnumerable = arrays.Select(x => x.GetType().GetElementType()).Distinct().Select(x => x.Name).OrderBy(n => n);
-                    throw Contracts.Except("When combining auxiliary data, the types of elements must match. Distinct types {0} detected for data named {1}",
+                    throw Contracts.Except(Strings.WhenCombiningAuxiliaryDataTheTypesOfElementsMustMatch,
                         String.Join(", ", typeNameEnumerable), name);
                 }
                 Array a = Array.CreateInstance(t, newLength);
@@ -869,7 +869,7 @@ namespace Microsoft.ML.Trainers.FastTree
                 if (array.Length != shouldHaveLength)
                 {
                     throw Contracts.Except(
-                        "Input array for {0} had {1} elements, ought to have {2}",
+                        Strings.InputArrayForHadElementsOughtToHave,
                         name, array.Length, shouldHaveLength);
                 }
                 DatasetSkeletonQueryDocData dd;

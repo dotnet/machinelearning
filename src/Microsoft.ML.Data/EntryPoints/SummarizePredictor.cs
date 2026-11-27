@@ -65,7 +65,7 @@ namespace Microsoft.ML.EntryPoints
             {
                 var row = rowGetter.GetSummaryIRowOrNull(schema);
                 env.Check(dvGetter == null || row == null,
-                    "Predictor outputs two summary data views, don't know which one to choose");
+                    Strings.MultiplePredictorSummaryDataViews);
                 if (row != null)
                     summary = RowCursorUtils.RowAsDataView(env, row);
                 var statsRow = rowGetter.GetStatsIRowOrNull(schema);

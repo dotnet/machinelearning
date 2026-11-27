@@ -49,7 +49,7 @@ namespace Microsoft.ML.Data
 
         private protected override IRowMapper CreatePerInstanceRowMapper(RoleMappedSchema schema)
         {
-            Host.CheckParam(schema.Label.HasValue, nameof(schema), "Could not find the label column");
+            Host.CheckParam(schema.Label.HasValue, nameof(schema), Strings.CouldNotFindTheLabelColumn);
             var scoreCol = schema.GetUniqueColumn(AnnotationUtils.Const.ScoreValueKind.Score);
 
             return new MultiOutputRegressionPerInstanceEvaluator(Host, schema.Schema, scoreCol.Name, schema.Label.Value.Name);
@@ -61,7 +61,7 @@ namespace Microsoft.ML.Data
             var t = score.Type as VectorDataViewType;
             if (t == null || !t.IsKnownSize || t.ItemType != NumberDataViewType.Single)
                 throw Host.ExceptSchemaMismatch(nameof(schema), "score", score.Name, "known-size vector of Single", score.Type.ToString());
-            Host.Check(schema.Label.HasValue, "Could not find the label column");
+            Host.Check(schema.Label.HasValue, Strings.CouldNotFindTheLabelColumn);
             t = schema.Label.Value.Type as VectorDataViewType;
             if (t == null || !t.IsKnownSize || (t.ItemType != NumberDataViewType.Single && t.ItemType != NumberDataViewType.Double))
                 throw Host.ExceptSchemaMismatch(nameof(schema), "label", schema.Label.Value.Name, "known-size vector of Single or Double", schema.Label.Value.Type.ToString());
@@ -112,7 +112,7 @@ namespace Microsoft.ML.Data
             addAgg =
                 (stratColKey, stratColVal, agg) =>
                 {
-                    Host.Check(agg.Weighted == hasWeight, "All aggregators must either be weighted or unweighted");
+                    Host.Check(agg.Weighted == hasWeight, Strings.AllAggregatorsMustEitherBeWeightedOrUnweighted);
 
                     stratCol.Add(stratColKey);
                     stratVal.Add(stratColVal);
@@ -629,7 +629,7 @@ namespace Microsoft.ML.Data
         public MultiOutputRegressionMamlEvaluator(IHostEnvironment env, Arguments args)
             : base(args, env, AnnotationUtils.Const.ScoreColumnKind.MultiOutputRegression, "RegressionMamlEvaluator")
         {
-            Host.CheckUserArg(args.LossFunction != null, nameof(args.LossFunction), "Loss function must be specified");
+            Host.CheckUserArg(args.LossFunction != null, nameof(args.LossFunction), Strings.LossFunctionMustBeSpecified);
 
             _suppressScoresAndLabels = args.SuppressScoresAndLabels;
             var evalArgs = new MultiOutputRegressionEvaluator.Arguments();
@@ -640,7 +640,7 @@ namespace Microsoft.ML.Data
         private protected override IEnumerable<string> GetPerInstanceColumnsToSave(RoleMappedSchema schema)
         {
             Host.CheckValue(schema, nameof(schema));
-            Host.CheckParam(schema.Label != null, nameof(schema), "Schema must contain a label column");
+            Host.CheckParam(schema.Label != null, nameof(schema), Strings.SchemaMustContainALabelColumn);
 
             // The multi output regression evaluator outputs the label and score column if requested by the user.
             if (!_suppressScoresAndLabels)
@@ -663,7 +663,7 @@ namespace Microsoft.ML.Data
         {
             IDataView fold;
             if (!metrics.TryGetValue(MetricKinds.OverallMetrics, out fold))
-                throw ch.Except("No overall metrics found");
+                throw ch.Except(Strings.NoOverallMetricsFound);
 
             var isWeightedCol = fold.Schema.GetColumnOrNull(MetricKinds.ColumnNames.IsWeighted);
 
@@ -711,7 +711,7 @@ namespace Microsoft.ML.Data
                         if (labelCount == 0)
                             labelCount = type.Size;
                         else
-                            ch.Check(labelCount == type.Size, "All vector metrics should contain the same number of slots");
+                            ch.Check(labelCount == type.Size, Strings.AllVectorMetricsShouldContainTheSameNumberOfSlots);
                     }
                 }
                 var labelNames = new ReadOnlyMemory<char>[labelCount];
@@ -734,7 +734,7 @@ namespace Microsoft.ML.Data
                     isWeightedGetter(ref isWeighted);
                     if (foundWeighted && isWeighted || foundUnweighted && !isWeighted)
                     {
-                        throw ch.Except("Multiple {0} rows found in overall metrics data view",
+                        throw ch.Except(Strings.MultipleRowsFoundInOverallMetricsDataView,
                             isWeighted ? "weighted" : "unweighted");
                     }
                     if (isWeighted)

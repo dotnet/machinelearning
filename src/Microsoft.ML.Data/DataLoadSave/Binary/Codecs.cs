@@ -324,14 +324,14 @@ namespace Microsoft.ML.Data.IO
 
                 public override void Write(in ReadOnlyMemory<char> value)
                 {
-                    Contracts.Check(_builder != null, "writer was already committed");
+                    Contracts.Check(_builder != null, Strings.WriterWasAlreadyCommitted);
                     _builder.AppendMemory(value);
                     _boundaries.Add(_builder.Length);
                 }
 
                 public override void Commit()
                 {
-                    Contracts.Check(_builder != null, "writer already committed");
+                    Contracts.Check(_builder != null, Strings.WriterAlreadyCommitted);
 
                     Writer.Write(_boundaries.Count); // Write the number of entries.
                     Writer.WriteIntStream(_boundaries); // Write the entries end boundaries, in character counts.
@@ -375,7 +375,7 @@ namespace Microsoft.ML.Data.IO
 
                 public override void MoveNext()
                 {
-                    Contracts.Check(++_index < _entries, "reader already read all values");
+                    Contracts.Check(++_index < _entries, Strings.ReaderAlreadyReadAllValues);
                 }
 
                 public override void Get(ref ReadOnlyMemory<char> value)
@@ -517,7 +517,7 @@ namespace Microsoft.ML.Data.IO
             public override IValueWriter<bool> OpenWriter(Stream stream)
             {
                 Contracts.Assert(false, "This older form only supports reading");
-                throw Contracts.ExceptNotSupp("Writing single bit booleans no longer supported");
+                throw Contracts.ExceptNotSupp(Strings.WritingSingleBitBooleansNoLongerSupported);
             }
 
             public override IValueReader<bool> OpenReader(Stream stream, int items)
@@ -564,7 +564,7 @@ namespace Microsoft.ML.Data.IO
                             value = false;
                             break;
                         default:
-                            throw Contracts.ExceptDecode("Invalid bit pattern in BoolCodec");
+                            throw Contracts.ExceptDecode(Strings.InvalidBitPatternInBoolCodec);
                     }
                 }
             }
@@ -735,7 +735,7 @@ namespace Microsoft.ML.Data.IO
                 public override void MoveNext()
                 {
                     Contracts.Assert(!_disposed);
-                    Contracts.Check(++_index < _entries, "reader already read all values");
+                    Contracts.Check(++_index < _entries, Strings.ReaderAlreadyReadAllValues);
                 }
 
                 public override void Get(ref DateTimeOffset value)
@@ -850,7 +850,7 @@ namespace Microsoft.ML.Data.IO
 
                 public override void Commit()
                 {
-                    Contracts.Check(_valuesStream != null, "writer already committed");
+                    Contracts.Check(_valuesStream != null, Strings.WriterAlreadyCommitted);
 
                     _valueWriter.Commit();
                     _valueWriter.Dispose();
@@ -905,11 +905,11 @@ namespace Microsoft.ML.Data.IO
 
                 public override void Write(in VBuffer<T> value)
                 {
-                    Contracts.Check(_valuesStream != null, "writer already committed");
+                    Contracts.Check(_valuesStream != null, Strings.WriterAlreadyCommitted);
                     if (FixedLength)
                     {
                         if (value.Length != _size)
-                            throw Contracts.Except("Length mismatch: expected {0} slots but got {1}", _size, value.Length);
+                            throw Contracts.Except(Strings.LengthMismatchExpectedSlotsButGot, _size, value.Length);
                     }
                     else
                         _lengths.Add(value.Length);
@@ -1357,7 +1357,7 @@ namespace Microsoft.ML.Data.IO
         private bool GetKeyCodec(DataViewType type, out IValueCodec codec)
         {
             if (!(type is KeyDataViewType))
-                throw Contracts.ExceptParam(nameof(type), "type must be a key type");
+                throw Contracts.ExceptParam(nameof(type), Strings.TypeMustBeAKeyType);
             // Create the internal codec the key codec will use to do the actual reading/writing.
             IValueCodec innerCodec;
             if (!TryGetCodec(ColumnTypeExtensions.NumberTypeFromType(type.RawType), out innerCodec))

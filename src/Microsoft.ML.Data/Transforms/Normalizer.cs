@@ -134,7 +134,7 @@ namespace Microsoft.ML.Transforms
             {
                 Contracts.CheckNonEmpty(name, nameof(name));
                 Contracts.CheckNonEmpty(inputColumnName, nameof(inputColumnName));
-                Contracts.CheckParam(maximumExampleCount > 1, nameof(maximumExampleCount), "Must be greater than 1");
+                Contracts.CheckParam(maximumExampleCount > 1, nameof(maximumExampleCount), Strings.MustBeGreaterThan1);
 
                 Name = name;
                 InputColumnName = inputColumnName;
@@ -160,7 +160,7 @@ namespace Microsoft.ML.Transforms
                     case NormalizationMode.RobustScaling:
                         return new RobustScalingColumnOptions(outputColumnName, inputColumnName);
                     default:
-                        throw Contracts.ExceptParam(nameof(mode), "Unknown normalizer mode");
+                        throw Contracts.ExceptParam(nameof(mode), Strings.UnknownNormalizerMode);
                 }
             }
         }

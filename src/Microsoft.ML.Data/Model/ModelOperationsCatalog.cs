@@ -186,7 +186,7 @@ namespace Microsoft.ML
                     }
                     catch (Exception ex)
                     {
-                        throw _env.Except(ex, "Could not load legacy format model");
+                        throw _env.Except(ex, Strings.CouldNotLoadLegacyFormatModel);
                     }
                 }
                 var transformer = DecomposeLoader(ref dataLoader);
@@ -271,9 +271,7 @@ namespace Microsoft.ML
                 }
                 catch (Exception ex)
                 {
-                    throw _env.Except(ex, "Model does not contain an " + nameof(IDataLoader<IMultiStreamSource>) +
-                        ". Perhaps this was saved with an " + nameof(DataViewSchema) + ", or even no information on its input at all. " +
-                        "Consider using the " + nameof(Load) + " method instead.");
+                    throw _env.Except(ex, Strings.ModelDoesNotContainDataLoader);
                 }
             }
         }

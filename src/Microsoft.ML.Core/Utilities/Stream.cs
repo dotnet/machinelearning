@@ -739,7 +739,7 @@ namespace Microsoft.ML.Internal.Utilities
             while (pos != length)
             {
                 read = s.Read(buff, offset + pos, length - pos);
-                Contracts.CheckIO(read > 0, "Unexpected failure to read");
+                Contracts.CheckIO(read > 0, Strings.UnexpectedFailureToRead);
                 pos += read;
             }
         }
@@ -778,7 +778,7 @@ namespace Microsoft.ML.Internal.Utilities
                 // ReadByte handles end of stream cases for us.
                 b = reader.ReadByte();
                 if (shift == 9 * 7 && b > 0x01)
-                    throw Contracts.ExceptDecode("LEB128 encoded integer exceeded expected length");
+                    throw Contracts.ExceptDecode(Strings.LEB128EncodedIntegerExceededExpectedLength);
                 value |= (((ulong)(b & 0x7F)) << shift);
                 shift += 7;
             } while ((b & 0x80) != 0);
@@ -794,7 +794,7 @@ namespace Microsoft.ML.Internal.Utilities
         public static StreamWriter OpenWriter(Stream stream, Encoding encoding = null, int bufferSize = 1024, bool leaveOpen = true)
         {
             Contracts.CheckValue(stream, nameof(stream));
-            Contracts.CheckParam(0 < bufferSize, nameof(bufferSize), "buffer size must be positive");
+            Contracts.CheckParam(0 < bufferSize, nameof(bufferSize), Strings.BufferSizeMustBePositive);
             if (encoding == null)
             {
                 // Even though the StreamWriter default encoding is BOM-less UTF8, note
@@ -863,7 +863,7 @@ namespace Microsoft.ML.Internal.Utilities
                 throw Contracts.ExceptUserArg(userArgument, exc.Message);
             }
             if (!Directory.Exists(dir))
-                throw Contracts.ExceptUserArg(userArgument, "Cannot find directory '{0}'.", dir);
+                throw Contracts.ExceptUserArg(userArgument, Strings.CannotFindDirectory, dir);
         }
 #pragma warning restore MSML_ContractsNameUsesNameof
     }

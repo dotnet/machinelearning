@@ -13,7 +13,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
     {
         internal static void SerializeFixedSizeQueue(FixedSizeQueue<Single> queue, BinaryWriter writer)
         {
-            Contracts.Check(queue != null, nameof(queue));
+            Contracts.Check(queue != null, Strings.QueueCannotBeNull);
             Contracts.Assert(queue.Capacity >= 0);
             Contracts.Assert(queue.Count <= queue.Capacity);
 
@@ -42,7 +42,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
 
         internal static void SerializeFixedSizeQueue(FixedSizeQueue<double> queue, BinaryWriter writer)
         {
-            Contracts.Check(queue != null, nameof(queue));
+            Contracts.Check(queue != null, Strings.QueueCannotBeNull);
             Contracts.Assert(queue.Capacity >= 0);
             Contracts.Assert(queue.Count <= queue.Capacity);
 

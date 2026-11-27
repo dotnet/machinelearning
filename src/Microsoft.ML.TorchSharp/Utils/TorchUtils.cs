@@ -38,7 +38,7 @@ namespace Microsoft.ML.TorchSharp.Utils
         {
             var device = ((IHostEnvironmentInternal)env).GpuDeviceId != null && cuda.is_available() ? CUDA : CPU;
             if (((IHostEnvironmentInternal)env).FallbackToCpu == false && device == CPU && ((IHostEnvironmentInternal)env).GpuDeviceId != null)
-                throw new Exception("Fallback to CPU is false but no GPU detected");
+                throw new Exception(Strings.FallbackToCPUIsFalseButNoGPUDetected);
 
             return device;
         }

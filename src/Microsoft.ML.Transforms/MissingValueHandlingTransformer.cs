@@ -160,12 +160,12 @@ namespace Microsoft.ML.Transforms
                 // Check that the indicator column has a type that can be converted to the NAReplaceTransform output type,
                 // so that they can be concatenated.
                 if (!input.Schema.TryGetColumnIndex(column.Source, out int inputCol))
-                    throw h.Except("Column '{0}' does not exist", column.Source);
+                    throw h.Except(Strings.ColumnDoesNotExist, column.Source);
                 var replaceType = input.Schema[inputCol].Type;
                 var replaceItemType = replaceType.GetItemType();
                 if (!Data.Conversion.Conversions.DefaultInstance.TryGetStandardConversion(BooleanDataViewType.Instance, replaceItemType, out Delegate conv, out bool identity))
                 {
-                    throw h.Except("Cannot concatenate indicator column of type '{0}' to input column of type '{1}'",
+                    throw h.Except(Strings.IndicatorAndInputColumnTypeMismatch,
                         BooleanDataViewType.Instance, replaceItemType);
                 }
 
@@ -181,7 +181,7 @@ namespace Microsoft.ML.Transforms
                 {
                     if (!replaceItemType.RawType.TryGetDataKind(out InternalDataKind replaceItemTypeKind))
                     {
-                        throw h.Except("Cannot get a DataKind for type '{0}'", replaceItemType.RawType);
+                        throw h.Except(Strings.CannotGetADataKindForType, replaceItemType.RawType);
                     }
                     naConvCols.Add(new TypeConvertingEstimator.ColumnOptions(tmpIsMissingColName, replaceItemTypeKind.ToDataKind(), tmpIsMissingColName));
                 }

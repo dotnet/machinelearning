@@ -29,8 +29,7 @@ namespace Microsoft.ML.Trainers.FastTree
                     _kind = kind;
                     break;
                 default:
-                    throw _host.ExceptUserArg(nameof(kind), $"Tree ensembles can be either of type {nameof(PredictionKind.BinaryClassification)}, " +
-                        $"{nameof(PredictionKind.Regression)} or {nameof(PredictionKind.Ranking)}");
+                    throw _host.ExceptUserArg(nameof(kind), Strings.UnsupportedTreeEnsemblePredictionKind);
             }
         }
 
@@ -47,13 +46,13 @@ namespace Microsoft.ML.Trainers.FastTree
                 modelCount++;
 
                 var predictor = model;
-                _host.CheckValue(predictor, nameof(models), "One of the models is null");
+                _host.CheckValue(predictor, nameof(models), Strings.OneOfTheModelsIsNull);
 
                 var calibrated = predictor as IWeaklyTypedCalibratedModelParameters;
                 double paramA = 1;
                 if (calibrated != null)
                     _host.Check(calibrated.WeaklyTypedCalibrator is PlattCalibrator,
-                        "Combining FastTree models can only be done when the models are calibrated with Platt calibrator");
+                        Strings.CombinedFastTreeModelsMustUsePlattCalibration);
 
                 predictor = calibrated.WeaklyTypedSubModel;
                 paramA = -((PlattCalibrator)calibrated.WeaklyTypedCalibrator).Slope;
@@ -61,7 +60,7 @@ namespace Microsoft.ML.Trainers.FastTree
                 var tree = predictor as TreeEnsembleModelParameters;
 
                 if (tree == null)
-                    throw _host.Except("Model is not a tree ensemble");
+                    throw _host.Except(Strings.ModelIsNotATreeEnsemble);
                 foreach (var t in tree.TrainedEnsemble.Trees)
                 {
                     var bytes = new byte[t.SizeInBytes()];
@@ -84,8 +83,8 @@ namespace Microsoft.ML.Trainers.FastTree
                 }
                 else
                 {
-                    _host.Check((calibrated != null) == binaryClassifier, "Ensemble contains both calibrated and uncalibrated models");
-                    _host.Check(featureCount == tree.InputType.GetValueCount(), "Found models with different number of features");
+                    _host.Check((calibrated != null) == binaryClassifier, Strings.EnsembleContainsBothCalibratedAndUncalibratedModels);
+                    _host.Check(featureCount == tree.InputType.GetValueCount(), Strings.FoundModelsWithDifferentNumberOfFeatures);
                 }
             }
 

@@ -68,7 +68,7 @@ namespace Microsoft.ML.Transforms
         internal void SaveModel(ModelSaveContext ctx)
         {
             if (_contractName == null)
-                throw _host.Except("Empty contract name for a transform: the transform cannot be saved");
+                throw _host.Except(Strings.UnsavableTransformHasEmptyContractName);
             LambdaTransform.SaveCustomTransformer(_host, ctx, _contractName, _contractAssembly);
         }
 

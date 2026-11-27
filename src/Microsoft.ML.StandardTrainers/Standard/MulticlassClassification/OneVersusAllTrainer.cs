@@ -143,7 +143,7 @@ namespace Microsoft.ML.Trainers
                },
                LoadNameValue, labelColumnName, binaryEstimator, calibrator)
         {
-            Host.CheckValue(labelColumnName, nameof(labelColumnName), "Label column should not be null.");
+            Host.CheckValue(labelColumnName, nameof(labelColumnName), Strings.LabelColumnShouldNotBeNull);
             _options = (Options)Args;
             _options.UseProbabilities = useProbabilities;
         }
@@ -181,7 +181,7 @@ namespace Microsoft.ML.Trainers
                 if (calibratedModel == null)
                     calibratedModel = CalibratorUtils.GetCalibratedPredictor(Host, ch, Calibrator, transformer.Model, trainedData, Args.MaxCalibrationExamples) as TDistPredictor;
 
-                Host.Check(calibratedModel != null, "Calibrated predictor does not implement the expected interface");
+                Host.Check(calibratedModel != null, Strings.CalibratedPredictorDoesNotImplementTheExpectedInterface);
                 return new BinaryPredictionTransformer<TScalarPredictor>(Host, calibratedModel, trainedData.Data.Schema, transformer.FeatureColumnName);
             }
 
@@ -201,7 +201,7 @@ namespace Microsoft.ML.Trainers
                 return MapLabelsCore(NumberDataViewType.UInt32, (in uint val) => key == val, data);
             }
 
-            throw Host.ExceptNotSupp($"Label column type is not supported by OneVersusAllTrainer: {label.Type.RawType}");
+            throw Host.ExceptNotSupp(string.Format(Strings.LabelColumnTypeIsNotSupportedByOneVersusAllTrainer, label.Type.RawType));
         }
 
         /// <summary> Trains a <see cref="MulticlassPredictionTransformer{OneVersusAllModelParameters}"/> model.</summary>
@@ -464,7 +464,7 @@ namespace Microsoft.ML.Trainers
             for (int i = 0; i < preds.Length; i++)
             {
                 var saveInSourceCode = preds[i] as ICanSaveInSourceCode;
-                Host.Check(saveInSourceCode != null, "Saving in code is not supported.");
+                Host.Check(saveInSourceCode != null, Strings.SavingInCodeIsNotSupported);
 
                 writer.WriteLine("{");
                 saveInSourceCode.SaveAsCode(writer, schema);
@@ -483,7 +483,7 @@ namespace Microsoft.ML.Trainers
             for (int i = 0; i < preds.Length; i++)
             {
                 var saveInText = preds[i] as ICanSaveInTextFormat;
-                Host.Check(saveInText != null, "Saving in text is not supported.");
+                Host.Check(saveInText != null, Strings.SavingInTextIsNotSupported);
 
                 writer.WriteLine("#region: class-{0} classifier", i);
                 saveInText.SaveAsText(writer, schema);
@@ -609,7 +609,7 @@ namespace Microsoft.ML.Trainers
                 for (int i = 0; i < predictors.Length; i++)
                 {
                     var vm = predictors[i] as IValueMapper;
-                    Contracts.Check(IsValid(vm, ref inputType), "Predictor doesn't implement the expected interface");
+                    Contracts.Check(IsValid(vm, ref inputType), Strings.PredictorDoesntImplementTheExpectedInterface);
                     Predictors[i] = vm;
                 }
                 CanSavePfa = Predictors.All(m => (m as ISingleCanSavePfa)?.CanSavePfa == true);
@@ -693,7 +693,7 @@ namespace Microsoft.ML.Trainers
                 for (int i = 0; i < predictors.Length; i++)
                 {
                     var vm = predictors[i];
-                    Contracts.Check(IsValid(vm, ref inputType), "Predictor doesn't implement the expected interface");
+                    Contracts.Check(IsValid(vm, ref inputType), Strings.PredictorDoesntImplementTheExpectedInterface);
                     _mappers[i] = vm;
                 }
                 CanSavePfa = Predictors.All(m => (m as IDistCanSavePfa)?.CanSavePfa == true);
@@ -858,7 +858,7 @@ namespace Microsoft.ML.Trainers
                 for (int i = 0; i < predictors.Length; i++)
                 {
                     var vm = predictors[i] as IValueMapper;
-                    Contracts.Check(IsValid(vm, ref inputType), "Predictor doesn't implement the expected interface");
+                    Contracts.Check(IsValid(vm, ref inputType), Strings.PredictorDoesntImplementTheExpectedInterface);
                     Predictors[i] = vm;
                 }
                 CanSavePfa = false;
@@ -908,7 +908,7 @@ namespace Microsoft.ML.Trainers
 
             public override JToken SaveAsPfa(BoundPfaContext ctx, JToken input)
             {
-                throw new NotImplementedException("Softmax's PFA exporter is not implemented yet.");
+                throw new NotImplementedException(Strings.SoftmaxSPFAExporterIsNotImplementedYet);
             }
 
             public override bool SaveAsOnnx(OnnxContext ctx, string[] outputNames, string featureColumn)

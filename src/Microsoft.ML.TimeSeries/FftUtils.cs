@@ -222,9 +222,9 @@ namespace Microsoft.ML.Transforms.TimeSeries
             Contracts.CheckValue(inputIm, nameof(inputIm));
             Contracts.CheckValue(outputRe, nameof(outputRe));
             Contracts.CheckValue(outputIm, nameof(outputIm));
-            Contracts.CheckParam(length > 0, nameof(length), "The length parameter must be greater than 0.");
+            Contracts.CheckParam(length > 0, nameof(length), Strings.TheLengthParameterMustBeGreaterThan0);
             Contracts.Check(inputRe.Length >= length && inputIm.Length >= length && outputRe.Length >= length && outputIm.Length >= length,
-                "The lengths of inputRe, inputIm, outputRe and outputIm need to be at least equal to the length parameter.");
+                Strings.FourierBufferLengthTooShort);
 
             int status = 0; // DFTI_NO_ERROR
             IntPtr descriptor = default(IntPtr);
@@ -267,9 +267,9 @@ namespace Microsoft.ML.Transforms.TimeSeries
             Contracts.CheckValue(inputIm, nameof(inputIm));
             Contracts.CheckValue(outputRe, nameof(outputRe));
             Contracts.CheckValue(outputIm, nameof(outputIm));
-            Contracts.CheckParam(length > 0, nameof(length), "The length parameter must be greater than 0.");
+            Contracts.CheckParam(length > 0, nameof(length), Strings.TheLengthParameterMustBeGreaterThan0);
             Contracts.Check(inputRe.Length >= length && inputIm.Length >= length && outputRe.Length >= length && outputIm.Length >= length,
-                "The lengths of inputRe, inputIm, outputRe and outputIm need to be at least equal to the length parameter.");
+                Strings.FourierBufferLengthTooShort);
 
             int status = 0; // DFTI_NO_ERROR
             IntPtr descriptor = default(IntPtr);
@@ -324,9 +324,9 @@ namespace Microsoft.ML.Transforms.TimeSeries
             Contracts.CheckValue(inputIm, nameof(inputIm));
             Contracts.CheckValue(outputRe, nameof(outputRe));
             Contracts.CheckValue(outputIm, nameof(outputIm));
-            Contracts.CheckParam(length > 0, nameof(length), "The length parameter must be greater than 0.");
+            Contracts.CheckParam(length > 0, nameof(length), Strings.TheLengthParameterMustBeGreaterThan0);
             Contracts.Check(inputRe.Length >= length && inputIm.Length >= length && outputRe.Length >= length && outputIm.Length >= length,
-                "The lengths of inputRe, inputIm, outputRe and outputIm need to be at least equal to the length parameter.");
+                Strings.FourierBufferLengthTooShort);
 
             int status = 0; // DFTI_NO_ERROR
             IntPtr descriptor = default(IntPtr);
@@ -369,9 +369,9 @@ namespace Microsoft.ML.Transforms.TimeSeries
             Contracts.CheckValue(inputIm, nameof(inputIm));
             Contracts.CheckValue(outputRe, nameof(outputRe));
             Contracts.CheckValue(outputIm, nameof(outputIm));
-            Contracts.CheckParam(length > 0, nameof(length), "The length parameter must be greater than 0.");
+            Contracts.CheckParam(length > 0, nameof(length), Strings.TheLengthParameterMustBeGreaterThan0);
             Contracts.Check(inputRe.Length >= length && inputIm.Length >= length && outputRe.Length >= length && outputIm.Length >= length,
-                "The lengths of inputRe, inputIm, outputRe and outputIm need to be at least equal to the length parameter.");
+                Strings.FourierBufferLengthTooShort);
 
             int status = 0; // DFTI_NO_ERROR
             IntPtr descriptor = default(IntPtr);

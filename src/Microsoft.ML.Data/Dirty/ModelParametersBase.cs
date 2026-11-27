@@ -41,7 +41,7 @@ namespace Microsoft.ML.Trainers
             // Verify that the Float type matches.
             int cbFloat = ctx.Reader.ReadInt32();
 #pragma warning disable MSML_NoMessagesForLoadContext // This one is actually useful.
-            Host.CheckDecode(cbFloat == sizeof(float), "This file was saved by an incompatible version");
+            Host.CheckDecode(cbFloat == sizeof(float), Strings.ThisFileWasSavedByAnIncompatibleVersion);
 #pragma warning restore MSML_NoMessagesForLoadContext
         }
 

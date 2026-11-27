@@ -49,7 +49,7 @@ namespace Microsoft.ML
             Contracts.CheckNonEmpty(path, nameof(path));
             if (!File.Exists(path))
             {
-                throw Contracts.ExceptParam(nameof(path), "File does not exist at path: {0}", path);
+                throw Contracts.ExceptParam(nameof(path), Strings.FileDoesNotExistAtPath, path);
             }
 
             var env = catalog.GetEnvironment();

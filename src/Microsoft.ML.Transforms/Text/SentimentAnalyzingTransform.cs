@@ -63,7 +63,7 @@ namespace Microsoft.ML.Transforms.Text
             var file = Utils.FindExistentFileOrNull("pretrained.model", "Sentiment", assemblyForBasePath: typeof(SentimentAnalyzingTransformer));
             if (file == null)
             {
-                throw h.Except("resourcePath", "Missing resource for SentimentAnalyzingTransform.");
+                throw h.Except(Strings.ResourcePath, "Missing resource for SentimentAnalyzingTransform.");
             }
 
             // The logic below ensures that any columns in our input IDataView that conflict

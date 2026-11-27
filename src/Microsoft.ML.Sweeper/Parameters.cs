@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -218,11 +218,11 @@ namespace Microsoft.ML.Sweeper
 
         public LongValueGenerator(LongParamOptions options)
         {
-            Contracts.Check(options.Min < options.Max, "min must be less than max");
+            Contracts.Check(options.Min < options.Max, Strings.MinMustBeLessThanMax);
             // REVIEW: this condition can be relaxed if we change the math below to deal with it
-            Contracts.Check(!options.LogBase || options.Min > 0, "min must be positive if log scale is used");
-            Contracts.Check(!options.LogBase || options.StepSize == null || options.StepSize > 1, "StepSize must be greater than 1 if log scale is used");
-            Contracts.Check(options.LogBase || options.StepSize == null || options.StepSize > 0, "StepSize must be greater than 0 if linear scale is used");
+            Contracts.Check(!options.LogBase || options.Min > 0, Strings.MinMustBePositiveIfLogScaleIsUsed);
+            Contracts.Check(!options.LogBase || options.StepSize == null || options.StepSize > 1, Strings.LogScaleStepSizeMustExceedOne);
+            Contracts.Check(options.LogBase || options.StepSize == null || options.StepSize > 0, Strings.LinearScaleStepSizeMustBePositive);
             _options = options;
         }
 
@@ -313,8 +313,8 @@ namespace Microsoft.ML.Sweeper
         public float NormalizeValue(IParameterValue value)
         {
             var valueTyped = value as LongParameterValue;
-            Contracts.Check(valueTyped != null, "LongValueGenerator could not normalized parameter because it is not of the correct type");
-            Contracts.Check(_options.Min <= valueTyped.Value && valueTyped.Value <= _options.Max, "Value not in correct range");
+            Contracts.Check(valueTyped != null, Strings.LongParameterHasIncorrectType);
+            Contracts.Check(_options.Min <= valueTyped.Value && valueTyped.Value <= _options.Max, Strings.ValueNotInCorrectRange);
 
             if (_options.LogBase)
             {
@@ -328,7 +328,7 @@ namespace Microsoft.ML.Sweeper
         public bool InRange(IParameterValue value)
         {
             var valueTyped = value as LongParameterValue;
-            Contracts.Check(valueTyped != null, "Parameter should be of type LongParameterValue");
+            Contracts.Check(valueTyped != null, Strings.ParameterShouldBeOfTypeLongParameterValue);
             return (_options.Min <= valueTyped.Value && valueTyped.Value <= _options.Max);
         }
 
@@ -350,11 +350,11 @@ namespace Microsoft.ML.Sweeper
 
         public FloatValueGenerator(FloatParamOptions options)
         {
-            Contracts.Check(options.Min < options.Max, "min must be less than max");
+            Contracts.Check(options.Min < options.Max, Strings.MinMustBeLessThanMax);
             // REVIEW: this condition can be relaxed if we change the math below to deal with it
-            Contracts.Check(!options.LogBase || options.Min > 0, "min must be positive if log scale is used");
-            Contracts.Check(!options.LogBase || options.StepSize == null || options.StepSize > 1, "StepSize must be greater than 1 if log scale is used");
-            Contracts.Check(options.LogBase || options.StepSize == null || options.StepSize > 0, "StepSize must be greater than 0 if linear scale is used");
+            Contracts.Check(!options.LogBase || options.Min > 0, Strings.MinMustBePositiveIfLogScaleIsUsed);
+            Contracts.Check(!options.LogBase || options.StepSize == null || options.StepSize > 1, Strings.LogScaleStepSizeMustExceedOne);
+            Contracts.Check(options.LogBase || options.StepSize == null || options.StepSize > 0, Strings.LinearScaleStepSizeMustBePositive);
             _options = options;
         }
 
@@ -437,8 +437,8 @@ namespace Microsoft.ML.Sweeper
         public float NormalizeValue(IParameterValue value)
         {
             var valueTyped = value as FloatParameterValue;
-            Contracts.Check(valueTyped != null, "FloatValueGenerator could not normalized parameter because it is not of the correct type");
-            Contracts.Check(_options.Min <= valueTyped.Value && valueTyped.Value <= _options.Max, "Value not in correct range");
+            Contracts.Check(valueTyped != null, Strings.FloatParameterHasIncorrectType);
+            Contracts.Check(_options.Min <= valueTyped.Value && valueTyped.Value <= _options.Max, Strings.ValueNotInCorrectRange);
 
             if (_options.LogBase)
             {
@@ -452,7 +452,7 @@ namespace Microsoft.ML.Sweeper
         public bool InRange(IParameterValue value)
         {
             var valueTyped = value as FloatParameterValue;
-            Contracts.Check(valueTyped != null, "Parameter should be of type FloatParameterValue");
+            Contracts.Check(valueTyped != null, Strings.ParameterShouldBeOfTypeFloatParameterValue);
             return (_options.Min <= valueTyped.Value && valueTyped.Value <= _options.Max);
         }
 

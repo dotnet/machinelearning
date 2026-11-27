@@ -34,7 +34,7 @@ internal static class ColumnTypeExtensions
     public static int GetKeyCountAsInt32(this DataViewType columnType, IExceptionContext ectx = null)
     {
         ulong count = columnType.GetKeyCount();
-        ectx.Check(count <= int.MaxValue, nameof(KeyDataViewType) + "." + nameof(KeyDataViewType.Count) + " exceeds int.MaxValue.");
+        ectx.Check(count <= int.MaxValue, Strings.KeyDataViewTypeCountExceedsIntMaxValue);
         return (int)count;
     }
 
@@ -133,7 +133,7 @@ internal static class ColumnTypeExtensions
             return NumberTypeFromKind(kind);
 
         Contracts.Assert(false);
-        throw new InvalidOperationException($"Bad type in {nameof(ColumnTypeExtensions)}.{nameof(NumberTypeFromType)}: {type}");
+        throw new InvalidOperationException(string.Format(Strings.BadTypeIn, nameof(ColumnTypeExtensions), nameof(NumberTypeFromType), type));
     }
 
     private static NumberDataViewType NumberTypeFromKind(InternalDataKind kind)
@@ -163,6 +163,6 @@ internal static class ColumnTypeExtensions
         }
 
         Contracts.Assert(false);
-        throw new InvalidOperationException($"Bad data kind in {nameof(ColumnTypeExtensions)}.{nameof(NumberTypeFromKind)}: {kind}");
+        throw new InvalidOperationException(string.Format(Strings.BadDataKindIn, nameof(ColumnTypeExtensions), nameof(NumberTypeFromKind), kind));
     }
 }

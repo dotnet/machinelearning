@@ -38,7 +38,7 @@ namespace Microsoft.ML.Trainers.Ensemble
             : base(args, env, LoadName)
         {
             Host.CheckUserArg(Enum.IsDefined(typeof(MulticlassClassificationEvaluator.Metrics), args.MetricName),
-                nameof(args.MetricName), "Undefined metric name");
+                nameof(args.MetricName), Strings.UndefinedMetricName);
             _metric = args.MetricName;
             _metricName = FindMetricName(typeof(MulticlassClassificationEvaluator.Metrics), _metric);
             Host.Assert(!string.IsNullOrEmpty(_metricName));

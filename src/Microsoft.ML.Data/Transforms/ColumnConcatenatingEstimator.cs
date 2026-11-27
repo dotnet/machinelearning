@@ -55,9 +55,9 @@ namespace Microsoft.ML.Transforms
 
             _host.CheckNonEmpty(outputColumnName, nameof(outputColumnName));
             _host.CheckValue(inputColumnNames, nameof(inputColumnNames));
-            _host.CheckParam(inputColumnNames.Length > 0, nameof(inputColumnNames), "Input columns not specified");
+            _host.CheckParam(inputColumnNames.Length > 0, nameof(inputColumnNames), Strings.InputColumnsNotSpecified);
             _host.CheckParam(!inputColumnNames.Any(r => string.IsNullOrEmpty(r)), nameof(inputColumnNames),
-                "Contained some null or empty items");
+                Strings.ContainedSomeNullOrEmptyItems);
 
             _name = outputColumnName;
             _source = inputColumnNames;
@@ -111,13 +111,11 @@ namespace Microsoft.ML.Transforms
                 // Appending keys makes no real sense anyway.
                 if (col.IsKey)
                 {
-                    throw _host.Except($"Column '{sources[i]}' is key. " +
-                        $"Concatenation of keys is unsupported.");
+                    throw _host.Except(string.Format(Strings.ColumnIsKeyConcatenationOfKeysIsUnsupported, sources[i]));
                 }
                 if (!col.ItemType.Equals(itemType))
                 {
-                    throw _host.Except($"Concatenated columns should have the same type. Column '{sources[i]}' has type of {col.ItemType}, " +
-                        $"but expected column type is {itemType}.");
+                    throw _host.Except(string.Format(Strings.ConcatenatedColumnTypeMismatch, sources[i], col.ItemType, itemType));
                 }
                 varVector |= col.Kind == SchemaShape.Column.VectorKind.VariableVector;
                 isNormalized &= col.IsNormalized();

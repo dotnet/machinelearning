@@ -82,7 +82,7 @@ namespace Microsoft.ML.Trainers.FastTree
                 {
                     if (pos >= length)
                     {
-                        throw Contracts.Except("Length provided to segment vector is inconsistent with value enumeration");
+                        throw Contracts.Except(Strings.LengthProvidedToSegmentVectorIsInconsistentWithValueEnumeration);
                     }
                     vals[pos++] = (uint)v;
                     if ((uint)v > max)
@@ -90,7 +90,7 @@ namespace Microsoft.ML.Trainers.FastTree
                 }
                 if (pos != length)
                 {
-                    throw Contracts.Except("Length provided to segment vector is inconsistent with value enumeration");
+                    throw Contracts.Except(Strings.LengthProvidedToSegmentVectorIsInconsistentWithValueEnumeration);
                 }
 
                 int maxbits = BitsForValue(max);
@@ -190,9 +190,9 @@ namespace Microsoft.ML.Trainers.FastTree
             byte firstvalid;
 
             if (bitsForMaxItem > 32 || bitsForMaxItem < 0)
-                throw Contracts.Except("Bits for max item must be in range [0,32], {0} is illegal", bitsForMaxItem);
+                throw Contracts.Except(Strings.BitsForMaxItemOutOfRange, bitsForMaxItem);
             else if (bitsForMaxItem > 21 && findPath)
-                throw Contracts.Except("Cannot use more than 21 bits if also storing the actual optimal path");
+                throw Contracts.Except(Strings.OptimalPathStorageSupportsAtMost21Bits);
 
             max = 0;
             bits = TransitionCost;
@@ -239,7 +239,7 @@ namespace Microsoft.ML.Trainers.FastTree
             if (bitsForMaxItem < 32 && (((uint)1) << bitsForMaxItem) <= max)
             {
                 throw Contracts.Except(
-                    "Maximum specified bits {0} was not actually sufficient to encode maximum value {1}",
+                    Strings.InsufficientBitCountForMaximumValue,
                     bitsForMaxItem, max);
             }
             transitions = 0;
@@ -431,11 +431,11 @@ namespace Microsoft.ML.Trainers.FastTree
             }
             else if (bitsNeeded <= 31)
             {
-                throw Contracts.ExceptNotImpl("Segment array pathfinder currently does not support more than 21 bits");
+                throw Contracts.ExceptNotImpl(Strings.SegmentPathfinderSupportsAtMost21Bits);
             }
             else
             {
-                throw Contracts.Except("Segment array cannot represent more than 31 bits");
+                throw Contracts.Except(Strings.SegmentArrayCannotRepresentMoreThan31Bits);
             }
         }
 
@@ -451,7 +451,7 @@ namespace Microsoft.ML.Trainers.FastTree
             }
             else
             {
-                throw Contracts.Except("Segment array cannot represent more than 31 bits");
+                throw Contracts.Except(Strings.SegmentArrayCannotRepresentMoreThan31Bits);
             }
         }
 
@@ -572,7 +572,7 @@ namespace Microsoft.ML.Trainers.FastTree
                              pSumWeightsByBin, pCountByBin, input.TotalCount,
                              input.SumTargets);
                     if (rv < 0)
-                        throw Contracts.Except("CSumup returned error {0}", rv);
+                        throw Contracts.Except(Strings.CSumupReturnedError, rv);
                 }
             }
         }

@@ -46,7 +46,7 @@ namespace Microsoft.ML.Transforms
         {
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(RegistrationName);
-            _host.CheckParam(labelBinCount > 1, nameof(labelBinCount), "Must be greater than 1");
+            _host.CheckParam(labelBinCount > 1, nameof(labelBinCount), Strings.MustBeGreaterThan1);
 
             _labelBinCount = (int)labelBinCount;
             _logOddsCount = _labelBinCount == 2 ? 1 : _labelBinCount;
@@ -124,7 +124,7 @@ namespace Microsoft.ML.Transforms
                     classNames[i] = string.Format("Class{0:000}", i);
             }
 
-            Contracts.Check(Utils.Size(classNames) == _labelBinCount, "incorrect class names");
+            Contracts.Check(Utils.Size(classNames) == _labelBinCount, Strings.IncorrectClassNames);
 
             var editor = VBufferEditor.Create(ref featureNames, NumFeatures);
             for (int i = 0; i < _labelBinCount; i++)

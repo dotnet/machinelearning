@@ -241,7 +241,7 @@ namespace Microsoft.ML.Numeric
                 Value = LastValue = Eval(in _x, ref _grad);
                 GradientCalculations++;
                 if (!FloatUtils.IsFinite(LastValue))
-                    throw Ch.Except("Optimizer unable to proceed with loss function yielding {0}", LastValue);
+                    throw Ch.Except(Strings.OptimizerCannotProceedWithInvalidLoss, LastValue);
             }
 
             internal void MapDirByInverseHessian()
@@ -358,7 +358,7 @@ namespace Microsoft.ML.Numeric
                 VectorUtils.AddMultInto(in _newGrad, -1, in _grad, ref nextY);
                 float ro = VectorUtils.DotProduct(in nextS, in nextY);
                 if (ro == 0)
-                    throw Ch.Process(new PrematureConvergenceException(this, "ro equals zero. Is your function linear?"));
+                    throw Ch.Process(new PrematureConvergenceException(this, Strings.RoEqualsZeroIsYourFunctionLinear));
 
                 _sList[_roList.Count] = nextS;
                 _yList[_roList.Count] = nextY;
@@ -383,11 +383,11 @@ namespace Microsoft.ML.Numeric
                 float dirDeriv = VectorUtils.DotProduct(in _dir, in _grad);
 
                 if (dirDeriv == 0)
-                    throw ch.Process(new PrematureConvergenceException(this, "Directional derivative is zero. You may be sitting on the optimum."));
+                    throw ch.Process(new PrematureConvergenceException(this, Strings.ZeroDirectionalDerivativeAtOptimum));
 
                 // if a non-descent direction is chosen, the line search will break anyway, so throw here
                 // The most likely reasons for this is a bug in your function's gradient computation,
-                ch.Check(dirDeriv < 0, "L-BFGS chose a non-descent direction.");
+                ch.Check(dirDeriv < 0, Strings.LBFGSChoseANonDescentDirection);
 
                 float c1 = (float)1e-4 * dirDeriv;
                 float c2 = (float)0.9 * dirDeriv;
@@ -420,7 +420,7 @@ namespace Microsoft.ML.Numeric
                     }
 
                     if (!FloatUtils.IsFinite(Value))
-                        throw ch.Except("Optimizer unable to proceed with loss function yielding {0}", Value);
+                        throw ch.Except(Strings.OptimizerCannotProceedWithInvalidLoss, Value);
 
                     dirDeriv = VectorUtils.DotProduct(in _dir, in _newGrad);
                     PointValueDeriv curr = new PointValueDeriv(alpha, Value, dirDeriv);
@@ -495,7 +495,7 @@ namespace Microsoft.ML.Numeric
                     Value = Eval(in _newX, ref _newGrad);
                     GradientCalculations++;
                     if (!FloatUtils.IsFinite(Value))
-                        throw ch.Except("Optimizer unable to proceed with loss function yielding {0}", Value);
+                        throw ch.Except(Strings.OptimizerCannotProceedWithInvalidLoss, Value);
                     dirDeriv = VectorUtils.DotProduct(in _dir, in _newGrad);
 
                     PointValueDeriv curr = new PointValueDeriv(alpha, Value, dirDeriv);
@@ -505,7 +505,7 @@ namespace Microsoft.ML.Numeric
                         if (aHi.A == curr.A)
                         {
                             if (force)
-                                throw ch.Process(new PrematureConvergenceException(this, "Step size interval numerically zero."));
+                                throw ch.Process(new PrematureConvergenceException(this, Strings.StepSizeIntervalNumericallyZero));
                             else
                                 return false;
                         }
@@ -522,7 +522,7 @@ namespace Microsoft.ML.Numeric
                         if (aLo.A == curr.A)
                         {
                             if (force)
-                                throw ch.Process(new PrematureConvergenceException(this, "Step size interval numerically zero."));
+                                throw ch.Process(new PrematureConvergenceException(this, Strings.StepSizeIntervalNumericallyZero));
                             else
                                 return false;
                         }

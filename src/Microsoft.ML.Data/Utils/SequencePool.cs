@@ -234,7 +234,7 @@ namespace Microsoft.ML.Internal.Utilities
 
             if (_idLim + 1 >= _start.Length)
             {
-                Contracts.Check(_start.Length != Utils.ArrayMaxSize, "Cannot allocate memory for the sequence pool");
+                Contracts.Check(_start.Length != Utils.ArrayMaxSize, Strings.CannotAllocateMemoryForTheSequencePool);
                 Contracts.Assert(_idLim + 1 == _start.Length);
                 long newSize = (long)_start.Length + _start.Length / 2;
                 int size = (newSize > Utils.ArrayMaxSize) ? Utils.ArrayMaxSize : (int)newSize;
@@ -244,7 +244,7 @@ namespace Microsoft.ML.Internal.Utilities
             Contracts.Assert(_hash.Length >= _next.Length);
             if (_idLim >= _next.Length)
             {
-                Contracts.Check(_next.Length != Utils.ArrayMaxSize, "Cannot allocate memory for the sequence pool");
+                Contracts.Check(_next.Length != Utils.ArrayMaxSize, Strings.CannotAllocateMemoryForTheSequencePool);
                 Contracts.Assert(_idLim == _next.Length);
                 long newSize = (long)_next.Length + _next.Length / 2;
                 int size = (newSize > Utils.ArrayMaxSize) ? Utils.ArrayMaxSize : (int)newSize;
@@ -256,7 +256,7 @@ namespace Microsoft.ML.Internal.Utilities
             var ibLim = _start[_idLim];
             if (ibLim > _bytes.Length - cbMax)
             {
-                Contracts.Check(_bytes.Length != Utils.ArrayMaxSize, "Cannot allocate memory for the sequence pool");
+                Contracts.Check(_bytes.Length != Utils.ArrayMaxSize, Strings.CannotAllocateMemoryForTheSequencePool);
                 long newSize = Math.Max((long)_bytes.Length + _bytes.Length / 2, ibLim + cbMax);
                 int size = (newSize > Utils.ArrayMaxSize) ? Utils.ArrayMaxSize : (int)newSize;
                 Array.Resize(ref _bytes, size);

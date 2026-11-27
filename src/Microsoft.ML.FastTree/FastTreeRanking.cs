@@ -162,7 +162,7 @@ namespace Microsoft.ML.Trainers.FastTree
             catch (Exception ex)
             {
                 if (ex is FormatException || ex is OverflowException)
-                    throw Host.Except(ex, "Error in the format of custom gains. Inner exception is {0}", ex.Message);
+                    throw Host.Except(ex, Strings.CustomGainsFormatError, ex.Message);
                 throw;
             }
         }
@@ -175,7 +175,7 @@ namespace Microsoft.ML.Trainers.FastTree
                 if (gains.Length < 5)
                 {
                     throw ch.ExceptUserArg(nameof(FastTreeTrainerOptions.CustomGains),
-                        "Has {0} gain levels. We require at least 5 elements.",
+                        Strings.HasGainLevelsWeRequireAtLeast5Elements,
                         gains.Length);
                 }
                 DcgCalculator.LabelGainMap = gains;
@@ -187,7 +187,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
             if (doEarlyStop)
                 ch.CheckUserArg(FastTreeTrainerOptions.EarlyStoppingMetrics == 1 || FastTreeTrainerOptions.EarlyStoppingMetrics == 3,
-                    nameof(FastTreeTrainerOptions.EarlyStoppingMetrics), "should be 1 or 3.");
+                    nameof(FastTreeTrainerOptions.EarlyStoppingMetrics), Strings.ShouldBe1Or3);
 
             base.CheckOptions(ch);
         }
@@ -695,7 +695,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
                 for (int i = 0; i < numDocuments; ++i)
                 {
-                    Contracts.Check(0 <= order[i] && order[i] < numDocuments, "the index to document exceeds range");
+                    Contracts.Check(0 <= order[i] && order[i] < numDocuments, Strings.TheIndexToDocumentExceedsRange);
 
                     int index = begin + order[i];
 
@@ -707,7 +707,7 @@ namespace Microsoft.ML.Trainers.FastTree
                     }
 
                     // group starts from 2 (since 0 is unknown and 1 is unique)
-                    Contracts.Check(2 <= group && group < numDocuments + 2, "dupeId group exceeds range");
+                    Contracts.Check(2 <= group && group < numDocuments + 2, Strings.DupeIdGroupExceedsRange);
 
                     UInt32 groupIndex = (UInt32)begin + group - 2;
 
@@ -847,7 +847,7 @@ namespace Microsoft.ML.Trainers.FastTree
                         {
                             if (_useShiftedNdcg || _costFunctionParam == 'c' || _distanceWeight2 || _normalizeQueryLambdas)
                             {
-                                throw new Exception("Shifted NDCG / ContinuousWeightedRanknet / distanceWeight2 / normalized lambdas are only supported by unmanaged code");
+                                throw new Exception(Strings.AdvancedRankingOptionsRequireUnmanagedCode);
                             }
 
                             var comparer = _comparers[threadIndex];

@@ -1,0 +1,67 @@
+﻿<?xml version='1.0' encoding='utf-8'?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="ColumnDoesntExist" xml:space="preserve">
+    <value>Column {0} doesn't exist</value>
+    <comment>Exception or validation message. Placeholders: {0}=columnName. Source: src/Microsoft.ML.Vision/DnnRetrainTransform.cs:230.</comment>
+  </data>
+  <data name="DoesNotExistInTheModel" xml:space="preserve">
+    <value>'{0}' does not exist in the model</value>
+    <comment>Exception or validation message. Placeholders: {0}=options.LearningRateOperation. Source: src/Microsoft.ML.Vision/DnnRetrainTransform.cs:223. Exception or validation message. Placeholders: {0}=options.LossOperation. Source: src/Microsoft.ML.Vision/DnnRetrainTransform.cs:209. Exception or validation message. Placeholders: {0}=options.MetricOperation. Source: src/Microsoft.ML.Vision/DnnRetrainTransform.cs:216. Exception or validation message. Placeholders: {0}=options.SaveLocationOperation. Source: src/Microsoft.ML.Vision/DnnRetrainTransform.cs:199. Exception or validation message. Placeholders: {0}=options.SaveOperation. Source: src/Microsoft.ML.Vision/DnnRetrainTransform.cs:203. Exception or validation message. Placeholders: {0}=options.TensorFlowLabel. Source: src/Microsoft.ML.Vision/DnnRetrainTransform.cs:195. Exception or validation message. Placeholders: {0}=_labelTensor.name. Source: src/Microsoft.ML.Vision/ImageClassificationTrainer.cs:735.</comment>
+  </data>
+  <data name="EarlyStoppingRequiresValidationOrTrainSetEvaluation" xml:space="preserve">
+    <value>Early stopping enabled but unable tofind a validation set and/or train set testing disabled. Please disable early stopping or either provide a validation set or enable train set training.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Vision/ImageClassificationTrainer.cs:742.</comment>
+  </data>
+  <data name="ErrorSerializingTensorFlowRetrainedModelToDisk" xml:space="preserve">
+    <value>Error serializing TensorFlow retrained model to disk.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Vision/DnnRetrainTransform.cs:458.</comment>
+  </data>
+  <data name="InputColumnDoesNotExistInTheModel" xml:space="preserve">
+    <value>Input column '{0}' does not exist in the model</value>
+    <comment>Exception or validation message. Placeholders: {0}=input. Source: src/Microsoft.ML.Vision/DnnRetrainTransform.cs:589.</comment>
+  </data>
+  <data name="VisionInputShapeMismatch" xml:space="preserve">
+    <value>Input shape mismatch: Input '{0}' has shape {1}, but input data is of length {2}.</value>
+    <comment>Exception or validation message. Placeholders: {0}=_parent._inputs[i], {1}=originalShape.ToString(), {2}=typeValueCount. Source: src/Microsoft.ML.Vision/DnnRetrainTransform.cs:811. Exception or validation message. Placeholders: {0}=_parent._inputs[i], {1}=originalShape.ToString(), {2}=typeValueCount. Source: src/Microsoft.ML.Vision/DnnRetrainTransform.cs:818.</comment>
+  </data>
+  <data name="InputTypeOfInputColumnIsNotSupportedInTensorFlow" xml:space="preserve">
+    <value>Input type '{0}' of input column '{1}' is not supported in TensorFlow</value>
+    <comment>Exception or validation message. Placeholders: {0}=tfInputType, {1}=input. Source: src/Microsoft.ML.Vision/DnnRetrainTransform.cs:593.</comment>
+  </data>
+  <data name="NonVectorColumnsMustBeSizeOneVectors" xml:space="preserve">
+    <value>Non-vector columns are not supported and should be loaded as vector columns of size 1</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Vision/DnnRetrainTransform.cs:784.</comment>
+  </data>
+  <data name="OptimizationOperationDoesNotExistInTheModel" xml:space="preserve">
+    <value>Optimization operation '{0}' does not exist in the model</value>
+    <comment>Exception or validation message. Placeholders: {0}=options.OptimizationOperation. Source: src/Microsoft.ML.Vision/DnnRetrainTransform.cs:191.</comment>
+  </data>
+  <data name="OutputColumnDoesNotExistInTheModel" xml:space="preserve">
+    <value>Output column '{0}' does not exist in the model</value>
+    <comment>Exception or validation message. Placeholders: {0}=outputs[i]. Source: src/Microsoft.ML.Vision/DnnRetrainTransform.cs:638.</comment>
+  </data>
+  <data name="OutputColumnSpecifiedMultipleTimes" xml:space="preserve">
+    <value>Output column '{0}' specified multiple times</value>
+    <comment>Exception or validation message. Placeholders: {0}=outputs[i]. Source: src/Microsoft.ML.Vision/DnnRetrainTransform.cs:634.</comment>
+  </data>
+  <data name="TensorFlowRetrainingRequiresUnfrozenModel" xml:space="preserve">
+    <value>TensorFlowTransform: Re-Training of TensorFlow model is only supported for un-frozen model.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Vision/DnnRetrainTransform.cs:181.</comment>
+  </data>
+  <data name="VariableLengthInputColumnsNotSupported" xml:space="preserve">
+    <value>Variable length input columns not supported</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Vision/DnnRetrainTransform.cs:780.</comment>
+  </data>
+</root>

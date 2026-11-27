@@ -45,7 +45,7 @@ namespace Microsoft.ML.Trainers.Ensemble.SubsetSelector
             Host.CheckValue(data, nameof(data));
             Host.CheckParam(size > 0, nameof(size));
             Host.CheckParam(0 <= validationDatasetProportion && validationDatasetProportion < 1,
-                nameof(validationDatasetProportion), "Should be greater than or equal to 0 and less than 1");
+                nameof(validationDatasetProportion), Strings.ProportionMustBeInUnitInterval);
             Data = data;
             Size = size;
             BatchSize = batchSize;
@@ -94,7 +94,7 @@ namespace Microsoft.ML.Trainers.Ensemble.SubsetSelector
         public virtual RoleMappedData GetTestData(Subset subset, Batch batch)
         {
             Host.CheckValueOrNull(subset);
-            Host.CheckValue(batch.TestInstances, nameof(batch), "Batch does not have test data");
+            Host.CheckValue(batch.TestInstances, nameof(batch), Strings.BatchDoesNotHaveTestData);
 
             if (subset == null || subset.SelectedFeatures == null)
                 return batch.TestInstances;

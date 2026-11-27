@@ -200,13 +200,13 @@ namespace Microsoft.ML.Trainers.FastTree
             Contracts.CheckValue(env, nameof(env));
             Host.CheckValue(options, nameof(options));
 
-            Host.CheckParam(options.LearningRate > 0, nameof(options.LearningRate), "Must be positive.");
-            Host.CheckParam(options.NumberOfThreads == null || options.NumberOfThreads > 0, nameof(options.NumberOfThreads), "Must be positive.");
-            Host.CheckParam(0 <= options.EntropyCoefficient && options.EntropyCoefficient <= 1, nameof(options.EntropyCoefficient), "Must be in [0, 1].");
-            Host.CheckParam(0 <= options.GainConfidenceLevel && options.GainConfidenceLevel < 1, nameof(options.GainConfidenceLevel), "Must be in [0, 1).");
-            Host.CheckParam(0 < options.MaximumBinCountPerFeature, nameof(options.MaximumBinCountPerFeature), "Must be positive.");
-            Host.CheckParam(0 < options.NumberOfIterations, nameof(options.NumberOfIterations), "Must be positive.");
-            Host.CheckParam(0 < options.MinimumExampleCountPerLeaf, nameof(options.MinimumExampleCountPerLeaf), "Must be positive.");
+            Host.CheckParam(options.LearningRate > 0, nameof(options.LearningRate), Strings.MustBePositive);
+            Host.CheckParam(options.NumberOfThreads == null || options.NumberOfThreads > 0, nameof(options.NumberOfThreads), Strings.MustBePositive);
+            Host.CheckParam(0 <= options.EntropyCoefficient && options.EntropyCoefficient <= 1, nameof(options.EntropyCoefficient), Strings.MustBeBetweenZeroAndOneInclusive);
+            Host.CheckParam(0 <= options.GainConfidenceLevel && options.GainConfidenceLevel < 1, nameof(options.GainConfidenceLevel), Strings.MustBeAtLeastZeroAndLessThanOne);
+            Host.CheckParam(0 < options.MaximumBinCountPerFeature, nameof(options.MaximumBinCountPerFeature), Strings.MustBePositive);
+            Host.CheckParam(0 < options.NumberOfIterations, nameof(options.NumberOfIterations), Strings.MustBePositive);
+            Host.CheckParam(0 < options.MinimumExampleCountPerLeaf, nameof(options.MinimumExampleCountPerLeaf), Strings.MustBePositive);
 
             GamTrainerOptions = options;
 

@@ -293,7 +293,7 @@ namespace Microsoft.ML.AutoML
                 }
                 catch (Exception)
                 {
-                    throw new InvalidOperationException($"Cannot set parameter {param.Name} for {obj.GetType()}");
+                    throw new InvalidOperationException(string.Format(Strings.CannotSetParameterFor, param.Name, obj.GetType()));
                 }
             }
         }
@@ -315,7 +315,7 @@ namespace Microsoft.ML.AutoML
             }
 
             // never expected to reach here
-            throw new NotSupportedException($"{binaryTrainer} not supported");
+            throw new NotSupportedException(string.Format(Strings.NotSupported, binaryTrainer));
         }
 
         public static TrainerName GetTrainerName(MulticlassClassificationTrainer multiTrainer)
@@ -337,7 +337,7 @@ namespace Microsoft.ML.AutoML
             }
 
             // never expected to reach here
-            throw new NotSupportedException($"{multiTrainer} not supported");
+            throw new NotSupportedException(string.Format(Strings.NotSupported, multiTrainer));
         }
 
         public static TrainerName GetTrainerName(RegressionTrainer regressionTrainer)
@@ -359,7 +359,7 @@ namespace Microsoft.ML.AutoML
             }
 
             // never expected to reach here
-            throw new NotSupportedException($"{regressionTrainer} not supported");
+            throw new NotSupportedException(string.Format(Strings.NotSupported, regressionTrainer));
         }
 
         public static TrainerName GetTrainerName(RankingTrainer rankingTrainer)
@@ -373,7 +373,7 @@ namespace Microsoft.ML.AutoML
             }
 
             // never expected to reach here
-            throw new NotSupportedException($"{rankingTrainer} not supported");
+            throw new NotSupportedException(string.Format(Strings.NotSupported, rankingTrainer));
         }
 
         public static TrainerName GetTrainerName(RecommendationTrainer recommendationTrainer)
@@ -385,7 +385,7 @@ namespace Microsoft.ML.AutoML
             }
 
             // never expected to reach here
-            throw new NotSupportedException($"{recommendationTrainer} not supported");
+            throw new NotSupportedException(string.Format(Strings.NotSupported, recommendationTrainer));
         }
 
         public static IEnumerable<TrainerName> GetTrainerNames(IEnumerable<BinaryClassificationTrainer> binaryTrainers)

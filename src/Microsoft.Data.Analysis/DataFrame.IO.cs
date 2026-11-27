@@ -345,7 +345,7 @@ namespace Microsoft.Data.Analysis
             }
             else
             {
-                throw new NotSupportedException(nameof(kind));
+                throw new NotSupportedException(String.Format(Strings.NotSupportedColumnType, kind.Name));
             }
             return ret;
         }
@@ -669,7 +669,7 @@ namespace Microsoft.Data.Analysis
 
             if (cultureInfo.NumberFormat.NumberDecimalSeparator.Equals(separator.ToString()))
             {
-                throw new ArgumentException("Decimal separator cannot match the column separator");
+                throw new ArgumentException(Strings.DecimalSeparatorCannotMatchTheColumnSeparator);
             }
 
             if (encoding is null)

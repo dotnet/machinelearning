@@ -732,16 +732,13 @@ namespace Microsoft.ML.Vision
 
             if (_session.graph.OperationByName(_labelTensor.name.Split(':')[0]) == null)
             {
-                throw Host.ExceptParam(nameof(_labelTensor.name), $"'{_labelTensor.name}' does not" +
-                    $"exist in the model");
+                throw Host.ExceptParam(nameof(_labelTensor.name), string.Format(Strings.DoesNotExistInTheModel, _labelTensor.name));
             }
 
             if (options.EarlyStoppingCriteria != null && options.ValidationSet == null &&
                 options.TestOnTrainSet == false)
             {
-                throw Host.ExceptParam(nameof(options.EarlyStoppingCriteria), $"Early stopping enabled but unable to" +
-                    $"find a validation set and/or train set testing disabled. Please disable early stopping " +
-                    $"or either provide a validation set or enable train set training.");
+                throw Host.ExceptParam(nameof(options.EarlyStoppingCriteria), Strings.EarlyStoppingRequiresValidationOrTrainSetEvaluation);
             }
 
         }

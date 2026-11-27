@@ -304,7 +304,7 @@ namespace Microsoft.ML.Transforms
             int size = ctx.Reader.ReadInt32();
             Contracts.CheckDecode(size > 0);
             if (size != cv)
-                throw Contracts.Except("Normalizer expected {0} slots, but the input data column has {1} slots.", size, cv);
+                throw Contracts.Except(Strings.NormalizerExpectedSlotsButTheInputDataColumnHasSlots, size, cv);
             mean = ctx.Reader.ReadDoubleArray(size);
             stddev = ctx.Reader.ReadDoubleArray(size);
         }
@@ -664,7 +664,7 @@ namespace Microsoft.ML.Transforms
 
                     public static new ImplOne Create(ModelLoadContext ctx, IHost host, DataViewType typeSrc)
                     {
-                        host.Check(typeSrc.RawType == typeof(TFloat), "The column type must be R8.");
+                        host.Check(typeSrc.RawType == typeof(TFloat), Strings.TheColumnTypeMustBeR8);
                         List<int> nz = null;
                         int cfeat;
                         TFloat[] scales;
@@ -679,7 +679,7 @@ namespace Microsoft.ML.Transforms
                         host.Assert(offsets == null || offsets.Length == cfeat);
                         host.Assert(Utils.Size(nz) == 0 || offsets != null);
                         if (cfeat != 1)
-                            throw host.Except("Normalizer expected {0} slots, but the input data column has 1 slot.", cfeat);
+                            throw host.Except(Strings.NormalizerSlotCountMismatch, cfeat);
 
                         return new ImplOne(host, scales[0], (offsets != null) ? offsets[0] : 0);
                     }
@@ -728,7 +728,7 @@ namespace Microsoft.ML.Transforms
 
                     public static ImplVec Create(ModelLoadContext ctx, IHost host, VectorDataViewType typeSrc)
                     {
-                        host.Check(typeSrc.ItemType.RawType == typeof(TFloat), "The column type must be vector of Double.");
+                        host.Check(typeSrc.ItemType.RawType == typeof(TFloat), Strings.TheColumnTypeMustBeVectorOfDouble);
                         int cv = Math.Max(1, typeSrc.Size);
                         List<int> nz = null;
                         int cfeat;
@@ -744,7 +744,7 @@ namespace Microsoft.ML.Transforms
                         host.Assert(offsets == null || offsets.Length == cfeat);
                         host.Assert(Utils.Size(nz) == 0 || offsets != null);
                         if (cfeat != cv)
-                            throw host.Except("Normalizer expected {0} slots, but the input data column has {1} slots.", cfeat, cv);
+                            throw host.Except(Strings.NormalizerExpectedSlotsButTheInputDataColumnHasSlots, cfeat, cv);
 
                         return new ImplVec(host, scales, offsets, (offsets != null && nz.Count < cv / 2) ? nz.ToArray() : null);
                     }
@@ -989,7 +989,7 @@ namespace Microsoft.ML.Transforms
 
                     public static new ImplOne Create(ModelLoadContext ctx, IHost host, DataViewType typeSrc)
                     {
-                        host.Check(typeSrc.RawType == typeof(TFloat), "The column type must be Double.");
+                        host.Check(typeSrc.RawType == typeof(TFloat), Strings.TheColumnTypeMustBeDouble);
                         host.CheckValue(ctx, nameof(ctx));
                         ctx.CheckAtModel(GetVersionInfo());
 
@@ -1054,7 +1054,7 @@ namespace Microsoft.ML.Transforms
 
                     public static ImplVec Create(ModelLoadContext ctx, IHost host, VectorDataViewType typeSrc)
                     {
-                        host.Check(typeSrc.ItemType.RawType == typeof(TFloat), "The column type must be vector of Double.");
+                        host.Check(typeSrc.ItemType.RawType == typeof(TFloat), Strings.TheColumnTypeMustBeVectorOfDouble);
                         int cv = Math.Max(1, typeSrc.Size);
 
                         host.CheckValue(ctx, nameof(ctx));
@@ -1172,7 +1172,7 @@ namespace Microsoft.ML.Transforms
 
                     public static new ImplOne Create(ModelLoadContext ctx, IHost host, DataViewType typeSrc)
                     {
-                        host.Check(typeSrc.RawType == typeof(TFloat), "The column type must be Double.");
+                        host.Check(typeSrc.RawType == typeof(TFloat), Strings.TheColumnTypeMustBeDouble);
                         host.CheckValue(ctx, nameof(ctx));
                         ctx.CheckAtModel(GetVersionInfo());
 
@@ -1187,7 +1187,7 @@ namespace Microsoft.ML.Transforms
                             throw host.ExceptDecode();
                         }
                         if (binUpperBounds.Length != 1)
-                            throw host.Except("Normalizer expected {0} slots, but the input data column has 1 slot.", binUpperBounds.Length);
+                            throw host.Except(Strings.NormalizerSlotCountMismatch, binUpperBounds.Length);
 
                         return new ImplOne(host, binUpperBounds[0], fixZero);
                     }
@@ -1257,7 +1257,7 @@ namespace Microsoft.ML.Transforms
 
                     public static ImplVec Create(ModelLoadContext ctx, IHost host, VectorDataViewType typeSrc)
                     {
-                        host.Check(typeSrc.ItemType.RawType == typeof(TFloat), "The column type must be vector of Double.");
+                        host.Check(typeSrc.ItemType.RawType == typeof(TFloat), Strings.TheColumnTypeMustBeVectorOfDouble);
                         int cv = Math.Max(1, typeSrc.Size);
                         host.CheckValue(ctx, nameof(ctx));
                         ctx.CheckAtModel(GetVersionInfo());
@@ -1273,7 +1273,7 @@ namespace Microsoft.ML.Transforms
                             throw host.ExceptDecode();
                         }
                         if (binUpperBounds.Length != cv)
-                            throw host.Except("Normalizer expected {0} slots, but the input data column has {1} slots.", binUpperBounds.Length, cv);
+                            throw host.Except(Strings.NormalizerExpectedSlotsButTheInputDataColumnHasSlots, binUpperBounds.Length, cv);
 
                         return new ImplVec(host, binUpperBounds, fixZero);
                     }
@@ -1551,7 +1551,7 @@ namespace Microsoft.ML.Transforms
                 public static IColumnFunctionBuilder Create(NormalizingEstimator.MinMaxColumnOptions column, IHost host, DataViewType srcType,
                     ValueGetter<TFloat> getter)
                 {
-                    host.CheckUserArg(column.MaximumExampleCount > 1, nameof(column.MaximumExampleCount), "Must be greater than 1");
+                    host.CheckUserArg(column.MaximumExampleCount > 1, nameof(column.MaximumExampleCount), Strings.MustBeGreaterThan1);
                     return new MinMaxOneColumnFunctionBuilder(host, column.MaximumExampleCount, column.EnsureZeroUntouched, getter);
                 }
 
@@ -1584,7 +1584,7 @@ namespace Microsoft.ML.Transforms
                         return false;
                     var size = Aggregator.Min.Length;
                     if (buffer.Length != size)
-                        throw Host.Except("Normalizer expected {0} slots but got {1}", size, buffer.Length);
+                        throw Host.Except(Strings.NormalizerExpectedSlotsButGot, size, buffer.Length);
                     Aggregator.ProcessValue(in buffer);
                     return true;
                 }
@@ -1601,7 +1601,7 @@ namespace Microsoft.ML.Transforms
                 public static IColumnFunctionBuilder Create(NormalizingEstimator.MinMaxColumnOptions column, IHost host, VectorDataViewType srcType,
                     ValueGetter<VBuffer<TFloat>> getter)
                 {
-                    host.CheckUserArg(column.MaximumExampleCount > 1, nameof(column.MaximumExampleCount), "Must be greater than 1");
+                    host.CheckUserArg(column.MaximumExampleCount > 1, nameof(column.MaximumExampleCount), Strings.MustBeGreaterThan1);
                     var cv = srcType.Size;
                     return new MinMaxVecColumnFunctionBuilder(host, cv, column.MaximumExampleCount, column.EnsureZeroUntouched, getter);
                 }
@@ -1665,7 +1665,7 @@ namespace Microsoft.ML.Transforms
                 public static IColumnFunctionBuilder Create(NormalizingEstimator.MeanVarianceColumnOptions column, IHost host, DataViewType srcType,
                     ValueGetter<TFloat> getter)
                 {
-                    host.CheckUserArg(column.MaximumExampleCount > 1, nameof(column.MaximumExampleCount), "Must be greater than 1");
+                    host.CheckUserArg(column.MaximumExampleCount > 1, nameof(column.MaximumExampleCount), Strings.MustBeGreaterThan1);
                     return new MeanVarOneColumnFunctionBuilder(host, column.MaximumExampleCount, column.EnsureZeroUntouched, getter, false, column.UseCdf, column.UseSampleVariance);
                 }
 
@@ -1673,7 +1673,7 @@ namespace Microsoft.ML.Transforms
                     ValueGetter<TFloat> getter)
                 {
                     var lim = column.MaximumExampleCount;
-                    host.CheckUserArg(lim > 1, nameof(column.MaximumExampleCount), "Must be greater than 1");
+                    host.CheckUserArg(lim > 1, nameof(column.MaximumExampleCount), Strings.MustBeGreaterThan1);
                     return new MeanVarOneColumnFunctionBuilder(host, lim, false, getter, true, column.UseCdf, column.UseSampleVariance);
                 }
 
@@ -1746,7 +1746,7 @@ namespace Microsoft.ML.Transforms
                 public static IColumnFunctionBuilder Create(NormalizingEstimator.MeanVarianceColumnOptions column, IHost host, VectorDataViewType srcType,
                     ValueGetter<VBuffer<TFloat>> getter)
                 {
-                    host.CheckUserArg(column.MaximumExampleCount > 1, nameof(column.MaximumExampleCount), "Must be greater than 1");
+                    host.CheckUserArg(column.MaximumExampleCount > 1, nameof(column.MaximumExampleCount), Strings.MustBeGreaterThan1);
                     var cv = srcType.Size;
                     return new MeanVarVecColumnFunctionBuilder(host, cv, column.MaximumExampleCount, column.EnsureZeroUntouched, getter, false, column.UseCdf, column.UseSampleVariance);
                 }
@@ -1755,7 +1755,7 @@ namespace Microsoft.ML.Transforms
                     ValueGetter<VBuffer<TFloat>> getter)
                 {
                     var lim = column.MaximumExampleCount;
-                    host.CheckUserArg(lim > 1, nameof(column.MaximumExampleCount), "Must be greater than 1");
+                    host.CheckUserArg(lim > 1, nameof(column.MaximumExampleCount), Strings.MustBeGreaterThan1);
                     var cv = srcType.Size;
                     return new MeanVarVecColumnFunctionBuilder(host, cv, lim, false, getter, true, column.UseCdf, column.UseSampleVariance);
                 }
@@ -1868,10 +1868,10 @@ namespace Microsoft.ML.Transforms
                     ValueGetter<TFloat> getter)
                 {
                     var lim = column.MaximumExampleCount;
-                    host.CheckUserArg(lim > 1, nameof(column.MaximumExampleCount), "Must be greater than 1");
+                    host.CheckUserArg(lim > 1, nameof(column.MaximumExampleCount), Strings.MustBeGreaterThan1);
                     bool fix = column.EnsureZeroUntouched;
                     var numBins = column.MaximumBinCount;
-                    host.CheckUserArg(numBins > 1, nameof(column.MaximumBinCount), "Must be greater than 1");
+                    host.CheckUserArg(numBins > 1, nameof(column.MaximumBinCount), Strings.MustBeGreaterThan1);
                     return new BinOneColumnFunctionBuilder(host, lim, fix, numBins, getter);
                 }
 
@@ -1917,10 +1917,10 @@ namespace Microsoft.ML.Transforms
                     ValueGetter<VBuffer<TFloat>> getter)
                 {
                     var lim = column.MaximumExampleCount;
-                    host.CheckUserArg(lim > 1, nameof(column.MaximumExampleCount), "Must be greater than 1");
+                    host.CheckUserArg(lim > 1, nameof(column.MaximumExampleCount), Strings.MustBeGreaterThan1);
                     bool fix = column.EnsureZeroUntouched;
                     var numBins = column.MaximumBinCount;
-                    host.CheckUserArg(numBins > 1, nameof(column.MaximumBinCount), "Must be greater than 1");
+                    host.CheckUserArg(numBins > 1, nameof(column.MaximumBinCount), Strings.MustBeGreaterThan1);
                     var cv = srcType.Size;
                     return new BinVecColumnFunctionBuilder(host, cv, lim, fix, numBins, getter);
                 }
@@ -2000,11 +2000,11 @@ namespace Microsoft.ML.Transforms
                 public static IColumnFunctionBuilder Create(NormalizingEstimator.SupervisedBinningColumOptions column, IHost host, int valueColumnId, int labelColumnId, DataViewRow dataRow)
                 {
                     var lim = column.MaximumExampleCount;
-                    host.CheckUserArg(lim > 1, nameof(column.MaximumExampleCount), "Must be greater than 1");
+                    host.CheckUserArg(lim > 1, nameof(column.MaximumExampleCount), Strings.MustBeGreaterThan1);
                     bool fix = column.EnsureZeroUntouched;
                     var numBins = column.MaximumBinCount;
-                    host.CheckUserArg(numBins > 1, nameof(column.MaximumBinCount), "Must be greater than 1");
-                    host.CheckUserArg(column.MininimumBinSize > 0, nameof(column.MininimumBinSize), "Must be positive");
+                    host.CheckUserArg(numBins > 1, nameof(column.MaximumBinCount), Strings.MustBeGreaterThan1);
+                    host.CheckUserArg(column.MininimumBinSize > 0, nameof(column.MininimumBinSize), Strings.MustBePositive);
                     return new SupervisedBinOneColumnFunctionBuilder(host, lim, fix, numBins, column.MininimumBinSize, valueColumnId, labelColumnId, dataRow);
                 }
             }
@@ -2040,11 +2040,11 @@ namespace Microsoft.ML.Transforms
                 public static IColumnFunctionBuilder Create(NormalizingEstimator.SupervisedBinningColumOptions column, IHost host, int valueColumnId, int labelColumnId, DataViewRow dataRow)
                 {
                     var lim = column.MaximumExampleCount;
-                    host.CheckUserArg(lim > 1, nameof(column.MaximumExampleCount), "Must be greater than 1");
+                    host.CheckUserArg(lim > 1, nameof(column.MaximumExampleCount), Strings.MustBeGreaterThan1);
                     bool fix = column.EnsureZeroUntouched;
                     var numBins = column.MaximumBinCount;
-                    host.CheckUserArg(numBins > 1, nameof(column.MaximumBinCount), "Must be greater than 1");
-                    host.CheckUserArg(column.MininimumBinSize > 0, nameof(column.MininimumBinSize), "Must be positive");
+                    host.CheckUserArg(numBins > 1, nameof(column.MaximumBinCount), Strings.MustBeGreaterThan1);
+                    host.CheckUserArg(column.MininimumBinSize > 0, nameof(column.MininimumBinSize), Strings.MustBePositive);
                     return new SupervisedBinVecColumnFunctionBuilder(host, lim, fix, numBins, column.MininimumBinSize, valueColumnId, labelColumnId, dataRow);
                 }
             }
@@ -2084,7 +2084,7 @@ namespace Microsoft.ML.Transforms
                 public static IColumnFunctionBuilder Create(NormalizingEstimator.RobustScalingColumnOptions column, IHost host, DataViewType srcType,
                     bool centerData, uint quantileMin, uint quantileMax, ValueGetter<double> getter)
                 {
-                    host.CheckUserArg(column.MaximumExampleCount > 1, nameof(column.MaximumExampleCount), "Must be greater than 1");
+                    host.CheckUserArg(column.MaximumExampleCount > 1, nameof(column.MaximumExampleCount), Strings.MustBeGreaterThan1);
                     return new RobustScalerOneColumnFunctionBuilder(host, column.MaximumExampleCount, centerData, quantileMin, quantileMax, getter);
                 }
 
@@ -2153,7 +2153,7 @@ namespace Microsoft.ML.Transforms
                 public static IColumnFunctionBuilder Create(NormalizingEstimator.RobustScalingColumnOptions column, IHost host, VectorDataViewType srcType,
                     bool centerData, uint quantileMin, uint quantileMax, ValueGetter<VBuffer<double>> getter)
                 {
-                    host.CheckUserArg(column.MaximumExampleCount > 1, nameof(column.MaximumExampleCount), "Must be greater than 1");
+                    host.CheckUserArg(column.MaximumExampleCount > 1, nameof(column.MaximumExampleCount), Strings.MustBeGreaterThan1);
                     var vectorSize = srcType.Size;
                     return new RobustScalerVecFunctionBuilder(host, column.MaximumExampleCount, vectorSize, centerData, quantileMin, quantileMax, getter);
                 }

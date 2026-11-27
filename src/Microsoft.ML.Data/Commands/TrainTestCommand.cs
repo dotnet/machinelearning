@@ -89,7 +89,7 @@ namespace Microsoft.ML.Data
             Utils.CheckOptionalUserDirectory(args.OutputDataFile, nameof(args.OutputDataFile));
             TrainUtils.CheckTrainer(Host, args.Trainer, args.DataFile);
             if (string.IsNullOrWhiteSpace(args.TestFile))
-                throw Host.ExceptUserArg(nameof(args.TestFile), "Test file must be defined.");
+                throw Host.ExceptUserArg(nameof(args.TestFile), Strings.TestFileMustBeDefined);
         }
 
         public override void Run()
@@ -213,7 +213,7 @@ namespace Microsoft.ML.Data
             MetricWriter.PrintWarnings(ch, metrics);
             evaluator.PrintFoldResults(ch, metrics);
             if (!metrics.TryGetValue(MetricKinds.OverallMetrics, out var overall))
-                throw ch.Except("No overall metrics found");
+                throw ch.Except(Strings.NoOverallMetricsFound);
             overall = evaluator.GetOverallResults(overall);
             MetricWriter.PrintOverallMetrics(Host, ch, ImplOptions.SummaryFilename, overall, 1);
             evaluator.PrintAdditionalMetrics(ch, metrics);

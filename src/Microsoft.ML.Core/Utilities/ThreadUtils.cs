@@ -237,7 +237,7 @@ namespace Microsoft.ML.Internal.Utilities
         public void ThrowIfSet(IExceptionContext ectx)
         {
             if (_ex != null)
-                throw ectx.Except(_ex, "Exception thrown in {0}", _component);
+                throw ectx.Except(_ex, Strings.ExceptionThrownIn, _component);
         }
     }
 }

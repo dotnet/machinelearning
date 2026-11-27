@@ -50,10 +50,10 @@ namespace Microsoft.ML.TimeSeries
             Contracts.CheckValue(yValues, nameof(yValues));
 
             if (xValues.Count < MinTimeSeriesLength || yValues.Count < MinTimeSeriesLength)
-                throw Contracts.Except(string.Format("input time series length for Loess is below {0}", MinTimeSeriesLength));
+                throw Contracts.Except(string.Format(Strings.LoessInputTooShort, MinTimeSeriesLength));
 
             if (xValues.Count != yValues.Count)
-                throw Contracts.Except("the x-axis length should be equal to y-axis length!: lowess");
+                throw Contracts.Except(Strings.LoessAxisLengthMismatch);
 
             _neighbors = new Dictionary<int, LocalRegression>();
 

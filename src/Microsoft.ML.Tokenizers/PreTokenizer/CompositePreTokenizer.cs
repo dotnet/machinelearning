@@ -40,14 +40,14 @@ public class CompositePreTokenizer : PreTokenizer
         // Limit the number of pre-tokenizers to a reasonable amount as we do a recursive calls depending on the number of pre-tokenizers
         if (preTokenizers.Count > MaxPreTokenizersCount)
         {
-            throw new ArgumentException($"Too many pre-tokenizers provided. Maximum is {MaxPreTokenizersCount}.", nameof(preTokenizers));
+            throw new ArgumentException(string.Format(Strings.TooManyPreTokenizers, MaxPreTokenizersCount), nameof(preTokenizers));
         }
 
         foreach (var preTokenizer in preTokenizers)
         {
             if (preTokenizer is null)
             {
-                throw new ArgumentException("Pre-tokenizer cannot be null.", nameof(preTokenizers));
+                throw new ArgumentException(Strings.PreTokenizerCannotBeNull, nameof(preTokenizers));
             }
         }
 

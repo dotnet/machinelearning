@@ -1,0 +1,171 @@
+﻿<?xml version='1.0' encoding='utf-8'?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="ColumnNotFound" xml:space="preserve">
+    <value>Column '{0}' not found.</value>
+    <comment>Exception or validation message. Placeholders: {0}=input.LabelColumn. Source: src/Microsoft.ML.EntryPoints/FeatureCombiner.cs:295.</comment>
+  </data>
+  <data name="CouldntFindDefaultConstructor" xml:space="preserve">
+    <value>Couldn't find default constructor</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.EntryPoints/JsonUtils/JsonManifestUtils.cs:480.</comment>
+  </data>
+  <data name="DictionaryAndComponentDefaultValuesAreNotSupported" xml:space="preserve">
+    <value>Dictionary and component default values are not supported</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.EntryPoints/JsonUtils/JsonManifestUtils.cs:435.</comment>
+  </data>
+  <data name="EncounteredADefaultValueForUnsupportedType" xml:space="preserve">
+    <value>Encountered a default value for unsupported type {0}</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.EntryPoints/JsonUtils/JsonManifestUtils.cs:441.</comment>
+  </data>
+  <data name="EncounteredInvalidTrainingColumnS" xml:space="preserve">
+    <value>Encountered {0} invalid training column(s)</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.EntryPoints/FeatureCombiner.cs:67.</comment>
+  </data>
+  <data name="FailedToParseExperimentGraph" xml:space="preserve">
+    <value>Failed to parse experiment graph: {0}</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.EntryPoints/JsonUtils/ExecuteGraphCommand.cs:58.</comment>
+  </data>
+  <data name="FeatureColumnNotFound" xml:space="preserve">
+    <value>Feature column not found.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.EntryPoints/PermutationFeatureImportance.cs:65.</comment>
+  </data>
+  <data name="RangeAttributeTypeMismatch" xml:space="preserve">
+    <value>Field '{0}' has a range attribute that uses a type which is not equal to the field's FieldType.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.EntryPoints/JsonUtils/JsonManifestUtils.cs:205.</comment>
+  </data>
+  <data name="RangeAttributeRequiresNumericField" xml:space="preserve">
+    <value>Field '{0}' has a range but is of a non-numeric type.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.EntryPoints/JsonUtils/JsonManifestUtils.cs:202.</comment>
+  </data>
+  <data name="FieldIsAComponentOfUnknownKind" xml:space="preserve">
+    <value>Field '{0}' is a component of unknown kind</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.EntryPoints/JsonUtils/JsonManifestUtils.cs:381.</comment>
+  </data>
+  <data name="OptionalFieldDefaultCannotBeNull" xml:space="preserve">
+    <value>Field '{0}' is an Optional&lt;&gt; type but is null by default, instead of set to a constructed implicit default.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.EntryPoints/JsonUtils/JsonManifestUtils.cs:193.</comment>
+  </data>
+  <data name="OptionalFieldRequiresImplicitDefault" xml:space="preserve">
+    <value>Field '{0}' is an Optional&lt;&gt; type with a non-implicit default value.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.EntryPoints/JsonUtils/JsonManifestUtils.cs:195.</comment>
+  </data>
+  <data name="FileHandleOutputsNotYetSupported" xml:space="preserve">
+    <value>File handle outputs not yet supported.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.EntryPoints/JsonUtils/ExecuteGraphCommand.cs:144.</comment>
+  </data>
+  <data name="GraphPathDoesNotExist" xml:space="preserve">
+    <value>Graph path does not exist</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.EntryPoints/JsonUtils/ExecuteGraphCommand.cs:45.</comment>
+  </data>
+  <data name="GroupIDColumnNotFound" xml:space="preserve">
+    <value>Group ID column not found.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.EntryPoints/PermutationFeatureImportance.cs:257.</comment>
+  </data>
+  <data name="IncorrectTypeForOutput" xml:space="preserve">
+    <value>Incorrect type for output '{0}'</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.EntryPoints/JsonUtils/GraphRunner.cs:99.</comment>
+  </data>
+  <data name="InvalidInputGraphDoesNotOutputPredictorModel" xml:space="preserve">
+    <value>Invalid input graph. Does not output predictor model.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.EntryPoints/OneVersusAllMacro.cs:108.</comment>
+  </data>
+  <data name="InvalidValueForInput" xml:space="preserve">
+    <value>Invalid value for input: {0}</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.EntryPoints/JsonUtils/ExecuteGraphCommand.cs:73.</comment>
+  </data>
+  <data name="InvalidValueForOutput" xml:space="preserve">
+    <value>Invalid value for output: {0}</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.EntryPoints/JsonUtils/ExecuteGraphCommand.cs:91.</comment>
+  </data>
+  <data name="InvalidVariableName" xml:space="preserve">
+    <value>Invalid variable name '{0}'.</value>
+    <comment>Exception or validation message. Placeholders: {0}=varName. Source: src/Microsoft.ML.EntryPoints/TrainTestMacro.cs:131. Exception or validation message. Placeholders: {0}=varName. Source: src/Microsoft.ML.EntryPoints/TrainTestMacro.cs:140.</comment>
+  </data>
+  <data name="LabelColumnNotFound" xml:space="preserve">
+    <value>Label column not found.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.EntryPoints/PermutationFeatureImportance.cs:66.</comment>
+  </data>
+  <data name="NoFeatureColumnsSpecified" xml:space="preserve">
+    <value>No feature columns specified</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.EntryPoints/FeatureCombiner.cs:58.</comment>
+  </data>
+  <data name="PortIsAlreadySet" xml:space="preserve">
+    <value>Port '{0}' is already set</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.EntryPoints/JsonUtils/GraphRunner.cs:133.</comment>
+  </data>
+  <data name="PortIsNotAnInput" xml:space="preserve">
+    <value>Port '{0}' is not an input</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.EntryPoints/JsonUtils/GraphRunner.cs:131.</comment>
+  </data>
+  <data name="PortIsOfIncorrectType" xml:space="preserve">
+    <value>Port '{0}' is of incorrect type</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.EntryPoints/JsonUtils/GraphRunner.cs:135.</comment>
+  </data>
+  <data name="PortNotFound" xml:space="preserve">
+    <value>Port '{0}' not found</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.EntryPoints/JsonUtils/GraphRunner.cs:129. Exception or validation message. Source: src/Microsoft.ML.EntryPoints/JsonUtils/GraphRunner.cs:93.</comment>
+  </data>
+  <data name="PortTypeNotSupported" xml:space="preserve">
+    <value>Port type {0} not supported</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.EntryPoints/JsonUtils/ExecuteGraphCommand.cs:129. Exception or validation message. Source: src/Microsoft.ML.EntryPoints/JsonUtils/ExecuteGraphCommand.cs:185.</comment>
+  </data>
+  <data name="ProvideAGraphRunnerInstance" xml:space="preserve">
+    <value>Provide a GraphRunner instance.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.EntryPoints/JsonUtils/ExecuteGraphCommand.cs:102. Exception or validation message. Source: src/Microsoft.ML.EntryPoints/JsonUtils/ExecuteGraphCommand.cs:135.</comment>
+  </data>
+  <data name="SpecifyAGraphVariableName" xml:space="preserve">
+    <value>Specify a graph variable name.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.EntryPoints/JsonUtils/ExecuteGraphCommand.cs:103. Exception or validation message. Source: src/Microsoft.ML.EntryPoints/JsonUtils/ExecuteGraphCommand.cs:136.</comment>
+  </data>
+  <data name="SpecifyAValidFilePath" xml:space="preserve">
+    <value>Specify a valid file path.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.EntryPoints/JsonUtils/ExecuteGraphCommand.cs:104. Exception or validation message. Source: src/Microsoft.ML.EntryPoints/JsonUtils/ExecuteGraphCommand.cs:137.</comment>
+  </data>
+  <data name="TheFollowingInputsAreMissing" xml:space="preserve">
+    <value>The following inputs are missing: {0}</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.EntryPoints/JsonUtils/GraphRunner.cs:49.</comment>
+  </data>
+  <data name="TheFollowingNodesDidntRunDueToCircularDependency" xml:space="preserve">
+    <value>The following nodes didn't run due to circular dependency: {0}</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.EntryPoints/JsonUtils/GraphRunner.cs:60.</comment>
+  </data>
+  <data name="FractionMustBeGreaterThanZeroAndLessThanOne" xml:space="preserve">
+    <value>The fraction must be in the interval (0,1).</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.EntryPoints/TrainTestSplit.cs:48.</comment>
+  </data>
+  <data name="TrainerKindDoesNotHaveAnEvaluator" xml:space="preserve">
+    <value>Trainer kind {0} does not have an evaluator</value>
+    <comment>Exception or validation message. Placeholders: {0}=kind. Source: src/Microsoft.ML.EntryPoints/CrossValidationMacro.cs:441.</comment>
+  </data>
+  <data name="TrainerKindNotSupported" xml:space="preserve">
+    <value>Trainer kind not supported</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.EntryPoints/MacroUtils.cs:72.</comment>
+  </data>
+  <data name="UnexpectedParameterType" xml:space="preserve">
+    <value>Unexpected parameter type: {0}</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.EntryPoints/JsonUtils/JsonManifestUtils.cs:347.</comment>
+  </data>
+  <data name="UnexpectedValueFor" xml:space="preserve">
+    <value>Unexpected value for '{0}': {1}</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.EntryPoints/JsonUtils/ExecuteGraphCommand.cs:66.</comment>
+  </data>
+  <data name="PredictorMustBeClassifierRegressorOrRanker" xml:space="preserve">
+    <value>Unsupported predictor type. Predictor must be binary classifier, multiclass classifier, regressor, or ranker.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.EntryPoints/PermutationFeatureImportance.cs:78.</comment>
+  </data>
+  <data name="VariableNotFound" xml:space="preserve">
+    <value>Variable '{0}' not found</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.EntryPoints/JsonUtils/GraphRunner.cs:149.</comment>
+  </data>
+</root>

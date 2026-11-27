@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -50,7 +50,7 @@ namespace Microsoft.ML.Trainers
             }
             catch (DllNotFoundException)
             {
-                throw ch.ExceptNotSupp("The MKL library (MklImports.dll) or one of its dependencies is missing.");
+                throw ch.ExceptNotSupp(Strings.MissingMklImportsDependency);
             }
 
             float[] stdErrorValues = new float[numSelectedParams];

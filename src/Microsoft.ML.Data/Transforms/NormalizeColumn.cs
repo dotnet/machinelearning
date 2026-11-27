@@ -444,7 +444,7 @@ namespace Microsoft.ML.Transforms
                     if (vectorType.ItemType == NumberDataViewType.Double)
                         return Dbl.ImplVec.Create(ctx, host, vectorType);
                 }
-                throw host.ExceptUserArg(nameof(AffineArgumentsBase.Columns), "Wrong column type. Expected: Single, Double, or Vector of Single or Vector of Double. Got: {0}.", typeSrc.ToString());
+                throw host.ExceptUserArg(nameof(AffineArgumentsBase.Columns), Strings.ExpectedSingleDoubleOrVectorColumnType, typeSrc.ToString());
             }
 
             private abstract class ImplOne<TFloat> : AffineColumnFunction
@@ -563,7 +563,7 @@ namespace Microsoft.ML.Transforms
                     if (vectorType.ItemType == NumberDataViewType.Double)
                         return Dbl.ImplVec.Create(ctx, host, vectorType);
                 }
-                throw host.ExceptUserArg(nameof(AffineArgumentsBase.Columns), "Wrong column type. Expected: Single, Double, Vector of Single or Vector of Double. Got: {0}.", typeSrc);
+                throw host.ExceptUserArg(nameof(AffineArgumentsBase.Columns), Strings.ExpectedNumericScalarOrVectorColumnType, typeSrc);
             }
 
             private abstract class ImplOne<TFloat> : CdfColumnFunction
@@ -699,7 +699,7 @@ namespace Microsoft.ML.Transforms
                     if (vectorType.ItemType == NumberDataViewType.Double)
                         return Dbl.ImplVec.Create(ctx, host, vectorType);
                 }
-                throw host.ExceptUserArg(nameof(BinArguments.Columns), "Wrong column type. Expected: Single, Double, Vector of Single or Vector of Double. Got: {0}.", typeSrc);
+                throw host.ExceptUserArg(nameof(BinArguments.Columns), Strings.ExpectedNumericScalarOrVectorColumnType, typeSrc);
             }
 
             public const string LoaderSignature = "BinNormalizeFunction";
@@ -994,7 +994,7 @@ namespace Microsoft.ML.Transforms
                     if (vectorType.ItemType == NumberDataViewType.Double)
                         return Dbl.MinMaxVecColumnFunctionBuilder.Create(column, host, vectorType, cursor.GetGetter<VBuffer<Double>>(srcColumn));
                 }
-                throw host.ExceptParam(nameof(srcType), "Wrong column type for input column. Expected: Single, Double, Vector of Single or Vector of Double. Got: {0}.", srcType.ToString());
+                throw host.ExceptParam(nameof(srcType), Strings.InputColumnExpectedNumericScalarOrVectorType, srcType.ToString());
             }
         }
 
@@ -1033,7 +1033,7 @@ namespace Microsoft.ML.Transforms
                     if (vectorType.ItemType == NumberDataViewType.Double)
                         return Dbl.MeanVarVecColumnFunctionBuilder.Create(column, host, vectorType, cursor.GetGetter<VBuffer<Double>>(srcColumn));
                 }
-                throw host.ExceptParam(nameof(srcType), "Wrong column type for input column. Expected: Single, Double, Vector of Single or Vector of Double. Got: {0}.", srcType.ToString());
+                throw host.ExceptParam(nameof(srcType), Strings.InputColumnExpectedNumericScalarOrVectorType, srcType.ToString());
             }
 
         }
@@ -1074,7 +1074,7 @@ namespace Microsoft.ML.Transforms
                     if (vectorType.ItemType == NumberDataViewType.Double)
                         return Dbl.MeanVarVecColumnFunctionBuilder.Create(column, host, vectorType, cursor.GetGetter<VBuffer<Double>>(srcColumn));
                 }
-                throw host.ExceptUserArg(nameof(column), "Wrong column type for column {0}. Expected: Single, Double, Vector of Single or Vector of Double. Got: {1}.", column.InputColumnName, srcType.ToString());
+                throw host.ExceptUserArg(nameof(column), Strings.NamedColumnExpectedNumericScalarOrVectorType, column.InputColumnName, srcType.ToString());
             }
         }
 
@@ -1114,7 +1114,7 @@ namespace Microsoft.ML.Transforms
                     if (vectorType.ItemType == NumberDataViewType.Double)
                         return Dbl.BinVecColumnFunctionBuilder.Create(column, host, vectorType, cursor.GetGetter<VBuffer<Double>>(srcColumn));
                 }
-                throw host.ExceptParam(nameof(column), "Wrong column type for column {0}. Expected: Single, Double, Vector of Single or Vector of Double. Got: {1}.", column.InputColumnName, srcType.ToString());
+                throw host.ExceptParam(nameof(column), Strings.NamedColumnExpectedNumericScalarOrVectorType, column.InputColumnName, srcType.ToString());
             }
         }
 
@@ -1127,13 +1127,13 @@ namespace Microsoft.ML.Transforms
                 host.AssertValue(args);
 
                 // checking for label column
-                host.CheckUserArg(!string.IsNullOrWhiteSpace(args.LabelColumn), nameof(args.LabelColumn), "Must specify the label column name");
+                host.CheckUserArg(!string.IsNullOrWhiteSpace(args.LabelColumn), nameof(args.LabelColumn), Strings.MustSpecifyTheLabelColumnName);
                 int labelColumnId = GetLabelColumnId(host, cursor.Schema, args.LabelColumn);
                 var labelColumnType = cursor.Schema[labelColumnId].Type;
                 if (labelColumnType is KeyDataViewType labelKeyType)
-                    host.CheckUserArg(labelKeyType.Count > 0, nameof(args.LabelColumn), "Label column must have a known cardinality");
+                    host.CheckUserArg(labelKeyType.Count > 0, nameof(args.LabelColumn), Strings.LabelColumnMustHaveAKnownCardinality);
                 else
-                    host.CheckUserArg(labelColumnType is NumberDataViewType, nameof(args.LabelColumn), "Label column must be a number or a key type");
+                    host.CheckUserArg(labelColumnType is NumberDataViewType, nameof(args.LabelColumn), Strings.LabelColumnMustBeANumberOrAKeyType);
 
                 return CreateBuilder(
                     new NormalizingEstimator.SupervisedBinningColumOptions(
@@ -1174,7 +1174,7 @@ namespace Microsoft.ML.Transforms
                         return Dbl.SupervisedBinVecColumnFunctionBuilder.Create(column, host, srcIndex, labelColumnId, cursor);
                 }
 
-                throw host.ExceptParam(nameof(column), "Wrong column type for column {0}. Expected: Single, Double, Vec<Single, n> or Vec<Double, n>. Got: {1}.",
+                throw host.ExceptParam(nameof(column), Strings.NamedColumnExpectedSizedNumericVectorType,
                     column.InputColumnName,
                     srcType.ToString());
             }
@@ -1185,7 +1185,7 @@ namespace Microsoft.ML.Transforms
                 host.AssertValue(schema);
                 int labelColumnId;
                 if (!schema.TryGetColumnIndex(labelColumnName, out labelColumnId))
-                    throw host.ExceptUserArg(nameof(SupervisedBinArguments.LabelColumn), "Label column '{0}' not found", labelColumnName);
+                    throw host.ExceptUserArg(nameof(SupervisedBinArguments.LabelColumn), Strings.LabelColumnNotFound, labelColumnName);
                 return labelColumnId;
             }
         }
@@ -1226,7 +1226,7 @@ namespace Microsoft.ML.Transforms
                         return Dbl.RobustScalerVecFunctionBuilder.Create(column, host, srcType as VectorDataViewType, column.CenterData, column.QuantileMin, column.QuantileMax, cursor.GetGetter<VBuffer<double>>(srcColumn));
                 }
 
-                throw host.ExceptParam(nameof(srcType), "Wrong column type for input column. Expected: Single, Double, Vector of Single or Vector of Double. Got: {0}.", srcType.ToString());
+                throw host.ExceptParam(nameof(srcType), Strings.InputColumnExpectedNumericScalarOrVectorType, srcType.ToString());
             }
         }
     }

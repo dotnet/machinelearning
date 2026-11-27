@@ -42,7 +42,7 @@ namespace Microsoft.ML.Internal.Internallearn
             Contracts.CheckNonEmpty(slotsMin, nameof(slotsMin));
             Contracts.CheckNonEmpty(slotsMax, nameof(slotsMax));
             Contracts.CheckParam(slotsMin.Length == slotsMax.Length,
-                nameof(slotsMin), nameof(slotsMin) + " and " + nameof(slotsMax) + " are not equal length");
+                nameof(slotsMin), Strings.SlotsMinAndSlotsMaxAreNotEqualLength);
 
             SlotsMin = slotsMin;
             SlotsMax = slotsMax;

@@ -548,7 +548,7 @@ namespace Microsoft.ML.Transforms
             private void TransformFeatures(in VBuffer<float> src, ref VBuffer<float> dst, TransformInfo transformInfo,
                 AlignedArray featuresAligned, AlignedArray productAligned)
             {
-                Host.Check(src.Length == transformInfo.SrcDim, "column does not have the expected dimensionality.");
+                Host.Check(src.Length == transformInfo.SrcDim, Strings.ColumnDoesNotHaveTheExpectedDimensionality);
 
                 float scale;
                 int newDstLength;
@@ -677,7 +677,7 @@ namespace Microsoft.ML.Transforms
             /// <param name="seed">The seed of the random number generator for generating the new features (if unspecified, the global random is used).</param>
             public ColumnOptions(string name, int rank, bool useCosAndSinBases, string inputColumnName = null, KernelBase generator = null, int? seed = null)
             {
-                Contracts.CheckUserArg(rank > 0, nameof(rank), "must be positive.");
+                Contracts.CheckUserArg(rank > 0, nameof(rank), Strings.MustBePositive);
                 InputColumnName = inputColumnName ?? name;
                 Name = name;
                 Generator = generator ?? new GaussianKernel();

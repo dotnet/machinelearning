@@ -173,7 +173,7 @@ namespace Microsoft.ML.Tokenizers
                 {
                     if (!Helpers.TryParseInt32(line, capacity.Length, out suggestedCapacity))
                     {
-                        throw new FormatException($"Invalid format in the BPE vocab file stream");
+                        throw new FormatException(Strings.InvalidFormatInTheBPEVocabFileStream);
                     }
 
                     line = useAsync ? await Helpers.ReadLineAsync(reader, cancellationToken).ConfigureAwait(false) : reader.ReadLine();
@@ -210,7 +210,7 @@ namespace Microsoft.ML.Tokenizers
                         int spaceIndex = line.IndexOf(' ');
                         if (spaceIndex <= 0 || spaceIndex >= line.Length - 1 || line.IndexOf(' ', spaceIndex + 1) >= 0)
                         {
-                            throw new FormatException($"Invalid format in the BPE vocab file stream");
+                            throw new FormatException(Strings.InvalidFormatInTheBPEVocabFileStream);
                         }
 
                         if (Helpers.TryParseInt32(line, spaceIndex + 1, out int rank))
@@ -219,7 +219,7 @@ namespace Microsoft.ML.Tokenizers
                         }
                         else
                         {
-                            throw new FormatException($"Can't parse {line.Substring(spaceIndex)} to integer");
+                            throw new FormatException(string.Format(Strings.CantParseToInteger, line.Substring(spaceIndex)));
                         }
 
                         line = useAsync ?
@@ -230,7 +230,7 @@ namespace Microsoft.ML.Tokenizers
             }
             catch (Exception ex)
             {
-                throw new InvalidOperationException($"Failed to load from BPE vocab file stream: {ex.Message}", ex);
+                throw new InvalidOperationException(string.Format(Strings.FailedToLoadFromBPEVocabFileStream, ex.Message), ex);
             }
 
             return (encoder, vocab, decoder);
@@ -364,7 +364,7 @@ namespace Microsoft.ML.Tokenizers
             int maxTokenCount = settings.MaxTokenCount;
             if (maxTokenCount <= 0)
             {
-                throw new ArgumentOutOfRangeException(nameof(settings.MaxTokenCount), "The maximum number of tokens must be greater than zero.");
+                throw new ArgumentOutOfRangeException(nameof(settings.MaxTokenCount), Strings.TheMaximumNumberOfTokensMustBeGreaterThanZero);
             }
 
             if (string.IsNullOrEmpty(text) && textSpan.IsEmpty)
@@ -532,7 +532,7 @@ namespace Microsoft.ML.Tokenizers
         {
             if (maxTokenCount <= 0)
             {
-                throw new ArgumentOutOfRangeException(nameof(maxTokenCount), "The maximum number of tokens must be greater than zero.");
+                throw new ArgumentOutOfRangeException(nameof(maxTokenCount), Strings.TheMaximumNumberOfTokensMustBeGreaterThanZero);
             }
 
             charsConsumed = 0;
@@ -658,7 +658,7 @@ namespace Microsoft.ML.Tokenizers
         {
             if (maxTokenCount <= 0)
             {
-                throw new ArgumentOutOfRangeException(nameof(maxTokenCount), "The max token count must be greater than 0.");
+                throw new ArgumentOutOfRangeException(nameof(maxTokenCount), Strings.TheMaxTokenCountMustBeGreaterThan0);
             }
 
             if (string.IsNullOrEmpty(text) && textSpan.IsEmpty)
@@ -1168,7 +1168,7 @@ namespace Microsoft.ML.Tokenizers
 
             if (encoder == ModelEncoding.None)
             {
-                throw new NotSupportedException($"The model '{modelName}' is not supported.");
+                throw new NotSupportedException(string.Format(Strings.TheModelIsNotSupported, modelName));
             }
 
             return encoder;
@@ -1235,7 +1235,7 @@ namespace Microsoft.ML.Tokenizers
                     return (CreateHarmonyEncodingSpecialTokens(), O200kBaseRegex(), O200kBaseFile, Type.GetType(O200kBaseTypeName), O200kBasePackageName);
 
                 default:
-                    throw new NotSupportedException($"The model '{modelName ?? modelEncoding.ToString()}' is not supported.");
+                    throw new NotSupportedException(string.Format(Strings.TheModelIsNotSupported, modelName ?? modelEncoding.ToString()));
             }
         }
 
@@ -1318,7 +1318,7 @@ namespace Microsoft.ML.Tokenizers
             {
                 if (tiktokenConfiguration.DataType is null)
                 {
-                    throw new InvalidOperationException($"The tokenizer data file {tiktokenConfiguration.PackageName}.dll could not be loaded. Please reference the package {tiktokenConfiguration.PackageName} in your project.");
+                    throw new InvalidOperationException(string.Format(Strings.TokenizerDataPackageMissing, tiktokenConfiguration.PackageName, tiktokenConfiguration.PackageName));
                 }
 
                 using Stream compressedStream = tiktokenConfiguration.DataType.Assembly!.GetManifestResourceStream(tiktokenConfiguration.VocabFile)!;
@@ -1570,7 +1570,7 @@ namespace Microsoft.ML.Tokenizers
             }
             else
             {
-                throw new ArgumentException($"The encoding name '{encodingName}' is not supported. The only supported encoding names are: {TiktokenTokenizer.Cl100kBaseEncodingName}, {TiktokenTokenizer.P50kBaseEncodingName}, {TiktokenTokenizer.P50kEditEncodingName}, and {TiktokenTokenizer.R50kBaseEncodingName}.", nameof(encodingName));
+                throw new ArgumentException(string.Format(Strings.UnsupportedEncodingName, encodingName, TiktokenTokenizer.Cl100kBaseEncodingName, TiktokenTokenizer.P50kBaseEncodingName, TiktokenTokenizer.P50kEditEncodingName, TiktokenTokenizer.R50kBaseEncodingName), nameof(encodingName));
             }
 
             return CreateForModel(modelEncoding, modelName: null, extraSpecialTokens, normalizer);

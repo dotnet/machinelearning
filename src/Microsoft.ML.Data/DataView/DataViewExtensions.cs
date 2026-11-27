@@ -23,8 +23,7 @@ namespace Microsoft.ML.Data
             Contracts.AssertValue(columnsNeeded, $"The {nameof(columnsNeeded)} cannot be null. Pass an empty array, to indicate that no columns is needed.");
 
             foreach (var col in columnsNeeded)
-                Contracts.Assert(dv.Schema[col.Index].Equals(col), $"The requested column named: {col.Name}, with index: {col.Index} and type: {col.Type}" +
-                    $" is not present in the {nameof(IDataView)} where the {nameof(DataViewRowCursor)} is being requested.");
+                Contracts.Assert(dv.Schema[col.Index].Equals(col), string.Format("The requested column named: {0}, with index: {1} and type: {2} is not present in the IDataView where the DataViewRowCursor is being requested.", col.Name, col.Index, col.Type));
 
             return dv.GetRowCursor(columnsNeeded);
         }
@@ -38,8 +37,7 @@ namespace Microsoft.ML.Data
         /// <param name="dv">The <see cref="IDataView"/> containing the <paramref name="columnNeeded"/>.</param>
         public static DataViewRowCursor GetRowCursor(this IDataView dv, DataViewSchema.Column columnNeeded)
         {
-            Contracts.Assert(dv.Schema[columnNeeded.Index].Equals(columnNeeded), $"The requested column named: {columnNeeded.Name}, with index: {columnNeeded.Index} and type: {columnNeeded.Type}" +
-                   $" is not present in the {nameof(IDataView)} where the {nameof(DataViewRowCursor)} is being requested.");
+            Contracts.Assert(dv.Schema[columnNeeded.Index].Equals(columnNeeded), string.Format("The requested column named: {0}, with index: {1} and type: {2} is not present in the IDataView where the DataViewRowCursor is being requested.", columnNeeded.Name, columnNeeded.Index, columnNeeded.Type));
 
             return dv.GetRowCursor(Enumerable.Repeat(columnNeeded, 1));
         }

@@ -1,0 +1,115 @@
+﻿<?xml version='1.0' encoding='utf-8'?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="CouldntResizeTheImage" xml:space="preserve">
+    <value>Couldn't resize the image</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.ImageAnalytics/MLImage.cs:306.</comment>
+  </data>
+  <data name="DirectoryDoesNotExist" xml:space="preserve">
+    <value>Directory "{0}" does not exist.</value>
+    <comment>Exception or validation message. Placeholders: {0}=imageFolder. Source: src/Microsoft.ML.ImageAnalytics/ImageLoader.cs:114.</comment>
+  </data>
+  <data name="FileTooBigToOpen" xml:space="preserve">
+    <value>File {0} too big to open.</value>
+    <comment>Exception or validation message. Placeholders: {0}=path. Source: src/Microsoft.ML.ImageAnalytics/ImageLoader.cs:306.</comment>
+  </data>
+  <data name="HeightWidthIsTooLarge" xml:space="preserve">
+    <value>height * width is too large.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.ImageAnalytics/ImageType.cs:80.</comment>
+  </data>
+  <data name="ImageDimensionsAreTooLarge" xml:space="preserve">
+    <value>Image dimensions are too large</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.ImageAnalytics/ImagePixelExtractor.cs:276.</comment>
+  </data>
+  <data name="ImageHeightMustBeGreaterThanZero" xml:space="preserve">
+    <value>Image height must be greater than zero</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.ImageAnalytics/VectorToImageTransform.cs:637.</comment>
+  </data>
+  <data name="ImagePixelFormatIsNotSupported" xml:space="preserve">
+    <value>Image pixel format is not supported</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.ImageAnalytics/ImagePixelExtractor.cs:370.</comment>
+  </data>
+  <data name="ImageWidthMustBeGreaterThanZero" xml:space="preserve">
+    <value>Image width must be greater than zero</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.ImageAnalytics/VectorToImageTransform.cs:636.</comment>
+  </data>
+  <data name="InvalidHeightValue" xml:space="preserve">
+    <value>Invalid height value.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.ImageAnalytics/MLImage.cs:95.</comment>
+  </data>
+  <data name="InvalidImagePixelDataBufferSize" xml:space="preserve">
+    <value>Invalid imagePixelData buffer size.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.ImageAnalytics/MLImage.cs:100.</comment>
+  </data>
+  <data name="InvalidImageResizingModeValue" xml:space="preserve">
+    <value>Invalid image resizing mode value</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.ImageAnalytics/ImageResizer.cs:323.</comment>
+  </data>
+  <data name="InvalidInputStreamContents" xml:space="preserve">
+    <value>Invalid input stream contents</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.ImageAnalytics/MLImage.cs:46.</comment>
+  </data>
+  <data name="InvalidPath" xml:space="preserve">
+    <value>Invalid path</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.ImageAnalytics/MLImage.cs:67.</comment>
+  </data>
+  <data name="InvalidResizeModeValue" xml:space="preserve">
+    <value>Invalid resize mode value.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.ImageAnalytics/MLImage.cs:301.</comment>
+  </data>
+  <data name="InvalidWidthValue" xml:space="preserve">
+    <value>Invalid width value.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.ImageAnalytics/MLImage.cs:90.</comment>
+  </data>
+  <data name="MustBePositive" xml:space="preserve">
+    <value>Must be positive.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.ImageAnalytics/ImageType.cs:79. Exception or validation message. Source: src/Microsoft.ML.ImageAnalytics/ImageType.cs:78.</comment>
+  </data>
+  <data name="NeedToUseAtLeastOneColorPlane" xml:space="preserve">
+    <value>Need to use at least one color plane.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.ImageAnalytics/ImagePixelExtractor.cs:673. Exception or validation message. Source: src/Microsoft.ML.ImageAnalytics/ImagePixelExtractor.cs:622. Exception or validation message. Source: src/Microsoft.ML.ImageAnalytics/VectorToImageTransform.cs:512. Exception or validation message. Source: src/Microsoft.ML.ImageAnalytics/VectorToImageTransform.cs:631.</comment>
+  </data>
+  <data name="ObjectIsDisposed" xml:space="preserve">
+    <value>Object is disposed.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.ImageAnalytics/MLImage.cs:452.</comment>
+  </data>
+  <data name="PathHasInvalidImageFileExtension" xml:space="preserve">
+    <value>Path has invalid image file extension.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.ImageAnalytics/MLImage.cs:240.</comment>
+  </data>
+  <data name="PixelDataIsUnavailable" xml:space="preserve">
+    <value>Pixel data is unavailable.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.ImageAnalytics/MLImage.cs:167.</comment>
+  </data>
+  <data name="UnsupportedImageSaveFormat" xml:space="preserve">
+    <value>Saving image with the format '{0}' is not supported. Try save it with `Jpeg`, `Png`, or `Webp` format.</value>
+    <comment>Exception or validation message. Placeholders: {0}=ext. Source: src/Microsoft.ML.ImageAnalytics/MLImage.cs:246.</comment>
+  </data>
+  <data name="ShouldBePositiveNumber" xml:space="preserve">
+    <value>Should be positive number</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.ImageAnalytics/ImageType.cs:40. Exception or validation message. Source: src/Microsoft.ML.ImageAnalytics/ImageType.cs:41.</comment>
+  </data>
+  <data name="UnsupportedImageFormat" xml:space="preserve">
+    <value>Unsupported image format.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.ImageAnalytics/MLImage.cs:283.</comment>
+  </data>
+  <data name="UnsupportedPixelFormat" xml:space="preserve">
+    <value>Unsupported pixel format</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.ImageAnalytics/MLImage.cs:85.</comment>
+  </data>
+  <data name="WeOnlySupportFloatDoubleOrByteArrays" xml:space="preserve">
+    <value>We only support float, double or byte arrays</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.ImageAnalytics/VectorToImageTransform.cs:341.</comment>
+  </data>
+</root>

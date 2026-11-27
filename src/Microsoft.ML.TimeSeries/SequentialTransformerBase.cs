@@ -96,10 +96,10 @@ namespace Microsoft.ML.Transforms.TimeSeries
             public void InitState(int windowSize, int initialWindowSize, SequentialTransformerBase<TInput, TOutput, TState> parentTransform,
                 IHost host)
             {
-                Contracts.CheckValue(host, nameof(host), "The host cannot be null.");
+                Contracts.CheckValue(host, nameof(host), Strings.TheHostCannotBeNull);
                 host.CheckValue(parentTransform, nameof(parentTransform));
-                host.CheckParam(windowSize >= 0, nameof(windowSize), "Must be non-negative.");
-                host.CheckParam(initialWindowSize >= 0, nameof(initialWindowSize), "Must be non-negative.");
+                host.CheckParam(windowSize >= 0, nameof(windowSize), Strings.MustBeNonNegative);
+                host.CheckParam(initialWindowSize >= 0, nameof(initialWindowSize), Strings.MustBeNonNegative);
 
                 Host = host;
                 WindowSize = windowSize;
@@ -115,7 +115,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
 
             public void InitState(SequentialTransformerBase<TInput, TOutput, TState> parentTransform, IHost host)
             {
-                Contracts.CheckValue(host, nameof(host), "The host cannot be null.");
+                Contracts.CheckValue(host, nameof(host), Strings.TheHostCannotBeNull);
                 host.CheckValue(parentTransform, nameof(parentTransform));
 
                 Host = host;
@@ -357,8 +357,8 @@ namespace Microsoft.ML.Transforms.TimeSeries
             string outputColumnName, string inputColumnName, DataViewType outputColType)
         {
             Host = host;
-            Host.CheckParam(initialWindowSize >= 0, nameof(initialWindowSize), "Must be non-negative.");
-            Host.CheckParam(windowSize >= 0, nameof(windowSize), "Must be non-negative.");
+            Host.CheckParam(initialWindowSize >= 0, nameof(initialWindowSize), Strings.MustBeNonNegative);
+            Host.CheckParam(windowSize >= 0, nameof(windowSize), Strings.MustBeNonNegative);
             // REVIEW: Very bad design. This base class is responsible for reporting errors on
             // the arguments, but the arguments themselves are not derived form any base class.
             Host.CheckNonEmpty(inputColumnName, nameof(PercentileThresholdTransform.Arguments.Source));
@@ -451,7 +451,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
 
         public IRowToRowMapper GetRowToRowMapper(DataViewSchema inputSchema)
         {
-            throw new InvalidOperationException("Not a RowToRowMapper.");
+            throw new InvalidOperationException(Strings.NotARowToRowMapper);
         }
 
         IRowToRowMapper IStatefulTransformer.GetStatefulRowToRowMapper(DataViewSchema inputSchema)
@@ -663,16 +663,16 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 int index = _bindings.MapColumnIndex(out isSrc, column.Index);
                 if (isSrc)
                     return _input.GetGetter<T>(_input.Schema[index]);
-                Contracts.CheckParam(index < _getters.Length, nameof(column), "Invalid col value in GetGetter");
+                Contracts.CheckParam(index < _getters.Length, nameof(column), Strings.InvalidColValueInGetGetter);
                 Contracts.Check(IsColumnActive(column));
                 var fn = _getters[index] as ValueGetter<T>;
                 if (fn == null)
-                    throw Contracts.Except("Unexpected TValue in GetGetter");
+                    throw Contracts.Except(Strings.UnexpectedTValueInGetGetter);
                 return fn;
             }
 
             public override Action<PingerArgument> GetPinger() =>
-                _pinger as Action<PingerArgument> ?? throw Contracts.Except("Invalid TValue in GetPinger: '{0}'", typeof(PingerArgument));
+                _pinger as Action<PingerArgument> ?? throw Contracts.Except(Strings.InvalidTValueInGetPinger, typeof(PingerArgument));
 
             /// <summary>
             /// Returns whether the given column is active in this row.
@@ -706,7 +706,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
             /// </summary>
             public override bool IsColumnActive(DataViewSchema.Column column)
             {
-                Ch.Check(column.Index < Schema.Count, nameof(column));
+                Ch.Check(column.Index < Schema.Count, Strings.ColumnIndexMustBeLessThanTheSchemaColumnCount);
                 return Input.IsColumnActive(column);
             }
 
@@ -719,7 +719,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
             /// <param name="column"> is the output column whose getter should be returned.</param>
             public override ValueGetter<TValue> GetGetter<TValue>(DataViewSchema.Column column)
             {
-                Ch.Check(IsColumnActive(column), nameof(column));
+                Ch.Check(IsColumnActive(column), Strings.ColumnMustBeActive);
                 return Input.GetGetter<TValue>(column);
             }
         }
@@ -899,7 +899,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
             Host.CheckValue(ctx, nameof(ctx));
             if (_mapper is ISaveAsOnnx onnx)
             {
-                Host.Check(onnx.CanSaveOnnx(ctx), "Cannot be saved as ONNX.");
+                Host.Check(onnx.CanSaveOnnx(ctx), Strings.CannotBeSavedAsONNX);
                 onnx.SaveAsOnnx(ctx);
             }
         }
@@ -909,7 +909,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
             Host.CheckValue(ctx, nameof(ctx));
             if (_mapper is ISaveAsPfa pfa)
             {
-                Host.Check(pfa.CanSavePfa, "Cannot be saved as PFA.");
+                Host.Check(pfa.CanSavePfa, Strings.CannotBeSavedAsPFA);
                 pfa.SaveAsPfa(ctx);
             }
         }
@@ -929,7 +929,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
         {
             Host.CheckValue(input, nameof(input));
             Host.CheckValue(activeColumns, nameof(activeColumns));
-            Host.Check(input.Schema == Source.Schema, "Schema of input row must be the same as the schema the mapper is bound to");
+            Host.Check(input.Schema == Source.Schema, Strings.InputSchemaDoesNotMatchMapperSchema);
 
             using (var ch = Host.Start("GetEntireRow"))
             {
@@ -991,13 +991,12 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 Contracts.Assert(originFn != null);
                 var fn = originFn as ValueGetter<TValue>;
                 if (fn == null)
-                    throw Contracts.Except($"Invalid TValue in GetGetter: '{typeof(TValue)}', " +
-                            $"expected type: '{originFn.GetType().GetGenericArguments().First()}'.");
+                    throw Contracts.Except(string.Format(Strings.InvalidTValueInGetGetterExpectedType, typeof(TValue), originFn.GetType().GetGenericArguments().First()));
                 return fn;
             }
 
             public override Action<PingerArgument> GetPinger() =>
-                _pinger as Action<PingerArgument> ?? throw Contracts.Except("Invalid TValue in GetPinger: '{0}'", typeof(PingerArgument));
+                _pinger as Action<PingerArgument> ?? throw Contracts.Except(Strings.InvalidTValueInGetPinger, typeof(PingerArgument));
 
             public override ValueGetter<DataViewRowId> GetIdGetter() => _input.GetIdGetter();
 
@@ -1063,8 +1062,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 Ch.AssertValue(getter);
                 if (getter is ValueGetter<TValue> fn)
                     return fn;
-                throw Ch.Except($"Invalid TValue in GetGetter: '{typeof(TValue)}', " +
-                            $"expected type: '{getter.GetType().GetGenericArguments().First()}'.");
+                throw Ch.Except(string.Format(Strings.InvalidTValueInGetGetterExpectedType, typeof(TValue), getter.GetType().GetGenericArguments().First()));
             }
 
             protected override void Dispose(bool disposing)

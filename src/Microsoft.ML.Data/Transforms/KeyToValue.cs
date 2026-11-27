@@ -228,10 +228,10 @@ namespace Microsoft.ML.Transforms
                     Contracts.Assert(types[iinfo] == null);
                     var typeSrc = schema[ColMapNewToOld[iinfo]].Type;
                     var typeVals = schema[ColMapNewToOld[iinfo]].Annotations.Schema.GetColumnOrNull(AnnotationUtils.Kinds.KeyValues)?.Type;
-                    Host.Check(typeVals != null, "Metadata KeyValues does not exist");
+                    Host.Check(typeVals != null, Strings.MetadataKeyValuesDoesNotExist);
                     DataViewType valsItemType = typeVals.GetItemType();
                     DataViewType srcItemType = typeSrc.GetItemType();
-                    Host.Check(typeVals.GetVectorSize() == srcItemType.GetKeyCountAsInt32(Host), "KeyValues metadata size does not match column type key count");
+                    Host.Check(typeVals.GetVectorSize() == srcItemType.GetKeyCountAsInt32(Host), Strings.KeyValuesMetadataSizeDoesNotMatchColumnTypeKeyCount);
                     if (!(typeSrc is VectorDataViewType vectorType))
                         types[iinfo] = valsItemType;
                     else
@@ -643,7 +643,7 @@ namespace Microsoft.ML.Transforms
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.inputColumnName, "KeyType", col.GetTypeString());
 
                 if (!col.Annotations.TryFindColumn(AnnotationUtils.Kinds.KeyValues, out var keyMetaCol))
-                    throw Host.ExceptParam(nameof(inputSchema), $"Input column '{colInfo.inputColumnName}' doesn't contain key values metadata");
+                    throw Host.ExceptParam(nameof(inputSchema), string.Format(Strings.InputColumnDoesntContainKeyValuesMetadata, colInfo.inputColumnName));
 
                 SchemaShape metadata = null;
                 if (col.HasSlotNames() && col.Annotations.TryFindColumn(AnnotationUtils.Kinds.SlotNames, out var slotCol))

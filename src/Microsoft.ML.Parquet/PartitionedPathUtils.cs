@@ -28,7 +28,7 @@ namespace Microsoft.ML.Data.Utilities
 
             if (baseUri.Scheme != uri.Scheme)
             {
-                throw Contracts.ExceptParam(nameof(basepath), "Paths cannot be made relative as they are of different schemes.");
+                throw Contracts.ExceptParam(nameof(basepath), Strings.PathsWithDifferentSchemesCannotBeMadeRelative);
             }
 
             string relativePath;
@@ -43,11 +43,11 @@ namespace Microsoft.ML.Data.Utilities
             }
             catch (ArgumentNullException e)
             {
-                throw Contracts.Except(e, "Paths could not be made relative.");
+                throw Contracts.Except(e, Strings.PathsCouldNotBeMadeRelative);
             }
             catch (InvalidOperationException e)
             {
-                throw Contracts.Except(e, "Paths could not be made relative.");
+                throw Contracts.Except(e, Strings.PathsCouldNotBeMadeRelative);
             }
 
             if (uri.Scheme.Equals("file", StringComparison.OrdinalIgnoreCase))

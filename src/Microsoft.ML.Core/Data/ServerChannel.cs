@@ -81,7 +81,7 @@ internal sealed class ServerChannel : ServerChannel.IPendingBundleNotification, 
     {
         _chp.CheckNonEmpty(name, nameof(name));
         _chp.CheckValue(func, nameof(func));
-        _chp.Check(_published == null, "Cannot expose more interfaces once a server channel has been published");
+        _chp.Check(_published == null, Strings.CannotExposeInterfacesAfterServerChannelPublished);
         _chp.AssertValue(_toPublish);
 
         _toPublish.Add(name, func);
@@ -121,7 +121,7 @@ internal sealed class ServerChannel : ServerChannel.IPendingBundleNotification, 
         _chp.Assert((_toPublish == null) == (_onPublish == null));
         if (_toPublish == null)
             return;
-        _chp.Check(_published == null, "Cannot republish once a server channel has been published");
+        _chp.Check(_published == null, Strings.CannotRepublishOnceAServerChannelHasBeenPublished);
         _published = new Bundle(this);
         _onPublish(_published);
     }

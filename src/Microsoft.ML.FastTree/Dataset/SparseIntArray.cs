@@ -36,7 +36,7 @@ namespace Microsoft.ML.Trainers.FastTree
         public DeltaSparseIntArray(int length, IntArrayBits bitsPerItem)
         {
             if (bitsPerItem == IntArrayBits.Bits0)
-                throw Contracts.Except("Use dense arrays for 0 bits");
+                throw Contracts.Except(Strings.UseDenseArraysFor0Bits);
             if (bitsPerItem <= IntArrayBits.Bits8)
                 bitsPerItem = IntArrayBits.Bits8;
 
@@ -69,14 +69,14 @@ namespace Microsoft.ML.Trainers.FastTree
                 _length += delta;
 
                 if (_length != length)
-                    throw Contracts.Except("Length provided to sparse vector is inconsistent with value enumeration");
+                    throw Contracts.Except(Strings.LengthProvidedToSparseVectorIsInconsistentWithValueEnumeration);
 
                 // It is faster not to use a 4-bit dense array here. The memory difference is minor, since it's just
                 //  the sparse values that are saved on.
                 // TODO: Implement a special iterator for 4-bit array, and change this code to use the iterator, which
                 //          may be faster
                 if (bitsPerItem == IntArrayBits.Bits0)
-                    throw Contracts.Except("Use dense arrays for 0 bits");
+                    throw Contracts.Except(Strings.UseDenseArraysFor0Bits);
                 if (bitsPerItem <= IntArrayBits.Bits8)
                     bitsPerItem = IntArrayBits.Bits8;
 
@@ -109,7 +109,7 @@ namespace Microsoft.ML.Trainers.FastTree
             _length = length;
 
             if (BitsPerItem == IntArrayBits.Bits0)
-                throw Contracts.Except("Use dense arrays for 0 bits");
+                throw Contracts.Except(Strings.UseDenseArraysFor0Bits);
         }
 
         /// <summary>
@@ -132,7 +132,7 @@ namespace Microsoft.ML.Trainers.FastTree
                     int index = pair.Key;
                     int value = pair.Value;
                     if (index <= currentIndex && (index < 0 || tempValueList.Count > 0))
-                        throw Contracts.Except("index {0} occurred after {1}", index, currentIndex);
+                        throw Contracts.Except(Strings.IndexOccurredAfter, index, currentIndex);
                     while (index - currentIndex > byte.MaxValue)
                     {
                         tempDeltaList.Add(byte.MaxValue);
@@ -151,7 +151,7 @@ namespace Microsoft.ML.Trainers.FastTree
                     currentIndex += byte.MaxValue;
                 }
                 if (currentIndex >= length && currentIndex > 0)
-                    throw Contracts.Except("Index {0} inconsistent with length {1}", currentIndex, length);
+                    throw Contracts.Except(Strings.IndexInconsistentWithLength, currentIndex, length);
                 _length = length;
 
                 // It is faster not to use a 4-bit dense array here. The memory difference is minor, since it's just
@@ -159,7 +159,7 @@ namespace Microsoft.ML.Trainers.FastTree
                 // TODO: Implement a special iterator for 4-bit array, and change this code to use the iterator, which
                 //          may be faster
                 if (bitsPerItem == IntArrayBits.Bits0)
-                    throw Contracts.Except("Use dense arrays for 0 bits");
+                    throw Contracts.Except(Strings.UseDenseArraysFor0Bits);
                 if (bitsPerItem <= IntArrayBits.Bits8)
                     bitsPerItem = IntArrayBits.Bits8;
 
@@ -517,7 +517,7 @@ namespace Microsoft.ML.Trainers.FastTree
                             pSumTargetsByBin, pSumWeightsByBin, pCountByBin,
                             input.TotalCount, input.SumTargets, input.SumWeights);
                 if (rv < 0)
-                    throw Contracts.Except("CSumup sumupdeltasparse {0}", rv);
+                    throw Contracts.Except(Strings.CSumupSumupdeltasparse, rv);
             }
         }
 

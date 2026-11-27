@@ -1,0 +1,79 @@
+﻿<?xml version='1.0' encoding='utf-8'?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="ColumnDoesntMatchInputNodeNamesOfModel" xml:space="preserve">
+    <value>Column {0} doesn't match input node names of model.</value>
+    <comment>Exception or validation message. Placeholders: {0}=input. Source: src/Microsoft.ML.OnnxTransformer/OnnxTransform.cs:1072.</comment>
+  </data>
+  <data name="OnnxDimensionExceedsInt32" xml:space="preserve">
+    <value>Dimension {0} in ONNX tensor cannot exceed the maximum of 32-bit signed integer.</value>
+    <comment>Exception or validation message. Placeholders: {0}=dim. Source: src/Microsoft.ML.OnnxTransformer/OnnxTypeParser.cs:174.</comment>
+  </data>
+  <data name="ErrorInitializingModel" xml:space="preserve">
+    <value>Error initializing model :{0}</value>
+    <comment>Exception or validation message. Placeholders: {0}=e.ToString(). Source: src/Microsoft.ML.OnnxTransformer/OnnxTransform.cs:285.</comment>
+  </data>
+  <data name="OnnxInputShapeMismatch" xml:space="preserve">
+    <value>Input shape mismatch: Input '{0}' has shape {1}, but input data is of length {2}.</value>
+    <comment>Exception or validation message. Placeholders: {0}=_parent.Inputs[i], {1}=String.Join(",", inputShape), {2}=typeValueCount. Source: src/Microsoft.ML.OnnxTransformer/OnnxTransform.cs:561.</comment>
+  </data>
+  <data name="OnnxInputTensorMissing" xml:space="preserve">
+    <value>Input tensor, {0}, does not exist in the ONNX model. Available input names are [{1}]. Available initializers are [{2}]</value>
+    <comment>Exception or validation message. Placeholders: {0}=name, {1}=string.Join(",", InputNames), {2}=string.Join(",", InitializerNames). Source: src/Microsoft.ML.OnnxTransformer/OnnxUtils.cs:84.</comment>
+  </data>
+  <data name="ModelFileDoesNotExists" xml:space="preserve">
+    <value>Model file {0} does not exists.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.OnnxTransformer/OnnxTransform.cs:263.</comment>
+  </data>
+  <data name="NoOnnxSessionOptions" xml:space="preserve">
+    <value>No Onnx Session Options</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.OnnxTransformer/OnnxSessionOptions.cs:26. Exception or validation message. Source: src/Microsoft.ML.OnnxTransformer/OnnxSessionOptions.cs:36.</comment>
+  </data>
+  <data name="NotImplementedType" xml:space="preserve">
+    <value>Not implemented type {0}</value>
+    <comment>Exception or validation message. Placeholders: {0}=typeof(T). Source: src/Microsoft.ML.OnnxTransformer/OnnxUtils.cs:537. Exception or validation message. Placeholders: {0}=typeof(T). Source: src/Microsoft.ML.OnnxTransformer/OnnxUtils.cs:557.</comment>
+  </data>
+  <data name="Only1UnknownDimensionIsAllowed" xml:space="preserve">
+    <value>Only 1 unknown dimension is allowed</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.OnnxTransformer/OnnxTransform.cs:1063. Exception or validation message. Source: src/Microsoft.ML.OnnxTransformer/OnnxTransform.cs:526.</comment>
+  </data>
+  <data name="OnnxTypeNotSupported" xml:space="preserve">
+    <value>Onnx type not supported</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.OnnxTransformer/OnnxUtils.cs:582.</comment>
+  </data>
+  <data name="OnnxOutputTensorMissing" xml:space="preserve">
+    <value>Ouput tensor, {0}, does not exist in the ONNX model. Available output names are [{1}].</value>
+    <comment>Exception or validation message. Placeholders: {0}=name, {1}=string.Join(",", OutputNames). Source: src/Microsoft.ML.OnnxTransformer/OnnxUtils.cs:95.</comment>
+  </data>
+  <data name="OutputColumnDoesntContainADenseTensorOfExpectedType" xml:space="preserve">
+    <value>Output column {0} doesn't contain a DenseTensor of expected type {1}</value>
+    <comment>Exception or validation message. Placeholders: {0}=namedOnnxValue.Name, {1}=typeof(T). Source: src/Microsoft.ML.OnnxTransformer/OnnxTransform.cs:719. Exception or validation message. Placeholders: {0}=namedOnnxValue.Name, {1}=typeof(string). Source: src/Microsoft.ML.OnnxTransformer/OnnxTransform.cs:739.</comment>
+  </data>
+  <data name="OnnxShapeOverrideIncompatible" xml:space="preserve">
+    <value>The specified shape {0} is not compatible with the shape {1} loaded from the ONNX model file. Only unknown dimension can replace or be replaced by another dimension.</value>
+    <comment>Exception or validation message. Placeholders: {0}=string.Join(",", shapeDictionary[name]), {1}=string.Join(",", meta.Dimensions). Source: src/Microsoft.ML.OnnxTransformer/OnnxUtils.cs:319.</comment>
+  </data>
+  <data name="ThisShouldNeverBeCalled" xml:space="preserve">
+    <value>This should never be called!</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.OnnxTransformer/OnnxTransform.cs:616.</comment>
+  </data>
+  <data name="UnsupportedONNXScalarType" xml:space="preserve">
+    <value>Unsupported ONNX scalar type: {0}</value>
+    <comment>Exception or validation message. Placeholders: {0}=dataType.ToString(). Source: src/Microsoft.ML.OnnxTransformer/OnnxTypeParser.cs:157. Exception or validation message. Placeholders: {0}=dataType.ToString(). Source: src/Microsoft.ML.OnnxTransformer/OnnxTypeParser.cs:69.</comment>
+  </data>
+  <data name="UnsupportedONNXVariableType" xml:space="preserve">
+    <value>Unsupported ONNX variable type {0}</value>
+    <comment>Exception or validation message. Placeholders: {0}=typeProto. Source: src/Microsoft.ML.OnnxTransformer/OnnxTypeParser.cs:258. Exception or validation message. Placeholders: {0}=typeProto. Source: src/Microsoft.ML.OnnxTransformer/OnnxTypeParser.cs:382.</comment>
+  </data>
+</root>

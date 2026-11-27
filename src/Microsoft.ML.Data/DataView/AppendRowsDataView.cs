@@ -57,7 +57,7 @@ namespace Microsoft.ML.Data
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(sources, nameof(sources));
-            env.CheckNonEmpty(sources, nameof(sources), "There must be at least one source.");
+            env.CheckNonEmpty(sources, nameof(sources), Strings.ThereMustBeAtLeastOneSource);
             env.CheckParam(sources.All(s => s != null), nameof(sources));
             env.CheckValueOrNull(schema);
             if (sources.Length == 1)
@@ -104,13 +104,11 @@ namespace Microsoft.ML.Data
         private void CheckSchemaConsistency()
         {
             // REVIEW: Allow schema isomorphism.
-            const string errMsg = "Inconsistent schema: all source dataviews must have identical column names, sizes, and item types.";
-
             int startingSchemaIndex = Schema == _sources[0].Schema ? 1 : 0;
             int colCount = Schema.Count;
 
             // Check if the column counts are identical.
-            _host.Check(_sources.All(source => source.Schema.Count == colCount), errMsg);
+            _host.Check(_sources.All(source => source.Schema.Count == colCount), Strings.SourceDataViewsMustHaveConsistentSchemas);
 
             for (int c = 0; c < colCount; c++)
             {
@@ -120,8 +118,8 @@ namespace Microsoft.ML.Data
                 for (int i = startingSchemaIndex; i < _sources.Length; i++)
                 {
                     var schema = _sources[i].Schema;
-                    _host.Check(schema[c].Name == name, errMsg);
-                    _host.Check(schema[c].Type.SameSizeAndItemType(type), errMsg);
+                    _host.Check(schema[c].Name == name, Strings.SourceDataViewsMustHaveConsistentSchemas);
+                    _host.Check(schema[c].Type.SameSizeAndItemType(type), Strings.SourceDataViewsMustHaveConsistentSchemas);
                 }
             }
         }
@@ -134,7 +132,7 @@ namespace Microsoft.ML.Data
                 var cur = source.GetRowCount();
                 if (cur == null)
                     return null;
-                _host.Check(cur.Value >= 0, "One of the sources returned a negative row count");
+                _host.Check(cur.Value >= 0, Strings.OneOfTheSourcesReturnedANegativeRowCount);
 
                 // In the case of overflow, the count is considered unknown.
                 if (sum + cur.Value < sum)
@@ -188,13 +186,12 @@ namespace Microsoft.ML.Data
 
             public sealed override ValueGetter<TValue> GetGetter<TValue>(DataViewSchema.Column column)
             {
-                Ch.CheckParam(column.Index <= Getters.Length && IsColumnActive(column), nameof(column), "requested column not active");
+                Ch.CheckParam(column.Index <= Getters.Length && IsColumnActive(column), nameof(column), Strings.RequestedColumnNotActive);
 
                 var originGetter = Getters[column.Index];
                 var getter = originGetter as ValueGetter<TValue>;
                 if (getter == null)
-                    throw Ch.Except($"Invalid TValue in GetGetter: '{typeof(TValue)}', " +
-                        $"expected type: '{originGetter.GetType().GetGenericArguments().First()}'.");
+                    throw Ch.Except(string.Format(Strings.InvalidTValueInGetGetterExpectedType, typeof(TValue), originGetter.GetType().GetGenericArguments().First()));
                 return getter;
             }
 
@@ -203,7 +200,7 @@ namespace Microsoft.ML.Data
             /// </summary>
             public sealed override bool IsColumnActive(DataViewSchema.Column column)
             {
-                Ch.Check(column.Index < Schema.Count, "Column index is out of range");
+                Ch.Check(column.Index < Schema.Count, Strings.ColumnIndexIsOutOfRange);
                 return Getters[column.Index] != null;
             }
         }
@@ -252,7 +249,7 @@ namespace Microsoft.ML.Data
                 return
                     (ref TValue val) =>
                     {
-                        Ch.Check(Position >= 0, RowCursorUtils.FetchValueStateError);
+                        Ch.Check(Position >= 0, Strings.ValuesUnavailableOutsideCursorPosition);
                         if (_currentSourceIndex != capturedSourceIndex)
                         {
                             Ch.Assert(0 <= _currentSourceIndex && _currentSourceIndex < Sources.Length);
@@ -339,7 +336,7 @@ namespace Microsoft.ML.Data
                 return
                     (ref DataViewRowId val) =>
                     {
-                        Ch.Check(IsGood, RowCursorUtils.FetchValueStateError);
+                        Ch.Check(IsGood, Strings.ValuesUnavailableOutsideCursorPosition);
                         idGetters[_currentSourceIndex](ref val);
                         val = val.Combine(new DataViewRowId((ulong)_currentSourceIndex, 0));
                     };
@@ -351,7 +348,7 @@ namespace Microsoft.ML.Data
                 return
                     (ref TValue val) =>
                     {
-                        Ch.Check(Position >= 0, RowCursorUtils.FetchValueStateError);
+                        Ch.Check(Position >= 0, Strings.ValuesUnavailableOutsideCursorPosition);
                         Ch.Assert(0 <= _currentSourceIndex && _currentSourceIndex < Sources.Length);
 
                         var rowCursor = _cursorSet[_currentSourceIndex];

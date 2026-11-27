@@ -40,7 +40,7 @@ namespace Microsoft.ML.Trainers.Ensemble
             base.CalculateMetrics(model, subsetSelector, subset, batch, needMetrics);
 
             var vm = model.Predictor as IValueMapper;
-            Host.Check(vm != null, "Predictor doesn't implement the expected interface");
+            Host.Check(vm != null, Strings.PredictorDoesntImplementTheExpectedInterface);
             var map = vm.GetMapper<VBuffer<Single>, TOutput>();
 
             TOutput[] preds = new TOutput[100];

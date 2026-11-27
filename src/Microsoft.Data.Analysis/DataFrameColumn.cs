@@ -659,13 +659,13 @@ namespace Microsoft.Data.Analysis
                     ;
                 // Check if bad comparable/comparer
                 if (left == (hi - 1) && CompareSortIndices(span, sortIndices[left], pivot, comparer, ascending) < 0)
-                    throw new ArgumentException("Bad comparer");
+                    throw new ArgumentException(Strings.BadComparer);
 
                 while (right > lo && CompareSortIndices(span, pivot, sortIndices[--right], comparer, ascending) < 0)
                     ;
                 // Check if bad comparable/comparer
                 if (right == lo && CompareSortIndices(span, pivot, sortIndices[right], comparer, ascending) < 0)
-                    throw new ArgumentException("Bad comparer");
+                    throw new ArgumentException(Strings.BadComparer);
 
                 if (left >= right)
                     break;

@@ -185,7 +185,7 @@ namespace Microsoft.ML.TorchSharp
                     {
                         var directory = Path.GetDirectoryName(errorResult.FileName);
                         var name = Path.GetFileName(errorResult.FileName);
-                        throw ch.Except($"{errorMessage}\nmodel file could not be downloaded!");
+                        throw ch.Except(string.Format(Strings.ModelFileCouldNotBeDownloaded, errorMessage));
                     }
                 }
 
@@ -483,7 +483,7 @@ namespace Microsoft.ML.TorchSharp
             }
 
             protected override Delegate MakeGetter(DataViewRow input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
-                => throw new NotImplementedException("This should never be called!");
+                => throw new NotImplementedException(Strings.ThisShouldNeverBeCalled);
 
             private protected abstract Delegate CreateGetter(DataViewRow input, int iinfo, TensorCacher outputCacher);
 

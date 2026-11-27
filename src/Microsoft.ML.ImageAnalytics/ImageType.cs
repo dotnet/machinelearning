@@ -37,8 +37,8 @@ namespace Microsoft.ML.Transforms.Image
         /// </summary>
         public ImageTypeAttribute(int height, int width)
         {
-            Contracts.CheckParam(width > 0, nameof(width), "Should be positive number");
-            Contracts.CheckParam(height > 0, nameof(height), "Should be positive number");
+            Contracts.CheckParam(width > 0, nameof(width), Strings.ShouldBePositiveNumber);
+            Contracts.CheckParam(height > 0, nameof(height), Strings.ShouldBePositiveNumber);
             Height = height;
             Width = width;
         }
@@ -75,9 +75,9 @@ namespace Microsoft.ML.Transforms.Image
         public ImageDataViewType(int height, int width)
            : base(typeof(MLImage))
         {
-            Contracts.CheckParam(height > 0, nameof(height), "Must be positive.");
-            Contracts.CheckParam(width > 0, nameof(width), " Must be positive.");
-            Contracts.CheckParam((long)height * width <= int.MaxValue / 4, nameof(height), nameof(height) + " * " + nameof(width) + " is too large.");
+            Contracts.CheckParam(height > 0, nameof(height), Strings.MustBePositive);
+            Contracts.CheckParam(width > 0, nameof(width), Strings.MustBePositive);
+            Contracts.CheckParam((long)height * width <= int.MaxValue / 4, nameof(height), Strings.HeightWidthIsTooLarge);
 
             Height = height;
             Width = width;

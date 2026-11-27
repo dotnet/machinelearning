@@ -1,0 +1,47 @@
+﻿<?xml version='1.0' encoding='utf-8'?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="CSharpFileExtesionMustBeCs" xml:space="preserve">
+    <value>CSharp file extesion must be .cs</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.CodeGenerator/CodeGenerator/CSharp/CSharpCodeFile.cs:37.</comment>
+  </data>
+  <data name="CSharpProjectFileExtesionMustBeCsproj" xml:space="preserve">
+    <value>CSharp project file extesion must be .csproj</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.CodeGenerator/CodeGenerator/CSharp/CSharpProjectFile.cs:37.</comment>
+  </data>
+  <data name="InputCannotBeEmpty" xml:space="preserve">
+    <value>input cannot be empty</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.CodeGenerator/Utils.cs:143.</comment>
+  </data>
+  <data name="InputColumnsForTheSuggestedTransformIsNotExactlyOne" xml:space="preserve">
+    <value>input columns for the suggested transform: {0} is not exactly one.</value>
+    <comment>Exception or validation message. Placeholders: {0}=MethodName. Source: src/Microsoft.ML.CodeGenerator/CodeGenerator/CSharp/TransformGenerators.cs:366. Exception or validation message. Placeholders: {0}=MethodName. Source: src/Microsoft.ML.CodeGenerator/CodeGenerator/CSharp/TransformGenerators.cs:384. Exception or validation message. Placeholders: {0}=MethodName. Source: src/Microsoft.ML.CodeGenerator/CodeGenerator/CSharp/TransformGenerators.cs:421.</comment>
+  </data>
+  <data name="OutputColumnsForTheSuggestedTransformAreNull" xml:space="preserve">
+    <value>output columns for the suggested transform: {0} are null</value>
+    <comment>Exception or validation message. Placeholders: {0}=MethodName. Source: src/Microsoft.ML.CodeGenerator/CodeGenerator/CSharp/TransformGenerators.cs:112. Exception or validation message. Placeholders: {0}=MethodName. Source: src/Microsoft.ML.CodeGenerator/CodeGenerator/CSharp/TransformGenerators.cs:135. Exception or validation message. Placeholders: {0}=MethodName. Source: src/Microsoft.ML.CodeGenerator/CodeGenerator/CSharp/TransformGenerators.cs:158. Exception or validation message. Placeholders: {0}=MethodName. Source: src/Microsoft.ML.CodeGenerator/CodeGenerator/CSharp/TransformGenerators.cs:183. Exception or validation message. Placeholders: {0}=MethodName. Source: src/Microsoft.ML.CodeGenerator/CodeGenerator/CSharp/TransformGenerators.cs:24. Exception or validation message. Placeholders: {0}=MethodName. Source: src/Microsoft.ML.CodeGenerator/CodeGenerator/CSharp/TransformGenerators.cs:287. Exception or validation message. Placeholders: {0}=MethodName. Source: src/Microsoft.ML.CodeGenerator/CodeGenerator/CSharp/TransformGenerators.cs:345. Exception or validation message. Placeholders: {0}=MethodName. Source: src/Microsoft.ML.CodeGenerator/CodeGenerator/CSharp/TransformGenerators.cs:82.</comment>
+  </data>
+  <data name="OutputColumnsForTheSuggestedTransformItNotExactlyOne" xml:space="preserve">
+    <value>output columns for the suggested transform: {0} it not exactly one.</value>
+    <comment>Exception or validation message. Placeholders: {0}=MethodName. Source: src/Microsoft.ML.CodeGenerator/CodeGenerator/CSharp/TransformGenerators.cs:367. Exception or validation message. Placeholders: {0}=MethodName. Source: src/Microsoft.ML.CodeGenerator/CodeGenerator/CSharp/TransformGenerators.cs:385. Exception or validation message. Placeholders: {0}=MethodName. Source: src/Microsoft.ML.CodeGenerator/CodeGenerator/CSharp/TransformGenerators.cs:422.</comment>
+  </data>
+  <data name="TheDataTypeIsNotHandledCurrently" xml:space="preserve">
+    <value>The data type '{0}' is not handled currently.</value>
+    <comment>Exception or validation message. Placeholders: {0}=dataKind. Source: src/Microsoft.ML.CodeGenerator/Utils.cs:362. Exception or validation message. Placeholders: {0}=labelType. Source: src/Microsoft.ML.CodeGenerator/Utils.cs:171.</comment>
+  </data>
+  <data name="TheTrainerIsNotHandledCurrently" xml:space="preserve">
+    <value>The trainer '{0}' is not handled currently.</value>
+    <comment>Exception or validation message. Placeholders: {0}=node.Name. Source: src/Microsoft.ML.CodeGenerator/CodeGenerator/CSharp/TrainerGeneratorFactory.cs:80. Exception or validation message. Placeholders: {0}=trainer. Source: src/Microsoft.ML.CodeGenerator/CodeGenerator/CSharp/TrainerGeneratorFactory.cs:77.</comment>
+  </data>
+</root>

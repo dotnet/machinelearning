@@ -199,12 +199,12 @@ namespace Microsoft.ML.Numeric
                 float dirDeriv = -VectorUtils.DotProduct(in _dir, in _steepestDescDir);
 
                 if (dirDeriv == 0)
-                    throw ch.Process(new PrematureConvergenceException(this, "Directional derivative is zero. You may be sitting on the optimum."));
+                    throw ch.Process(new PrematureConvergenceException(this, Strings.ZeroDirectionalDerivativeAtOptimum));
 
                 // if a non-descent direction is chosen, the line search will break anyway, so throw here
                 // The most likely reason for this is a bug in your function's gradient computation
                 // It may also indicate that your function is not convex.
-                ch.Check(dirDeriv < 0, "L-BFGS chose a non-descent direction.");
+                ch.Check(dirDeriv < 0, Strings.LBFGSChoseANonDescentDirection);
 
                 float alpha = (Iter == 1 ? (1 / VectorUtils.Norm(_dir)) : 1);
                 GetNextPoint(alpha);

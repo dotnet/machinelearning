@@ -56,12 +56,12 @@ namespace Microsoft.ML.Tokenizers
 
             if (options.MaxInputCharsPerWord <= 0)
             {
-                throw new ArgumentOutOfRangeException(nameof(options.MaxInputCharsPerWord), "The maximum number of characters per word must be greater than zero.");
+                throw new ArgumentOutOfRangeException(nameof(options.MaxInputCharsPerWord), Strings.MaximumCharactersPerWordMustBePositive);
             }
 
             if (!vocab!.TryGetValue(options.UnknownToken, out int id))
             {
-                throw new ArgumentException($"The unknown token '{options.UnknownToken}' is not in the vocabulary.");
+                throw new ArgumentException(string.Format(Strings.TheUnknownTokenIsNotInTheVocabulary, options.UnknownToken));
             }
 
             UnknownToken = options.UnknownToken;
@@ -391,7 +391,7 @@ namespace Microsoft.ML.Tokenizers
             int maxTokenCount = settings.MaxTokenCount;
             if (maxTokenCount <= 0)
             {
-                throw new ArgumentOutOfRangeException(nameof(settings.MaxTokenCount), "The maximum number of tokens must be greater than zero.");
+                throw new ArgumentOutOfRangeException(nameof(settings.MaxTokenCount), Strings.TheMaximumNumberOfTokensMustBeGreaterThanZero);
             }
 
             if (string.IsNullOrEmpty(text) && textSpan.IsEmpty)
@@ -543,7 +543,7 @@ namespace Microsoft.ML.Tokenizers
             int maxTokenCount = settings.MaxTokenCount;
             if (maxTokenCount <= 0)
             {
-                throw new ArgumentOutOfRangeException(nameof(settings.MaxTokenCount), "The maximum number of tokens must be greater than zero.");
+                throw new ArgumentOutOfRangeException(nameof(settings.MaxTokenCount), Strings.TheMaximumNumberOfTokensMustBeGreaterThanZero);
             }
 
             if (string.IsNullOrEmpty(text) && textSpan.IsEmpty)
@@ -603,7 +603,7 @@ namespace Microsoft.ML.Tokenizers
         {
             if (settings.MaxTokenCount <= 0)
             {
-                throw new ArgumentOutOfRangeException(nameof(settings.MaxTokenCount), "The max token count must be greater than 0.");
+                throw new ArgumentOutOfRangeException(nameof(settings.MaxTokenCount), Strings.TheMaxTokenCountMustBeGreaterThan0);
             }
 
             if (string.IsNullOrEmpty(text) && textSpan.IsEmpty)

@@ -69,8 +69,8 @@ namespace Microsoft.ML.Transforms.TimeSeries
         public static bool FindPolynomialRoots(Double[] coefficients, ref Complex[] roots,
             int roundOffDigits = 6, Double doublePrecision = 2.22 * 1e-100)
         {
-            Contracts.CheckParam(doublePrecision > 0, nameof(doublePrecision), "The double precision must be positive.");
-            Contracts.CheckParam(Utils.Size(coefficients) >= 1, nameof(coefficients), "There must be at least one input coefficient.");
+            Contracts.CheckParam(doublePrecision > 0, nameof(doublePrecision), Strings.TheDoublePrecisionMustBePositive);
+            Contracts.CheckParam(Utils.Size(coefficients) >= 1, nameof(coefficients), Strings.ThereMustBeAtLeastOneInputCoefficient);
 
             int i;
             int n = coefficients.Length;
@@ -278,7 +278,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
         /// <returns>A boolean flag indicating whether the algorithm was successful.</returns>
         public static bool FindPolynomialCoefficients(Complex[] roots, ref Double[] coefficients)
         {
-            Contracts.CheckParam(Utils.Size(roots) > 0, nameof(roots), "There must be at least 1 input root.");
+            Contracts.CheckParam(Utils.Size(roots) > 0, nameof(roots), Strings.ThereMustBeAtLeast1InputRoot);
 
             int i;
             int n = roots.Length;

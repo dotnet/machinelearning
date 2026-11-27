@@ -108,9 +108,9 @@ namespace Microsoft.Data.Analysis
         public GroupBy(DataFrame dataFrame, int groupByColumnIndex, IDictionary<TKey, ICollection<long>> keyToRowIndices)
         {
             if (dataFrame.Columns.Count < groupByColumnIndex || groupByColumnIndex < 0)
-                throw new ArgumentException(nameof(groupByColumnIndex));
+                throw new ArgumentOutOfRangeException(nameof(groupByColumnIndex));
             _groupByColumnIndex = groupByColumnIndex;
-            _keyToRowIndicesMap = keyToRowIndices ?? throw new ArgumentException(nameof(keyToRowIndices));
+            _keyToRowIndicesMap = keyToRowIndices ?? throw new ArgumentNullException(nameof(keyToRowIndices));
             _dataFrame = dataFrame;
         }
 

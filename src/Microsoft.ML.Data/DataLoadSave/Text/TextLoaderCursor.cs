@@ -201,7 +201,7 @@ namespace Microsoft.ML.Data
                 return
                     (ref DataViewRowId val) =>
                     {
-                        Ch.Check(IsGood, RowCursorUtils.FetchValueStateError);
+                        Ch.Check(IsGood, Strings.ValuesUnavailableOutsideCursorPosition);
                         val = new DataViewRowId((ulong)_total, 0);
                     };
             }
@@ -316,14 +316,13 @@ namespace Microsoft.ML.Data
             /// <param name="column"> is the output column whose getter should be returned.</param>
             public override ValueGetter<TValue> GetGetter<TValue>(DataViewSchema.Column column)
             {
-                Ch.CheckParam(column.Index < _getters.Length, nameof(column), "requested column not valid.");
+                Ch.CheckParam(column.Index < _getters.Length, nameof(column), Strings.RequestedColumnNotValid);
                 Ch.Check(IsColumnActive(column));
 
                 var originFn = _getters[column.Index];
                 var fn = originFn as ValueGetter<TValue>;
                 if (fn == null)
-                    throw Ch.Except($"Invalid TValue in GetGetter: '{typeof(TValue)}', " +
-                        $"expected type: '{originFn.GetType().GetGenericArguments().First()}'.");
+                    throw Ch.Except(string.Format(Strings.InvalidTValueInGetGetterExpectedType, typeof(TValue), originFn.GetType().GetGenericArguments().First()));
                 return fn;
             }
 
@@ -471,7 +470,7 @@ namespace Microsoft.ML.Data
                         return batch;
 
                     Contracts.AssertValue(batch.Exception);
-                    throw Contracts.ExceptDecode(batch.Exception, "Stream reading encountered exception");
+                    throw Contracts.ExceptDecode(batch.Exception, Strings.StreamReadingEncounteredException);
                 }
 
                 private class MultiLineReader
@@ -530,7 +529,7 @@ namespace Microsoft.ML.Data
                             line = _rdr.ReadLine();
 
                             if (line == null)
-                                throw new EndOfStreamException($"A quoted field opened on line {lineNum} was never closed, and we've read to the last line in the file without finding the closing quote");
+                                throw new EndOfStreamException(string.Format(Strings.UnterminatedQuotedField, lineNum));
 
                             _sb.Append("\n");
                             _sb.Append(line);
@@ -826,7 +825,7 @@ LNext:
                     foreach (var batch in state.GetBatches())
                     {
                         // If the collation of rows happened correctly, this should have a precise value.
-                        Contracts.Assert(batch.Total == _total + 1, $"batch.Total:{batch.Total} while _total + 1:{_total + 1}.");
+                        Contracts.Assert(batch.Total == _total + 1, string.Format("batch.Total:{0} while _total + 1:{1}.", batch.Total, _total + 1));
                         _total = batch.Total - 1;
                         for (int irow = batch.IrowMin; irow < batch.IrowLim; irow++)
                         {
@@ -837,7 +836,7 @@ LNext:
                     if (state.ParsingException != null)
                     {
                         throw Ch.ExceptDecode(state.ParsingException,
-                            "Parsing failed with an exception: {0}", state.ParsingException.Message);
+                            Strings.ParsingFailedWithAnException, state.ParsingException.Message);
                     }
                 }
             }

@@ -767,7 +767,7 @@ namespace Microsoft.ML.Internal.Utilities
         public static void BuildSubsetMaps(DataViewSchema schema, Func<DataViewSchema.Column, bool> pred, out int[] map, out int[] invMap)
         {
             Contracts.CheckValue(schema, nameof(schema));
-            Contracts.Check(schema.Count > 0, nameof(schema));
+            Contracts.Check(schema.Count > 0, Strings.SchemaMustContainAtLeastOneColumn);
             Contracts.CheckValue(pred, nameof(pred));
             // REVIEW: Better names?
             List<int> mapList = new List<int>();
@@ -962,7 +962,7 @@ namespace Microsoft.ML.Internal.Utilities
         {
             var meth = MarshalActionInvokeCheckAndCreate(genArg, func);
             if (meth.ReturnType != typeof(TRet))
-                throw Contracts.ExceptParam(nameof(func), "Cannot be generic on return type");
+                throw Contracts.ExceptParam(nameof(func), Strings.CannotBeGenericOnReturnType);
             return meth;
         }
 
@@ -1186,9 +1186,9 @@ namespace Microsoft.ML.Internal.Utilities
             Contracts.CheckValue(genArg, nameof(genArg));
             Contracts.CheckValue(func, nameof(func));
             var meth = func.GetMethodInfo();
-            Contracts.CheckParam(meth.IsGenericMethod, nameof(func), "Should be generic but is not");
+            Contracts.CheckParam(meth.IsGenericMethod, nameof(func), Strings.ShouldBeGenericButIsNot);
             Contracts.CheckParam(meth.GetGenericArguments().Length == 1, nameof(func),
-                "Should have exactly one generic type parameter but does not");
+                Strings.ShouldHaveExactlyOneGenericTypeParameterButDoesNot);
             meth = meth.GetGenericMethodDefinition().MakeGenericMethod(genArg);
             return meth;
         }

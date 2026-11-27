@@ -1,0 +1,83 @@
+﻿<?xml version='1.0' encoding='utf-8'?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="CannotReadParquetFile" xml:space="preserve">
+    <value>Cannot read Parquet file</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Parquet/ParquetLoader.cs:167. Exception or validation message. Source: src/Microsoft.ML.Parquet/ParquetLoader.cs:227.</comment>
+  </data>
+  <data name="ColumnDefinitionIsOutsideTheBoundsOfPath" xml:space="preserve">
+    <value>Column definition {0} is outside the bounds of path {1}.</value>
+    <comment>Exception or validation message. Placeholders: {0}=col, {1}=path. Source: src/Microsoft.ML.Parquet/PartitionedPathParser.cs:181.</comment>
+  </data>
+  <data name="UnknownParquetFieldType" xml:space="preserve">
+    <value>Encountered unknown Parquet field type(Currently recognizes data, map, list, and struct).</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Parquet/ParquetLoader.cs:304.</comment>
+  </data>
+  <data name="ErrorDueToTooManyBlocksTryIncreasingBlockSize" xml:space="preserve">
+    <value>Error due to too many blocks. Try increasing block size.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Parquet/ParquetLoader.cs:473.</comment>
+  </data>
+  <data name="FailedToCreateTheFilePathSpec" xml:space="preserve">
+    <value>Failed to create the FilePathSpec.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Parquet/PartitionedFileLoader.cs:183.</comment>
+  </data>
+  <data name="InvalidPartitionedPathFormat" xml:space="preserve">
+    <value>Failed to parse names from path {0}. Expected directory names with the format 'Name=Value'.</value>
+    <comment>Exception or validation message. Placeholders: {0}=path. Source: src/Microsoft.ML.Parquet/PartitionedPathParser.cs:287. Exception or validation message. Placeholders: {0}=path. Source: src/Microsoft.ML.Parquet/PartitionedPathParser.cs:308.</comment>
+  </data>
+  <data name="InputStreamMustBeAtHead" xml:space="preserve">
+    <value>input stream must be at head</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Parquet/ParquetLoader.cs:141.</comment>
+  </data>
+  <data name="InputStreamMustBeReadable" xml:space="preserve">
+    <value>input stream must be readable</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Parquet/ParquetLoader.cs:139.</comment>
+  </data>
+  <data name="InputStreamMustBeSeekable" xml:space="preserve">
+    <value>input stream must be seekable</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Parquet/ParquetLoader.cs:140.</comment>
+  </data>
+  <data name="InvalidTValueExpectedType" xml:space="preserve">
+    <value>Invalid TValue: '{0}', expected type: '{1}'.</value>
+    <comment>Exception or validation message. Placeholders: {0}=typeof(TValue), {1}=originGetter.GetType().GetGenericArguments().First(). Source: src/Microsoft.ML.Parquet/ParquetLoader.cs:605. Exception or validation message. Placeholders: {0}=typeof(TValue), {1}=originGetter.GetType().GetGenericArguments().First(). Source: src/Microsoft.ML.Parquet/PartitionedFileLoader.cs:427.</comment>
+  </data>
+  <data name="InvalidTValueOfTheConversion" xml:space="preserve">
+    <value>Invalid TValue: '{0}' of the conversion.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Parquet/PartitionedFileLoader.cs:632.</comment>
+  </data>
+  <data name="ParquetLoaderMustBeCreatedWithOneFile" xml:space="preserve">
+    <value>Parquet loader must be created with one file</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Parquet/ParquetLoader.cs:235. Exception or validation message. Source: src/Microsoft.ML.Parquet/ParquetLoader.cs:374.</comment>
+  </data>
+  <data name="PathsWithDifferentSchemesCannotBeMadeRelative" xml:space="preserve">
+    <value>Paths cannot be made relative as they are of different schemes.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Parquet/PartitionedPathUtils.cs:31.</comment>
+  </data>
+  <data name="PathsCouldNotBeMadeRelative" xml:space="preserve">
+    <value>Paths could not be made relative.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Parquet/PartitionedPathUtils.cs:46. Exception or validation message. Source: src/Microsoft.ML.Parquet/PartitionedPathUtils.cs:50.</comment>
+  </data>
+  <data name="RequestedColumnNotActive" xml:space="preserve">
+    <value>requested column not active</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Parquet/ParquetLoader.cs:600.</comment>
+  </data>
+  <data name="PartitionValueCountMismatch" xml:space="preserve">
+    <value>The extracted value count of {0} does not match the expected Column count of {1} for path {2}</value>
+    <comment>Exception or validation message. Placeholders: {0}=values.Count, {1}=_columns.Length, {2}=path. Source: src/Microsoft.ML.Parquet/PartitionedPathParser.cs:313.</comment>
+  </data>
+  <data name="ValuesUnavailableOutsideCursorPosition" xml:space="preserve">
+    <value>Values cannot be fetched at this time. This method was called either before the first call to MoveNext, or at any point after that method returned false.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Parquet/ParquetLoader.cs:546. Exception or validation message. Source: src/Microsoft.ML.Parquet/ParquetLoader.cs:617. Exception or validation message. Source: src/Microsoft.ML.Parquet/PartitionedFileLoader.cs:438.</comment>
+  </data>
+</root>

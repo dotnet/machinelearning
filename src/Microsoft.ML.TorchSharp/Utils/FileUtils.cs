@@ -43,11 +43,11 @@ namespace Microsoft.ML.TorchSharp.Utils
         {
             if (stream == null || !stream.CanRead)
             {
-                throw new ArgumentException($"Stream should be non-null and its stream.CanRead property should be true.");
+                throw new ArgumentException(Strings.StreamMustBeReadable);
             }
             if (!_validTypes.Contains(typeof(T)))
             {
-                throw new NotSupportedException($"Type {typeof(T)} not supported in data loading.");
+                throw new NotSupportedException(string.Format(Strings.TypeNotSupportedInDataLoading, typeof(T)));
             }
 
             var numBytesConsumed = numElements * tSize;
@@ -56,7 +56,7 @@ namespace Microsoft.ML.TorchSharp.Utils
             if (numBytesConsumed != numBytesRead)
             {
                 throw new InvalidDataException(
-                    $"The number of bytes read from stream is less than expected. Please check the data files.");
+                    Strings.UnexpectedEndOfStream);
             }
 
             var targetBuffer = new T[numBytesConsumed / tSize];

@@ -128,7 +128,7 @@ namespace Microsoft.ML.Trainers
             using (var ch = Host.Start("Training"))
             {
                 var pred = TrainCore(ch, data, count) as IPredictor;
-                ch.Check(pred != null, "Training did not result in a predictor");
+                ch.Check(pred != null, Strings.TrainingDidNotResultInAPredictor);
                 return pred;
             }
         }

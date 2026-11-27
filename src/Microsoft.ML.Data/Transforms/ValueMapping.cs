@@ -118,7 +118,7 @@ namespace Microsoft.ML.Transforms
                    originalColumn.Kind == SchemaShape.Column.VectorKind.Vector)
                 {
                     if (Transformer.ValueColumnType is VectorDataViewType)
-                        throw Host.ExceptNotSupp("Column '{0}' cannot be mapped to values when the column and the map values are both vector type.", inputColumnName);
+                        throw Host.ExceptNotSupp(Strings.VectorColumnCannotMapToVectorValues, inputColumnName);
                     // if input to the estimator is of vector type then output should always be vector.
                     // The transformer maps each item in input vector to the values in the dictionary
                     // producing a vector as output.
@@ -199,7 +199,7 @@ namespace Microsoft.ML.Transforms
             }
 
             if (!type.TryGetDataKind(out InternalDataKind kind))
-                throw new InvalidOperationException($"Unsupported type {type} used in mapping.");
+                throw new InvalidOperationException(string.Format(Strings.UnsupportedTypeUsedInMapping, type));
 
             return ColumnTypeExtensions.PrimitiveTypeFromKind(kind);
         }
@@ -444,19 +444,19 @@ namespace Microsoft.ML.Transforms
 
             // Check if key column is valid to the used IDataView.
             column = dataView.Schema.GetColumnOrNull(keyColumn.Name);
-            Host.Check(column.HasValue, "The selected column " + nameof(keyColumn) + " is not included in the targeted IDataView " + nameof(dataView));
+            Host.Check(column.HasValue, Strings.SelectedKeyColumnMissingFromDataView);
             var retrievedKeyColumn = column.Value;
-            Host.Check(retrievedKeyColumn.Index == keyColumn.Index, nameof(keyColumn) + "'s column index doesn't match that of the associated column in " + nameof(dataView));
-            Host.Check(retrievedKeyColumn.Type == keyColumn.Type, nameof(keyColumn) + "'s column type doesn't match that of the associated column in " + nameof(dataView));
-            Host.Check(retrievedKeyColumn.Annotations == keyColumn.Annotations, nameof(keyColumn) + "'s column annotations don't match those of the associated column in " + nameof(dataView));
+            Host.Check(retrievedKeyColumn.Index == keyColumn.Index, Strings.KeyColumnIndexMismatch);
+            Host.Check(retrievedKeyColumn.Type == keyColumn.Type, Strings.KeyColumnTypeMismatch);
+            Host.Check(retrievedKeyColumn.Annotations == keyColumn.Annotations, Strings.KeyColumnAnnotationsMismatch);
 
             // Check if value column is valid to the used IDataView.
             column = dataView.Schema.GetColumnOrNull(valueColumn.Name);
-            Host.Check(column.HasValue, "The selected column " + nameof(valueColumn) + " is not included in the targeted IDataView " + nameof(dataView));
+            Host.Check(column.HasValue, Strings.SelectedValueColumnMissingFromDataView);
             var retrievedValueColumn = column.Value;
-            Host.Check(retrievedValueColumn.Index == valueColumn.Index, nameof(valueColumn) + "'s column index doesn't match that of the associated column in " + nameof(dataView));
-            Host.Check(retrievedValueColumn.Type == valueColumn.Type, nameof(valueColumn) + "'s column type doesn't match that of the associated column in " + nameof(dataView));
-            Host.Check(retrievedValueColumn.Annotations == valueColumn.Annotations, nameof(valueColumn) + "'s column annotations don't match those of the associated column in " + nameof(dataView));
+            Host.Check(retrievedValueColumn.Index == valueColumn.Index, Strings.ValueColumnIndexMismatch);
+            Host.Check(retrievedValueColumn.Type == valueColumn.Type, Strings.ValueColumnTypeMismatch);
+            Host.Check(retrievedValueColumn.Annotations == valueColumn.Annotations, Strings.ValueColumnAnnotationsMismatch);
 
             // Extract key-column pairs to form dictionary from the used IDataView.
             var valueMap = ValueMap.Create(keyColumn, valueColumn);
@@ -657,7 +657,7 @@ namespace Microsoft.ML.Transforms
                         }
                         catch (Exception ex)
                         {
-                            throw env.Except(ex, $"Failed to parse the lookup file '{options.DataFile}' in ValueMappingTransformerer");
+                            throw env.Except(ex, string.Format(Strings.FailedToParseTheLookupFileInValueMappingTransformerer, options.DataFile));
                         }
                     }
                     else
@@ -775,7 +775,7 @@ namespace Microsoft.ML.Transforms
             }
 
             if (!type.TryGetDataKind(out InternalDataKind kind))
-                throw Contracts.Except($"Unsupported type {type} used in mapping.");
+                throw Contracts.Except(string.Format(Strings.UnsupportedTypeUsedInMapping, type));
 
             return ColumnTypeExtensions.PrimitiveTypeFromKind(kind);
         }
@@ -887,7 +887,7 @@ namespace Microsoft.ML.Transforms
                     keyGetter(ref key);
                     valueGetter(ref value);
                     if (_mapping.ContainsKey(key))
-                        throw env.Except($"Duplicate keys in data '{key}'");
+                        throw env.Except(string.Format(Strings.DuplicateKeysInData, key));
 
                     _mapping.Add(key, value);
                 }
@@ -990,9 +990,9 @@ namespace Microsoft.ML.Transforms
             var schema = lookup.Schema;
 
             if (!schema.GetColumnOrNull(keyColumn).HasValue)
-                throw host.ExceptUserArg(nameof(Options.KeyColumn), $"Key column not found: '{keyColumn}'");
+                throw host.ExceptUserArg(nameof(Options.KeyColumn), string.Format(Strings.KeyColumnNotFound, keyColumn));
             if (!schema.GetColumnOrNull(valueColumn).HasValue)
-                throw host.ExceptUserArg(nameof(Options.ValueColumn), $"Value column not found: '{valueColumn}'");
+                throw host.ExceptUserArg(nameof(Options.ValueColumn), string.Format(Strings.ValueColumnNotFound, valueColumn));
 
             var cols = new List<(string outputColumnName, string inputColumnName)>()
             {
@@ -1281,7 +1281,7 @@ namespace Microsoft.ML.Transforms
                 for (int i = 0; i < _columns.Length; i++)
                 {
                     if (_inputSchema[_columns[i].inputColumnName].Type is VectorDataViewType && _valueMap.ValueColumn.Type is VectorDataViewType)
-                        throw _parent.Host.ExceptNotSupp("Column '{0}' cannot be mapped to values when the column and the map values are both vector type.", _columns[i].inputColumnName);
+                        throw _parent.Host.ExceptNotSupp(Strings.VectorColumnCannotMapToVectorValues, _columns[i].inputColumnName);
                     var colType = _valueMap.ValueColumn.Type;
                     if (_inputSchema[_columns[i].inputColumnName].Type is VectorDataViewType)
                         colType = new VectorDataViewType(ColumnTypeExtensions.PrimitiveTypeFromType(_valueMap.ValueColumn.Type.GetItemType().RawType));

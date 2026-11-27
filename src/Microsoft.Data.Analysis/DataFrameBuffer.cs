@@ -42,7 +42,7 @@ namespace Microsoft.Data.Analysis
         {
             if ((long)capacity > MaxCapacity)
             {
-                throw new ArgumentException($"{capacity} exceeds buffer capacity", nameof(capacity));
+                throw new ArgumentException(string.Format(Strings.ExceedsBufferCapacity, capacity), nameof(capacity));
             }
 
             _memory = new byte[Math.Max(capacity, MinCapacity) * Size];
@@ -74,7 +74,7 @@ namespace Microsoft.Data.Analysis
             long newLength = Length + (long)numberOfValues;
             if (newLength > MaxCapacity)
             {
-                throw new ArgumentException("Current buffer is full", nameof(numberOfValues));
+                throw new ArgumentException(Strings.CurrentBufferIsFull, nameof(numberOfValues));
             }
 
             if (newLength > Capacity)

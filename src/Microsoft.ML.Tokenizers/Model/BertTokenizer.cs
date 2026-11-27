@@ -777,7 +777,7 @@ namespace Microsoft.ML.Tokenizers
                         {
                             if (!vocab.TryGetValue(new StringSpanOrdinalKey(kvp.Key), out int id) || id != kvp.Value)
                             {
-                                throw new ArgumentException($"The special token '{kvp.Key}' is not in the vocabulary or assigned id value {id} different than the value {kvp.Value} in the special tokens.");
+                                throw new ArgumentException(string.Format(Strings.SpecialTokenIdMismatch, kvp.Key, id, kvp.Value));
                             }
 
                             // Add the special token into our dictionary, normalizing it, and adding it into the
@@ -815,7 +815,7 @@ namespace Microsoft.ML.Tokenizers
         {
             if (token is null || !vocab.TryGetValue(new StringSpanOrdinalKey(token), out int id))
             {
-                throw new ArgumentException($"The special token '{token}' is not in the vocabulary.");
+                throw new ArgumentException(string.Format(Strings.TheSpecialTokenIsNotInTheVocabulary, token));
             }
 
             if (notNormalizedSpecialTokens is not null)

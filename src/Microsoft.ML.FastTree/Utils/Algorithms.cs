@@ -22,7 +22,7 @@ namespace Microsoft.ML.Trainers.FastTree
                 return 0;
             if (val.CompareTo(array[array.Length - 1]) > 0)
                 //return array.Length - 1;
-                throw Contracts.Except("value is greater than the greatest number in the array");
+                throw Contracts.Except(Strings.ValueIsGreaterThanTheGreatestNumberInTheArray);
 
             // Considering anything from lower to upper, inclusive
             int lower = 0;
@@ -58,7 +58,7 @@ namespace Microsoft.ML.Trainers.FastTree
         public static int FindLastLE<T>(T[] array, T val) where T : IComparable
         {
             if (val.CompareTo(array[0]) < 0)
-                throw Contracts.Except("value is less than the first array element");
+                throw Contracts.Except(Strings.ValueIsLessThanTheFirstArrayElement);
             if (val.CompareTo(array[array.Length - 1]) >= 0)
                 return array.Length - 1;
 

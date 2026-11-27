@@ -38,7 +38,7 @@ namespace Microsoft.ML.Trainers.Ensemble
         public BestPerformanceRegressionSelector(IHostEnvironment env, Arguments args)
             : base(args, env, LoadName)
         {
-            Host.CheckUserArg(Enum.IsDefined(typeof(RegressionEvaluator.Metrics), args.MetricName), nameof(args.MetricName), "Undefined metric name");
+            Host.CheckUserArg(Enum.IsDefined(typeof(RegressionEvaluator.Metrics), args.MetricName), nameof(args.MetricName), Strings.UndefinedMetricName);
             _metric = args.MetricName;
             _metricName = FindMetricName(typeof(RegressionEvaluator.Metrics), _metric);
             Host.Assert(!string.IsNullOrEmpty(_metricName));

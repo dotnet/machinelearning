@@ -7,5 +7,18 @@
     <!-- Enable API compat for any packages unless they've set EnablePackageValidation -->
     <EnablePackageValidation Condition="'$(EnablePackageValidation)' == ''">true</EnablePackageValidation>
   </PropertyGroup>
-  
+
+  <ItemGroup Condition="Exists('$(_LocalizableStringsPath)')">
+    <EmbeddedResource Update="Resources\Strings.resx">
+      <LogicalName>$(AssemblyName).Resources.Strings.resources</LogicalName>
+      <StronglyTypedClassName>Strings</StronglyTypedClassName>
+      <StronglyTypedFileName>$(IntermediateOutputPath)Strings.Designer.cs</StronglyTypedFileName>
+      <StronglyTypedLanguage>CSharp</StronglyTypedLanguage>
+      <StronglyTypedManifestPrefix>$(AssemblyName).Resources</StronglyTypedManifestPrefix>
+      <StronglyTypedNamespace>$(AssemblyName).Resources</StronglyTypedNamespace>
+    </EmbeddedResource>
+    <Using Include="$(AssemblyName).Resources.Strings"
+           Alias="Strings" />
+  </ItemGroup>
+
 </Project>

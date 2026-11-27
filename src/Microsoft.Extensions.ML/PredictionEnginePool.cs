@@ -104,7 +104,7 @@ namespace Microsoft.Extensions.ML
             {
                 if (_defaultEnginePool == null)
                 {
-                    throw new ArgumentException("You need to configure a default, not named, model before you use this method.");
+                    throw new ArgumentException(Strings.DefaultModelMustBeConfigured);
                 }
 
                 return _defaultEnginePool.Get();

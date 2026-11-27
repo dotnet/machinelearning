@@ -117,7 +117,7 @@ namespace Microsoft.ML.Internal.Utilities
                     $"Could not create a valid URI from the base URI '{MlNetResourcesUrl}' and the relative URI '{relativeUrl}'");
             }
             if (absoluteUrl.Host != "aka.ms")
-                throw new NotSupportedException("The function ResourceManagerUtils.EnsureResourceAsync only supports downloading from URLs of the host \"aka.ms\"");
+                throw new NotSupportedException(Strings.EnsureResourceAsyncOnlySupportsAkaMsUrls);
             return new ResourceDownloadResults(filePath,
                 await DownloadFromUrlWithRetryAsync(env, ch, absoluteUrl.AbsoluteUri, fileName, timeout, filePath), absoluteUrl.AbsoluteUri);
         }
@@ -273,7 +273,7 @@ namespace Microsoft.ML.Internal.Utilities
                     IEnumerable<string> headers;
                     var hasHeader = response.Headers.TryGetValues("content-length", out headers);
                     if (uri.Host == "aka.ms" && IsRedirectToDefaultPage(uri.AbsoluteUri))
-                        throw new NotSupportedException($"The provided url ({uri}) redirects to the default url ({DefaultUrl})");
+                        throw new NotSupportedException(string.Format(Strings.TheProvidedUrlRedirectsToTheDefaultUrl, uri, DefaultUrl));
                     if (!hasHeader || !long.TryParse(headers.First(), out var size))
                         size = 10000000;
 
@@ -284,7 +284,7 @@ namespace Microsoft.ML.Internal.Utilities
                     if (ct.IsCancellationRequested)
                     {
                         ch.Error($"{fileName}: Download timed out");
-                        return ch.Except("Download timed out");
+                        return ch.Except(Strings.DownloadTimedOut);
                     }
                 }
                 File.Move(tempPath, path);

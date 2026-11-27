@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -178,8 +178,8 @@ namespace Microsoft.ML.Trainers
 
             _featureColumn = featureColumnName;
 
-            Host.CheckUserArg(_rank > 0, nameof(_rank), "Rank must be positive");
-            Host.CheckUserArg(_oversampling >= 0, nameof(_oversampling), "Oversampling must be non-negative");
+            Host.CheckUserArg(_rank > 0, nameof(_rank), Strings.RankMustBePositive);
+            Host.CheckUserArg(_oversampling >= 0, nameof(_oversampling), Strings.OversamplingMustBeNonNegative);
 
         }
 
@@ -214,7 +214,7 @@ namespace Microsoft.ML.Trainers
             ch.AssertValue(data);
 
             if (_rank > dimension)
-                throw ch.Except("Rank ({0}) cannot be larger than the original dimension ({1})", _rank, dimension);
+                throw ch.Except(Strings.RankCannotBeLargerThanTheOriginalDimension, _rank, dimension);
             int oversampledRank = Math.Min(_rank + _oversampling, dimension);
 
             //exact: (size of the 2 big matrices + other minor allocations) / (2^30)
@@ -330,7 +330,7 @@ namespace Microsoft.ML.Trainers
                 numBad = cursor.SkippedRowCount;
             }
 
-            Contracts.Check(n > 0, "Empty training data");
+            Contracts.Check(n > 0, Strings.EmptyTrainingData);
             float invn = 1 / n;
 
             for (var i = 0; i < numCols; ++i)
@@ -463,7 +463,7 @@ namespace Microsoft.ML.Trainers
                 _meanProjected[i] = VectorUtils.DotProduct(in _eigenVectors[i], in mean);
                 Host.CheckParam(_eigenVectors[i].GetValues().All(FloatUtils.IsFinite),
                     nameof(eigenVectors),
-                    "The learnt eigenvectors contained NaN values, consider modifying the dataset or lower the rank or oversampling parameters");
+                    Strings.LearnedEigenvectorsContainNaN);
             }
 
             _mean = mean;

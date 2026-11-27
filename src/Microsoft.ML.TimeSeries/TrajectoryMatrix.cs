@@ -115,12 +115,12 @@ namespace Microsoft.ML.Transforms.TimeSeries
             Contracts.CheckValueOrNull(ectx);
             _ectx = ectx;
 
-            _ectx.Check(windowSize > 0, "The window length should be greater than 0.");
-            _ectx.CheckValue(data, nameof(data), "The input data cannot be null.");
-            _ectx.Check(data.Length >= seriesLength, "The series length cannot be greater than the data length.");
+            _ectx.Check(windowSize > 0, Strings.TheWindowLengthShouldBeGreaterThan0);
+            _ectx.CheckValue(data, nameof(data), Strings.TheInputDataCannotBeNull);
+            _ectx.Check(data.Length >= seriesLength, Strings.TheSeriesLengthCannotBeGreaterThanTheDataLength);
 
             _seriesLength = seriesLength;
-            _ectx.Check(windowSize <= _seriesLength, "The length of the window should be less than or equal to the length of the data.");
+            _ectx.Check(windowSize <= _seriesLength, Strings.WindowLongerThanData);
 
             _data = data;
             _windowSize = windowSize;
@@ -134,7 +134,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
         /// <param name="data">The new series</param>
         public void SetSeries(Single[] data)
         {
-            _ectx.Check(Utils.Size(data) >= _seriesLength, "The length of the input series cannot be less than that of the original series.");
+            _ectx.Check(Utils.Size(data) >= _seriesLength, Strings.InputSeriesShorterThanOriginal);
 
             _data = data;
             if (_isSeriesFftCached)

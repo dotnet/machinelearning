@@ -285,7 +285,7 @@ namespace Microsoft.ML.Data
         public void CopyTo(Span<T> destination, int destinationIndex, T defaultValue = default(T))
         {
             Contracts.CheckParam(0 <= destinationIndex && destinationIndex <= destination.Length - Length,
-                nameof(destination), "Not large enough to hold these values.");
+                nameof(destination), Strings.NotLargeEnoughToHoldTheseValues);
 
             if (Length == 0)
                 return;
@@ -424,11 +424,11 @@ namespace Microsoft.ML.Data
             bool keepOldOnResize = false,
             bool requireIndicesOnDense = false)
         {
-            Contracts.CheckParam(newLogicalLength >= 0, nameof(newLogicalLength), "Must be non-negative.");
+            Contracts.CheckParam(newLogicalLength >= 0, nameof(newLogicalLength), Strings.MustBeNonNegative);
             Contracts.CheckParam(valuesCount == null || valuesCount.Value >= 0, nameof(valuesCount),
-                "If specified, must be non-negative.");
+                Strings.IfSpecifiedMustBeNonNegative);
             Contracts.CheckParam(valuesCount == null || valuesCount.Value <= newLogicalLength, nameof(valuesCount),
-                "If specified, must be no greater than " + nameof(newLogicalLength));
+                Strings.IfSpecifiedMustBeNoGreaterThanNewLogicalLength);
 
             int logicalValuesCount = valuesCount ?? newLogicalLength;
 

@@ -281,14 +281,14 @@ namespace Microsoft.ML.Transforms
                     ch.Warning("Explicit term list specified. Data file arguments will be ignored");
                 }
                 if (!Enum.IsDefined(typeof(ValueToKeyMappingEstimator.KeyOrdinality), options.Sort))
-                    throw ch.ExceptUserArg(nameof(options.Sort), "Undefined sorting criteria '{0}' detected", options.Sort);
+                    throw ch.ExceptUserArg(nameof(options.Sort), Strings.UndefinedSortingCriteriaDetected, options.Sort);
 
                 for (int i = 0; i < cols.Length; i++)
                 {
                     var item = options.Columns[i];
                     var sortOrder = item.Sort ?? options.Sort;
                     if (!Enum.IsDefined(typeof(ValueToKeyMappingEstimator.KeyOrdinality), sortOrder))
-                        throw env.ExceptUserArg(nameof(options.Sort), "Undefined sorting criteria '{0}' detected for column '{1}'", sortOrder, item.Name);
+                        throw env.ExceptUserArg(nameof(options.Sort), Strings.UndefinedSortingCriteriaDetectedForColumn, sortOrder, item.Name);
 
                     cols[i] = new ValueToKeyMappingEstimator.ColumnOptions(
                         item.Name,
@@ -354,7 +354,7 @@ namespace Microsoft.ML.Transforms
             });
 #pragma warning disable MSML_NoMessagesForLoadContext // Vaguely useful.
             if (!b)
-                throw host.ExceptDecode("Missing {0} model", dir);
+                throw host.ExceptDecode(Strings.MissingModel, dir);
 #pragma warning restore MSML_NoMessagesForLoadContext
             _unboundMaps = termMap;
         }
@@ -416,7 +416,7 @@ namespace Microsoft.ML.Transforms
                 {
                     ch.Assert(isBinary != isTranspose);
                     ch.CheckUserArg(!string.IsNullOrWhiteSpace(src), nameof(termsColumn),
-                        "Must be specified");
+                        Strings.MustBeSpecified);
                     if (isBinary)
                         keyData = new BinaryLoader(env, new BinaryLoader.Arguments(), fileSource);
                     else
@@ -453,7 +453,7 @@ namespace Microsoft.ML.Transforms
             }
             ch.AssertNonEmpty(src);
             if (keyData.Schema.GetColumnOrNull(src) == null)
-                throw ch.ExceptUserArg(nameof(termsColumn), "Unknown column '{0}'", src);
+                throw ch.ExceptUserArg(nameof(termsColumn), Strings.UnknownColumn, src);
             // Now, remove everything but that one column.
             var selectTransformer = new ColumnSelectingTransformer(env, new string[] { src }, null);
             keyData = selectTransformer.Transform(keyData);
@@ -472,13 +472,12 @@ namespace Microsoft.ML.Transforms
             ch.AssertValue(bldr);
             if (keyData.Schema.Count != 1)
             {
-                throw ch.ExceptParam(nameof(keyData), $"Input data containing terms should contain exactly one column, but " +
-                    $"had {keyData.Schema.Count} instead. Consider using {nameof(ColumnSelectingEstimator)} on that data first.");
+                throw ch.ExceptParam(nameof(keyData), string.Format(Strings.TermsDataMustContainSingleColumn, keyData.Schema.Count, nameof(ColumnSelectingEstimator)));
             }
 
             var typeSrc = keyData.Schema[0].Type;
             if (!autoConvert && !typeSrc.Equals(bldr.ItemType))
-                throw ch.ExceptUserArg(nameof(keyData), "Input data's column must be of type '{0}' but was '{1}'", bldr.ItemType, typeSrc);
+                throw ch.ExceptUserArg(nameof(keyData), Strings.InputDataSColumnMustBeOfTypeButWas, bldr.ItemType, typeSrc);
 
             using (var cursor = keyData.GetRowCursor(keyData.Schema[0]))
             using (var pch = env.StartProgressChannel("Building dictionary from term data"))
@@ -560,7 +559,7 @@ namespace Microsoft.ML.Transforms
                         // a complicated feature would be, and also because it's difficult to see how we
                         // can logically reconcile "reinterpretation" for different types with the resulting
                         // data view having an actual type.
-                        throw ch.ExceptParam(nameof(keyData), "Terms from input data type '{0}' but mismatches column '{1}' item type '{2}'",
+                        throw ch.ExceptParam(nameof(keyData), Strings.TermsFromInputDataTypeButMismatchesColumnItemType,
                             termsFromFile.ItemType, infos[iinfo].Name, infos[iinfo].TypeSrc.GetItemType());
                     }
                     termMap[iinfo] = termsFromFile;
@@ -569,7 +568,7 @@ namespace Microsoft.ML.Transforms
                 {
                     // Auto train this column. Leave the term map null for now, but set the lim appropriately.
                     lims[iinfo] = columns[iinfo].MaximumNumberOfKeys;
-                    ch.CheckUserArg(lims[iinfo] > 0, nameof(Column.MaxNumTerms), "Must be positive");
+                    ch.CheckUserArg(lims[iinfo] > 0, nameof(Column.MaxNumTerms), Strings.MustBePositive);
                     Contracts.Check(trainingData.Schema.TryGetColumnIndex(infos[iinfo].InputColumnName, out int colIndex));
                     Utils.Add(ref toTrain, colIndex);
                     ++trainsNeeded;

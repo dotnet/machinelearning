@@ -1,0 +1,311 @@
+﻿<?xml version='1.0' encoding='utf-8'?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="CalibratedPredictorDoesNotImplementTheExpectedInterface" xml:space="preserve">
+    <value>Calibrated predictor does not implement the expected interface</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.StandardTrainers/Standard/MulticlassClassification/OneVersusAllTrainer.cs:184.</comment>
+  </data>
+  <data name="CalibratorEstimatorTypeUnsupported" xml:space="preserve">
+    <value>Calibrator estimator was not of a type usable in this context.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.StandardTrainers/StandardTrainersCatalog.cs:724.</comment>
+  </data>
+  <data name="CannotCreateAMulticlassPredictorWithClasses" xml:space="preserve">
+    <value>Cannot create a multiclass predictor with {0} classes</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.StandardTrainers/Standard/LogisticRegression/MulticlassLogisticRegression.cs:296.</comment>
+  </data>
+  <data name="CannotHaveBothRecencyGainAndLazyUpdates" xml:space="preserve">
+    <value>Cannot have both recency gain and lazy updates.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.StandardTrainers/Standard/Online/AveragedLinear.cs:317.</comment>
+  </data>
+  <data name="CannotInitializeLinearPredictorWithNonFiniteBias" xml:space="preserve">
+    <value>Cannot initialize linear predictor with non-finite bias</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.StandardTrainers/Standard/LinearModelParameters.cs:124.</comment>
+  </data>
+  <data name="CannotInitializeLinearPredictorWithNonFiniteWeights" xml:space="preserve">
+    <value>Cannot initialize linear predictor with non-finite weights</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.StandardTrainers/Standard/LinearModelParameters.cs:123.</comment>
+  </data>
+  <data name="CannotSearchInDirectionOfAscent" xml:space="preserve">
+    <value>Cannot search in direction of ascent!</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.StandardTrainers/Optimizer/LineSearch.cs:168. Exception or validation message. Source: src/Microsoft.ML.StandardTrainers/Optimizer/LineSearch.cs:426.</comment>
+  </data>
+  <data name="CannotTrainWithZeroFeatures" xml:space="preserve">
+    <value>Cannot train with zero features!</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.StandardTrainers/Standard/Online/OnlineLinear.cs:126.</comment>
+  </data>
+  <data name="ConvergenceToleranceMustBePositiveAndNoLargerThan1" xml:space="preserve">
+    <value>Convergence tolerance must be positive and no larger than 1.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.StandardTrainers/Standard/SdcaBinary.cs:246.</comment>
+  </data>
+  <data name="InitialWeightsCountDoesNotMatchModel" xml:space="preserve">
+    <value>Could not initialize weights from 'initialWeights': expecting {0} values to initialize {1} weights and the intercept</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.StandardTrainers/Standard/Online/OnlineLinear.cs:151.</comment>
+  </data>
+  <data name="DataContainBadValues" xml:space="preserve">
+    <value>Data contain bad values.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.StandardTrainers/Standard/LogisticRegression/MulticlassLogisticRegression.cs:276.</comment>
+  </data>
+  <data name="ZeroDirectionalDerivativeAtOptimum" xml:space="preserve">
+    <value>Directional derivative is zero. You may be sitting on the optimum.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.StandardTrainers/Optimizer/L1Optimizer.cs:202. Exception or validation message. Source: src/Microsoft.ML.StandardTrainers/Optimizer/Optimizer.cs:386.</comment>
+  </data>
+  <data name="GradientCheckIntervalMustBePositive" xml:space="preserve">
+    <value>gradientCheckInterval must be positive.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.StandardTrainers/Optimizer/OptimizationMonitor.cs:57.</comment>
+  </data>
+  <data name="InitialPredictorMustBeFieldAwareFactorizationMachineModel" xml:space="preserve">
+    <value>Initial predictor should have been FieldAwareFactorizationMachineModelParameters</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.StandardTrainers/FactorizationMachine/FactorizationMachineTrainer.cs:558.</comment>
+  </data>
+  <data name="InitialPredictorWasNotALinearPredictor" xml:space="preserve">
+    <value>Initial predictor was not a linear predictor.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.StandardTrainers/Standard/Online/OnlineLinear.cs:285. Exception or validation message. Source: src/Microsoft.ML.StandardTrainers/Standard/SdcaBinary.cs:79. Exception or validation message. Source: src/Microsoft.ML.StandardTrainers/Standard/StochasticTrainerBase.cs:42.</comment>
+  </data>
+  <data name="InputIsOfLengthButPredictorExpectedLength" xml:space="preserve">
+    <value>Input is of length {0}, but predictor expected length {1}</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.StandardTrainers/Standard/LinearModelParameters.cs:318.</comment>
+  </data>
+  <data name="InputAndWeightLengthMismatch" xml:space="preserve">
+    <value>Input is of length {0} does not match expected length  of weights {1}</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.StandardTrainers/Standard/LinearModelParameters.cs:278.</comment>
+  </data>
+  <data name="InputModelSFeatureCountMismatchesTrainingFeatureCount" xml:space="preserve">
+    <value>Input model's feature count mismatches training feature count</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.StandardTrainers/FactorizationMachine/FactorizationMachineTrainer.cs:434.</comment>
+  </data>
+  <data name="InputModelSLatentDimensionMismatchesTrainerS" xml:space="preserve">
+    <value>Input model's latent dimension mismatches trainer's</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.StandardTrainers/FactorizationMachine/FactorizationMachineTrainer.cs:435.</comment>
+  </data>
+  <data name="InvalidDestinationTypeInGetMapper" xml:space="preserve">
+    <value>Invalid destination type in GetMapper</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.StandardTrainers/Standard/LogisticRegression/MulticlassLogisticRegression.cs:770.</comment>
+  </data>
+  <data name="InvalidNumberOfFeaturesPassed" xml:space="preserve">
+    <value>Invalid number of features passed.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.StandardTrainers/Standard/MulticlassClassification/MulticlassNaiveBayesTrainer.cs:598.</comment>
+  </data>
+  <data name="InvalidSourceTypeInGetMapper" xml:space="preserve">
+    <value>Invalid source type in GetMapper</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.StandardTrainers/Standard/LogisticRegression/MulticlassLogisticRegression.cs:769.</comment>
+  </data>
+  <data name="LabelTypeMustBeFloatOrKnownSizeKey" xml:space="preserve">
+    <value>Invalid type for Label column, only floats and known-size keys are supported</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.StandardTrainers/Standard/MulticlassClassification/MulticlassNaiveBayesTrainer.cs:139.</comment>
+  </data>
+  <data name="InvalidTypeForLabelColumn" xml:space="preserve">
+    <value>Invalid type for Label column</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.StandardTrainers/Standard/Simple/SimpleTrainers.cs:257.</comment>
+  </data>
+  <data name="L1ThresholdMustBeNonNegative" xml:space="preserve">
+    <value>L1 threshold must be non-negative.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.StandardTrainers/Standard/SdcaBinary.cs:244.</comment>
+  </data>
+  <data name="L2ConstantMustBeNonNegative" xml:space="preserve">
+    <value>L2 constant must be non-negative.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.StandardTrainers/Standard/SdcaBinary.cs:243.</comment>
+  </data>
+  <data name="LBFGSChoseANonDescentDirection" xml:space="preserve">
+    <value>L-BFGS chose a non-descent direction.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.StandardTrainers/Optimizer/L1Optimizer.cs:207. Exception or validation message. Source: src/Microsoft.ML.StandardTrainers/Optimizer/Optimizer.cs:390.</comment>
+  </data>
+  <data name="LabelColumnShouldNotBeNull" xml:space="preserve">
+    <value>Label column should not be null.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.StandardTrainers/Standard/MulticlassClassification/OneVersusAllTrainer.cs:146. Exception or validation message. Source: src/Microsoft.ML.StandardTrainers/Standard/MulticlassClassification/PairwiseCouplingTrainer.cs:123.</comment>
+  </data>
+  <data name="PairwiseCouplingLabelTypeUnsupported" xml:space="preserve">
+    <value>Label column type is not supported by nameof(PairwiseCouplingTrainer): {0}</value>
+    <comment>Exception or validation message. Placeholders: {0}=label.Type.RawType. Source: src/Microsoft.ML.StandardTrainers/Standard/MulticlassClassification/PairwiseCouplingTrainer.cs:178.</comment>
+  </data>
+  <data name="LabelColumnTypeIsNotSupportedByOneVersusAllTrainer" xml:space="preserve">
+    <value>Label column type is not supported by OneVersusAllTrainer: {0}</value>
+    <comment>Exception or validation message. Placeholders: {0}=label.Type.RawType. Source: src/Microsoft.ML.StandardTrainers/Standard/MulticlassClassification/OneVersusAllTrainer.cs:204.</comment>
+  </data>
+  <data name="LatentDimensionOrTheNumberOfFieldsTooLarge" xml:space="preserve">
+    <value>Latent dimension or the number of fields too large</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.StandardTrainers/FactorizationMachine/FactorizationMachineTrainer.cs:431.</comment>
+  </data>
+  <data name="LatentDimensionTooLarge" xml:space="preserve">
+    <value>Latent dimension too large</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.StandardTrainers/FactorizationMachine/FieldAwareFactorizationMachineModelParameters.cs:149.</comment>
+  </data>
+  <data name="MaxNumberOfIterationsMustBePositive" xml:space="preserve">
+    <value>Max number of iterations must be positive.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.StandardTrainers/Standard/SdcaBinary.cs:245.</comment>
+  </data>
+  <data name="MissingFeatureColumn" xml:space="preserve">
+    <value>Missing Feature column</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.StandardTrainers/Standard/MulticlassClassification/MulticlassNaiveBayesTrainer.cs:141.</comment>
+  </data>
+  <data name="MissingLabelColumn" xml:space="preserve">
+    <value>Missing Label column</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.StandardTrainers/Standard/MulticlassClassification/MulticlassNaiveBayesTrainer.cs:136. Exception or validation message. Source: src/Microsoft.ML.StandardTrainers/Standard/Simple/SimpleTrainers.cs:255.</comment>
+  </data>
+  <data name="MustBeAtLeast2" xml:space="preserve">
+    <value>Must be at least 2.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.StandardTrainers/Standard/LogisticRegression/MulticlassLogisticRegression.cs:505.</comment>
+  </data>
+  <data name="MustBeAtLeastZeroAndLessThanOneHalf" xml:space="preserve">
+    <value>must be in range [0, 0.5)</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.StandardTrainers/Standard/Online/AveragedLinear.cs:313.</comment>
+  </data>
+  <data name="MustBeNonNegativeIfProvided" xml:space="preserve">
+    <value>Must be non-negative, if provided.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.StandardTrainers/Standard/LogisticRegression/LbfgsPredictorBase.cs:254. Exception or validation message. Source: src/Microsoft.ML.StandardTrainers/Standard/LogisticRegression/LbfgsPredictorBase.cs:255.</comment>
+  </data>
+  <data name="MustBeNonNegative" xml:space="preserve">
+    <value>Must be non-negative.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.StandardTrainers/Standard/SdcaBinary.cs:1918. Exception or validation message. Source: src/Microsoft.ML.StandardTrainers/Standard/Online/AveragedLinear.cs:314. Exception or validation message. Source: src/Microsoft.ML.StandardTrainers/Standard/Online/AveragedLinear.cs:315. Exception or validation message. Source: src/Microsoft.ML.StandardTrainers/Standard/Online/OnlineLinear.cs:266. Exception or validation message. Source: src/Microsoft.ML.StandardTrainers/FactorizationMachine/FactorizationMachineTrainer.cs:281. Exception or validation message. Source: src/Microsoft.ML.StandardTrainers/FactorizationMachine/FactorizationMachineTrainer.cs:282. Exception or validation message. Source: src/Microsoft.ML.StandardTrainers/FactorizationMachine/FactorizationMachineTrainer.cs:284. Exception or validation message. Source: src/Microsoft.ML.StandardTrainers/Standard/LogisticRegression/LbfgsPredictorBase.cs:246. Exception or validation message. Source: src/Microsoft.ML.StandardTrainers/Standard/LogisticRegression/LbfgsPredictorBase.cs:247. Exception or validation message. Source: src/Microsoft.ML.StandardTrainers/Standard/LogisticRegression/LbfgsPredictorBase.cs:251. Exception or validation message. Source: src/Microsoft.ML.StandardTrainers/Standard/LogisticRegression/LbfgsPredictorBase.cs:252.</comment>
+  </data>
+  <data name="MustBePositiveIfProvided" xml:space="preserve">
+    <value>Must be positive, if provided.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.StandardTrainers/Standard/LogisticRegression/LbfgsPredictorBase.cs:256. Exception or validation message. Source: src/Microsoft.ML.StandardTrainers/Standard/LogisticRegression/LbfgsPredictorBase.cs:257.</comment>
+  </data>
+  <data name="MustBePositiveOrEmptyForDefault" xml:space="preserve">
+    <value>Must be positive (or empty for default)</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.StandardTrainers/Standard/LogisticRegression/LbfgsPredictorBase.cs:245.</comment>
+  </data>
+  <data name="MustBePositive" xml:space="preserve">
+    <value>must be positive</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.StandardTrainers/Standard/Online/AveragedLinear.cs:309. Exception or validation message. Source: src/Microsoft.ML.StandardTrainers/Standard/Online/AveragedLinear.cs:310. Exception or validation message. Source: src/Microsoft.ML.StandardTrainers/Standard/Online/LinearSvm.cs:297. Exception or validation message. Source: src/Microsoft.ML.StandardTrainers/Standard/Online/LinearSvm.cs:298. Exception or validation message. Source: src/Microsoft.ML.StandardTrainers/Standard/Online/OnlineLinear.cs:265. Exception or validation message. Source: src/Microsoft.ML.StandardTrainers/Standard/LogisticRegression/MulticlassLogisticRegression.cs:507. Exception or validation message. Source: src/Microsoft.ML.StandardTrainers/Standard/SdcaBinary.cs:1919. Exception or validation message. Source: src/Microsoft.ML.StandardTrainers/Standard/SdcaBinary.cs:1920. Exception or validation message. Source: src/Microsoft.ML.StandardTrainers/FactorizationMachine/FactorizationMachineTrainer.cs:280. Exception or validation message. Source: src/Microsoft.ML.StandardTrainers/FactorizationMachine/FactorizationMachineTrainer.cs:283. Exception or validation message. Source: src/Microsoft.ML.StandardTrainers/Standard/LogisticRegression/LbfgsPredictorBase.cs:248. Exception or validation message. Source: src/Microsoft.ML.StandardTrainers/Standard/LogisticRegression/LbfgsPredictorBase.cs:249. Exception or validation message. Source: src/Microsoft.ML.StandardTrainers/Standard/LogisticRegression/LbfgsPredictorBase.cs:250. Exception or validation message. Source: src/Microsoft.ML.StandardTrainers/Standard/SdcaBinary.cs:1921.</comment>
+  </data>
+  <data name="NoValidTrainingInstancesFoundAllInstancesHaveMissingFeatures" xml:space="preserve">
+    <value>No valid training instances found, all instances have missing features.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.StandardTrainers/LdSvm/LdSvmTrainer.cs:521. Exception or validation message. Source: src/Microsoft.ML.StandardTrainers/Standard/LogisticRegression/LbfgsPredictorBase.cs:539. Exception or validation message. Source: src/Microsoft.ML.StandardTrainers/Standard/LogisticRegression/LbfgsPredictorBase.cs:642. Exception or validation message. Source: src/Microsoft.ML.StandardTrainers/Standard/Online/OnlineLinear.cs:216.</comment>
+  </data>
+  <data name="OptimizerCannotProceedWithInvalidLoss" xml:space="preserve">
+    <value>Optimizer unable to proceed with loss function yielding {0}</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.StandardTrainers/Optimizer/Optimizer.cs:244. Exception or validation message. Source: src/Microsoft.ML.StandardTrainers/Optimizer/Optimizer.cs:423. Exception or validation message. Source: src/Microsoft.ML.StandardTrainers/Optimizer/Optimizer.cs:498.</comment>
+  </data>
+  <data name="OutOfRange" xml:space="preserve">
+    <value>Out of range</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.StandardTrainers/Standard/LinearModelParameters.cs:73.</comment>
+  </data>
+  <data name="PoissonRegressionRequiresNonNegativeLabels" xml:space="preserve">
+    <value>Poisson regression must regress to a non-negative label, but label {0} encountered</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.StandardTrainers/Standard/PoissonRegression/PoissonRegression.cs:146.</comment>
+  </data>
+  <data name="PredictorDoesntImplementTheExpectedInterface" xml:space="preserve">
+    <value>Predictor doesn't implement the expected interface</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.StandardTrainers/Standard/MulticlassClassification/OneVersusAllTrainer.cs:612. Exception or validation message. Source: src/Microsoft.ML.StandardTrainers/Standard/MulticlassClassification/OneVersusAllTrainer.cs:696. Exception or validation message. Source: src/Microsoft.ML.StandardTrainers/Standard/MulticlassClassification/OneVersusAllTrainer.cs:861. Exception or validation message. Source: src/Microsoft.ML.StandardTrainers/Standard/MulticlassClassification/PairwiseCouplingTrainer.cs:321.</comment>
+  </data>
+  <data name="RegularizerForThetaMustBePositiveAndNonZero" xml:space="preserve">
+    <value>Regularizer for Theta must be positive and non-zero.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.StandardTrainers/LdSvm/LdSvmTrainer.cs:476.</comment>
+  </data>
+  <data name="RegularizerForThetaprimeMustBePositiveAndNonZero" xml:space="preserve">
+    <value>Regularizer for Thetaprime must be positive and non-zero.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.StandardTrainers/LdSvm/LdSvmTrainer.cs:477.</comment>
+  </data>
+  <data name="RegularizerForWMustBePositiveAndNonZero" xml:space="preserve">
+    <value>Regularizer for W must be positive and non-zero.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.StandardTrainers/LdSvm/LdSvmTrainer.cs:475.</comment>
+  </data>
+  <data name="RoEqualsZeroIsYourFunctionLinear" xml:space="preserve">
+    <value>ro equals zero. Is your function linear?</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.StandardTrainers/Optimizer/Optimizer.cs:361.</comment>
+  </data>
+  <data name="SavingCalibratorsIsNotImplementedYet" xml:space="preserve">
+    <value>Saving calibrators is not implemented yet.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.StandardTrainers/Standard/LinearModelParameters.cs:596.</comment>
+  </data>
+  <data name="SavingInCodeIsNotSupported" xml:space="preserve">
+    <value>Saving in code is not supported.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.StandardTrainers/Standard/MulticlassClassification/OneVersusAllTrainer.cs:467.</comment>
+  </data>
+  <data name="SavingInTextIsNotSupported" xml:space="preserve">
+    <value>Saving in text is not supported.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.StandardTrainers/Standard/MulticlassClassification/OneVersusAllTrainer.cs:486.</comment>
+  </data>
+  <data name="SoftmaxSPFAExporterIsNotImplementedYet" xml:space="preserve">
+    <value>Softmax's PFA exporter is not implemented yet.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.StandardTrainers/Standard/MulticlassClassification/OneVersusAllTrainer.cs:911.</comment>
+  </data>
+  <data name="SrcLengthShouldEqualTheNumberOfFeatures" xml:space="preserve">
+    <value>src length should equal the number of features</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.StandardTrainers/Standard/LogisticRegression/MulticlassLogisticRegression.cs:784.</comment>
+  </data>
+  <data name="StepSizeIntervalNumericallyZero" xml:space="preserve">
+    <value>Step size interval numerically zero.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.StandardTrainers/Optimizer/Optimizer.cs:508. Exception or validation message. Source: src/Microsoft.ML.StandardTrainers/Optimizer/Optimizer.cs:525.</comment>
+  </data>
+  <data name="SubmodelForParameterMixerHasTheWrongType" xml:space="preserve">
+    <value>Submodel for parameter mixer has the wrong type</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.StandardTrainers/Standard/LinearModelParameters.cs:331. Exception or validation message. Source: src/Microsoft.ML.StandardTrainers/Standard/LinearModelParameters.cs:341.</comment>
+  </data>
+  <data name="TheInitialVectorContainsNaNsOrInfiniteValues" xml:space="preserve">
+    <value>The initial vector contains NaNs or infinite values.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.StandardTrainers/Optimizer/SgdOptimizer.cs:168. Exception or validation message. Source: src/Microsoft.ML.StandardTrainers/Optimizer/SgdOptimizer.cs:365.</comment>
+  </data>
+  <data name="InitializationPredictorClassCountMismatch" xml:space="preserve">
+    <value>The initialization predictor has different number of classes than the training data.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.StandardTrainers/Standard/LogisticRegression/LbfgsPredictorBase.cs:900. Exception or validation message. Source: src/Microsoft.ML.StandardTrainers/Standard/LogisticRegression/LbfgsPredictorBase.cs:903.</comment>
+  </data>
+  <data name="InitializationPredictorFeatureCountMismatch" xml:space="preserve">
+    <value>The initialization predictor has different number of features than the training data.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.StandardTrainers/Standard/LogisticRegression/LbfgsPredictorBase.cs:908. Exception or validation message. Source: src/Microsoft.ML.StandardTrainers/Standard/LogisticRegression/LbfgsPredictorBase.cs:911.</comment>
+  </data>
+  <data name="TrainingFeaturesMustMatchInputPredictor" xml:space="preserve">
+    <value>The input training data must have the same features used to train the input predictor.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.StandardTrainers/Standard/LogisticRegression/MulticlassLogisticRegression.cs:288.</comment>
+  </data>
+  <data name="ModelParameterCountExceedsLimit" xml:space="preserve">
+    <value>The number of model parameters which is equal to ('# of features' + 1) * '# of classes' should be less than or equal to {0}.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.StandardTrainers/Standard/LogisticRegression/LbfgsPredictorBase.cs:446.</comment>
+  </data>
+  <data name="ThreadCountMustBeNullOrPositive" xml:space="preserve">
+    <value>The number of threads must be either null or a positive integer.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.StandardTrainers/Standard/SdcaBinary.cs:2038. Exception or validation message. Source: src/Microsoft.ML.StandardTrainers/Standard/SdcaBinary.cs:339.</comment>
+  </data>
+  <data name="ModelWeightsContainInvalidValues" xml:space="preserve">
+    <value>The weights/bias contain invalid values (NaN or Infinite). Potential causes: high learning rates, no normalization, high initial weights, etc.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.StandardTrainers/Standard/Online/OnlineLinear.cs:300.</comment>
+  </data>
+  <data name="TrainerProducesUnexpectedModelKind" xml:space="preserve">
+    <value>Trainer estimator does not appear to produce the right kind of model.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.StandardTrainers/StandardTrainersCatalog.cs:764. Exception or validation message. Source: src/Microsoft.ML.StandardTrainers/StandardTrainersCatalog.cs:803.</comment>
+  </data>
+  <data name="TrainingDidNotResultInAPredictor" xml:space="preserve">
+    <value>Training did not result in a predictor</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.StandardTrainers/Standard/MulticlassClassification/MetaMulticlassTrainer.cs:131.</comment>
+  </data>
+  <data name="TrainingFeatureVectorTypeInvalid" xml:space="preserve">
+    <value>Training feature column '{0}' must be a known-size vector of Single, but has type: {1}.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.StandardTrainers/FactorizationMachine/FactorizationMachineTrainer.cs:426.</comment>
+  </data>
+  <data name="TrainingSetHas0InstancesAbortingTraining" xml:space="preserve">
+    <value>Training set has 0 instances, aborting training.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.StandardTrainers/Standard/SdcaBinary.cs:451.</comment>
+  </data>
+  <data name="TrainingSetHasNoFeaturesAbortingTraining" xml:space="preserve">
+    <value>Training set has no features, aborting training.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.StandardTrainers/Standard/SdcaBinary.cs:124. Exception or validation message. Source: src/Microsoft.ML.StandardTrainers/Standard/StochasticTrainerBase.cs:88.</comment>
+  </data>
+  <data name="TreeDepthCanNotBeNegative" xml:space="preserve">
+    <value>Tree depth can not be negative.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.StandardTrainers/LdSvm/LdSvmTrainer.cs:473.</comment>
+  </data>
+  <data name="UseShallowerTreeBeforeCrossValidation" xml:space="preserve">
+    <value>Try running with a tree of smaller depth first and cross validate over other parameters.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.StandardTrainers/LdSvm/LdSvmTrainer.cs:474.</comment>
+  </data>
+  <data name="UnexpectedNaN" xml:space="preserve">
+    <value>Unexpected NaN</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.StandardTrainers/Standard/LogisticRegression/LogisticRegression.cs:207.</comment>
+  </data>
+  <data name="WeightForPositiveInstancesMustBePositive" xml:space="preserve">
+    <value>Weight for positive instances must be positive</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.StandardTrainers/Standard/SdcaBinary.cs:1478.</comment>
+  </data>
+</root>

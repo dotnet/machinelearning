@@ -59,12 +59,12 @@ namespace Microsoft.ML.Data
             env.CheckValue(data, nameof(data));
             env.CheckValue(mapper, nameof(mapper));
             if (args.Top < 0)
-                throw env.Except($"Number of top contribution must be non negative");
+                throw env.Except(Strings.NumberOfTopContributionMustBeNonNegative);
             if (args.Bottom < 0)
-                throw env.Except($"Number of bottom contribution must be non negative");
+                throw env.Except(Strings.NumberOfBottomContributionMustBeNonNegative);
 
             var contributionMapper = mapper as RowMapper;
-            env.CheckParam(mapper != null, nameof(mapper), "Unexpected mapper");
+            env.CheckParam(mapper != null, nameof(mapper), Strings.UnexpectedMapper);
 
             var scorer = ScoreUtils.GetScorerComponent(env, contributionMapper);
             var scoredPipe = scorer.CreateComponent(env, data, contributionMapper, trainSchema);
@@ -77,7 +77,7 @@ namespace Microsoft.ML.Data
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(predictor, nameof(predictor));
             var pred = predictor as IFeatureContributionMapper;
-            env.CheckParam(pred != null, nameof(predictor), "Predictor doesn't support getting feature contributions");
+            env.CheckParam(pred != null, nameof(predictor), Strings.PredictorDoesntSupportGettingFeatureContributions);
             return new BindableMapper(env, pred, args.Top, args.Bottom, args.Normalize, args.Stringify);
         }
 
@@ -122,9 +122,9 @@ namespace Microsoft.ML.Data
                 _env = env;
                 _env.CheckValue(predictor, nameof(predictor));
                 if (topContributionsCount < 0)
-                    throw env.Except($"Number of top contribution must be non negative");
+                    throw env.Except(Strings.NumberOfTopContributionMustBeNonNegative);
                 if (bottomContributionsCount < 0)
-                    throw env.Except($"Number of bottom contribution must be non negative");
+                    throw env.Except(Strings.NumberOfBottomContributionMustBeNonNegative);
 
                 _topContributionsCount = topContributionsCount;
                 _bottomContributionsCount = bottomContributionsCount;

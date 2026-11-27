@@ -114,10 +114,10 @@ namespace Microsoft.ML.Data
                 // Checks compatibility of the predictor input types.
                 var mapper = bindable.Bind(env, schema);
                 var rowMapper = mapper as ISchemaBoundRowMapper;
-                env.CheckParam(rowMapper != null, nameof(bindable), "Mapper must implement ISchemaBoundRowMapper");
+                env.CheckParam(rowMapper != null, nameof(bindable), Strings.MapperMustImplementISchemaBoundRowMapper);
                 int mapperScoreColumn;
                 bool tmp = rowMapper.OutputSchema.TryGetColumnIndex(scoreCol, out mapperScoreColumn);
-                env.Check(tmp, "Mapper doesn't have expected score column");
+                env.Check(tmp, Strings.MapperDoesntHaveExpectedScoreColumn);
 
                 return new BindingsImpl(input, rowMapper, Suffix, ScoreColumnKind, true, mapperScoreColumn, PredColType, PredictedLabelColumnName);
             }
@@ -142,7 +142,7 @@ namespace Microsoft.ML.Data
 
                 var mapper = bindable.Bind(env, new RoleMappedSchema(input, roles));
                 var rowMapper = mapper as ISchemaBoundRowMapper;
-                env.CheckParam(rowMapper != null, nameof(bindable), "Bindable expected to be an " + nameof(ISchemaBindableMapper) + "!");
+                env.CheckParam(rowMapper != null, nameof(bindable), Strings.BindableExpectedToBeAnISchemaBindableMapper);
 
                 // Find the score column of the mapper.
                 int scoreColIndex;
@@ -291,14 +291,14 @@ namespace Microsoft.ML.Data
             Host.CheckValue(getPredColType, nameof(getPredColType));
 
             var rowMapper = mapper as ISchemaBoundRowMapper;
-            Host.CheckParam(rowMapper != null, nameof(mapper), "mapper should implement " + nameof(ISchemaBoundRowMapper));
+            Host.CheckParam(rowMapper != null, nameof(mapper), Strings.MapperShouldImplementISchemaBoundRowMapper);
 
             int scoreColIndex;
             if (!mapper.OutputSchema.TryGetColumnIndex(scoreColName, out scoreColIndex))
-                throw Host.ExceptParam(nameof(scoreColName), "mapper does not contain a column '{0}'", scoreColName);
+                throw Host.ExceptParam(nameof(scoreColName), Strings.MapperDoesNotContainAColumn, scoreColName);
 
             var scoreType = mapper.OutputSchema[scoreColIndex].Type;
-            Host.Check(outputTypeMatches(scoreType), "Unexpected predictor output type");
+            Host.Check(outputTypeMatches(scoreType), Strings.UnexpectedPredictorOutputType);
             var predColType = getPredColType(scoreType, rowMapper);
 
             Bindings = BindingsImpl.Create(data.Schema, rowMapper, args.Suffix, scoreColKind, scoreColIndex, predColType, predictedLabelColumnName);

@@ -120,7 +120,7 @@ namespace Microsoft.ML.TimeSeries
             Contracts.CheckParam(np > 0, nameof(np));
 
             if (yValues.Count < MinTimeSeriesLength)
-                throw Contracts.Except(string.Format("input time series length for InnerStl is below {0}", MinTimeSeriesLength));
+                throw Contracts.Except(string.Format(Strings.InnerStlInputTooShort, MinTimeSeriesLength));
 
             int length = yValues.Count;
             Array.Resize(ref _seasonalComponent, length);

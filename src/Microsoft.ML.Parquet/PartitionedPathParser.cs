@@ -178,7 +178,7 @@ namespace Microsoft.ML.Data
             {
                 if (col.Source < 0 || col.Source >= values.Count())
                 {
-                    throw Contracts.Except($"Column definition {col} is outside the bounds of path {path}.");
+                    throw Contracts.Except(string.Format(Strings.ColumnDefinitionIsOutsideTheBoundsOfPath, col, path));
                 }
             }
 
@@ -284,7 +284,7 @@ namespace Microsoft.ML.Data
         {
             if (!TryParseNames(path, out List<string> names))
             {
-                throw Contracts.Except($"Failed to parse names from path {path}. Expected directory names with the format 'Name=Value'.");
+                throw Contracts.Except(string.Format(Strings.InvalidPartitionedPathFormat, path));
             }
 
             _columns = new PartitionedFileLoader.Column[names.Count];
@@ -305,12 +305,12 @@ namespace Microsoft.ML.Data
         {
             if (!TryParseValues(path, out List<string> values))
             {
-                throw Contracts.Except($"Failed to parse names from path {path}. Expected directory names with the format 'Name=Value'.");
+                throw Contracts.Except(string.Format(Strings.InvalidPartitionedPathFormat, path));
             }
 
             if (values.Count != _columns.Length)
             {
-                throw Contracts.Except($"The extracted value count of {values.Count} does not match the expected Column count of {_columns.Length} for path {path}");
+                throw Contracts.Except(string.Format(Strings.PartitionValueCountMismatch, values.Count, _columns.Length, path));
             }
 
             return values;

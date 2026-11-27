@@ -70,7 +70,7 @@ namespace Microsoft.ML.Trainers
             {
                 get
                 {
-                    Contracts.CheckParam(0 <= index && index < Count, nameof(index), "Out of range");
+                    Contracts.CheckParam(0 <= index && index < Count, nameof(index), Strings.OutOfRange);
                     float value = 0;
                     _pred.Weight.GetItemOrDefault(index, ref value);
                     return value;
@@ -120,8 +120,8 @@ namespace Microsoft.ML.Trainers
         internal LinearModelParameters(IHostEnvironment env, string name, in VBuffer<float> weights, float bias)
             : base(env, name)
         {
-            Host.CheckParam(FloatUtils.IsFinite(weights.GetValues()), nameof(weights), "Cannot initialize linear predictor with non-finite weights");
-            Host.CheckParam(FloatUtils.IsFinite(bias), nameof(bias), "Cannot initialize linear predictor with non-finite bias");
+            Host.CheckParam(FloatUtils.IsFinite(weights.GetValues()), nameof(weights), Strings.CannotInitializeLinearPredictorWithNonFiniteWeights);
+            Host.CheckParam(FloatUtils.IsFinite(bias), nameof(bias), Strings.CannotInitializeLinearPredictorWithNonFiniteBias);
 
             Weight = weights;
             Bias = bias;
@@ -275,7 +275,7 @@ namespace Microsoft.ML.Trainers
         private protected virtual void GetFeatureContributions(in VBuffer<float> features, ref VBuffer<float> contributions, int top, int bottom, bool normalize)
         {
             if (features.Length != Weight.Length)
-                throw Contracts.Except("Input is of length {0} does not match expected length  of weights {1}", features.Length, Weight.Length);
+                throw Contracts.Except(Strings.InputAndWeightLengthMismatch, features.Length, Weight.Length);
 
             var weights = Weight;
             features.CopyTo(ref contributions);
@@ -315,7 +315,7 @@ namespace Microsoft.ML.Trainers
                 (in VBuffer<float> src, ref float dst) =>
                 {
                     if (src.Length != Weight.Length)
-                        throw Contracts.Except("Input is of length {0}, but predictor expected length {1}", src.Length, Weight.Length);
+                        throw Contracts.Except(Strings.InputIsOfLengthButPredictorExpectedLength, src.Length, Weight.Length);
                     dst = Score(in src);
                 };
             return (ValueMapper<TIn, TOut>)(Delegate)del;
@@ -328,7 +328,7 @@ namespace Microsoft.ML.Trainers
         {
             Type type = GetType();
 
-            Contracts.Check(type == models[0].GetType(), "Submodel for parameter mixer has the wrong type");
+            Contracts.Check(type == models[0].GetType(), Strings.SubmodelForParameterMixerHasTheWrongType);
             var first = (LinearModelParameters)models[0];
 
             weights = default(VBuffer<float>);
@@ -338,7 +338,7 @@ namespace Microsoft.ML.Trainers
             for (int i = 1; i < models.Count; i++)
             {
                 var m = models[i];
-                Contracts.Check(type == m.GetType(), "Submodel for parameter mixer has the wrong type");
+                Contracts.Check(type == m.GetType(), Strings.SubmodelForParameterMixerHasTheWrongType);
 
                 var sub = (LinearModelParameters)m;
                 var subweights = sub.Weight;
@@ -593,7 +593,7 @@ namespace Microsoft.ML.Trainers
         private protected override void SaveAsIni(TextWriter writer, RoleMappedSchema schema, ICalibrator calibrator)
         {
             if (calibrator != null)
-                throw Host.ExceptNotImpl("Saving calibrators is not implemented yet.");
+                throw Host.ExceptNotImpl(Strings.SavingCalibratorsIsNotImplementedYet);
 
             Host.CheckValue(writer, nameof(writer));
             Host.CheckValue(schema, nameof(schema));

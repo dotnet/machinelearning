@@ -151,7 +151,7 @@ public sealed class SimpleFileHandle : IFileHandle
     private void CheckNotDisposed()
     {
         if (IsDisposed)
-            throw _ectx.Except("SimpleFileHandle has already been disposed");
+            throw _ectx.Except(Strings.SimpleFileHandleHasAlreadyBeenDisposed);
     }
 
     public Stream CreateWriteStream()
@@ -161,7 +161,7 @@ public sealed class SimpleFileHandle : IFileHandle
             CheckNotDisposed();
 
             if (_wrote)
-                throw _ectx.Except("CreateWriteStream called multiple times on SimpleFileHandle");
+                throw _ectx.Except(Strings.CreateWriteStreamCalledMultipleTimesOnSimpleFileHandle);
 
             Contracts.Assert(_streamWrite == null);
             _streamWrite = new FileStream(_fullPath, FileMode.Create, FileAccess.Write);
@@ -177,12 +177,12 @@ public sealed class SimpleFileHandle : IFileHandle
             CheckNotDisposed();
 
             if (!_wrote)
-                throw _ectx.Except("SimpleFileHandle hasn't been written yet");
+                throw _ectx.Except(Strings.SimpleFileHandleHasntBeenWrittenYet);
 
             if (_streamWrite != null)
             {
                 if (_streamWrite.CanWrite)
-                    throw _ectx.Except("Write stream for SimpleFileHandle hasn't been disposed");
+                    throw _ectx.Except(Strings.WriteStreamForSimpleFileHandleHasntBeenDisposed);
                 _streamWrite = null;
             }
 

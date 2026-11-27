@@ -368,12 +368,12 @@ namespace Microsoft.ML.Trainers.LightGbm
                  TrainerUtils.MakeR4ScalarWeightColumn(options.ExampleWeightColumnName), TrainerUtils.MakeU4ScalarColumn(options.RowGroupColumnName))
         {
             Host.CheckValue(options, nameof(options));
-            Contracts.CheckUserArg(options.NumberOfIterations >= 0, nameof(options.NumberOfIterations), "must be >= 0.");
-            Contracts.CheckUserArg(options.MaximumBinCountPerFeature > 0, nameof(options.MaximumBinCountPerFeature), "must be > 0.");
-            Contracts.CheckUserArg(options.MinimumExampleCountPerGroup > 0, nameof(options.MinimumExampleCountPerGroup), "must be > 0.");
-            Contracts.CheckUserArg(options.MaximumCategoricalSplitPointCount > 0, nameof(options.MaximumCategoricalSplitPointCount), "must be > 0.");
-            Contracts.CheckUserArg(options.CategoricalSmoothing >= 0, nameof(options.CategoricalSmoothing), "must be >= 0.");
-            Contracts.CheckUserArg(options.L2CategoricalRegularization >= 0.0, nameof(options.L2CategoricalRegularization), "must be >= 0.");
+            Contracts.CheckUserArg(options.NumberOfIterations >= 0, nameof(options.NumberOfIterations), Strings.MustBeNonNegative);
+            Contracts.CheckUserArg(options.MaximumBinCountPerFeature > 0, nameof(options.MaximumBinCountPerFeature), Strings.MustBeGreaterThanZero);
+            Contracts.CheckUserArg(options.MinimumExampleCountPerGroup > 0, nameof(options.MinimumExampleCountPerGroup), Strings.MustBeGreaterThanZero);
+            Contracts.CheckUserArg(options.MaximumCategoricalSplitPointCount > 0, nameof(options.MaximumCategoricalSplitPointCount), Strings.MustBeGreaterThanZero);
+            Contracts.CheckUserArg(options.CategoricalSmoothing >= 0, nameof(options.CategoricalSmoothing), Strings.MustBeNonNegative);
+            Contracts.CheckUserArg(options.L2CategoricalRegularization >= 0.0, nameof(options.L2CategoricalRegularization), Strings.MustBeNonNegative);
 
             LightGbmTrainerOptions = options;
             ParallelTraining = LightGbmTrainerOptions.ParallelTrainer != null ? LightGbmTrainerOptions.ParallelTrainer.CreateComponent(Host) : new SingleTrainer();
@@ -523,7 +523,7 @@ namespace Microsoft.ML.Trainers.LightGbm
             data.CheckFeatureFloatVector();
             // If we are loading a pre-trained model we don't need a label column
             if (LightGbmTrainerOptions.LightGbmModel == null)
-                ch.CheckParam(data.Schema.Label.HasValue, nameof(data), "Need a label column");
+                ch.CheckParam(data.Schema.Label.HasValue, nameof(data), Strings.NeedALabelColumn);
         }
 
         private protected virtual void GetDefaultParameters(IChannel ch, int numRow, bool hasCategorical, int totalCats, bool hiddenMsg = false)
@@ -769,13 +769,13 @@ namespace Microsoft.ML.Trainers.LightGbm
         private void GetMetainfo(IChannel ch, FloatLabelCursor.Factory factory,
             out int numRow, out float[] labels, out float[] weights, out int[] groups)
         {
-            ch.Check(factory.Data.Schema.Label != null, "The data should have label.");
+            ch.Check(factory.Data.Schema.Label != null, Strings.TheDataShouldHaveLabel);
             List<float> labelList = new List<float>();
             bool hasWeights = factory.Data.Schema.Weight != null;
             bool hasGroup = false;
             if (PredictionKind == PredictionKind.Ranking)
             {
-                ch.Check(factory.Data.Schema.Group != null, "The data for ranking task should have group field.");
+                ch.Check(factory.Data.Schema.Group != null, Strings.TheDataForRankingTaskShouldHaveGroupField);
                 hasGroup = true;
             }
             List<float> weightList = hasWeights ? new List<float>() : null;
@@ -786,7 +786,7 @@ namespace Microsoft.ML.Trainers.LightGbm
                 while (cursor.MoveNext())
                 {
                     if (labelList.Count == Utils.ArrayMaxSize)
-                        throw ch.Except($"Dataset row count exceeded the maximum count of {Utils.ArrayMaxSize}");
+                        throw ch.Except(string.Format(Strings.DatasetRowCountExceedsMaximum, Utils.ArrayMaxSize));
                     labelList.Add(cursor.Label);
                     if (hasWeights)
                     {
@@ -803,7 +803,7 @@ namespace Microsoft.ML.Trainers.LightGbm
             labels = labelList.ToArray();
             ConvertNaNLabels(ch, factory.Data, labels);
             numRow = labels.Length;
-            ch.Check(numRow > 0, "Cannot use empty dataset.");
+            ch.Check(numRow > 0, Strings.CannotUseEmptyDataset);
             weights = hasWeights ? weightList.ToArray() : null;
             groups = null;
             if (hasGroup)
@@ -1049,7 +1049,7 @@ namespace Microsoft.ML.Trainers.LightGbm
 
                 // This can only happen if the size of ONE example(row) exceeds the max array size. This looks like a very unlikely case.
                 if ((long)catMetaData.NumCol * batchRow > Utils.ArrayMaxSize)
-                    throw ch.Except("Size of array exceeded the " + nameof(Utils.ArrayMaxSize));
+                    throw ch.Except(Strings.SizeOfArrayExceededTheArrayMaxSize);
 
                 float[] features = new float[catMetaData.NumCol * batchRow];
 

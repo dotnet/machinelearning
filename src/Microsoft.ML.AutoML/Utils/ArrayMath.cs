@@ -127,7 +127,7 @@ namespace Microsoft.ML.AutoML
         {
             if (truth.Length != pred.Length)
             {
-                throw new ArgumentException($"length doesn't match, {truth.Length} != {pred.Length}");
+                throw new ArgumentException(string.Format(Strings.LengthDoesntMatch, truth.Length, pred.Length));
             }
 
             var diff = Enumerable.Range(0, truth.Length).Select(i => truth[i] - pred[i]).ToArray();
@@ -142,7 +142,7 @@ namespace Microsoft.ML.AutoML
         {
             if (truth.Length != pred.Length)
             {
-                throw new ArgumentException($"length doesn't match, {truth.Length} != {pred.Length}");
+                throw new ArgumentException(string.Format(Strings.LengthDoesntMatch, truth.Length, pred.Length));
             }
 
             var diff = Enumerable.Range(0, truth.Length).Select(i => truth[i] - pred[i]).ToArray();
@@ -156,7 +156,7 @@ namespace Microsoft.ML.AutoML
         {
             if (truth.Length != pred.Length)
             {
-                throw new ArgumentException($"length doesn't match, {truth.Length} != {pred.Length}");
+                throw new ArgumentException(string.Format(Strings.LengthDoesntMatch, truth.Length, pred.Length));
             }
 
             var diff = Enumerable.Range(0, truth.Length).Select(i => Math.Abs(truth[i] - pred[i])).ToArray();

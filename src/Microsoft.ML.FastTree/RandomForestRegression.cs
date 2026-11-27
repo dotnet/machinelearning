@@ -54,7 +54,7 @@ namespace Microsoft.ML.Trainers.FastTree
             public QuantileStatistics(float[] data, float[] weights = null, bool isSorted = false)
             {
                 Contracts.CheckValue(data, nameof(data));
-                Contracts.Check(weights == null || weights.Length == data.Length, "weights");
+                Contracts.Check(weights == null || weights.Length == data.Length, nameof(weights));
 
                 _data = data;
                 _weights = weights;
@@ -71,7 +71,7 @@ namespace Microsoft.ML.Trainers.FastTree
             /// </summary>
             public float GetQuantile(float p)
             {
-                Contracts.CheckParam(0 <= p && p <= 1, nameof(p), "Probability argument for Quantile function should be between 0 to 1 inclusive");
+                Contracts.CheckParam(0 <= p && p <= 1, nameof(p), Strings.QuantileProbabilityOutOfRange);
 
                 if (_data.Length == 0)
                     return float.NaN;
@@ -554,8 +554,7 @@ namespace Microsoft.ML.Trainers.FastTree
                         if (!(0 <= lab && lab < Utils.ArrayMaxSize))
                         {
                             throw Contracts.ExceptUserArg(nameof(options.ShuffleLabels),
-                                "Label {0} for example {1} outside of allowed range" +
-                                "[0,{2}) when doing shuffled labels", lab, i, Utils.ArrayMaxSize);
+                                Strings.ShuffledLabelOutOfRange, lab, i, Utils.ArrayMaxSize);
                         }
                         int lim = (int)lab + 1;
                         Contracts.Assert(1 <= lim && lim <= Utils.ArrayMaxSize);

@@ -140,7 +140,7 @@ namespace Microsoft.ML.CodeGenerator.Utilities
             switch (input)
             {
                 case null: throw new ArgumentNullException(nameof(input));
-                case "": throw new ArgumentException($"{nameof(input)} cannot be empty", nameof(input));
+                case "": throw new ArgumentException(Strings.InputCannotBeEmpty, nameof(input));
                 default:
                     var sanitizedInput = Sanitize(input);
                     return sanitizedInput.First().ToString().ToUpper() + sanitizedInput.Substring(1);
@@ -168,7 +168,7 @@ namespace Microsoft.ML.CodeGenerator.Utilities
                 case Microsoft.ML.Data.DataKind.UInt64:
                     return typeof(ulong);
                 default:
-                    throw new ArgumentException($"The data type '{labelType}' is not handled currently.");
+                    throw new ArgumentException(string.Format(Strings.TheDataTypeIsNotHandledCurrently, labelType));
             }
         }
 
@@ -359,7 +359,7 @@ namespace Microsoft.ML.CodeGenerator.Utilities
                 case DataKind.UInt64:
                     return Symbols.UlongSymbol;
                 default:
-                    throw new ArgumentException($"The data type '{dataKind}' is not handled currently.");
+                    throw new ArgumentException(string.Format(Strings.TheDataTypeIsNotHandledCurrently, dataKind));
             }
         }
     }

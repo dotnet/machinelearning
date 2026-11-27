@@ -50,7 +50,7 @@ namespace Microsoft.Data.Analysis
         {
             if ((long)length * Size > MaxCapacity)
             {
-                throw new ArgumentException($"{length} exceeds buffer capacity", nameof(length));
+                throw new ArgumentException(string.Format(Strings.ExceedsBufferCapacity, length), nameof(length));
             }
             _readOnlyBuffer = new byte[length * Size];
             Length = length;

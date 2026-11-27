@@ -95,7 +95,7 @@ namespace Microsoft.ML.Data
                 return (BufferBuilder<T>)(object)new BufferBuilder<ReadOnlyMemory<char>>(TextCombiner.Instance);
             if (typeof(T) == typeof(float))
                 return (BufferBuilder<T>)(object)new BufferBuilder<float>(FloatAdder.Instance);
-            throw Contracts.Except($"Unrecognized type '{typeof(T)}' for default {nameof(BufferBuilder<T>)}");
+            throw Contracts.Except(string.Format(Strings.UnrecognizedTypeForDefault, typeof(T), nameof(BufferBuilder<T>)));
         }
 
         /// <summary>

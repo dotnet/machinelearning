@@ -252,9 +252,9 @@ namespace Microsoft.ML.Trainers
             _host.CheckValue(context, nameof(context));
             var data = context.TrainingSet;
             data.CheckBinaryLabel();
-            _host.CheckParam(data.Schema.Label.HasValue, nameof(data), "Missing Label column");
+            _host.CheckParam(data.Schema.Label.HasValue, nameof(data), Strings.MissingLabelColumn);
             var labelCol = data.Schema.Label.Value;
-            _host.CheckParam(labelCol.Type == BooleanDataViewType.Instance, nameof(data), "Invalid type for Label column");
+            _host.CheckParam(labelCol.Type == BooleanDataViewType.Instance, nameof(data), Strings.InvalidTypeForLabelColumn);
 
             double pos = 0;
             double neg = 0;

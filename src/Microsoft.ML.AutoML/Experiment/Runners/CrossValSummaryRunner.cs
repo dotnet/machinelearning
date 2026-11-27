@@ -154,7 +154,7 @@ namespace Microsoft.ML.AutoML
                 return result as TMetrics;
             }
 
-            throw new NotImplementedException($"Metric {typeof(TMetrics)} not implemented");
+            throw new NotImplementedException(string.Format(Strings.MetricNotImplemented, typeof(TMetrics)));
         }
 
         private static double[] GetAverageOfNonNaNScoresInNestedEnumerable(IEnumerable<IEnumerable<double>> results)

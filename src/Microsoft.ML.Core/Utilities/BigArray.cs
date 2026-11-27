@@ -70,14 +70,14 @@ namespace Microsoft.ML.Internal.Utilities
         {
             get
             {
-                Contracts.CheckParam(0 <= index && index < _length, nameof(index), "Index out of range.");
+                Contracts.CheckParam(0 <= index && index < _length, nameof(index), Strings.IndexOutOfRange);
                 int bI = (int)(index >> BlockSizeBits);
                 int idx = (int)(index & BlockSizeMinusOne);
                 return _entries[bI][idx];
             }
             set
             {
-                Contracts.CheckParam(0 <= index && index < _length, nameof(index), "Index out of range.");
+                Contracts.CheckParam(0 <= index && index < _length, nameof(index), Strings.IndexOutOfRange);
                 int bI = (int)(index >> BlockSizeBits);
                 int idx = (int)(index & BlockSizeMinusOne);
                 _entries[bI][idx] = value;
@@ -92,14 +92,14 @@ namespace Microsoft.ML.Internal.Utilities
             // Verifies the preconditional invariant that BlockSize is a power of two.
             Contracts.Assert(BlockSize > 1 && (BlockSize & (BlockSize - 1)) == 0, "Block size is not a power of two.");
 
-            Contracts.CheckParam(size >= 0, nameof(size), "Must be non-negative.");
+            Contracts.CheckParam(size >= 0, nameof(size), Strings.MustBeNonNegative);
             if (size == 0)
             {
                 _entries = new T[0][];
                 return;
             }
 
-            Contracts.CheckParam(size <= MaxSize, nameof(size), "Size of BigArray is too large.");
+            Contracts.CheckParam(size <= MaxSize, nameof(size), Strings.SizeOfBigArrayIsTooLarge);
             var longBlockCount = ((size - 1) >> BlockSizeBits) + 1;
             Contracts.Assert(longBlockCount <= Utils.ArrayMaxSize);
             int blockCount = (int)longBlockCount;
@@ -122,7 +122,7 @@ namespace Microsoft.ML.Internal.Utilities
         public void ApplyAt(long index, Visitor manip)
         {
             Contracts.CheckValue(manip, nameof(manip));
-            Contracts.CheckParam(0 <= index && index < _length, nameof(index), "Index out of range.");
+            Contracts.CheckParam(0 <= index && index < _length, nameof(index), Strings.IndexOutOfRange);
             int bI = (int)(index >> BlockSizeBits);
             int idx = (int)(index & BlockSizeMinusOne);
             manip(index, ref _entries[bI][idx]);
@@ -135,8 +135,8 @@ namespace Microsoft.ML.Internal.Utilities
         public void ApplyRange(long min, long lim, Visitor manip)
         {
             Contracts.CheckValue(manip, nameof(manip));
-            Contracts.CheckParam(min >= 0, nameof(min), "Specified minimum index must be non-negative.");
-            Contracts.CheckParam(lim <= _length, nameof(lim), "Specified limit index must be no more than length of the array.");
+            Contracts.CheckParam(min >= 0, nameof(min), Strings.SpecifiedMinimumIndexMustBeNonNegative);
+            Contracts.CheckParam(lim <= _length, nameof(lim), Strings.LimitIndexExceedsArrayLength);
             if (min >= lim)
                 return;
 
@@ -162,8 +162,8 @@ namespace Microsoft.ML.Internal.Utilities
         /// </summary>
         public void FillRange(long min, long lim, T value)
         {
-            Contracts.CheckParam(min >= 0, nameof(min), "Specified minimum index must be non-negative.");
-            Contracts.CheckParam(lim <= _length, nameof(lim), "Specified limit index must be no more than length of the array.");
+            Contracts.CheckParam(min >= 0, nameof(min), Strings.SpecifiedMinimumIndexMustBeNonNegative);
+            Contracts.CheckParam(lim <= _length, nameof(lim), Strings.LimitIndexExceedsArrayLength);
             if (min >= lim)
                 return;
 
@@ -208,8 +208,8 @@ namespace Microsoft.ML.Internal.Utilities
         /// </summary>
         public void Resize(long newLength)
         {
-            Contracts.CheckParam(newLength >= 0, nameof(newLength), "Specified new size must be non-negative.");
-            Contracts.CheckParam(newLength <= MaxSize, nameof(newLength), "Specified new size is too large.");
+            Contracts.CheckParam(newLength >= 0, nameof(newLength), Strings.SpecifiedNewSizeMustBeNonNegative);
+            Contracts.CheckParam(newLength <= MaxSize, nameof(newLength), Strings.SpecifiedNewSizeIsTooLarge);
 
             if (newLength == _length)
                 return;

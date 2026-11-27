@@ -41,20 +41,20 @@ namespace Microsoft.ML.Data
                 if (!input.TryGetColumnIndex(labelCol, out LabelIndex))
                 {
                     throw user ?
-                        ectx.ExceptParam(nameof(labelCol), "Label column '{0}' does not exist", labelCol) :
-                        ectx.ExceptDecode("Label column '{0}' does not exist", labelCol);
+                        ectx.ExceptParam(nameof(labelCol), Strings.LabelColumnDoesNotExist, labelCol) :
+                        ectx.ExceptDecode(Strings.LabelColumnDoesNotExist, labelCol);
                 }
                 if (!input.TryGetColumnIndex(scoreCol, out ScoreIndex))
                 {
                     throw user ?
-                        ectx.ExceptParam(nameof(scoreCol), "Score column '{0}' does not exist", scoreCol) :
-                        ectx.ExceptDecode("Score column '{0}' does not exist", scoreCol);
+                        ectx.ExceptParam(nameof(scoreCol), Strings.ScoreColumnDoesNotExist, scoreCol) :
+                        ectx.ExceptDecode(Strings.ScoreColumnDoesNotExist, scoreCol);
                 }
                 if (!input.TryGetColumnIndex(groupCol, out GroupIndex))
                 {
                     throw user ?
-                        ectx.ExceptParam(nameof(groupCol), "Group column '{0}' does not exist", groupCol) :
-                        Contracts.ExceptDecode("Group column '{0}' does not exist", groupCol);
+                        ectx.ExceptParam(nameof(groupCol), Strings.GroupColumnDoesNotExist, groupCol) :
+                        Contracts.ExceptDecode(Strings.GroupColumnDoesNotExist, groupCol);
                 }
             }
 
@@ -290,7 +290,7 @@ namespace Microsoft.ML.Data
             /// <param name="column"> is the output column whose getter should be returned.</param>
             public override ValueGetter<TValue> GetGetter<TValue>(DataViewSchema.Column column)
             {
-                Contracts.CheckParam(IsColumnActive(column), nameof(column), "requested column is not active");
+                Contracts.CheckParam(IsColumnActive(column), nameof(column), Strings.RequestedColumnIsNotActive);
 
                 bool isSrc;
                 var index = _parent.GetBindings().MapColumnIndex(out isSrc, column.Index);
@@ -305,8 +305,7 @@ namespace Microsoft.ML.Data
                 Ch.Assert(getter != null);
                 var fn = getter as ValueGetter<TValue>;
                 if (fn == null)
-                    throw Ch.Except($"Invalid TValue in GetGetter: '{typeof(TValue)}', " +
-                            $"expected type: '{getter.GetType().GetGenericArguments().First()}'.");
+                    throw Ch.Except(string.Format(Strings.InvalidTValueInGetGetterExpectedType, typeof(TValue), getter.GetType().GetGenericArguments().First()));
                 return fn;
             }
 
@@ -315,7 +314,7 @@ namespace Microsoft.ML.Data
                 return
                     (ref DataViewRowId val) =>
                     {
-                        Ch.Check(IsGood, RowCursorUtils.FetchValueStateError);
+                        Ch.Check(IsGood, Strings.ValuesUnavailableOutsideCursorPosition);
                         val = new DataViewRowId((ulong)Position, 0);
                     };
             }

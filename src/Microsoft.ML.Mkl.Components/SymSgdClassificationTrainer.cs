@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -150,10 +150,10 @@ namespace Microsoft.ML.Trainers
 
             internal void Check(IExceptionContext ectx)
             {
-                ectx.CheckUserArg(LearningRate == null || LearningRate.Value > 0, nameof(LearningRate), "Must be positive.");
-                ectx.CheckUserArg(NumberOfIterations > 0, nameof(NumberOfIterations), "Must be positive.");
-                ectx.CheckUserArg(PositiveInstanceWeight > 0, nameof(PositiveInstanceWeight), "Must be positive");
-                ectx.CheckUserArg(UpdateFrequency == null || UpdateFrequency > 0, nameof(UpdateFrequency), "Must be positive");
+                ectx.CheckUserArg(LearningRate == null || LearningRate.Value > 0, nameof(LearningRate), Strings.MustBePositive);
+                ectx.CheckUserArg(NumberOfIterations > 0, nameof(NumberOfIterations), Strings.MustBePositive);
+                ectx.CheckUserArg(PositiveInstanceWeight > 0, nameof(PositiveInstanceWeight), Strings.MustBePositive);
+                ectx.CheckUserArg(UpdateFrequency == null || UpdateFrequency > 0, nameof(UpdateFrequency), Strings.MustBePositive);
             }
         }
 
@@ -210,7 +210,7 @@ namespace Microsoft.ML.Trainers
             if (examples.Schema.Weight.HasValue)
                 ch.Assert(examplesToFeedTrain.Schema.Weight.HasValue);
 
-            ch.Check(examplesToFeedTrain.Schema.Feature.Value.Type is VectorDataViewType vecType && vecType.Size > 0, "Training set has no features, aborting training.");
+            ch.Check(examplesToFeedTrain.Schema.Feature.Value.Type is VectorDataViewType vecType && vecType.Size > 0, Strings.TrainingSetHasNoFeaturesAbortingTraining);
             return examplesToFeedTrain;
         }
 
@@ -225,7 +225,7 @@ namespace Microsoft.ML.Trainers
                 // If initPred is null (i.e., not set), the following check will always be bypassed.
                 // If initPred is not null, then the following checks if a LinearModelParameters is loaded to linearInitPred.
                 Host.CheckParam(initPred == null || linearInitPred != null, nameof(context),
-                    "Initial predictor was not a linear predictor.");
+                    Strings.InitialPredictorWasNotALinearPredictor);
 
                 var preparedData = PrepareDataFromTrainingExamples(ch, context.TrainingSet, out int weightSetCount);
                 return TrainCore(ch, preparedData, linearInitPred, weightSetCount);
@@ -605,7 +605,7 @@ namespace Microsoft.ML.Trainers
                     if (featureCount > _trainer.AcceleratedMemoryBudgetBytes / perNonZeroInBytes)
                     {
                         // Hopefully this never happens. But the memorySize must >= perNonZeroInBytes * length(the longest instance).
-                        throw _ch.Except("Acceleration memory budget is too small! Need at least {0} MB for at least one of the instances",
+                        throw _ch.Except(Strings.AccelerationMemoryBudgetTooSmall,
                             featureCount * perNonZeroInBytes / (1024 * 1024));
                     }
 
@@ -705,7 +705,7 @@ namespace Microsoft.ML.Trainers
             int numThreads = _options.NumberOfThreads ?? Environment.ProcessorCount;
 
             ch.CheckUserArg(numThreads > 0, nameof(_options.NumberOfThreads),
-                "The number of threads must be either null or a positive integer.");
+                Strings.ThreadCountMustBeNullOrPositive);
 
             var positiveInstanceWeight = _options.PositiveInstanceWeight;
             VBuffer<float> weights = default;

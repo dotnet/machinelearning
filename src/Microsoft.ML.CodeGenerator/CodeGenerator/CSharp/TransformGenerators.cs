@@ -21,7 +21,7 @@ namespace Microsoft.ML.CodeGenerator.CSharp
         {
             StringBuilder sb = new StringBuilder();
             string inputColumn = InputColumns.Count() > 0 ? InputColumns[0] : "\"Features\"";
-            string outputColumn = OutputColumns.Count() > 0 ? OutputColumns[0] : throw new Exception($"output columns for the suggested transform: {MethodName} are null");
+            string outputColumn = OutputColumns.Count() > 0 ? OutputColumns[0] : throw new Exception(string.Format(Strings.OutputColumnsForTheSuggestedTransformAreNull, MethodName));
             sb.Append(MethodName);
             sb.Append("(");
             sb.Append(outputColumn);
@@ -79,7 +79,7 @@ namespace Microsoft.ML.CodeGenerator.CSharp
         {
             StringBuilder sb = new StringBuilder();
             string inputColumn = InputColumns.Count() > 0 ? InputColumns[0] : "\"Features\"";
-            string outputColumn = OutputColumns.Count() > 0 ? OutputColumns[0] : throw new Exception($"output columns for the suggested transform: {MethodName} are null");
+            string outputColumn = OutputColumns.Count() > 0 ? OutputColumns[0] : throw new Exception(string.Format(Strings.OutputColumnsForTheSuggestedTransformAreNull, MethodName));
             sb.Append(MethodName);
             sb.Append("(");
             sb.Append(outputColumn);
@@ -109,7 +109,7 @@ namespace Microsoft.ML.CodeGenerator.CSharp
         {
             StringBuilder sb = new StringBuilder();
             string inputColumn = InputColumns.Count() > 0 ? InputColumns[0] : "\"Features\"";
-            string outputColumn = OutputColumns.Count() > 0 ? OutputColumns[0] : throw new Exception($"output columns for the suggested transform: {MethodName} are null");
+            string outputColumn = OutputColumns.Count() > 0 ? OutputColumns[0] : throw new Exception(string.Format(Strings.OutputColumnsForTheSuggestedTransformAreNull, MethodName));
             sb.Append(MethodName);
             sb.Append("(");
             sb.Append(outputColumn);
@@ -132,7 +132,7 @@ namespace Microsoft.ML.CodeGenerator.CSharp
         {
             StringBuilder sb = new StringBuilder();
             string inputColumn = InputColumns.Count() > 0 ? InputColumns[0] : "\"Features\"";
-            string outputColumn = OutputColumns.Count() > 0 ? OutputColumns[0] : throw new Exception($"output columns for the suggested transform: {MethodName} are null");
+            string outputColumn = OutputColumns.Count() > 0 ? OutputColumns[0] : throw new Exception(string.Format(Strings.OutputColumnsForTheSuggestedTransformAreNull, MethodName));
             sb.Append(MethodName);
             sb.Append("(");
             sb.Append(outputColumn);
@@ -155,7 +155,7 @@ namespace Microsoft.ML.CodeGenerator.CSharp
         {
             StringBuilder sb = new StringBuilder();
             string inputColumn = InputColumns.Count() > 0 ? InputColumns[0] : "\"Features\"";
-            string outputColumn = OutputColumns.Count() > 0 ? OutputColumns[0] : throw new Exception($"output columns for the suggested transform: {MethodName} are null");
+            string outputColumn = OutputColumns.Count() > 0 ? OutputColumns[0] : throw new Exception(string.Format(Strings.OutputColumnsForTheSuggestedTransformAreNull, MethodName));
             sb.Append(MethodName);
             sb.Append("(");
             sb.Append(outputColumn);
@@ -180,7 +180,7 @@ namespace Microsoft.ML.CodeGenerator.CSharp
         {
             StringBuilder sb = new StringBuilder();
             string inputColumn = InputColumns.Count() > 0 ? InputColumns[0] : "\"Features\"";
-            string outputColumn = OutputColumns.Count() > 0 ? OutputColumns[0] : throw new Exception($"output columns for the suggested transform: {MethodName} are null");
+            string outputColumn = OutputColumns.Count() > 0 ? OutputColumns[0] : throw new Exception(string.Format(Strings.OutputColumnsForTheSuggestedTransformAreNull, MethodName));
             sb.Append(MethodName);
             sb.Append("(");
             sb.Append("new []{");
@@ -284,7 +284,7 @@ namespace Microsoft.ML.CodeGenerator.CSharp
         {
             StringBuilder sb = new StringBuilder();
             string inputColumn = InputColumns.Count() > 0 ? InputColumns[0] : "\"Features\"";
-            string outputColumn = OutputColumns.Count() > 0 ? OutputColumns[0] : throw new Exception($"output columns for the suggested transform: {MethodName} are null");
+            string outputColumn = OutputColumns.Count() > 0 ? OutputColumns[0] : throw new Exception(string.Format(Strings.OutputColumnsForTheSuggestedTransformAreNull, MethodName));
             sb.Append(MethodName);
             sb.Append("(");
             sb.Append(outputColumn);
@@ -342,7 +342,7 @@ namespace Microsoft.ML.CodeGenerator.CSharp
         {
             StringBuilder sb = new StringBuilder();
             string inputColumn = InputColumns.Count() > 0 ? InputColumns[0] : "\"Features\"";
-            string outputColumn = OutputColumns.Count() > 0 ? OutputColumns[0] : throw new Exception($"output columns for the suggested transform: {MethodName} are null");
+            string outputColumn = OutputColumns.Count() > 0 ? OutputColumns[0] : throw new Exception(string.Format(Strings.OutputColumnsForTheSuggestedTransformAreNull, MethodName));
             sb.Append(MethodName);
             sb.Append("(");
             sb.Append(outputColumn);
@@ -363,8 +363,8 @@ namespace Microsoft.ML.CodeGenerator.CSharp
 
         public override string GenerateTransformer()
         {
-            string inputColumn = InputColumns.Count() == 1 ? InputColumns[0] : throw new Exception($"input columns for the suggested transform: {MethodName} is not exactly one.");
-            string outputColumn = OutputColumns.Count() == 1 ? OutputColumns[0] : throw new Exception($"output columns for the suggested transform: {MethodName} it not exactly one.");
+            string inputColumn = InputColumns.Count() == 1 ? InputColumns[0] : throw new Exception(string.Format(Strings.InputColumnsForTheSuggestedTransformIsNotExactlyOne, MethodName));
+            string outputColumn = OutputColumns.Count() == 1 ? OutputColumns[0] : throw new Exception(string.Format(Strings.OutputColumnsForTheSuggestedTransformItNotExactlyOne, MethodName));
 
             // example: Transforms.LoadImages(output, inputfolder, input)
             return $"{MethodName}({outputColumn}, {@"null"}, {inputColumn})";
@@ -381,8 +381,8 @@ namespace Microsoft.ML.CodeGenerator.CSharp
 
         public override string GenerateTransformer()
         {
-            string inputColumn = InputColumns.Count() == 1 ? InputColumns[0] : throw new Exception($"input columns for the suggested transform: {MethodName} is not exactly one.");
-            string outputColumn = OutputColumns.Count() == 1 ? OutputColumns[0] : throw new Exception($"output columns for the suggested transform: {MethodName} it not exactly one.");
+            string inputColumn = InputColumns.Count() == 1 ? InputColumns[0] : throw new Exception(string.Format(Strings.InputColumnsForTheSuggestedTransformIsNotExactlyOne, MethodName));
+            string outputColumn = OutputColumns.Count() == 1 ? OutputColumns[0] : throw new Exception(string.Format(Strings.OutputColumnsForTheSuggestedTransformItNotExactlyOne, MethodName));
 
             // example: Transforms.LoadImages(output, inputfolder, input)
             return $"{MethodName}({outputColumn}, {@"null"}, {inputColumn})";
@@ -418,8 +418,8 @@ namespace Microsoft.ML.CodeGenerator.CSharp
 
         public override string GenerateTransformer()
         {
-            string inputColumn = InputColumns.Count() == 1 ? InputColumns[0] : throw new Exception($"input columns for the suggested transform: {MethodName} is not exactly one.");
-            string outputColumn = OutputColumns.Count() == 1 ? OutputColumns[0] : throw new Exception($"output columns for the suggested transform: {MethodName} it not exactly one.");
+            string inputColumn = InputColumns.Count() == 1 ? InputColumns[0] : throw new Exception(string.Format(Strings.InputColumnsForTheSuggestedTransformIsNotExactlyOne, MethodName));
+            string outputColumn = OutputColumns.Count() == 1 ? OutputColumns[0] : throw new Exception(string.Format(Strings.OutputColumnsForTheSuggestedTransformItNotExactlyOne, MethodName));
             return $"ExtractPixels({outputColumn}, {inputColumn})";
         }
     }

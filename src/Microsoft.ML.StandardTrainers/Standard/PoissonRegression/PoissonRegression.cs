@@ -143,7 +143,7 @@ namespace Microsoft.ML.Trainers
         private protected override void PreTrainingProcessInstance(float label, in VBuffer<float> feat, float weight)
         {
             if (!(label >= 0))
-                throw Contracts.Except("Poisson regression must regress to a non-negative label, but label {0} encountered", label);
+                throw Contracts.Except(Strings.PoissonRegressionRequiresNonNegativeLabels, label);
             _lossNormalizer += MathUtils.LogGamma(label + 1);
         }
 

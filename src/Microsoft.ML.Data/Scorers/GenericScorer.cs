@@ -77,7 +77,7 @@ namespace Microsoft.ML.Data
                 Contracts.Assert(mapper.InputRoleMappedSchema.Schema == input);
 
                 var rowMapper = mapper as ISchemaBoundRowMapper;
-                Contracts.Check(rowMapper != null, "Predictor expected to be a RowMapper!");
+                Contracts.Check(rowMapper != null, Strings.PredictorExpectedToBeARowMapper);
 
                 return Create(input, rowMapper, suffix, user);
             }
@@ -159,7 +159,7 @@ namespace Microsoft.ML.Data
             Host.AssertValue(mapper, "mapper");
 
             var rowMapper = mapper as ISchemaBoundRowMapper;
-            Host.CheckParam(rowMapper != null, nameof(mapper), "mapper should implement ISchemaBoundRowMapper");
+            Host.CheckParam(rowMapper != null, nameof(mapper), Strings.MapperShouldImplementISchemaBoundRowMapper);
             _bindings = Bindings.Create(data.Schema, rowMapper, args.Suffix);
             OutputSchema = _bindings.AsSchema;
         }

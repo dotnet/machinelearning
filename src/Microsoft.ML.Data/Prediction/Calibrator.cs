@@ -224,7 +224,7 @@ namespace Microsoft.ML.Calibrators
 
         void ICanSaveInIniFormat.SaveAsIni(TextWriter writer, RoleMappedSchema schema, ICalibrator calibrator)
         {
-            Host.Check(calibrator == null, "Too many calibrators.");
+            Host.Check(calibrator == null, Strings.TooManyCalibrators);
             var saver = SubModel as ICanSaveInIniFormat;
             saver?.SaveAsIni(writer, schema, Calibrator);
         }
@@ -310,8 +310,8 @@ namespace Microsoft.ML.Calibrators
             Contracts.AssertValue(Host);
 
             _mapper = SubModel as IValueMapper;
-            Host.Check(_mapper != null, "The predictor does not implement IValueMapper");
-            Host.Check(_mapper.OutputType == NumberDataViewType.Single, "The output type of the predictor is expected to be float");
+            Host.Check(_mapper != null, Strings.ThePredictorDoesNotImplementIValueMapper);
+            Host.Check(_mapper.OutputType == NumberDataViewType.Single, Strings.PredictorOutputTypeMustBeFloat);
 
             _featureContribution = predictor as IFeatureContributionMapper;
         }
@@ -338,7 +338,7 @@ namespace Microsoft.ML.Calibrators
         ValueMapper<TSrc, VBuffer<float>> IFeatureContributionMapper.GetFeatureContributionMapper<TSrc, TDst>(int top, int bottom, bool normalize)
         {
             // REVIEW: checking this a bit too late.
-            Host.Check(_featureContribution != null, "Predictor does not implement IFeatureContributionMapper");
+            Host.Check(_featureContribution != null, Strings.PredictorDoesNotImplementIFeatureContributionMapper);
             return _featureContribution.GetFeatureContributionMapper<TSrc, TDst>(top, bottom, normalize);
         }
 
@@ -503,7 +503,7 @@ namespace Microsoft.ML.Calibrators
             TSubModel predictor, TCalibrator calibrator)
             : base(env, RegistrationName, predictor, calibrator)
         {
-            Host.Check(SubModel is IPredictorWithFeatureWeights<float>, "Predictor does not implement " + nameof(IPredictorWithFeatureWeights<float>));
+            Host.Check(SubModel is IPredictorWithFeatureWeights<float>, Strings.PredictorDoesNotImplementIPredictorWithFeatureWeights);
             _featureWeights = (IPredictorWithFeatureWeights<float>)SubModel;
         }
 
@@ -556,8 +556,8 @@ namespace Microsoft.ML.Calibrators
         internal ParameterMixingCalibratedModelParameters(IHostEnvironment env, TSubModel predictor, TCalibrator calibrator)
             : base(env, RegistrationName, predictor, calibrator)
         {
-            Host.Check(predictor is IParameterMixer<float>, "Predictor does not implement " + nameof(IParameterMixer<float>));
-            Host.Check(calibrator is IParameterMixer, "Calibrator does not implement " + nameof(IParameterMixer));
+            Host.Check(predictor is IParameterMixer<float>, Strings.PredictorDoesNotImplementIParameterMixer);
+            Host.Check(calibrator is IParameterMixer, Strings.CalibratorDoesNotImplementIParameterMixer);
             Host.Assert(predictor is IPredictorWithFeatureWeights<float>);
             _featureWeights = predictor as IPredictorWithFeatureWeights<float>;
         }
@@ -579,8 +579,8 @@ namespace Microsoft.ML.Calibrators
         private ParameterMixingCalibratedModelParameters(IHostEnvironment env, ModelLoadContext ctx, TSubModel predictor, TCalibrator calibrator)
             : base(env, RegistrationName, predictor, calibrator)
         {
-            Host.Check(SubModel is IParameterMixer<float>, "Predictor does not implement " + nameof(IParameterMixer));
-            Host.Check(SubModel is IPredictorWithFeatureWeights<float>, "Predictor does not implement " + nameof(IPredictorWithFeatureWeights<float>));
+            Host.Check(SubModel is IParameterMixer<float>, Strings.PredictorDoesNotImplementIParameterMixer);
+            Host.Check(SubModel is IPredictorWithFeatureWeights<float>, Strings.PredictorDoesNotImplementIPredictorWithFeatureWeights);
             _featureWeights = SubModel as IPredictorWithFeatureWeights<float>;
         }
 
@@ -662,9 +662,9 @@ namespace Microsoft.ML.Calibrators
                 env.AssertValue(parent);
                 _parent = parent;
                 _predictor = _parent._bindable.Bind(env, schema) as ISchemaBoundRowMapper;
-                env.Check(_predictor != null, "Predictor is not a row-to-row mapper");
+                env.Check(_predictor != null, Strings.PredictorIsNotARowToRowMapper);
                 if (!_predictor.OutputSchema.TryGetColumnIndex(AnnotationUtils.Const.ScoreValueKind.Score, out _scoreCol))
-                    throw env.Except("Predictor does not output a score");
+                    throw env.Except(Strings.PredictorDoesNotOutputAScore);
                 var scoreType = _predictor.OutputSchema[_scoreCol].Type;
                 env.Check(scoreType is NumberDataViewType);
                 OutputSchema = ScoreSchemaFactory.CreateBinaryClassificationSchema();
@@ -782,8 +782,8 @@ namespace Microsoft.ML.Calibrators
         {
             Host.CheckValue(ctx, nameof(ctx));
             Host.CheckValue(schema, nameof(schema));
-            Host.CheckParam(Utils.Size(outputs) == 2, nameof(outputs), "Expected this to have two outputs");
-            Host.Check(((ICanSavePfa)this).CanSavePfa, "Called despite not being savable");
+            Host.CheckParam(Utils.Size(outputs) == 2, nameof(outputs), Strings.ExpectedThisToHaveTwoOutputs);
+            Host.Check(((ICanSavePfa)this).CanSavePfa, Strings.CalledDespiteNotBeingSavable);
 
             ctx.Hide(outputs);
         }
@@ -791,9 +791,9 @@ namespace Microsoft.ML.Calibrators
         bool IBindableCanSaveOnnx.SaveAsOnnx(OnnxContext ctx, RoleMappedSchema schema, string[] outputs)
         {
             Host.CheckValue(ctx, nameof(ctx));
-            Host.CheckParam(Utils.Size(outputs) == 2, nameof(outputs), "Expected this to have two outputs");
+            Host.CheckParam(Utils.Size(outputs) == 2, nameof(outputs), Strings.ExpectedThisToHaveTwoOutputs);
             Host.CheckValue(schema, nameof(schema));
-            Host.Check(((ICanSaveOnnx)this).CanSaveOnnx(ctx), "Called despite not being savable");
+            Host.Check(((ICanSaveOnnx)this).CanSaveOnnx(ctx), Strings.CalledDespiteNotBeingSavable);
             return false;
         }
 
@@ -807,7 +807,7 @@ namespace Microsoft.ML.Calibrators
         ValueMapper<TSrc, VBuffer<float>> IFeatureContributionMapper.GetFeatureContributionMapper<TSrc, TDst>(int top, int bottom, bool normalize)
         {
             // REVIEW: checking this a bit too late.
-            Host.Check(_featureContribution != null, "Predictor does not implement " + nameof(IFeatureContributionMapper));
+            Host.Check(_featureContribution != null, Strings.PredictorDoesNotImplementIFeatureContributionMapper);
             return _featureContribution.GetFeatureContributionMapper<TSrc, TDst>(top, bottom, normalize);
         }
     }
@@ -944,7 +944,7 @@ namespace Microsoft.ML.Calibrators
             ch.CheckValue(scored, nameof(scored));
             ch.CheckValue(caliTrainer, nameof(caliTrainer));
             ch.CheckParam(!caliTrainer.NeedsTraining || !string.IsNullOrWhiteSpace(labelColumn), nameof(labelColumn),
-                "If " + nameof(caliTrainer) + " requires training, then " + nameof(labelColumn) + " must have a value.");
+                Strings.IfCaliTrainerRequiresTrainingThenLabelColumnMustHaveAValue);
             ch.CheckNonWhiteSpace(scoreColumn, nameof(scoreColumn));
 
             if (!caliTrainer.NeedsTraining)
@@ -1017,7 +1017,7 @@ namespace Microsoft.ML.Calibrators
             ch.CheckValue(caliTrainer, nameof(caliTrainer));
             ch.CheckValue(predictor, nameof(predictor));
             ch.CheckValue(data, nameof(data));
-            ch.CheckParam(data.Schema.Label.HasValue, nameof(data), "data must have a Label column");
+            ch.CheckParam(data.Schema.Label.HasValue, nameof(data), Strings.DataMustHaveALabelColumn);
 
             var scored = ScoreUtils.GetScorer(predictor, data, env, null);
             var scoreColumn = scored.Schema[DefaultColumnNames.Score];
@@ -1119,7 +1119,7 @@ namespace Microsoft.ML.Calibrators
         ICalibrator ICalibratorTrainer.FinishTraining(IChannel ch)
         {
             float[] cOutputs = _cMargins.ToArray();
-            ch.Check(cOutputs.Length > 0, "Calibrator trained on zero instances.");
+            ch.Check(cOutputs.Length > 0, Strings.CalibratorTrainedOnZeroInstances);
 
             float minC = MathUtils.Min(cOutputs);
             float maxC = MathUtils.Max(cOutputs);
@@ -1374,7 +1374,7 @@ namespace Microsoft.ML.Calibrators
 
             public DataStore(int capacity)
             {
-                Contracts.CheckParam(capacity > 0, nameof(capacity), "must be positive");
+                Contracts.CheckParam(capacity > 0, nameof(capacity), Strings.MustBePositive);
 
                 _capacity = capacity;
                 _data = new DataItem[Math.Min(4, capacity)];
@@ -1449,7 +1449,7 @@ namespace Microsoft.ML.Calibrators
 
         ICalibrator ICalibratorTrainer.FinishTraining(IChannel ch)
         {
-            ch.Check(Data != null, "Calibrator trained on zero instances.");
+            ch.Check(Data != null, Strings.CalibratorTrainedOnZeroInstances);
             var calibrator = CreateCalibrator(ch);
             Data = null;
             return calibrator;
@@ -2208,7 +2208,7 @@ namespace Microsoft.ML.Calibrators
         {
             Contracts.CheckValue(host, nameof(host));
             host.CheckValue(input, nameof(input));
-            host.CheckUserArg(input.MaxRows >= 0, nameof(input.MaxRows), "Argument must be non-negative. specify 0 to use all available examples.");
+            host.CheckUserArg(input.MaxRows >= 0, nameof(input.MaxRows), Strings.ArgumentMustBeNonNegativeSpecify0ToUseAll);
 
             RoleMappedData data;
             IPredictor predictor;

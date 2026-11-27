@@ -110,9 +110,9 @@ namespace Microsoft.ML.Transforms
             : base(env, LoaderSignature, input)
         {
             Host.CheckValue(options, nameof(options));
-            Host.CheckUserArg(Utils.Size(options.Columns) > 0, nameof(options.Columns), "There must be at least one pivot column");
+            Host.CheckUserArg(Utils.Size(options.Columns) > 0, nameof(options.Columns), Strings.ThereMustBeAtLeastOnePivotColumn);
             Host.CheckUserArg(options.Columns.Distinct().Count() == options.Columns.Length, nameof(options.Columns),
-                "Duplicate pivot columns are not allowed");
+                Strings.DuplicatePivotColumnsAreNotAllowed);
 
             _ungroupBinding = new UngroupBinding(Host, Source.Schema, options.Mode, options.Columns);
         }
@@ -329,13 +329,13 @@ namespace Microsoft.ML.Transforms
                 {
                     var name = pivotColumns[i];
                     // REVIEW: replace Check with CheckUser, once existing CheckUser is renamed to CheckUserArg or something.
-                    ectx.CheckUserArg(!string.IsNullOrEmpty(name), nameof(Options.Columns), "Column name cannot be empty");
+                    ectx.CheckUserArg(!string.IsNullOrEmpty(name), nameof(Options.Columns), Strings.ColumnNameCannotBeEmpty);
                     int col;
                     if (!inputSchema.TryGetColumnIndex(name, out col))
-                        throw ectx.ExceptUserArg(nameof(Options.Columns), "Pivot column '{0}' is not found", name);
+                        throw ectx.ExceptUserArg(nameof(Options.Columns), Strings.PivotColumnIsNotFound, name);
                     if (!(inputSchema[col].Type is VectorDataViewType colType))
                         throw ectx.ExceptUserArg(nameof(Options.Columns),
-                            "Pivot column '{0}' has type '{1}', but must be a vector of primitive types", name, inputSchema[col].Type);
+                            Strings.PivotColumnMustBePrimitiveVector, name, inputSchema[col].Type);
                     infos[i] = new PivotColumnOptions(name, col, colType.Size, colType.ItemType);
                 }
             }
@@ -620,7 +620,7 @@ namespace Microsoft.ML.Transforms
                     _cachedGetters[column.Index] = MakeGetter<TValue>(column.Index, _ungroupBinding.GetPivotColumnOptionsByCol(column.Index).ItemType);
 
                 var result = _cachedGetters[column.Index] as ValueGetter<TValue>;
-                Ch.Check(result != null, "Unexpected getter type requested");
+                Ch.Check(result != null, Strings.UnexpectedGetterTypeRequested);
                 return result;
             }
 
@@ -638,7 +638,7 @@ namespace Microsoft.ML.Transforms
                     (ref T value) =>
                     {
                         // This delegate can be called from within MoveNext, so our own IsGood is not yet set.
-                        Ch.Check(Input.Position >= 0, RowCursorUtils.FetchValueStateError);
+                        Ch.Check(Input.Position >= 0, Strings.ValuesUnavailableOutsideCursorPosition);
 
                         Ch.Assert(cachedPosition <= Input.Position);
                         if (cachedPosition < Input.Position)

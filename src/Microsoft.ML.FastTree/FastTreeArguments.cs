@@ -316,12 +316,11 @@ namespace Microsoft.ML.Trainers.FastTree
                     || SortingAlgorithm == "DescendingDotNet"
                     || SortingAlgorithm == "DescendingStablePessimistic",
                     nameof(SortingAlgorithm),
-                        "The specified sorting algorithm is invalid. Only 'DescendingStable', 'DescendingReverse', " +
-                        "'DescendingDotNet', and 'DescendingStablePessimistic' are supported.");
+                        Strings.UnsupportedSortingAlgorithm);
 #if OLD_DATALOAD
                 ectx.CheckUserArg(0 <= secondaryMetricShare && secondaryMetricShare <= 1, "secondaryMetricShare", "secondaryMetricShare must be between 0 and 1.");
 #endif
-                ectx.CheckUserArg(0 < NdcgTruncationLevel, nameof(NdcgTruncationLevel), "must be positive.");
+                ectx.CheckUserArg(0 < NdcgTruncationLevel, nameof(NdcgTruncationLevel), Strings.MustBePositive);
             }
         }
     }
@@ -617,27 +616,27 @@ namespace Microsoft.ML.Trainers.FastTree
         internal virtual void Check(IExceptionContext ectx)
         {
             Contracts.AssertValue(ectx);
-            ectx.CheckUserArg(NumberOfThreads == null || NumberOfThreads > 0, nameof(NumberOfThreads), "Must be positive.");
-            ectx.CheckUserArg(NumberOfLeaves >= 2, nameof(NumberOfLeaves), "Must be at least 2.");
-            ectx.CheckUserArg(0 <= EntropyCoefficient && EntropyCoefficient <= 1, nameof(EntropyCoefficient), "Must be between 0 and 1.");
-            ectx.CheckUserArg(0 <= GainConfidenceLevel && GainConfidenceLevel < 1, nameof(GainConfidenceLevel), "Must be in [0, 1).");
-            ectx.CheckUserArg(0 <= FeatureFraction && FeatureFraction <= 1, nameof(FeatureFraction), "Must be between 0 and 1.");
-            ectx.CheckUserArg(0 <= FeatureFractionPerSplit && FeatureFractionPerSplit <= 1, nameof(FeatureFractionPerSplit), "Must be between 0 and 1.");
-            ectx.CheckUserArg(0 <= SoftmaxTemperature, nameof(SoftmaxTemperature), "Must be non-negative.");
-            ectx.CheckUserArg(0 < MaximumBinCountPerFeature, nameof(MaximumBinCountPerFeature), "Must greater than 0.");
-            ectx.CheckUserArg(0 <= SparsifyThreshold && SparsifyThreshold <= 1, nameof(SparsifyThreshold), "Must be between 0 and 1.");
-            ectx.CheckUserArg(0 < NumberOfTrees, nameof(NumberOfTrees), "Must be positive.");
-            ectx.CheckUserArg(0 <= Smoothing && Smoothing <= 1, nameof(Smoothing), "Must be between 0 and 1.");
-            ectx.CheckUserArg(0 <= BaggingSize, nameof(BaggingSize), "Must be non-negative.");
-            ectx.CheckUserArg(0 <= BaggingExampleFraction && BaggingExampleFraction <= 1, nameof(BaggingExampleFraction), "Must be between 0 and 1.");
-            ectx.CheckUserArg(0 <= FeatureFirstUsePenalty, nameof(FeatureFirstUsePenalty), "Must be non-negative.");
-            ectx.CheckUserArg(0 <= FeatureReusePenalty, nameof(FeatureReusePenalty), "Must be non-negative.");
-            ectx.CheckUserArg(0 <= MaximumCategoricalGroupCountPerNode, nameof(MaximumCategoricalGroupCountPerNode), "Must be non-negative.");
-            ectx.CheckUserArg(0 <= MaximumCategoricalSplitPointCount, nameof(MaximumCategoricalSplitPointCount), "Must be non-negative.");
-            ectx.CheckUserArg(0 <= MinimumExampleFractionForCategoricalSplit, nameof(MinimumExampleFractionForCategoricalSplit), "Must be non-negative.");
-            ectx.CheckUserArg(0 <= MinimumExamplesForCategoricalSplit, nameof(MinimumExamplesForCategoricalSplit), "Must be non-negative.");
-            ectx.CheckUserArg(Bundle.None <= Bundling && Bundling <= Bundle.Adjacent, nameof(Bundling), "Must be between 0 and 2.");
-            ectx.CheckUserArg(Bias >= 0, nameof(Bias), "Must be greater than equal to zero.");
+            ectx.CheckUserArg(NumberOfThreads == null || NumberOfThreads > 0, nameof(NumberOfThreads), Strings.MustBePositive);
+            ectx.CheckUserArg(NumberOfLeaves >= 2, nameof(NumberOfLeaves), Strings.MustBeAtLeast2);
+            ectx.CheckUserArg(0 <= EntropyCoefficient && EntropyCoefficient <= 1, nameof(EntropyCoefficient), Strings.MustBeBetween0And1);
+            ectx.CheckUserArg(0 <= GainConfidenceLevel && GainConfidenceLevel < 1, nameof(GainConfidenceLevel), Strings.MustBeAtLeastZeroAndLessThanOne);
+            ectx.CheckUserArg(0 <= FeatureFraction && FeatureFraction <= 1, nameof(FeatureFraction), Strings.MustBeBetween0And1);
+            ectx.CheckUserArg(0 <= FeatureFractionPerSplit && FeatureFractionPerSplit <= 1, nameof(FeatureFractionPerSplit), Strings.MustBeBetween0And1);
+            ectx.CheckUserArg(0 <= SoftmaxTemperature, nameof(SoftmaxTemperature), Strings.MustBeNonNegative);
+            ectx.CheckUserArg(0 < MaximumBinCountPerFeature, nameof(MaximumBinCountPerFeature), Strings.MustGreaterThan0);
+            ectx.CheckUserArg(0 <= SparsifyThreshold && SparsifyThreshold <= 1, nameof(SparsifyThreshold), Strings.MustBeBetween0And1);
+            ectx.CheckUserArg(0 < NumberOfTrees, nameof(NumberOfTrees), Strings.MustBePositive);
+            ectx.CheckUserArg(0 <= Smoothing && Smoothing <= 1, nameof(Smoothing), Strings.MustBeBetween0And1);
+            ectx.CheckUserArg(0 <= BaggingSize, nameof(BaggingSize), Strings.MustBeNonNegative);
+            ectx.CheckUserArg(0 <= BaggingExampleFraction && BaggingExampleFraction <= 1, nameof(BaggingExampleFraction), Strings.MustBeBetween0And1);
+            ectx.CheckUserArg(0 <= FeatureFirstUsePenalty, nameof(FeatureFirstUsePenalty), Strings.MustBeNonNegative);
+            ectx.CheckUserArg(0 <= FeatureReusePenalty, nameof(FeatureReusePenalty), Strings.MustBeNonNegative);
+            ectx.CheckUserArg(0 <= MaximumCategoricalGroupCountPerNode, nameof(MaximumCategoricalGroupCountPerNode), Strings.MustBeNonNegative);
+            ectx.CheckUserArg(0 <= MaximumCategoricalSplitPointCount, nameof(MaximumCategoricalSplitPointCount), Strings.MustBeNonNegative);
+            ectx.CheckUserArg(0 <= MinimumExampleFractionForCategoricalSplit, nameof(MinimumExampleFractionForCategoricalSplit), Strings.MustBeNonNegative);
+            ectx.CheckUserArg(0 <= MinimumExamplesForCategoricalSplit, nameof(MinimumExamplesForCategoricalSplit), Strings.MustBeNonNegative);
+            ectx.CheckUserArg(Bundle.None <= Bundling && Bundling <= Bundle.Adjacent, nameof(Bundling), Strings.MustBeBetween0And2);
+            ectx.CheckUserArg(Bias >= 0, nameof(Bias), Strings.MustBeGreaterThanEqualToZero);
         }
     }
 
@@ -862,14 +861,14 @@ namespace Microsoft.ML.Trainers.FastTree
         {
             base.Check(ectx);
 
-            ectx.CheckUserArg(0 <= MaximumTreeOutput, nameof(MaximumTreeOutput), "Must be non-negative.");
-            ectx.CheckUserArg(0 <= PruningThreshold, nameof(PruningThreshold), "Must be non-negative.");
-            ectx.CheckUserArg(0 < PruningWindowSize, nameof(PruningWindowSize), "Must be positive.");
-            ectx.CheckUserArg(0 < Shrinkage, nameof(Shrinkage), "Must be positive.");
-            ectx.CheckUserArg(0 <= DropoutRate && DropoutRate <= 1, nameof(DropoutRate), "Must be between 0 and 1.");
-            ectx.CheckUserArg(0 < GetDerivativesSampleRate, nameof(GetDerivativesSampleRate), "Must be positive.");
-            ectx.CheckUserArg(0 <= MaximumNumberOfLineSearchSteps, nameof(MaximumNumberOfLineSearchSteps), "Must be non-negative.");
-            ectx.CheckUserArg(0 <= MinimumStepSize, nameof(MinimumStepSize), "Must be non-negative.");
+            ectx.CheckUserArg(0 <= MaximumTreeOutput, nameof(MaximumTreeOutput), Strings.MustBeNonNegative);
+            ectx.CheckUserArg(0 <= PruningThreshold, nameof(PruningThreshold), Strings.MustBeNonNegative);
+            ectx.CheckUserArg(0 < PruningWindowSize, nameof(PruningWindowSize), Strings.MustBePositive);
+            ectx.CheckUserArg(0 < Shrinkage, nameof(Shrinkage), Strings.MustBePositive);
+            ectx.CheckUserArg(0 <= DropoutRate && DropoutRate <= 1, nameof(DropoutRate), Strings.MustBeBetween0And1);
+            ectx.CheckUserArg(0 < GetDerivativesSampleRate, nameof(GetDerivativesSampleRate), Strings.MustBePositive);
+            ectx.CheckUserArg(0 <= MaximumNumberOfLineSearchSteps, nameof(MaximumNumberOfLineSearchSteps), Strings.MustBeNonNegative);
+            ectx.CheckUserArg(0 <= MinimumStepSize, nameof(MinimumStepSize), Strings.MustBeNonNegative);
         }
     }
 }

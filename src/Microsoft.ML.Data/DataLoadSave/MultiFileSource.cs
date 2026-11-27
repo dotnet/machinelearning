@@ -84,7 +84,7 @@ namespace Microsoft.ML.Data
             }
             catch (Exception e)
             {
-                throw Contracts.ExceptIO(e, "Could not open file '{0}'. Error is: {1}", path, e.Message);
+                throw Contracts.ExceptIO(e, Strings.CouldNotOpenFileErrorIs, path, e.Message);
             }
         }
 
@@ -104,7 +104,7 @@ namespace Microsoft.ML.Data
         public FileHandleSource(IFileHandle file)
         {
             Contracts.CheckValue(file, nameof(file));
-            Contracts.CheckParam(file.CanRead, nameof(file), "File handle must be readable");
+            Contracts.CheckParam(file.CanRead, nameof(file), Strings.FileHandleMustBeReadable);
             _file = file;
         }
 

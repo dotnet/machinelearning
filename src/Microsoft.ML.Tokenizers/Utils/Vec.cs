@@ -20,7 +20,7 @@ namespace Microsoft.ML.Tokenizers
             {
                 if (index >= _count)
                 {
-                    throw new ArgumentOutOfRangeException(nameof(index), $"{index} is out of range");
+                    throw new ArgumentOutOfRangeException(nameof(index), string.Format(Strings.IsOutOfRange, index));
                 }
                 return ref _buffer![index];
             }

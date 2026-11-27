@@ -442,7 +442,7 @@ namespace Microsoft.ML.AutoML
                 }
             }
 
-            throw new ArgumentException($"The runner metric manager is of type {_metricManager.GetType()} which expected to be of type {typeof(ITrainValidateDatasetManager)} or {typeof(ICrossValidateDatasetManager)}");
+            throw new ArgumentException(string.Format(Strings.RunnerMetricManagerTypeMismatch, _metricManager.GetType(), typeof(ITrainValidateDatasetManager), typeof(ICrossValidateDatasetManager)));
         }
 
         public Task<TrialResult> RunAsync(TrialSettings settings, CancellationToken ct)
@@ -479,7 +479,7 @@ namespace Microsoft.ML.AutoML
                 BinaryClassificationMetric.NegativePrecision => metrics.NegativePrecision,
                 BinaryClassificationMetric.NegativeRecall => metrics.NegativeRecall,
                 BinaryClassificationMetric.F1Score => metrics.F1Score,
-                _ => throw new NotImplementedException($"{metric} is not supported!"),
+                _ => throw new NotImplementedException(string.Format(Strings.IsNotSupported, metric)),
             };
         }
     }

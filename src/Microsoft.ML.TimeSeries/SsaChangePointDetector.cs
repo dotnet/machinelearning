@@ -141,7 +141,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
                     break;
                 default:
                     InternalTransform.Host.Assert(!Enum.IsDefined(typeof(MartingaleType), InternalTransform.Martingale));
-                    throw InternalTransform.Host.ExceptUserArg(nameof(options.Martingale), "Value not defined.");
+                    throw InternalTransform.Host.ExceptUserArg(nameof(options.Martingale), Strings.ValueNotDefined);
             }
         }
 

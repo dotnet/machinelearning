@@ -50,7 +50,7 @@ namespace Microsoft.ML.Transforms
         protected InternalCountTableBuilderBase(long labelCardinality)
         {
             LabelCardinality = (int)labelCardinality;
-            Contracts.CheckParam(LabelCardinality == labelCardinality, nameof(labelCardinality), "Label cardinality must be less than int.MaxValue");
+            Contracts.CheckParam(LabelCardinality == labelCardinality, nameof(labelCardinality), Strings.LabelCardinalityMustBeLessThanIntMaxValue);
 
             PriorCounts = new double[LabelCardinality];
         }

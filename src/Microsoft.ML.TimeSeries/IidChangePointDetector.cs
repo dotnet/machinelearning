@@ -131,7 +131,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
                     break;
                 default:
                     throw InternalTransform.Host.ExceptParam(nameof(options.Martingale),
-                        "The martingale type can be only (0) None, (1) Power or (2) Mixture.");
+                        Strings.MartingaleTypeOutOfRange);
             }
         }
 

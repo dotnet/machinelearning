@@ -150,7 +150,7 @@ namespace Microsoft.ML.Tokenizers
                 {
                     if (!_vocab.TryGetValue(UnknownToken!, out (int unknownId, string token) value))
                     {
-                        throw new ArgumentException($"The Unknown token '{UnknownToken}' is not found in the vocabulary.");
+                        throw new ArgumentException(string.Format(Strings.TheUnknownTokenIsNotFoundInTheVocabulary, UnknownToken));
                     }
 
                     UnknownTokenId = value.unknownId;
@@ -160,7 +160,7 @@ namespace Microsoft.ML.Tokenizers
                 {
                     if (!_vocab.TryGetValue(BeginningOfSentenceToken!, out (int beggingOfSentenceId, string token) value))
                     {
-                        throw new ArgumentException($"The beginning of sentence token '{BeginningOfSentenceToken}' is not found in the vocabulary.");
+                        throw new ArgumentException(string.Format(Strings.BeginningOfSentenceTokenMissingFromVocabulary, BeginningOfSentenceToken));
                     }
 
                     BeginningOfSentenceId = value.beggingOfSentenceId;
@@ -170,7 +170,7 @@ namespace Microsoft.ML.Tokenizers
                 {
                     if (!_vocab.TryGetValue(EndOfSentenceToken!, out (int endOfSentenceId, string token) value))
                     {
-                        throw new ArgumentException($"The end of sentence token '{EndOfSentenceToken}' is not found in the vocabulary.");
+                        throw new ArgumentException(string.Format(Strings.EndOfSentenceTokenMissingFromVocabulary, EndOfSentenceToken));
                     }
 
                     EndOfSentenceId = value.endOfSentenceId;
@@ -178,12 +178,12 @@ namespace Microsoft.ML.Tokenizers
 
                 if (AddBeginningOfSentence && string.IsNullOrEmpty(BeginningOfSentenceToken))
                 {
-                    throw new ArgumentException("The beginning of sentence token must be provided when the flag is set to include it in the encoding.");
+                    throw new ArgumentException(Strings.BeginningOfSentenceTokenRequired);
                 }
 
                 if (AddEndOfSentence && string.IsNullOrEmpty(EndOfSentenceToken))
                 {
-                    throw new ArgumentException("The end of sentence token must be provided when the flag is set to include it in the encoding.");
+                    throw new ArgumentException(Strings.EndOfSentenceTokenRequired);
                 }
             }
             finally
@@ -579,7 +579,7 @@ namespace Microsoft.ML.Tokenizers
         {
             if (maxTokenCount <= 0)
             {
-                throw new ArgumentOutOfRangeException(nameof(maxTokenCount), "The maximum number of tokens must be greater than zero.");
+                throw new ArgumentOutOfRangeException(nameof(maxTokenCount), Strings.TheMaximumNumberOfTokensMustBeGreaterThanZero);
             }
 
             if (string.IsNullOrEmpty(text) && textSpan.IsEmpty)
@@ -797,7 +797,7 @@ namespace Microsoft.ML.Tokenizers
         {
             if (maxTokenCount <= 0)
             {
-                throw new ArgumentOutOfRangeException(nameof(maxTokenCount), "The maximum number of tokens must be greater than zero.");
+                throw new ArgumentOutOfRangeException(nameof(maxTokenCount), Strings.TheMaximumNumberOfTokensMustBeGreaterThanZero);
             }
 
             charsConsumed = 0;
@@ -935,7 +935,7 @@ namespace Microsoft.ML.Tokenizers
         {
             if (maxTokenCount <= 0)
             {
-                throw new ArgumentOutOfRangeException(nameof(maxTokenCount), "The maximum number of tokens must be greater than zero.");
+                throw new ArgumentOutOfRangeException(nameof(maxTokenCount), Strings.TheMaximumNumberOfTokensMustBeGreaterThanZero);
             }
 
             if (string.IsNullOrEmpty(text) && textSpan.IsEmpty)
@@ -1753,12 +1753,12 @@ namespace Microsoft.ML.Tokenizers
             }
             catch (Exception e)
             {
-                throw new ArgumentException($"Problems met when parsing JSON vocabulary object.{Environment.NewLine}Error message: {e.Message}");
+                throw new ArgumentException(string.Format(Strings.ProblemsMetWhenParsingJSONVocabularyObjectErrorMessage, Environment.NewLine, e.Message));
             }
 
             if (vocab is null)
             {
-                throw new ArgumentException($"Failed to read the vocabulary file.");
+                throw new ArgumentException(Strings.FailedToReadTheVocabularyFile);
             }
 
             return vocab;
@@ -1784,7 +1784,7 @@ namespace Microsoft.ML.Tokenizers
                     int index = line.IndexOf(' ');
                     if (index < 1 || index == line.Length - 1 || line.IndexOf(' ', index + 1) != -1)
                     {
-                        throw new FormatException($"Invalid format of merge file at line: \"{line}\"");
+                        throw new FormatException(string.Format(Strings.InvalidFormatOfMergeFileAtLine, line));
                     }
 
                     mergeRanks.Add(new StringSpanOrdinalKeyPair(line.Substring(0, index), line.Substring(index + 1)), rank++);
@@ -1793,7 +1793,7 @@ namespace Microsoft.ML.Tokenizers
             catch (Exception e)
             {
                 // Report any issues encountered while consuming a data file as IOExceptions.
-                throw new IOException($"Cannot read the file Merge file.{Environment.NewLine}Error message: {e.Message}", e);
+                throw new IOException(string.Format(Strings.CannotReadTheFileMergeFileErrorMessage, Environment.NewLine, e.Message), e);
             }
 
             return mergeRanks;

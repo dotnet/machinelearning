@@ -54,7 +54,7 @@ namespace Microsoft.ML.AutoML
         {
             if (numberOfCVFolds <= 1)
             {
-                throw new ArgumentException($"{nameof(numberOfCVFolds)} must be at least 2", nameof(numberOfCVFolds));
+                throw new ArgumentException(Strings.NumberOfCVFoldsMustBeAtLeast2, nameof(numberOfCVFolds));
             }
         }
 
@@ -62,7 +62,7 @@ namespace Microsoft.ML.AutoML
         {
             if (task == TaskKind.Ranking && samplingKeyColumnName != null && samplingKeyColumnName != groupIdColumnName)
             {
-                throw new ArgumentException($"If provided, {nameof(samplingKeyColumnName)} must be the same as {nameof(groupIdColumnName)} for Ranking Experiments", samplingKeyColumnName);
+                throw new ArgumentException(Strings.RankingSamplingKeyColumnMustMatchGroupIdColumn, samplingKeyColumnName);
             }
         }
 
@@ -70,19 +70,19 @@ namespace Microsoft.ML.AutoML
         {
             if (trainData == null)
             {
-                throw new ArgumentNullException(nameof(trainData), "Training data cannot be null");
+                throw new ArgumentNullException(nameof(trainData), Strings.TrainingDataCannotBeNull);
             }
 
             if (DatasetDimensionsUtil.IsDataViewEmpty(trainData))
             {
-                throw new ArgumentException("Training data has 0 rows", nameof(trainData));
+                throw new ArgumentException(Strings.TrainingDataHas0Rows, nameof(trainData));
             }
 
             foreach (var column in trainData.Schema)
             {
                 if (column.Name == DefaultColumnNames.Features && column.Type.GetItemType() != NumberDataViewType.Single)
                 {
-                    throw new ArgumentException($"{DefaultColumnNames.Features} column must be of data type {NumberDataViewType.Single}", nameof(trainData));
+                    throw new ArgumentException(string.Format(Strings.ColumnMustBeOfDataType, DefaultColumnNames.Features, NumberDataViewType.Single), nameof(trainData));
                 }
 
                 if ((column.Name != columnInformation.LabelColumnName &&
@@ -94,10 +94,7 @@ namespace Microsoft.ML.AutoML
                         column.Type.GetItemType() != NumberDataViewType.Single &&
                         column.Type.GetItemType() != TextDataViewType.Instance)
                 {
-                    throw new ArgumentException($"Only supported feature column types are " +
-                        $"{BooleanDataViewType.Instance}, {NumberDataViewType.Single}, and {TextDataViewType.Instance}. " +
-                        $"Please change the feature column {column.Name} of type {column.Type} to one of " +
-                        $"the supported types.", nameof(trainData));
+                    throw new ArgumentException(string.Format(Strings.UnsupportedFeatureColumnType, BooleanDataViewType.Instance, NumberDataViewType.Single, TextDataViewType.Instance, column.Name, column.Type), nameof(trainData));
                 }
             }
         }
@@ -141,7 +138,7 @@ namespace Microsoft.ML.AutoML
             var duplicateColName = FindFirstDuplicate(allColumns);
             if (duplicateColName != null)
             {
-                throw new ArgumentException($"Duplicate column name {duplicateColName} is present in two or more distinct properties of provided column information", nameof(columnInformation));
+                throw new ArgumentException(string.Format(Strings.DuplicateColumnNameInColumnInformation, duplicateColName), nameof(columnInformation));
             }
         }
 
@@ -149,7 +146,7 @@ namespace Microsoft.ML.AutoML
         {
             if (columns?.Contains(null) == true)
             {
-                throw new ArgumentException($"Null column string was specified as {columnPurpose} in column information");
+                throw new ArgumentException(string.Format(Strings.NullColumnStringWasSpecifiedAsInColumnInformation, columnPurpose));
             }
         }
 
@@ -157,7 +154,7 @@ namespace Microsoft.ML.AutoML
         {
             if (labelColumn == null)
             {
-                throw new ArgumentException("Provided label column cannot be null");
+                throw new ArgumentException(Strings.ProvidedLabelColumnCannotBeNull);
             }
         }
 
@@ -165,19 +162,19 @@ namespace Microsoft.ML.AutoML
         {
             if (path == null)
             {
-                throw new ArgumentNullException(nameof(path), "Provided path cannot be null");
+                throw new ArgumentNullException(nameof(path), Strings.ProvidedPathCannotBeNull);
             }
 
             var fileInfo = new FileInfo(path);
 
             if (!fileInfo.Exists)
             {
-                throw new ArgumentException($"File '{path}' does not exist", nameof(path));
+                throw new ArgumentException(string.Format(Strings.FileDoesNotExist, path), nameof(path));
             }
 
             if (fileInfo.Length == 0)
             {
-                throw new ArgumentException($"File at path '{path}' cannot be empty", nameof(path));
+                throw new ArgumentException(string.Format(Strings.FileAtPathCannotBeEmpty, path), nameof(path));
             }
         }
 
@@ -190,15 +187,14 @@ namespace Microsoft.ML.AutoML
 
             if (DatasetDimensionsUtil.IsDataViewEmpty(validationData))
             {
-                throw new ArgumentException("Validation data has 0 rows", nameof(validationData));
+                throw new ArgumentException(Strings.ValidationDataHas0Rows, nameof(validationData));
             }
 
             const string schemaMismatchError = "Training data and validation data schemas do not match.";
 
             if (trainData.Schema.Count(c => !c.IsHidden) != validationData.Schema.Count(c => !c.IsHidden))
             {
-                throw new ArgumentException($"{schemaMismatchError} Train data has '{trainData.Schema.Count}' columns," +
-                    $"and validation data has '{validationData.Schema.Count}' columns.", nameof(validationData));
+                throw new ArgumentException(string.Format(Strings.TrainDataHasColumnsAndValidationDataHasColumns, schemaMismatchError, trainData.Schema.Count, validationData.Schema.Count), nameof(validationData));
             }
 
             // Validate that every active column in the train data corresponds to an active column in the validation data.
@@ -214,13 +210,12 @@ namespace Microsoft.ML.AutoML
                 var validCol = validationData.Schema.GetColumnOrNull(trainCol.Name);
                 if (validCol == null)
                 {
-                    throw new ArgumentException($"{schemaMismatchError} Column '{trainCol.Name}' exists in train data, but not in validation data.", nameof(validationData));
+                    throw new ArgumentException(string.Format(Strings.ColumnExistsInTrainDataButNotInValidationData, schemaMismatchError, trainCol.Name), nameof(validationData));
                 }
 
                 if (trainCol.Type != validCol.Value.Type && !trainCol.Type.Equals(validCol.Value.Type))
                 {
-                    throw new ArgumentException($"{schemaMismatchError} Column '{trainCol.Name}' is of type {trainCol.Type} in train data, and type " +
-                        $"{validCol.Value.Type} in validation data.", nameof(validationData));
+                    throw new ArgumentException(string.Format(Strings.TrainValidationColumnTypeMismatch, schemaMismatchError, trainCol.Name, trainCol.Type, validCol.Value.Type), nameof(validationData));
                 }
             }
         }
@@ -270,13 +265,11 @@ namespace Microsoft.ML.AutoML
             {
                 if (allowedTypes.Count() == 1)
                 {
-                    throw new ArgumentException($"Provided {columnPurpose} column '{columnName}' was of type {itemType}, " +
-                        $"but only type {allowedTypes.First()} is allowed.");
+                    throw new ArgumentException(string.Format(Strings.ProvidedColumnWasOfTypeButOnlyTypeIsAllowed, columnPurpose, columnName, itemType, allowedTypes.First()));
                 }
                 else
                 {
-                    throw new ArgumentException($"Provided {columnPurpose} column '{columnName}' was of type {itemType}, " +
-                        $"but only types {string.Join(", ", allowedTypes)} are allowed.");
+                    throw new ArgumentException(string.Format(Strings.ProvidedColumnWasOfTypeButOnlyTypesAreAllowed, columnPurpose, columnName, itemType, string.Join(", ", allowedTypes)));
                 }
             }
         }
@@ -320,7 +313,7 @@ namespace Microsoft.ML.AutoML
                 case TaskKind.Ranking:
                     return new DataViewType[] { NumberDataViewType.Single };
                 default:
-                    throw new NotSupportedException($"Unsupported task type: {task}");
+                    throw new NotSupportedException(string.Format(Strings.UnsupportedTaskType, task));
             }
         }
     }

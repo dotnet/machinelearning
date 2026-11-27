@@ -142,7 +142,7 @@ namespace Microsoft.ML.Transforms
         public Temporary AcquireTemporary(Type type, bool isRef = false)
         {
             Contracts.CheckValue(type, nameof(type));
-            Contracts.Check(Il != null, "Cannot access IL for a method that has already been created");
+            Contracts.Check(Il != null, Strings.CannotAccessIlAfterMethodCreation);
 
             if (_tempDisposer == null)
                 _tempDisposer = ReleaseLocal;

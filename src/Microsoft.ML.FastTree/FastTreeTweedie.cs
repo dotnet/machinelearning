@@ -152,7 +152,7 @@ namespace Microsoft.ML.Trainers.FastTree
             // Please do not remove it! See comment above.
             if (doEarlyStop)
                 ch.CheckUserArg(FastTreeTrainerOptions.EarlyStoppingMetrics == 1 || FastTreeTrainerOptions.EarlyStoppingMetrics == 2,
-                nameof(FastTreeTrainerOptions.EarlyStoppingMetrics), "should be 1 (L1-norm) or 2 (L2-norm).");
+                nameof(FastTreeTrainerOptions.EarlyStoppingMetrics), Strings.ShouldBe1L1NormOr2L2Norm);
         }
 
         private protected override ObjectiveFunctionBase ConstructObjFunc(IChannel ch)
@@ -204,7 +204,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
         private void Initialize()
         {
-            Host.CheckUserArg(1 <= FastTreeTrainerOptions.Index && FastTreeTrainerOptions.Index <= 2, nameof(FastTreeTrainerOptions.Index), "Must be in the range [1, 2]");
+            Host.CheckUserArg(1 <= FastTreeTrainerOptions.Index && FastTreeTrainerOptions.Index <= 2, nameof(FastTreeTrainerOptions.Index), Strings.MustBeBetweenOneAndTwoInclusive);
 
             _outputColumns = new[]
             {

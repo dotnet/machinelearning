@@ -162,7 +162,7 @@ namespace Microsoft.ML.Transforms
                     return "Unicode escapes not permitted in preprocessor directives";
 
                 default:
-                    Contracts.Assert(false, "Unknown error id: " + eid);
+                    Contracts.Assert(false, string.Format("Unknown error id: {0}", eid));
                     return "Unknown error";
             }
         }

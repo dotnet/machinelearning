@@ -98,7 +98,7 @@ namespace Microsoft.ML.AutoML
             else
             {
                 // should not be possible to reach here
-                throw new NotSupportedException($"unsupported machine learning task type {task}");
+                throw new NotSupportedException(string.Format(Strings.UnsupportedMachineLearningTaskType, task));
             }
 
             if (allowList != null)

@@ -242,19 +242,19 @@ namespace Microsoft.ML.Trainers
             options.LabelColumnName = LabelColumn.Name;
             options.ExampleWeightColumnName = WeightColumn.Name;
             Host.CheckUserArg(!LbfgsTrainerOptions.UseThreads || LbfgsTrainerOptions.NumberOfThreads > 0 || LbfgsTrainerOptions.NumberOfThreads == null,
-              nameof(LbfgsTrainerOptions.NumberOfThreads), "Must be positive (or empty for default)");
-            Host.CheckUserArg(LbfgsTrainerOptions.L2Regularization >= 0, nameof(LbfgsTrainerOptions.L2Regularization), "Must be non-negative");
-            Host.CheckUserArg(LbfgsTrainerOptions.L1Regularization >= 0, nameof(LbfgsTrainerOptions.L1Regularization), "Must be non-negative");
-            Host.CheckUserArg(LbfgsTrainerOptions.OptimizationTolerance > 0, nameof(LbfgsTrainerOptions.OptimizationTolerance), "Must be positive");
-            Host.CheckUserArg(LbfgsTrainerOptions.HistorySize > 0, nameof(LbfgsTrainerOptions.HistorySize), "Must be positive");
-            Host.CheckUserArg(LbfgsTrainerOptions.MaximumNumberOfIterations > 0, nameof(LbfgsTrainerOptions.MaximumNumberOfIterations), "Must be positive");
-            Host.CheckUserArg(LbfgsTrainerOptions.StochasticGradientDescentInitilaizationTolerance >= 0, nameof(LbfgsTrainerOptions.StochasticGradientDescentInitilaizationTolerance), "Must be non-negative");
-            Host.CheckUserArg(LbfgsTrainerOptions.NumberOfThreads == null || LbfgsTrainerOptions.NumberOfThreads.Value >= 0, nameof(LbfgsTrainerOptions.NumberOfThreads), "Must be non-negative");
+              nameof(LbfgsTrainerOptions.NumberOfThreads), Strings.MustBePositiveOrEmptyForDefault);
+            Host.CheckUserArg(LbfgsTrainerOptions.L2Regularization >= 0, nameof(LbfgsTrainerOptions.L2Regularization), Strings.MustBeNonNegative);
+            Host.CheckUserArg(LbfgsTrainerOptions.L1Regularization >= 0, nameof(LbfgsTrainerOptions.L1Regularization), Strings.MustBeNonNegative);
+            Host.CheckUserArg(LbfgsTrainerOptions.OptimizationTolerance > 0, nameof(LbfgsTrainerOptions.OptimizationTolerance), Strings.MustBePositive);
+            Host.CheckUserArg(LbfgsTrainerOptions.HistorySize > 0, nameof(LbfgsTrainerOptions.HistorySize), Strings.MustBePositive);
+            Host.CheckUserArg(LbfgsTrainerOptions.MaximumNumberOfIterations > 0, nameof(LbfgsTrainerOptions.MaximumNumberOfIterations), Strings.MustBePositive);
+            Host.CheckUserArg(LbfgsTrainerOptions.StochasticGradientDescentInitilaizationTolerance >= 0, nameof(LbfgsTrainerOptions.StochasticGradientDescentInitilaizationTolerance), Strings.MustBeNonNegative);
+            Host.CheckUserArg(LbfgsTrainerOptions.NumberOfThreads == null || LbfgsTrainerOptions.NumberOfThreads.Value >= 0, nameof(LbfgsTrainerOptions.NumberOfThreads), Strings.MustBeNonNegative);
 
-            Host.CheckParam(!(LbfgsTrainerOptions.L2Regularization < 0), nameof(LbfgsTrainerOptions.L2Regularization), "Must be non-negative, if provided.");
-            Host.CheckParam(!(LbfgsTrainerOptions.L1Regularization < 0), nameof(LbfgsTrainerOptions.L1Regularization), "Must be non-negative, if provided");
-            Host.CheckParam(!(LbfgsTrainerOptions.OptimizationTolerance <= 0), nameof(LbfgsTrainerOptions.OptimizationTolerance), "Must be positive, if provided.");
-            Host.CheckParam(!(LbfgsTrainerOptions.HistorySize <= 0), nameof(LbfgsTrainerOptions.HistorySize), "Must be positive, if provided.");
+            Host.CheckParam(!(LbfgsTrainerOptions.L2Regularization < 0), nameof(LbfgsTrainerOptions.L2Regularization), Strings.MustBeNonNegativeIfProvided);
+            Host.CheckParam(!(LbfgsTrainerOptions.L1Regularization < 0), nameof(LbfgsTrainerOptions.L1Regularization), Strings.MustBeNonNegativeIfProvided);
+            Host.CheckParam(!(LbfgsTrainerOptions.OptimizationTolerance <= 0), nameof(LbfgsTrainerOptions.OptimizationTolerance), Strings.MustBePositiveIfProvided);
+            Host.CheckParam(!(LbfgsTrainerOptions.HistorySize <= 0), nameof(LbfgsTrainerOptions.HistorySize), Strings.MustBePositiveIfProvided);
 
             L2Weight = LbfgsTrainerOptions.L2Regularization;
             L1Weight = LbfgsTrainerOptions.L1Regularization;
@@ -443,7 +443,7 @@ namespace Microsoft.ML.Trainers
             if (NumFeatures >= Utils.ArrayMaxSize / ClassCount)
             {
                 throw Contracts.ExceptParam(nameof(data),
-                    "The number of model parameters which is equal to ('# of features' + 1) * '# of classes' should be less than or equal to {0}.", Utils.ArrayMaxSize);
+                    Strings.ModelParameterCountExceedsLimit, Utils.ArrayMaxSize);
             }
 
             using (var ch = Host.Start("Training"))
@@ -536,7 +536,7 @@ namespace Microsoft.ML.Trainers
                 if (cursor.SkippedRowCount > 0)
                     ch.Warning("Skipped {0} instances with missing features/label/weight during training", cursor.SkippedRowCount);
             }
-            ch.Check(NumGoodRows > 0, NoTrainingInstancesMessage);
+            ch.Check(NumGoodRows > 0, Strings.NoValidTrainingInstancesFoundAllInstancesHaveMissingFeatures);
 
             int[] labelsArray = labelsList.ToArray();
             float[] featuresArray = featuresList.ToArray();
@@ -639,7 +639,7 @@ namespace Microsoft.ML.Trainers
                 NumGoodRows = cursor.KeptRowCount;
                 numBad = cursor.SkippedRowCount;
             }
-            ch.Check(NumGoodRows > 0, NoTrainingInstancesMessage);
+            ch.Check(NumGoodRows > 0, Strings.NoValidTrainingInstancesFoundAllInstancesHaveMissingFeatures);
             if (numBad > 0)
                 ch.Warning("Skipped {0} instances with missing features/label/weight during training", numBad);
 
@@ -894,21 +894,19 @@ namespace Microsoft.ML.Trainers
             var initWeights = new float[BiasCount + WeightCount];
 
             int i = 0;
-            const string classError = "The initialization predictor has different number of classes than the training data.";
             foreach (var bias in biases)
             {
-                Contracts.Check(i < BiasCount, classError);
+                Contracts.Check(i < BiasCount, Strings.InitializationPredictorClassCountMismatch);
                 initWeights[i++] = bias;
             }
-            Contracts.Check(i == BiasCount, classError);
+            Contracts.Check(i == BiasCount, Strings.InitializationPredictorClassCountMismatch);
 
-            const string featError = "The initialization predictor has different number of features than the training data.";
             foreach (var weight in weights)
             {
-                Contracts.Check(i < initWeights.Length, featError);
+                Contracts.Check(i < initWeights.Length, Strings.InitializationPredictorFeatureCountMismatch);
                 initWeights[i++] = weight;
             }
-            Contracts.Check(i == initWeights.Length, featError);
+            Contracts.Check(i == initWeights.Length, Strings.InitializationPredictorFeatureCountMismatch);
 
             return new VBuffer<float>(initWeights.Length, initWeights);
         }

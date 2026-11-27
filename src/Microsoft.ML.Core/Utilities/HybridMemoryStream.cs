@@ -50,7 +50,7 @@ namespace Microsoft.ML.Internal.Utilities
         public HybridMemoryStream(int maxLen = _defaultMaxLen)
         {
             if (!(0 <= maxLen && maxLen <= Utils.ArrayMaxSize))
-                throw Contracts.ExceptParam(nameof(maxLen), "must be in range [0,{0}]", Utils.ArrayMaxSize);
+                throw Contracts.ExceptParam(nameof(maxLen), Strings.MustBeBetweenZeroAndUpperBoundInclusive, Utils.ArrayMaxSize);
             _memStream = new MemoryStream();
             _overflowBoundary = maxLen;
             AssertInvariants();
@@ -68,15 +68,15 @@ namespace Microsoft.ML.Internal.Utilities
         public static Stream CreateCache(Stream stream, int maxLen = _defaultMaxLen)
         {
             Contracts.CheckValue(stream, nameof(stream));
-            Contracts.CheckParam(stream.CanRead, nameof(stream), "Cannot copy a stream we cannot read");
+            Contracts.CheckParam(stream.CanRead, nameof(stream), Strings.CannotCopyAStreamWeCannotRead);
             if (!(0 <= maxLen && maxLen <= Utils.ArrayMaxSize))
-                throw Contracts.ExceptParam(nameof(maxLen), "must be in range [0,{0}]", Utils.ArrayMaxSize);
+                throw Contracts.ExceptParam(nameof(maxLen), Strings.MustBeBetweenZeroAndUpperBoundInclusive, Utils.ArrayMaxSize);
 
             if (stream.CanSeek)
             {
                 // If we can seek, then we can know the length ahead of time,
                 // and return the less-overhead memory stream directly if appropriate.
-                Contracts.CheckParam(stream.Position == 0, nameof(stream), "Should be at the head of the stream");
+                Contracts.CheckParam(stream.Position == 0, nameof(stream), Strings.ShouldBeAtTheHeadOfTheStream);
                 long len = stream.Length;
                 if (len <= maxLen)
                 {
@@ -153,14 +153,14 @@ namespace Microsoft.ML.Internal.Utilities
         private void EnsureOverflow()
         {
             AssertInvariants();
-            Contracts.Check(!_disposed, "Stream already disposed");
+            Contracts.Check(!_disposed, Strings.StreamAlreadyDisposed);
             if (_overflowStream != null)
                 return;
             Contracts.Assert(_memStream != null);
             // MemoryStreams return that they cannot read when they are closed.
             // The only way that stream would be closed is if we ourselves have
             // been closed.
-            Contracts.Check(_memStream.CanRead, "attempt to perform operation on closed stream");
+            Contracts.Check(_memStream.CanRead, Strings.AttemptToPerformOperationOnClosedStream);
 
             string overflowPath = Path.GetTempFileName();
             _overflowStream = new FileStream(overflowPath, FileMode.Open, FileAccess.ReadWrite,
@@ -184,9 +184,9 @@ namespace Microsoft.ML.Internal.Utilities
 
         public override void SetLength(long value)
         {
-            Contracts.CheckParam(0 <= value, nameof(value), "cannot be negative");
+            Contracts.CheckParam(0 <= value, nameof(value), Strings.CannotBeNegative);
             AssertInvariants();
-            Contracts.Check(!_disposed, "Stream already disposed");
+            Contracts.Check(!_disposed, Strings.StreamAlreadyDisposed);
             if (value > _overflowBoundary)
                 EnsureOverflow();
             MyStream.SetLength(value);
@@ -196,21 +196,21 @@ namespace Microsoft.ML.Internal.Utilities
         public override long Seek(long offset, SeekOrigin origin)
         {
             AssertInvariants();
-            Contracts.Check(!_disposed, "Stream already disposed");
+            Contracts.Check(!_disposed, Strings.StreamAlreadyDisposed);
             return MyStream.Seek(offset, origin);
         }
 
         public override int Read(byte[] buffer, int offset, int count)
         {
             AssertInvariants();
-            Contracts.Check(!_disposed, "Stream already disposed");
+            Contracts.Check(!_disposed, Strings.StreamAlreadyDisposed);
             return MyStream.Read(buffer, offset, count);
         }
 
         public override void Write(byte[] buffer, int offset, int count)
         {
             AssertInvariants();
-            Contracts.Check(!_disposed, "Stream already disposed");
+            Contracts.Check(!_disposed, Strings.StreamAlreadyDisposed);
             Contracts.CheckValue(buffer, nameof(buffer));
             Contracts.CheckParam(0 <= offset && offset <= buffer.Length, nameof(offset));
             Contracts.CheckParam(0 <= count && count <= buffer.Length - offset, nameof(count));
@@ -223,14 +223,14 @@ namespace Microsoft.ML.Internal.Utilities
         public override int ReadByte()
         {
             AssertInvariants();
-            Contracts.Check(!_disposed, "Stream already disposed");
+            Contracts.Check(!_disposed, Strings.StreamAlreadyDisposed);
             return MyStream.ReadByte();
         }
 
         public override void WriteByte(byte value)
         {
             AssertInvariants();
-            Contracts.Check(!_disposed, "Stream already disposed");
+            Contracts.Check(!_disposed, Strings.StreamAlreadyDisposed);
             if (IsMemory && _memStream.Position >= _overflowBoundary)
                 EnsureOverflow();
             MyStream.WriteByte(value);

@@ -55,7 +55,7 @@ namespace Microsoft.ML.EntryPoints
                 var rms = new RoleMappedSchema(viewTrain.Schema, input.GetRoles());
                 var feats = rms.GetColumns(RoleMappedSchema.ColumnRole.Feature);
                 if (Utils.Size(feats) == 0)
-                    throw ch.Except("No feature columns specified");
+                    throw ch.Except(Strings.NoFeatureColumnsSpecified);
                 var featNames = new HashSet<string>();
                 var concatNames = new List<KeyValuePair<string, string>>();
                 List<TypeConvertingEstimator.ColumnOptions> cvt;
@@ -64,7 +64,7 @@ namespace Microsoft.ML.EntryPoints
                 Contracts.Assert(featNames.Count > 0);
                 Contracts.Assert(concatNames.Count == featNames.Count);
                 if (errCount > 0)
-                    throw ch.Except("Encountered {0} invalid training column(s)", errCount);
+                    throw ch.Except(Strings.EncounteredInvalidTrainingColumnS, errCount);
 
                 viewTrain = ApplyConvert(cvt, viewTrain, host);
                 viewTrain = ApplyKeyToVec(ktv, viewTrain, host);
@@ -292,7 +292,7 @@ namespace Microsoft.ML.EntryPoints
 
             var labelCol = input.Data.Schema.GetColumnOrNull(input.LabelColumn);
             if (!labelCol.HasValue)
-                throw host.Except($"Column '{input.LabelColumn}' not found.");
+                throw host.Except(string.Format(Strings.ColumnNotFound, input.LabelColumn));
             var labelType = labelCol.Value.Type;
             if (labelType == NumberDataViewType.Single || !(labelType is NumberDataViewType))
             {

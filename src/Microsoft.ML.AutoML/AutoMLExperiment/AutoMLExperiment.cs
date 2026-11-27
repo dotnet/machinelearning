@@ -342,7 +342,7 @@ Abandoning Trial {trialSettings.TrialId} and continue training.
             trialResultManager?.Save();
             if (_bestTrialResult == null)
             {
-                throw new TimeoutException("Training time finished without completing a successful trial. Either no trial completed or the metric for all completed trials are NaN or Infinity");
+                throw new TimeoutException(Strings.NoSuccessfulTrialCompleted);
             }
             else
             {
@@ -352,7 +352,7 @@ Abandoning Trial {trialSettings.TrialId} and continue training.
 
         private void ValidateSettings()
         {
-            Contracts.Assert(_settings.MaxExperimentTimeInSeconds > 0, $"{nameof(ExperimentSettings.MaxExperimentTimeInSeconds)} must be larger than 0");
+            Contracts.Assert(_settings.MaxExperimentTimeInSeconds > 0, "MaxExperimentTimeInSeconds must be larger than 0");
         }
 
 

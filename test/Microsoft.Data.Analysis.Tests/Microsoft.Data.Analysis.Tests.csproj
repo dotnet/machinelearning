@@ -53,8 +53,17 @@
     </ItemGroup>
 
     <ItemGroup>
-        <Compile Include="../../src/Microsoft.Data.Analysis/Strings.Designer.cs" />
-        <EmbeddedResource Include="../../src/Microsoft.Data.Analysis/Strings.resx" LogicalName="Microsoft.Data.Analysis.Strings.resources" />
+        <EmbeddedResource Include="../../src/Microsoft.Data.Analysis/Resources/Strings.resx"
+                          Link="Resources/Strings.resx"
+                          LogicalName="$(AssemblyName).Resources.Strings.resources">
+            <StronglyTypedClassName>Strings</StronglyTypedClassName>
+            <StronglyTypedFileName>$(IntermediateOutputPath)Strings.Designer.cs</StronglyTypedFileName>
+            <StronglyTypedLanguage>CSharp</StronglyTypedLanguage>
+            <StronglyTypedManifestPrefix>$(AssemblyName).Resources</StronglyTypedManifestPrefix>
+            <StronglyTypedNamespace>$(AssemblyName).Resources</StronglyTypedNamespace>
+            <XlfInput>false</XlfInput>
+        </EmbeddedResource>
+        <Using Include="$(AssemblyName).Resources.Strings" Alias="Strings" />
     </ItemGroup>
 
     <ItemGroup>

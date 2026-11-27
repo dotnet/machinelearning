@@ -77,7 +77,7 @@ namespace Microsoft.ML.Transforms
             {
                 var col = inputColumns[i];
                 var size = col.Type.GetValueCount();
-                _host.Check(size > 0, "vectors of unknown length are not supported");
+                _host.Check(size > 0, Strings.VectorsOfUnknownLengthAreNotSupported);
                 _countTableBuilders[i] = new InternalCountTableBuilderBase[size];
 
                 for (int j = 0; j < size; j++)
@@ -92,14 +92,14 @@ namespace Microsoft.ML.Transforms
             _host = env.Register(RegistrationName);
 
             var n = table.ColCount;
-            _host.Check(Utils.Size(inputCols) == n, "Inconsistent number of columns");
+            _host.Check(Utils.Size(inputCols) == n, Strings.InconsistentNumberOfColumns);
             _countTableBuilders = new InternalCountTableBuilderBase[n][];
             var slotCounts = table.SlotCount;
             for (int i = 0; i < _countTableBuilders.Length; i++)
             {
                 var size = slotCounts[i];
                 _host.Assert(size > 0);
-                _host.Check(size == inputCols[i].Type.GetValueCount(), "Inconsistent number of slots");
+                _host.Check(size == inputCols[i].Type.GetValueCount(), Strings.InconsistentNumberOfSlots);
                 _countTableBuilders[i] = new InternalCountTableBuilderBase[size];
 
                 for (int j = 0; j < size; j++)
@@ -142,8 +142,8 @@ namespace Microsoft.ML.Transforms
             {
                 get
                 {
-                    Host.Check(0 <= iCol && iCol < ColCount, nameof(iCol));
-                    Host.Check(0 <= iSlot && iSlot < SlotCount[iCol], nameof(iSlot));
+                    Host.Check(0 <= iCol && iCol < ColCount, Strings.ColumnIndexMustBeWithinTheCountTableRange);
+                    Host.Check(0 <= iSlot && iSlot < SlotCount[iCol], Strings.SlotIndexMustBeWithinTheSelectedColumnRange);
                     return _countTables[iCol][iSlot];
                 }
             }
@@ -261,9 +261,9 @@ namespace Microsoft.ML.Transforms
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(table, nameof(table));
             _host = env.Register(LoaderSignature);
-            _host.Check(Utils.Size(inputCols) == table.ColCount, "Inconsistent number of columns");
+            _host.Check(Utils.Size(inputCols) == table.ColCount, Strings.InconsistentNumberOfColumns);
             _host.Check(table.SlotCount.Zip(inputCols, (count, col) => (count, col)).
-                All(pair => pair.col.Type.GetValueCount() == pair.count), "Inconsistent number of slots");
+                All(pair => pair.col.Type.GetValueCount() == pair.count), Strings.InconsistentNumberOfSlots);
 
             _builder = table.BaseTable.ToBuilder(labelCardinality);
             _colCount = table.ColCount;
@@ -295,8 +295,8 @@ namespace Microsoft.ML.Transforms
             {
                 get
                 {
-                    Host.Check(0 <= iCol && iCol < ColCount, nameof(iCol));
-                    Host.Check(0 <= iSlot && iSlot < SlotCount[iCol], nameof(iSlot));
+                    Host.Check(0 <= iCol && iCol < ColCount, Strings.ColumnIndexMustBeWithinTheCountTableRange);
+                    Host.Check(0 <= iSlot && iSlot < SlotCount[iCol], Strings.SlotIndexMustBeWithinTheSelectedColumnRange);
                     return new ProxyCountTable(iCol, iSlot, _baseTable);
                 }
             }
@@ -378,7 +378,7 @@ namespace Microsoft.ML.Transforms
                 public ProxyCountTable(int iCol, int iSlot, ICountTable baseCountTable)
                 {
                     Contracts.CheckValue(baseCountTable, nameof(baseCountTable));
-                    Contracts.Check(baseCountTable.GarbageThreshold == 0, "Garbage bin not supported for shared table");
+                    Contracts.Check(baseCountTable.GarbageThreshold == 0, Strings.GarbageBinNotSupportedForSharedTable);
 
                     _mixin = Hashing.MurmurRound((uint)iCol, (uint)iSlot);
                     _table = baseCountTable;

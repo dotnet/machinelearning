@@ -112,9 +112,9 @@ namespace Microsoft.ML.Data
         {
             var host = Host.NotSensitive();
             host.CheckValue(args, nameof(args));
-            host.CheckUserArg(args.MaxAucExamples >= -1, nameof(args.MaxAucExamples), "Must be at least -1");
-            host.CheckUserArg(args.NumRocExamples >= 0, nameof(args.NumRocExamples), "Must be non-negative");
-            host.CheckUserArg(args.NumAuPrcExamples >= 0, nameof(args.NumAuPrcExamples), "Must be non-negative");
+            host.CheckUserArg(args.MaxAucExamples >= -1, nameof(args.MaxAucExamples), Strings.MustBeAtLeastNegativeOne);
+            host.CheckUserArg(args.NumRocExamples >= 0, nameof(args.NumRocExamples), Strings.MustBeNonNegative);
+            host.CheckUserArg(args.NumAuPrcExamples >= 0, nameof(args.NumAuPrcExamples), Strings.MustBeNonNegative);
 
             _useRaw = args.UseRawScoreThreshold;
             _threshold = args.Threshold;
@@ -130,7 +130,7 @@ namespace Microsoft.ML.Data
             var t = score.Type;
             if (t != NumberDataViewType.Single)
                 throw host.ExceptSchemaMismatch(nameof(schema), "score", score.Name, "Single", t.ToString());
-            host.Check(schema.Label.HasValue, "Could not find the label column");
+            host.Check(schema.Label.HasValue, Strings.CouldNotFindTheLabelColumn);
             t = schema.Label.Value.Type;
             if (t != NumberDataViewType.Single && t != NumberDataViewType.Double && t != BooleanDataViewType.Instance && t.GetKeyCount() != 2)
                 throw host.ExceptSchemaMismatch(nameof(schema), "label", schema.Label.Value.Name, "Single, Double, Boolean, or a Key with cardinality 2", t.ToString());
@@ -142,7 +142,7 @@ namespace Microsoft.ML.Data
             var host = Host.SchemaSensitive();
             if (prob != null)
             {
-                host.CheckParam(prob.Count == 1, nameof(schema), "Cannot have multiple probability columns");
+                host.CheckParam(prob.Count == 1, nameof(schema), Strings.CannotHaveMultipleProbabilityColumns);
                 var probType = prob[0].Type;
                 if (probType != NumberDataViewType.Single)
                     throw host.ExceptSchemaMismatch(nameof(schema), "probability", prob[0].Name, "Single", probType.ToString());
@@ -150,7 +150,7 @@ namespace Microsoft.ML.Data
             else if (!_useRaw)
             {
                 throw host.ExceptParam(nameof(schema),
-                    "Cannot compute the predicted label from the probability column because it does not exist");
+                    Strings.ProbabilityColumnMissingForPredictedLabel);
             }
         }
 
@@ -191,7 +191,7 @@ namespace Microsoft.ML.Data
         private protected override IRowMapper CreatePerInstanceRowMapper(RoleMappedSchema schema)
         {
             Contracts.CheckValue(schema, nameof(schema));
-            Contracts.CheckParam(schema.Label != null, nameof(schema), "Could not find the label column");
+            Contracts.CheckParam(schema.Label != null, nameof(schema), Strings.CouldNotFindTheLabelColumn);
             var scoreInfo = schema.GetUniqueColumn(AnnotationUtils.Const.ScoreValueKind.Score);
 
             var probInfos = schema.GetColumns(AnnotationUtils.Const.ScoreValueKind.Probability);
@@ -253,9 +253,9 @@ namespace Microsoft.ML.Data
             addAgg =
                 (stratColKey, stratColVal, agg) =>
                 {
-                    Host.Check(agg.Weighted == hasWeight, "All aggregators must either be weighted or unweighted");
+                    Host.Check(agg.Weighted == hasWeight, Strings.AllAggregatorsMustEitherBeWeightedOrUnweighted);
                     Host.Check((agg.AuPrcAggregator == null) == (aggregator.AuPrcAggregator == null),
-                        "All aggregators must either compute AUPRC or not compute AUPRC");
+                        Strings.AllAggregatorsMustEitherComputeAUPRCOrNotComputeAUPRC);
 
                     agg.Finish();
                     stratCol.Add(stratColKey);
@@ -1089,7 +1089,7 @@ namespace Microsoft.ML.Data
             _probCol = ctx.LoadStringOrNull();
             _probIndex = -1;
             if (_probCol != null && !schema.TryGetColumnIndex(_probCol, out _probIndex))
-                throw Host.ExceptParam(nameof(schema), "Did not find the probability column '{0}'", _probCol);
+                throw Host.ExceptParam(nameof(schema), Strings.DidNotFindTheProbabilityColumn, _probCol);
 
             CheckInputColumnTypes(schema);
 
@@ -1277,7 +1277,7 @@ namespace Microsoft.ML.Data
                     throw Host.ExceptSchemaMismatch(nameof(schema), "probability", _probCol, "Single", t.ToString());
             }
             else if (!_useRaw)
-                throw Host.Except("Cannot compute the predicted label from the probability column because it does not exist");
+                throw Host.Except(Strings.ProbabilityColumnMissingForPredictedLabel);
         }
     }
 
@@ -1358,11 +1358,11 @@ namespace Microsoft.ML.Data
 
             IDataView fold;
             if (!metrics.TryGetValue(MetricKinds.OverallMetrics, out fold))
-                throw ch.Except("No overall metrics found");
+                throw ch.Except(Strings.NoOverallMetricsFound);
 
             IDataView conf;
             if (!metrics.TryGetValue(MetricKinds.ConfusionMatrix, out conf))
-                throw ch.Except("No overall metrics found");
+                throw ch.Except(Strings.NoOverallMetricsFound);
 
             (string name, string source)[] cols =
             {
@@ -1418,7 +1418,7 @@ namespace Microsoft.ML.Data
             {
                 IDataView pr;
                 if (!TryGetPrMetrics(metrics, out pr))
-                    throw ch.Except("Did not find p/r metrics");
+                    throw ch.Except(Strings.DidNotFindPRMetrics);
 
                 ch.Trace(MessageSensitivity.None, "Saving p/r data view");
                 // If the data view contains stratification columns, filter so that only the overall metrics
@@ -1472,7 +1472,7 @@ namespace Microsoft.ML.Data
         private protected override IEnumerable<string> GetPerInstanceColumnsToSave(RoleMappedSchema schema)
         {
             Host.CheckValue(schema, nameof(schema));
-            Host.CheckParam(schema.Label.HasValue, nameof(schema), "Schema must contain a label column");
+            Host.CheckParam(schema.Label.HasValue, nameof(schema), Strings.SchemaMustContainALabelColumn);
 
             // The binary classifier evaluator outputs the label, score and probability columns.
             yield return schema.Label.Value.Name;

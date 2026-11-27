@@ -216,7 +216,7 @@ namespace Microsoft.ML.Trainers.LightGbm
         private protected override LightGbmRegressionModelParameters CreatePredictor()
         {
             Host.Check(TrainedEnsemble != null,
-                "The predictor cannot be created before training is complete");
+                Strings.ThePredictorCannotBeCreatedBeforeTrainingIsComplete);
             var innerArgs = LightGbmInterfaceUtils.JoinParameters(GbmOptions);
             return new LightGbmRegressionModelParameters(Host, TrainedEnsemble, FeatureCount, innerArgs);
         }
@@ -233,7 +233,7 @@ namespace Microsoft.ML.Trainers.LightGbm
                 if (!(labelType is BooleanDataViewType || labelType is KeyDataViewType || labelType == NumberDataViewType.Single))
                 {
                     throw ch.ExceptParam(nameof(data),
-                        $"Label column '{data.Schema.Label.Value.Name}' is of type '{labelType.RawType}', but must be an unsigned int, boolean or float.");
+                        string.Format(Strings.RegressionLabelTypeInvalid, data.Schema.Label.Value.Name, labelType.RawType));
                 }
             }
         }

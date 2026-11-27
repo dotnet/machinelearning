@@ -293,9 +293,9 @@ namespace Microsoft.ML.Data
 
             var classes = env.ComponentCatalog.FindLoadableClasses<TArgs, TSig>();
             if (classes.Length == 0)
-                throw env.Except("Couldn't find a {0} class that accepts {1} as arguments.", typeof(TRes).Name, typeof(TArgs).FullName);
+                throw env.Except(Strings.CouldntFindAClassThatAcceptsAsArguments, typeof(TRes).Name, typeof(TArgs).FullName);
             if (classes.Length > 1)
-                throw env.Except("Found too many {0} classes that accept {1} as arguments.", typeof(TRes).Name, typeof(TArgs).FullName);
+                throw env.Except(Strings.FoundTooManyClassesThatAcceptAsArguments, typeof(TRes).Name, typeof(TArgs).FullName);
 
             var lc = classes[0];
             loadName = lc.LoadNames[0];

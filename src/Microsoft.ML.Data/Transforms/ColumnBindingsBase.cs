@@ -324,17 +324,17 @@ namespace Microsoft.ML.Data
                 {
                     throw user ?
 #pragma warning disable MSML_ContractsNameUsesNameof // Unfortunately, there is no base class for the columns bindings.
-                        Contracts.ExceptUserArg(standardColumnArgName, "New column needs a name") :
+                        Contracts.ExceptUserArg(standardColumnArgName, Strings.NewColumnNeedsAName) :
 #pragma warning restore MSML_ContractsNameUsesNameof
-                        Contracts.ExceptDecode("New column needs a name");
+                        Contracts.ExceptDecode(Strings.NewColumnNeedsAName);
                 }
                 if (_nameToInfoIndex.ContainsKey(name))
                 {
                     throw user ?
 #pragma warning disable MSML_ContractsNameUsesNameof // Unfortunately, there is no base class for the columns bindings.
-                        Contracts.ExceptUserArg(standardColumnArgName, "New column '{0}' specified multiple times", name) :
+                        Contracts.ExceptUserArg(standardColumnArgName, Strings.NewColumnSpecifiedMultipleTimes, name) :
 #pragma warning restore MSML_ContractsNameUsesNameof
-                        Contracts.ExceptDecode("New column '{0}' specified multiple times", name);
+                        Contracts.ExceptDecode(Strings.NewColumnSpecifiedMultipleTimes, name);
                 }
                 _nameToInfoIndex.Add(name, iinfo);
             }

@@ -50,25 +50,23 @@ namespace Microsoft.ML.Recommender
             Contracts.AssertValue(data);
             Contracts.AssertValue(role.Value);
 
-            const string format2 = "There should be exactly one column with role {0}, but {1} were found instead";
             if (!data.Schema.HasUnique(role))
             {
                 int kindCount = Utils.Size(data.Schema.GetColumns(role));
                 if (isDecode)
-                    throw Contracts.ExceptDecode(format2, role.Value, kindCount);
-                throw Contracts.Except(format2, role.Value, kindCount);
+                    throw Contracts.ExceptDecode(Strings.RoleMustHaveExactlyOneColumn, role.Value, kindCount);
+                throw Contracts.Except(Strings.RoleMustHaveExactlyOneColumn, role.Value, kindCount);
             }
             col = data.Schema.GetColumns(role)[0];
 
             // REVIEW tfinley: Should we be a bit less restrictive? This doesn't seem like
             // too terrible of a restriction.
-            const string format = "Column '{0}' with role {1} should be a known cardinality U4 key, but is instead '{2}'";
             KeyDataViewType keyType;
             if (!TryMarshalGoodRowColumnType(col.Type, out keyType))
             {
                 if (isDecode)
-                    throw Contracts.ExceptDecode(format, col.Name, role.Value, col.Type);
-                throw Contracts.Except(format, col.Name, role.Value, col.Type);
+                    throw Contracts.ExceptDecode(Strings.RoleColumnMustBeKnownCardinalityKey, col.Name, role.Value, col.Type);
+                throw Contracts.Except(Strings.RoleColumnMustBeKnownCardinalityKey, col.Name, role.Value, col.Type);
             }
             return keyType;
         }

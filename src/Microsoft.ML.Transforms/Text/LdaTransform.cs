@@ -931,7 +931,7 @@ namespace Microsoft.ML.Transforms.Text
                 var state = new LdaState(env, columns[i], numVocabs[i]);
 
                 if (numDocArray[i] == 0 || corpusSize[i] == 0)
-                    throw ch.Except("The specified documents are all empty in column '{0}'.", columns[i].InputColumnName);
+                    throw ch.Except(Strings.TheSpecifiedDocumentsAreAllEmptyInColumn, columns[i].InputColumnName);
 
                 state.AllocateDataMemory(numDocArray[i], corpusSize[i]);
                 states[i] = state;
@@ -1190,14 +1190,14 @@ namespace Microsoft.ML.Transforms.Text
             {
                 Contracts.CheckValue(name, nameof(name));
                 Contracts.CheckValueOrNull(inputColumnName);
-                Contracts.CheckParam(numberOfTopics > 0, nameof(numberOfTopics), "Must be positive.");
-                Contracts.CheckParam(samplingStepCount > 0, nameof(samplingStepCount), "Must be positive.");
-                Contracts.CheckParam(maximumNumberOfIterations > 0, nameof(maximumNumberOfIterations), "Must be positive.");
-                Contracts.CheckParam(likelihoodInterval > 0, nameof(likelihoodInterval), "Must be positive.");
-                Contracts.CheckParam(numberOfThreads >= 0, nameof(numberOfThreads), "Must be positive or zero.");
-                Contracts.CheckParam(maximumTokenCountPerDocument > 0, nameof(maximumTokenCountPerDocument), "Must be positive.");
-                Contracts.CheckParam(numberOfSummaryTermsPerTopic > 0, nameof(numberOfSummaryTermsPerTopic), "Must be positive");
-                Contracts.CheckParam(numberOfBurninIterations >= 0, nameof(numberOfBurninIterations), "Must be non-negative.");
+                Contracts.CheckParam(numberOfTopics > 0, nameof(numberOfTopics), Strings.MustBePositive);
+                Contracts.CheckParam(samplingStepCount > 0, nameof(samplingStepCount), Strings.MustBePositive);
+                Contracts.CheckParam(maximumNumberOfIterations > 0, nameof(maximumNumberOfIterations), Strings.MustBePositive);
+                Contracts.CheckParam(likelihoodInterval > 0, nameof(likelihoodInterval), Strings.MustBePositive);
+                Contracts.CheckParam(numberOfThreads >= 0, nameof(numberOfThreads), Strings.MustBePositiveOrZero);
+                Contracts.CheckParam(maximumTokenCountPerDocument > 0, nameof(maximumTokenCountPerDocument), Strings.MustBePositive);
+                Contracts.CheckParam(numberOfSummaryTermsPerTopic > 0, nameof(numberOfSummaryTermsPerTopic), Strings.MustBePositive);
+                Contracts.CheckParam(numberOfBurninIterations >= 0, nameof(numberOfBurninIterations), Strings.MustBeNonNegative);
 
                 Name = name;
                 InputColumnName = inputColumnName ?? name;

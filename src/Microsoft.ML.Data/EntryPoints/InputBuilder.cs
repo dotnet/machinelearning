@@ -165,7 +165,7 @@ namespace Microsoft.ML.EntryPoints
         {
             var index = GetFieldIndex(name);
             if (index < 0)
-                throw Contracts.Except($"Unknown input name {name}");
+                throw Contracts.Except(string.Format(Strings.UnknownInputName, name));
             return _attrs[index].Optional;
         }
 
@@ -262,7 +262,7 @@ namespace Microsoft.ML.EntryPoints
                     {
                         // Dictionary parameter bindings. Not supported yet.
                         Contracts.Assert(paramBinding is DictionaryKeyParameterBinding);
-                        throw Contracts.ExceptNotImpl("Dictionary of variables not yet implemented.");
+                        throw Contracts.ExceptNotImpl(Strings.DictionaryOfVariablesNotYetImplemented);
                     }
                 }
                 else if (instanceVal == null && defaultsVal != null)
@@ -420,7 +420,7 @@ namespace Microsoft.ML.EntryPoints
             if (type.IsGenericType && (type.GetGenericTypeDefinition() == typeof(Var<>)))
             {
                 string varName = value.Value<string>();
-                ectx.Check(VariableBinding.IsBindingToken(value), "Variable name expected.");
+                ectx.Check(VariableBinding.IsBindingToken(value), Strings.VariableNameExpected);
                 var variable = Activator.CreateInstance(type) as IVarSerializationHelper;
                 var varBinding = VariableBinding.Create(ectx, varName);
                 variable.VarName = varBinding.VariableName;
@@ -444,7 +444,7 @@ namespace Microsoft.ML.EntryPoints
                         return value.Value<char>();
                     case TlcModule.DataKind.Enum:
                         if (!Enum.IsDefined(type, value.Value<string>()))
-                            throw ectx.Except($"Requested value '{value.Value<string>()}' is not a member of the Enum type '{type.Name}'");
+                            throw ectx.Except(string.Format(Strings.RequestedValueIsNotAMemberOfTheEnumType, value.Value<string>(), type.Name));
                         return Enum.Parse(type, value.Value<string>());
                     case TlcModule.DataKind.Float:
                         if (type == typeof(double))
@@ -458,7 +458,7 @@ namespace Microsoft.ML.EntryPoints
                         }
                     case TlcModule.DataKind.Array:
                         var ja = value as JArray;
-                        ectx.Check(ja != null, "Expected array value");
+                        ectx.Check(ja != null, Strings.ExpectedArrayValue);
                         Func<IExceptionContext, JArray, Attributes, ComponentCatalog, object> makeArray = MakeArray<int>;
                         return Utils.MarshalInvoke(makeArray, type.GetElementType(), ectx, ja, attributes, catalog);
                     case TlcModule.DataKind.Int:
@@ -476,40 +476,40 @@ namespace Microsoft.ML.EntryPoints
                         ectx.Assert(false);
                         throw ectx.ExceptNotSupp();
                     case TlcModule.DataKind.Dictionary:
-                        ectx.Check(value is JObject, "Expected object value");
+                        ectx.Check(value is JObject, Strings.ExpectedObjectValue);
                         Func<IExceptionContext, JObject, Attributes, ComponentCatalog, object> makeDict = MakeDictionary<int>;
                         return Utils.MarshalInvoke(makeDict, type.GetGenericArguments()[1], ectx, (JObject)value, attributes, catalog);
                     case TlcModule.DataKind.Component:
                         var jo = value as JObject;
-                        ectx.Check(jo != null, "Expected object value");
+                        ectx.Check(jo != null, Strings.ExpectedObjectValue);
                         // REVIEW: consider accepting strings alone.
                         var jName = jo[FieldNames.Name];
-                        ectx.Check(jName != null, "Field '" + FieldNames.Name + "' is required for component.");
-                        ectx.Check(jName is JValue, "Expected '" + FieldNames.Name + "' field to be a string.");
+                        ectx.Check(jName != null, Strings.FieldNameIsRequiredForComponent);
+                        ectx.Check(jName is JValue, Strings.ExpectedNameFieldToBeAString);
                         var name = jName.Value<string>();
                         ectx.Check(jo[FieldNames.Settings] == null || jo[FieldNames.Settings] is JObject,
-                            "Expected '" + FieldNames.Settings + "' field to be an object");
+                            Strings.ExpectedSettingsFieldToBeAnObject);
                         return GetComponentJson(ectx, type, name, jo[FieldNames.Settings] as JObject, catalog);
                     default:
                         var settings = value as JObject;
-                        ectx.Check(settings != null, "Expected object value");
+                        ectx.Check(settings != null, Strings.ExpectedObjectValue);
                         var inputBuilder = new InputBuilder(ectx, type, catalog);
 
                         if (inputBuilder._fields.Length == 0)
-                            throw ectx.Except($"Unsupported input type: {dt}");
+                            throw ectx.Except(string.Format(Strings.UnsupportedInputType, dt));
 
                         if (settings != null)
                         {
                             foreach (var pair in settings)
                             {
                                 if (!inputBuilder.TrySetValueJson(pair.Key, pair.Value))
-                                    throw ectx.Except($"Unexpected value for component '{type}', field '{pair.Key}': '{pair.Value}'");
+                                    throw ectx.Except(string.Format(Strings.UnexpectedValueForComponentField, type, pair.Key, pair.Value));
                             }
                         }
 
                         var missing = inputBuilder.GetMissingValues().ToArray();
                         if (missing.Length > 0)
-                            throw ectx.Except($"The following required inputs were not provided for component '{type}': {string.Join(", ", missing)}");
+                            throw ectx.Except(string.Format(Strings.TheFollowingRequiredInputsWereNotProvidedForComponent, type, string.Join(", ", missing)));
                         return inputBuilder.GetInstance();
                 }
             }
@@ -517,7 +517,7 @@ namespace Microsoft.ML.EntryPoints
             {
                 if (ex.IsMarked())
                     throw;
-                throw ectx.Except(ex, $"Failed to parse JSON value '{value}' as {type}");
+                throw ectx.Except(ex, string.Format(Strings.FailedToParseJSONValueAs, value, type));
             }
         }
 
@@ -537,7 +537,7 @@ namespace Microsoft.ML.EntryPoints
             // If 'type' is optional, make 'value' into an optional (this is the case of optional input).
             value = MakeOptionalIfNeeded(ectx, value, type);
             if (value != null && !type.IsInstanceOfType(value))
-                throw ectx.Except($"Unexpected value type: {value.GetType()}");
+                throw ectx.Except(string.Format(Strings.UnexpectedValueType, value.GetType()));
             return value;
         }
 
@@ -550,12 +550,12 @@ namespace Microsoft.ML.EntryPoints
             ectx.AssertValue(catalog);
 
             if (!catalog.TryGetComponentKind(signatureType, out string kind))
-                throw ectx.Except($"Component type '{signatureType}' is not a valid signature type.");
+                throw ectx.Except(string.Format(Strings.ComponentTypeIsNotAValidSignatureType, signatureType));
 
             if (!catalog.TryFindComponent(kind, name, out ComponentCatalog.ComponentInfo component))
             {
                 var available = catalog.GetAllComponents(kind).Select(x => $"'{x.Name}'");
-                throw ectx.Except($"Component '{name}' of kind '{kind}' is not found. Available components are: {string.Join(", ", available)}");
+                throw ectx.Except(string.Format(Strings.ComponentOfKindIsNotFoundAvailableComponentsAre, name, kind, string.Join(", ", available)));
             }
 
             var inputBuilder = new InputBuilder(ectx, component.ArgumentType, catalog);
@@ -564,13 +564,13 @@ namespace Microsoft.ML.EntryPoints
                 foreach (var pair in settings)
                 {
                     if (!inputBuilder.TrySetValueJson(pair.Key, pair.Value))
-                        throw ectx.Except($"Unexpected value for component '{name}', field '{pair.Key}': '{pair.Value}'");
+                        throw ectx.Except(string.Format(Strings.UnexpectedValueForComponentField, name, pair.Key, pair.Value));
                 }
             }
 
             var missing = inputBuilder.GetMissingValues().ToArray();
             if (missing.Length > 0)
-                throw ectx.Except($"The following required inputs were not provided for component '{name}': {string.Join(", ", missing)}");
+                throw ectx.Except(string.Format(Strings.TheFollowingRequiredInputsWereNotProvidedForComponent, name, string.Join(", ", missing)));
             return inputBuilder.GetInstance() as IComponentFactory;
         }
 

@@ -10,7 +10,7 @@ namespace Microsoft.ML.AutoML
     {
         public static NotSupportedException BuildMetricNotSupportedException<T>(T optimizingMetric)
         {
-            return new NotSupportedException($"{optimizingMetric} is not a supported sweep metric");
+            return new NotSupportedException(string.Format(Strings.IsNotASupportedSweepMetric, optimizingMetric));
         }
     }
 }

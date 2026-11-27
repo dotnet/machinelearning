@@ -108,7 +108,7 @@ namespace Microsoft.Data.Analysis
             else if (typeof(T) == typeof(DateTime))
                 return Date64Type.Default;
             else
-                throw new NotImplementedException(nameof(T));
+                throw new NotSupportedException(String.Format(Strings.NotSupportedColumnType, typeof(T)));
         }
 
         protected internal override Field GetArrowField() => new Field(Name, GetArrowType(), NullCount != 0);
@@ -685,7 +685,7 @@ namespace Microsoft.Data.Analysis
             }
             else
             {
-                throw new NotImplementedException(nameof(TKey));
+                throw new NotSupportedException(String.Format(Strings.NotSupportedColumnType, typeof(TKey)));
             }
         }
 
@@ -891,7 +891,7 @@ namespace Microsoft.Data.Analysis
                 return NumberDataViewType.Double;
             }
 
-            throw new NotSupportedException("Type is " + typeof(T).Name);
+            throw new NotSupportedException(string.Format(Strings.TypeIs, typeof(T).Name));
         }
 
         protected internal override Delegate GetDataViewGetter(DataViewRowCursor cursor)
@@ -949,7 +949,7 @@ namespace Microsoft.Data.Analysis
             }
             else
             {
-                throw new IndexOutOfRangeException(nameof(row));
+                throw new IndexOutOfRangeException(Strings.IndexIsGreaterThanColumnLength);
             }
         }
 

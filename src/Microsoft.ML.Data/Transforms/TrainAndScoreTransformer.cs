@@ -78,7 +78,7 @@ namespace Microsoft.ML.Transforms
         private static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
         {
             Contracts.CheckValue(env, nameof(env));
-            env.CheckUserArg(!string.IsNullOrWhiteSpace(args.InputModelFile), nameof(args.InputModelFile), "The input model file is required.");
+            env.CheckUserArg(!string.IsNullOrWhiteSpace(args.InputModelFile), nameof(args.InputModelFile), Strings.TheInputModelFileIsRequired);
 
             IPredictor predictor;
             RoleMappedSchema trainSchema = null;
@@ -204,7 +204,7 @@ namespace Microsoft.ML.Transforms
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(args, nameof(args));
             env.CheckValue(args.Trainer, nameof(args.Trainer),
-                "Trainer cannot be null. If your model is already trained, please use ScoreTransform instead.");
+                Strings.TrainerCannotBeNullIfYourModelIsAlreadyTrained);
             env.CheckValue(input, nameof(input));
 
             return Create(env, args, args.Trainer.CreateComponent(env), input, null);
@@ -216,7 +216,7 @@ namespace Microsoft.ML.Transforms
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(args, nameof(args));
             env.CheckValue(args.Trainer, nameof(args.Trainer),
-                "Trainer cannot be null. If your model is already trained, please use ScoreTransform instead.");
+                Strings.TrainerCannotBeNullIfYourModelIsAlreadyTrained);
             env.CheckValue(input, nameof(input));
             env.CheckValueOrNull(mapperFactory);
 

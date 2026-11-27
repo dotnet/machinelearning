@@ -216,13 +216,13 @@ namespace Microsoft.ML.Transforms
                     if (term.IsEmpty)
                         ch.Warning("Empty strings ignored in 'terms' specification");
                     else if (!tryParse(in term, out val))
-                        throw ch.Except($"Item '{term}' in 'terms' specification could not be parsed as '{ItemType}'");
+                        throw ch.Except(string.Format(Strings.ItemInTermsSpecificationCouldNotBeParsedAs, term, ItemType));
                     else if (!TryAdd(in val))
                         ch.Warning($"Duplicate item '{term}' ignored in 'terms' specification", term);
                 }
 
                 if (Count == 0)
-                    throw ch.ExceptUserArg(nameof(Options.Term), "Nothing parsed as '{0}'", ItemType);
+                    throw ch.ExceptUserArg(nameof(Options.Term), Strings.NothingParsedAs, ItemType);
             }
 
             /// <summary>
@@ -247,7 +247,7 @@ namespace Microsoft.ML.Transforms
                 }
 
                 if (Count == 0)
-                    throw ch.ExceptUserArg(nameof(Options.Term), "Nothing parsed as '{0}'", ItemType);
+                    throw ch.ExceptUserArg(nameof(Options.Term), Strings.NothingParsedAs, ItemType);
             }
         }
 
@@ -457,7 +457,7 @@ namespace Microsoft.ML.Transforms
             var inType = info.TypeSrc.GetItemType();
             if (!inType.Equals(unbound.ItemType))
             {
-                throw env.Except("Could not apply a map over type '{0}' to column '{1}' since it has type '{2}'",
+                throw env.Except(Strings.MapInputTypeMismatch,
                     unbound.ItemType, info.Name, inType);
             }
             return BoundTermMap.Create(env, schema, unbound, infos, textMetadata, iinfo);
@@ -529,14 +529,14 @@ namespace Microsoft.ML.Transforms
                         // value codec block: the terms written in the codec-defined binary format
                         IValueCodec codec;
                         if (!codecFactory.TryReadCodec(ctx.Reader.BaseStream, out codec))
-                            throw ectx.Except("Unrecognized codec read");
+                            throw ectx.Except(Strings.UnrecognizedCodecRead);
                         ectx.CheckDecode(codec.Type is PrimitiveDataViewType);
                         int count = ctx.Reader.ReadInt32();
                         ectx.CheckDecode(count >= 0);
                         return Utils.MarshalInvoke(LoadCodecCore<int>, codec.Type.RawType, ctx, ectx, codec, count);
                     default:
                         ectx.Assert(false);
-                        throw ectx.Except("Unrecognized type '{0}'", mtype);
+                        throw ectx.Except(Strings.UnrecognizedType, mtype);
                 }
             }
 
@@ -565,7 +565,7 @@ namespace Microsoft.ML.Transforms
                             int index = values.Add(item);
                             ectx.Assert(0 <= index && index <= i);
                             if (index != i)
-                                throw ectx.Except("Duplicate items at positions {0} and {1}", index, i);
+                                throw ectx.Except(Strings.DuplicateItemsAtPositionsAnd, index, i);
                         }
                     }
                 }
@@ -699,7 +699,7 @@ namespace Microsoft.ML.Transforms
 
                     IValueCodec codec;
                     if (!codecFactory.TryGetCodec(ItemType, out codec))
-                        throw host.Except("We do not know how to serialize terms of type '{0}'", ItemType);
+                        throw host.Except(Strings.UnknownTermSerializationType, ItemType);
                     ctx.Writer.Write((byte)MapType.Codec);
                     host.Assert(codec.Type.Equals(ItemType));
                     host.Assert(codec.Type is PrimitiveDataViewType);
@@ -949,7 +949,7 @@ namespace Microsoft.ML.Transforms
                                     getSrc(ref src);
                                     int cval = src.Length;
                                     if (cv != 0 && cval != cv)
-                                        throw _host.Except("Column '{0}': TermTransform expects {1} slots, but got {2}", info.Name, cv, cval);
+                                        throw _host.Except(Strings.ColumnTermTransformExpectsSlotsButGot, info.Name, cv, cval);
                                     if (cval == 0)
                                     {
                                         // REVIEW: Should the VBufferBuilder be changed so that it can
@@ -984,7 +984,7 @@ namespace Microsoft.ML.Transforms
                                     getSrc(ref src);
                                     int cval = src.Length;
                                     if (cv != 0 && cval != cv)
-                                        throw _host.Except("Column '{0}': TermTransform expects {1} slots, but got {2}", info.Name, cv, cval);
+                                        throw _host.Except(Strings.ColumnTermTransformExpectsSlotsButGot, info.Name, cv, cval);
                                     if (cval == 0)
                                     {
                                         // REVIEW: Should the VBufferBuilder be changed so that it can

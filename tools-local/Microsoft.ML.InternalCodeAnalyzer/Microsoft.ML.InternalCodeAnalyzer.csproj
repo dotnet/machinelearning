@@ -24,6 +24,7 @@
     <EmbeddedResource Update="Descriptions.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Descriptions.Designer.cs</LastGenOutput>
+      <XlfInput>false</XlfInput>
     </EmbeddedResource>
   </ItemGroup>
 

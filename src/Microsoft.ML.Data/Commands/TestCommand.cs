@@ -63,7 +63,7 @@ namespace Microsoft.ML.Data
         public TestCommand(IHostEnvironment env, Arguments args)
             : base(env, args, nameof(TestCommand))
         {
-            Host.CheckUserArg(!string.IsNullOrEmpty(ImplOptions.InputModelFile), nameof(ImplOptions.InputModelFile), "The input model file is required.");
+            Host.CheckUserArg(!string.IsNullOrEmpty(ImplOptions.InputModelFile), nameof(ImplOptions.InputModelFile), Strings.TheInputModelFileIsRequired);
             Utils.CheckOptionalUserDirectory(ImplOptions.SummaryFilename, nameof(ImplOptions.SummaryFilename));
             Utils.CheckOptionalUserDirectory(ImplOptions.OutputDataFile, nameof(ImplOptions.OutputDataFile));
         }
@@ -123,7 +123,7 @@ namespace Microsoft.ML.Data
             MetricWriter.PrintWarnings(ch, metrics);
             evaluator.PrintFoldResults(ch, metrics);
             if (!metrics.TryGetValue(MetricKinds.OverallMetrics, out var overall))
-                throw ch.Except("No overall metrics found");
+                throw ch.Except(Strings.NoOverallMetricsFound);
             overall = evaluator.GetOverallResults(overall);
             MetricWriter.PrintOverallMetrics(Host, ch, ImplOptions.SummaryFilename, overall, 1);
             evaluator.PrintAdditionalMetrics(ch, metrics);

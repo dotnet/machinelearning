@@ -260,7 +260,7 @@ namespace Microsoft.ML.Transforms.Onnx
                     {
                         // Entering this region means that the model file is passed in by the user.
                         Host.CheckNonWhiteSpace(options.ModelFile, nameof(options.ModelFile));
-                        Host.CheckIO(File.Exists(options.ModelFile), "Model file {0} does not exists.", options.ModelFile);
+                        Host.CheckIO(File.Exists(options.ModelFile), Strings.ModelFileDoesNotExists, options.ModelFile);
                         // Because we cannot delete the user file, ownModelFile should be false.
                         Model = new OnnxModel(env, options.ModelFile, options.GpuDeviceId, options.FallbackToCpu, ownModelFile: false, shapeDictionary: shapeDictionary, options.RecursionLimit,
                             options.InterOpNumThreads, options.IntraOpNumThreads);
@@ -282,7 +282,7 @@ namespace Microsoft.ML.Transforms.Onnx
             }
             catch (OnnxRuntimeException e)
             {
-                throw Host.Except(e, $"Error initializing model :{e.ToString()}");
+                throw Host.Except(e, string.Format(Strings.ErrorInitializingModel, e.ToString()));
             }
 
             var modelInfo = Model.ModelInfo;
@@ -523,7 +523,7 @@ namespace Microsoft.ML.Transforms.Onnx
 
                     // Only allow a single unkown size dimension
                     if (inputShape.Where(x => x == 0).Count() > 1)
-                        throw new ArgumentOutOfRangeException(_parent.Inputs[i], "Only 1 unknown dimension is allowed");
+                        throw new ArgumentOutOfRangeException(_parent.Inputs[i], Strings.Only1UnknownDimensionIsAllowed);
 
                     _inputTensorShapes[i] = inputShape.ToList();
                     _inputOnnxTypes[i] = inputNodeInfo.TypeInOnnxRuntime;
@@ -558,7 +558,7 @@ namespace Microsoft.ML.Transforms.Onnx
                         // The column length should be divisible by this, so that the other dimensions can be integral.
                         int typeValueCount = type.GetValueCount();
                         if (typeValueCount % valCount != 0)
-                            throw Contracts.Except($"Input shape mismatch: Input '{_parent.Inputs[i]}' has shape {String.Join(",", inputShape)}, but input data is of length {typeValueCount}.");
+                            throw Contracts.Except(string.Format(Strings.OnnxInputShapeMismatch, _parent.Inputs[i], String.Join(",", inputShape), typeValueCount));
                     }
                 }
             }
@@ -613,7 +613,7 @@ namespace Microsoft.ML.Transforms.Onnx
             private protected override void SaveModel(ModelSaveContext ctx) => _parent.SaveModel(ctx);
 
             protected override Delegate MakeGetter(DataViewRow input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
-                => throw new NotImplementedException("This should never be called!");
+                => throw new NotImplementedException(Strings.ThisShouldNeverBeCalled);
 
             private Delegate CreateGetter(DataViewRow input, int iinfo, Func<int, bool> activeOutput, OnnxRuntimeOutputCacher outputCacher)
             {
@@ -716,7 +716,7 @@ namespace Microsoft.ML.Transforms.Onnx
                     var namedOnnxValue = outputCacher.Outputs[_parent.Outputs[iinfo]];
                     var tensor = namedOnnxValue.AsTensor<T>() as Microsoft.ML.OnnxRuntime.Tensors.DenseTensor<T>;
                     if (tensor == null)
-                        throw Host.Except($"Output column {namedOnnxValue.Name} doesn't contain a DenseTensor of expected type {typeof(T)}");
+                        throw Host.Except(string.Format(Strings.OutputColumnDoesntContainADenseTensorOfExpectedType, namedOnnxValue.Name, typeof(T)));
                     var editor = VBufferEditor.Create(ref dst, (int)tensor.Length);
                     tensor.Buffer.Span.CopyTo(editor.Values);
                     dst = editor.Commit();
@@ -736,7 +736,7 @@ namespace Microsoft.ML.Transforms.Onnx
                     var namedOnnxValue = outputCacher.Outputs[_parent.Outputs[iinfo]];
                     var tensor = namedOnnxValue.AsTensor<string>() as Microsoft.ML.OnnxRuntime.Tensors.DenseTensor<string>;
                     if (tensor == null)
-                        throw Host.Except($"Output column {namedOnnxValue.Name} doesn't contain a DenseTensor of expected type {typeof(string)}");
+                        throw Host.Except(string.Format(Strings.OutputColumnDoesntContainADenseTensorOfExpectedType, namedOnnxValue.Name, typeof(string)));
 
                     // Create VBufferEditor to fill "dst" with the values in "denseTensor".
                     var editor = VBufferEditor.Create(ref dst, (int)tensor.Length);
@@ -1060,7 +1060,7 @@ namespace Microsoft.ML.Transforms.Onnx
 
                 // Only allow 1 unknown dimension
                 if (Transformer.Model.ModelInfo.InputsInfo[i].Shape.Where(x => x == 0).Count() > 1)
-                    throw new ArgumentOutOfRangeException(input, "Only 1 unknown dimension is allowed");
+                    throw new ArgumentOutOfRangeException(input, Strings.Only1UnknownDimensionIsAllowed);
 
                 // Make sure inputSchema contains the i-th input column.
                 if (!inputSchema.TryFindColumn(input, out var col))
@@ -1069,7 +1069,7 @@ namespace Microsoft.ML.Transforms.Onnx
                 var inputsInfo = Transformer.Model.ModelInfo.InputsInfo;
                 var idx = Transformer.Model.ModelInfo.InputNames.IndexOf(input);
                 if (idx < 0)
-                    throw Host.Except($"Column {input} doesn't match input node names of model.");
+                    throw Host.Except(string.Format(Strings.ColumnDoesntMatchInputNodeNamesOfModel, input));
 
                 var inputNodeInfo = inputsInfo[idx];
                 var expectedType = ((VectorDataViewType)inputNodeInfo.DataViewType).ItemType;

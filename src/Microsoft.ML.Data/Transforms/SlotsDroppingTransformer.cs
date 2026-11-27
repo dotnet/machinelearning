@@ -276,7 +276,7 @@ namespace Microsoft.ML.Transforms
         {
             Host.AssertNonEmpty(ColumnPairs);
             GetSlotsMinMax(columns, out SlotsMin, out SlotsMax);
-            Host.CheckUserArg(AreRangesValid(SlotsMin, SlotsMax), nameof(columns), "The range min and max must be non-negative and min must be less than or equal to max.");
+            Host.CheckUserArg(AreRangesValid(SlotsMin, SlotsMax), nameof(columns), Strings.RangeBoundsMustBeNonNegativeAndOrdered);
         }
 
         private SlotsDroppingTransformer(IHostEnvironment env, ModelLoadContext ctx)
@@ -355,7 +355,7 @@ namespace Microsoft.ML.Transforms
             for (int j = 0; j < col.Slots.Length; j++)
             {
                 var range = col.Slots[j];
-                Host.CheckUserArg(range.IsValid(), nameof(col.Slots), "The range min and max must be non-negative and min must be less than or equal to max.");
+                Host.CheckUserArg(range.IsValid(), nameof(col.Slots), Strings.RangeBoundsMustBeNonNegativeAndOrdered);
                 slotsMin[j] = range.Min;
                 // There are two reasons for setting the max to int.MaxValue - 1:
                 // 1. max is an index, so it has to be strictly less than int.MaxValue.

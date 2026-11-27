@@ -204,7 +204,7 @@ namespace Microsoft.ML.Trainers
             float datumLoss = logZ - ls;
             //float loss2 = MathUtil.SoftMax(s-l_s, -s-l_s);
 
-            Contracts.Check(!float.IsNaN(datumLoss), "Unexpected NaN");
+            Contracts.Check(!float.IsNaN(datumLoss), Strings.UnexpectedNaN);
 
             float mult = weight * (modelProb1 - label01);
             VectorUtils.AddMultWithOffset(in feat, mult, ref grad, 1); // Note that 0th L-BFGS weight is for bias.

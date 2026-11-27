@@ -57,7 +57,7 @@ namespace Microsoft.ML.Transforms
                 case 5:
                     { typeFn = typeof(Func<,,,,,>); break; }
                 default:
-                    throw Contracts.Except("Internal error in LambdaCompiler: Maximum number of inputs exceeded.");
+                    throw Contracts.Except(Strings.InternalErrorInLambdaCompilerMaximumNumberOfInputsExceeded);
             }
 
             var types = new Type[node.Vars.Length + 1];

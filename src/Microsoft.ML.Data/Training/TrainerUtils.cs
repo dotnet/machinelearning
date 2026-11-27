@@ -51,11 +51,11 @@ namespace Microsoft.ML.Trainers
             Contracts.CheckValue(data, nameof(data));
 
             if (!data.Schema.Feature.HasValue)
-                throw Contracts.ExceptParam(nameof(data), "Training data must specify a feature column.");
+                throw Contracts.ExceptParam(nameof(data), Strings.TrainingDataMustSpecifyAFeatureColumn);
             var col = data.Schema.Feature.Value;
             Contracts.Assert(!col.IsHidden);
             if (!(col.Type is VectorDataViewType vecType && vecType.Size > 0 && vecType.ItemType == NumberDataViewType.Single))
-                throw Contracts.ExceptParam(nameof(data), "Training feature column '{0}' must be a known-size vector of R4, but has type: {1}.", col.Name, col.Type);
+                throw Contracts.ExceptParam(nameof(data), Strings.TrainingFeatureColumnTypeInvalid, col.Name, col.Type);
         }
 
         /// <summary>
@@ -84,7 +84,7 @@ namespace Microsoft.ML.Trainers
             Contracts.CheckValue(data, nameof(data));
 
             if (!data.Schema.Label.HasValue)
-                throw Contracts.ExceptParam(nameof(data), "Training data must specify a label column.");
+                throw Contracts.ExceptParam(nameof(data), Strings.TrainingDataMustSpecifyALabelColumn);
             var col = data.Schema.Label.Value;
             Contracts.Assert(!col.IsHidden);
             if (col.Type != BooleanDataViewType.Instance && col.Type != NumberDataViewType.Single && col.Type != NumberDataViewType.Double && !(col.Type is KeyDataViewType keyType && keyType.Count == 2))
@@ -95,18 +95,18 @@ namespace Microsoft.ML.Trainers
                     if (colKeyType.Count == 1)
                     {
                         throw Contracts.ExceptParam(nameof(data),
-                            "The label column '{0}' of the training data has only one class. Two classes are required for binary classification.",
+                            Strings.BinaryLabelHasSingleClass,
                             col.Name);
                     }
                     else if (colKeyType.Count > 2)
                     {
                         throw Contracts.ExceptParam(nameof(data),
-                            "The label column '{0}' of the training data has more than two classes. Only two classes are allowed for binary classification.",
+                            Strings.BinaryLabelHasTooManyClasses,
                             col.Name);
                     }
                 }
                 throw Contracts.ExceptParam(nameof(data),
-                    "The label column '{0}' of the training data has a data type not suitable for binary classification: {1}. Type must be Boolean, Single, Double or Key with two classes.",
+                    Strings.BinaryLabelTypeUnsupported,
                     col.Name, col.Type);
             }
         }
@@ -119,13 +119,13 @@ namespace Microsoft.ML.Trainers
             Contracts.CheckValue(data, nameof(data));
 
             if (!data.Schema.Label.HasValue)
-                throw Contracts.ExceptParam(nameof(data), "Training data must specify a label column.");
+                throw Contracts.ExceptParam(nameof(data), Strings.TrainingDataMustSpecifyALabelColumn);
             var col = data.Schema.Label.Value;
             Contracts.Assert(!data.Schema.Schema[col.Index].IsHidden);
             if (col.Type != NumberDataViewType.Single && col.Type != NumberDataViewType.Double)
             {
                 throw Contracts.ExceptParam(nameof(data),
-                    "Training label column '{0}' type isn't suitable for regression: {1}. Type must be Single or Double.", col.Name, col.Type);
+                    Strings.RegressionLabelTypeInvalid, col.Name, col.Type);
             }
         }
 
@@ -139,20 +139,20 @@ namespace Microsoft.ML.Trainers
             Contracts.CheckValue(data, nameof(data));
 
             if (!data.Schema.Label.HasValue)
-                throw Contracts.ExceptParam(nameof(data), "Training data must specify a label column.");
+                throw Contracts.ExceptParam(nameof(data), Strings.TrainingDataMustSpecifyALabelColumn);
             var col = data.Schema.Label.Value;
             Contracts.Assert(!col.IsHidden);
             if (col.Type is KeyDataViewType keyType && keyType.Count > 0)
             {
                 if (keyType.Count >= Utils.ArrayMaxSize)
-                    throw Contracts.ExceptParam(nameof(data), "Maximum label is too large for multi-class: {0}.", keyType.Count);
+                    throw Contracts.ExceptParam(nameof(data), Strings.MaximumLabelIsTooLargeForMultiClass, keyType.Count);
                 count = (int)keyType.Count;
                 return;
             }
 
             // REVIEW: Support other numeric types.
             if (col.Type != NumberDataViewType.Single && col.Type != NumberDataViewType.Double)
-                throw Contracts.ExceptParam(nameof(data), "Training label column '{0}' type is not valid for multi-class: {1}. Type must be Single or Double.", col.Name, col.Type);
+                throw Contracts.ExceptParam(nameof(data), Strings.MulticlassLabelTypeInvalid, col.Name, col.Type);
 
             int max = -1;
             using (var cursor = new FloatLabelCursor(data))
@@ -163,7 +163,7 @@ namespace Microsoft.ML.Trainers
                     if (cls != cursor.Label || cls < 0)
                     {
                         throw Contracts.ExceptParam(nameof(data),
-                            "Training label column '{0}' contains invalid values for multi-class: {1}.", col.Name, cursor.Label);
+                            Strings.TrainingLabelColumnContainsInvalidValuesForMultiClass, col.Name, cursor.Label);
                     }
                     if (max < cls)
                         max = cls;
@@ -171,10 +171,10 @@ namespace Microsoft.ML.Trainers
             }
 
             if (max < 0)
-                throw Contracts.ExceptParam(nameof(data), "Training label column '{0}' contains no valid values for multi-class.", col.Name);
+                throw Contracts.ExceptParam(nameof(data), Strings.TrainingLabelColumnContainsNoValidValuesForMultiClass, col.Name);
             // REVIEW: Should we impose some smaller limit on the max?
             if (max >= Utils.ArrayMaxSize)
-                throw Contracts.ExceptParam(nameof(data), "Maximum label is too large for multi-class: {0}.", max);
+                throw Contracts.ExceptParam(nameof(data), Strings.MaximumLabelIsTooLargeForMultiClass, max);
 
             count = max + 1;
         }
@@ -187,13 +187,13 @@ namespace Microsoft.ML.Trainers
             Contracts.CheckValue(data, nameof(data));
 
             if (!data.Schema.Label.HasValue)
-                throw Contracts.ExceptParam(nameof(data), "Training data must specify a label column.");
+                throw Contracts.ExceptParam(nameof(data), Strings.TrainingDataMustSpecifyALabelColumn);
             var col = data.Schema.Label.Value;
             Contracts.Assert(!col.IsHidden);
             if (!(col.Type is VectorDataViewType vectorType
                 && vectorType.IsKnownSize
                 && vectorType.ItemType == NumberDataViewType.Single))
-                throw Contracts.ExceptParam(nameof(data), "Training label column '{0}' must be a known-size vector of Single, but has type: {1}.", col.Name, col.Type);
+                throw Contracts.ExceptParam(nameof(data), Strings.TrainingLabelVectorTypeInvalid, col.Name, col.Type);
         }
 
         public static void CheckOptFloatWeight(this RoleMappedData data)
@@ -205,7 +205,7 @@ namespace Microsoft.ML.Trainers
             var col = data.Schema.Weight.Value;
             Contracts.Assert(!col.IsHidden);
             if (col.Type != NumberDataViewType.Single && col.Type != NumberDataViewType.Double)
-                throw Contracts.ExceptParam(nameof(data), "Training weight column '{0}' must be of floating point numeric type, but has type: {1}.", col.Name, col.Type);
+                throw Contracts.ExceptParam(nameof(data), Strings.TrainingWeightColumnTypeInvalid, col.Name, col.Type);
         }
 
         public static void CheckOptGroup(this RoleMappedData data)
@@ -218,7 +218,7 @@ namespace Microsoft.ML.Trainers
             Contracts.Assert(!col.IsHidden);
             if (col.Type is KeyDataViewType)
                 return;
-            throw Contracts.ExceptParam(nameof(data), "Training group column '{0}' type is invalid: {1}. Must be Key type.", col.Name, col.Type);
+            throw Contracts.ExceptParam(nameof(data), Strings.TrainingGroupColumnTypeIsInvalidMustBeKeyType, col.Name, col.Type);
         }
 
         private static IEnumerable<DataViewSchema.Column> CreatePredicate(RoleMappedData data, CursOpt opt, IEnumerable<int> extraCols)
@@ -263,8 +263,8 @@ namespace Microsoft.ML.Trainers
         {
             Contracts.CheckValue(row, nameof(row));
             Contracts.CheckValue(schema, nameof(schema));
-            Contracts.CheckParam(schema.Schema == row.Schema, nameof(schema), "schemas don't match!");
-            Contracts.CheckParam(schema.Feature.HasValue, nameof(schema), "Missing feature column");
+            Contracts.CheckParam(schema.Schema == row.Schema, nameof(schema), Strings.SchemasDontMatch);
+            Contracts.CheckParam(schema.Feature.HasValue, nameof(schema), Strings.MissingFeatureColumn);
 
             return row.GetGetter<VBuffer<float>>(schema.Feature.Value);
         }
@@ -286,8 +286,8 @@ namespace Microsoft.ML.Trainers
         {
             Contracts.CheckValue(row, nameof(row));
             Contracts.CheckValue(schema, nameof(schema));
-            Contracts.CheckParam(schema.Schema == row.Schema, nameof(schema), "schemas don't match!");
-            Contracts.CheckParam(schema.Label.HasValue, nameof(schema), "Missing label column");
+            Contracts.CheckParam(schema.Schema == row.Schema, nameof(schema), Strings.SchemasDontMatch);
+            Contracts.CheckParam(schema.Label.HasValue, nameof(schema), Strings.MissingLabelColumn);
 
             return RowCursorUtils.GetLabelGetter(row, schema.Label.Value.Index);
         }
@@ -309,7 +309,7 @@ namespace Microsoft.ML.Trainers
         {
             Contracts.CheckValue(row, nameof(row));
             Contracts.CheckValue(schema, nameof(schema));
-            Contracts.Check(schema.Schema == row.Schema, "schemas don't match!");
+            Contracts.Check(schema.Schema == row.Schema, Strings.SchemasDontMatch);
 
             var col = schema.Weight;
             if (!col.HasValue)
@@ -330,7 +330,7 @@ namespace Microsoft.ML.Trainers
         {
             Contracts.CheckValue(row, nameof(row));
             Contracts.CheckValue(schema, nameof(schema));
-            Contracts.Check(schema.Schema == row.Schema, "schemas don't match!");
+            Contracts.Check(schema.Schema == row.Schema, Strings.SchemasDontMatch);
 
             var col = schema.Group;
             if (!col.HasValue)
@@ -449,7 +449,7 @@ namespace Microsoft.ML.Trainers
                 var model = predictionTransformer.Model;
                 if (model is TPredictor pred)
                     return pred;
-                throw _env.Except($"Training resulted in a model of type {model.GetType().Name}.");
+                throw _env.Except(string.Format(Strings.TrainingResultedInAModelOfType, model.GetType().Name));
             }
 
             IPredictor ITrainer.Train(TrainContext context) => Train(context);
@@ -1009,7 +1009,7 @@ namespace Microsoft.ML.Trainers
                 : base(data, opt)
             {
                 // Zero means that any non-negative integer value is fine.
-                Contracts.CheckParamValue(classCount >= 0, classCount, nameof(classCount), "Must be non-negative");
+                Contracts.CheckParamValue(classCount >= 0, classCount, nameof(classCount), Strings.MustBeNonNegative);
                 _classCount = classCount;
             }
 

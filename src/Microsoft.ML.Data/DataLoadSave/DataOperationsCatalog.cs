@@ -225,7 +225,7 @@ namespace Microsoft.ML
         {
             _env.CheckValue(input, nameof(input));
             _env.CheckNonEmpty(columnName, nameof(columnName));
-            _env.CheckParam(lowerBound < upperBound, nameof(upperBound), "Must be less than lowerBound");
+            _env.CheckParam(lowerBound < upperBound, nameof(upperBound), Strings.MustBeLessThanLowerBound);
 
             var type = input.Schema[columnName].Type;
             if (!(type is NumberDataViewType))
@@ -257,9 +257,9 @@ namespace Microsoft.ML
         {
             _env.CheckValue(input, nameof(input));
             _env.CheckNonEmpty(columnName, nameof(columnName));
-            _env.CheckParam(0 <= lowerBound && lowerBound <= 1, nameof(lowerBound), "Must be in [0, 1]");
-            _env.CheckParam(0 <= upperBound && upperBound <= 1, nameof(upperBound), "Must be in [0, 1]");
-            _env.CheckParam(lowerBound <= upperBound, nameof(upperBound), "Must be no less than lowerBound");
+            _env.CheckParam(0 <= lowerBound && lowerBound <= 1, nameof(lowerBound), Strings.MustBeBetweenZeroAndOneInclusive);
+            _env.CheckParam(0 <= upperBound && upperBound <= 1, nameof(upperBound), Strings.MustBeBetweenZeroAndOneInclusive);
+            _env.CheckParam(lowerBound <= upperBound, nameof(upperBound), Strings.MustBeNoLessThanLowerBound);
 
             var type = input.Schema[columnName].Type;
             if (type.GetKeyCount() == 0)
@@ -321,7 +321,7 @@ namespace Microsoft.ML
             bool shuffleSource = !RowShufflingTransformer.Defaults.PoolOnly)
         {
             _env.CheckValue(input, nameof(input));
-            _env.CheckUserArg(shufflePoolSize > 0, nameof(shufflePoolSize), "Must be positive");
+            _env.CheckUserArg(shufflePoolSize > 0, nameof(shufflePoolSize), Strings.MustBePositive);
 
             var options = new RowShufflingTransformer.Options
             {
@@ -352,7 +352,7 @@ namespace Microsoft.ML
         public IDataView SkipRows(IDataView input, long count)
         {
             _env.CheckValue(input, nameof(input));
-            _env.CheckUserArg(count > 0, nameof(count), "Must be greater than zero.");
+            _env.CheckUserArg(count > 0, nameof(count), Strings.MustBeGreaterThanZero);
 
             var options = new SkipTakeFilter.SkipOptions()
             {
@@ -380,7 +380,7 @@ namespace Microsoft.ML
         public IDataView TakeRows(IDataView input, long count)
         {
             _env.CheckValue(input, nameof(input));
-            _env.CheckUserArg(count > 0, nameof(count), "Must be greater than zero.");
+            _env.CheckUserArg(count > 0, nameof(count), Strings.MustBeGreaterThanZero);
 
             var options = new SkipTakeFilter.TakeOptions()
             {
@@ -411,7 +411,7 @@ namespace Microsoft.ML
         public TrainTestData TrainTestSplit(IDataView data, double testFraction = 0.1, string samplingKeyColumnName = null, int? seed = null)
         {
             _env.CheckValue(data, nameof(data));
-            _env.CheckParam(0 < testFraction && testFraction < 1, nameof(testFraction), "Must be between 0 and 1 exclusive");
+            _env.CheckParam(0 < testFraction && testFraction < 1, nameof(testFraction), Strings.MustBeBetween0And1Exclusive);
             _env.CheckValueOrNull(samplingKeyColumnName);
 
             var splitColumn = CreateSplitColumn(_env, ref data, samplingKeyColumnName, seed, fallbackInEnvSeed: true);
@@ -458,7 +458,7 @@ namespace Microsoft.ML
         public IReadOnlyList<TrainTestData> CrossValidationSplit(IDataView data, int numberOfFolds = 5, string samplingKeyColumnName = null, int? seed = null)
         {
             _env.CheckValue(data, nameof(data));
-            _env.CheckParam(numberOfFolds > 1, nameof(numberOfFolds), "Must be more than 1");
+            _env.CheckParam(numberOfFolds > 1, nameof(numberOfFolds), Strings.MustBeMoreThan1);
             _env.CheckValueOrNull(samplingKeyColumnName);
             var splitColumn = CreateSplitColumn(_env, ref data, samplingKeyColumnName, seed, fallbackInEnvSeed: true);
             var result = new List<TrainTestData>();

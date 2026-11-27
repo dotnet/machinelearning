@@ -37,7 +37,7 @@ namespace Microsoft.ML
             {
                 if (string.IsNullOrEmpty(name)) throw new ArgumentNullException(nameof(name));
                 if (!_nameMap.TryGetValue(name, out int col))
-                    throw new ArgumentOutOfRangeException(nameof(name), $"Column '{name}' not found");
+                    throw new ArgumentOutOfRangeException(nameof(name), string.Format(Strings.ColumnNotFound, name));
                 return _columns[col];
             }
         }
@@ -201,7 +201,7 @@ namespace Microsoft.ML
                 {
                     var getter = getters[i];
                     if (getter == null)
-                        throw new ArgumentNullException(nameof(getter), $"Delegate at index '{i}' of {nameof(getters)} was null.");
+                        throw new ArgumentNullException(nameof(getter), string.Format(Strings.DelegateAtIndexOfWasNull, i, nameof(getters)));
                     Utils.MarshalActionInvoke(CheckGetter<int>, schema[i].Type.RawType, getter);
                 }
                 Schema = schema;
@@ -212,7 +212,7 @@ namespace Microsoft.ML
             {
                 var typedGetter = getter as ValueGetter<TValue>;
                 if (typedGetter == null)
-                    throw new ArgumentNullException(nameof(getter), $"Getter of type '{typeof(TValue)}' expected, but {getter.GetType()} found");
+                    throw new ArgumentNullException(nameof(getter), string.Format(Strings.GetterOfTypeExpectedButFound, typeof(TValue), getter.GetType()));
             }
 
             /// <summary>
@@ -221,12 +221,12 @@ namespace Microsoft.ML
             public ValueGetter<TValue> GetGetter<TValue>(DataViewSchema.Column column)
             {
                 if (column.Index >= _getters.Length)
-                    throw new ArgumentException(nameof(column));
+                    throw new ArgumentException(Strings.ColumnIndexIsOutsideTheRangeOfAvailableGetters, nameof(column));
                 var typedGetter = _getters[column.Index] as ValueGetter<TValue>;
                 if (typedGetter == null)
                 {
                     Debug.Assert(_getters[column.Index] != null);
-                    throw new InvalidOperationException($"Invalid call to '{nameof(GetGetter)}'");
+                    throw new InvalidOperationException(Strings.InvalidCallToGetGetter);
                 }
                 return typedGetter;
             }
@@ -238,7 +238,7 @@ namespace Microsoft.ML
             {
                 var column = Schema.GetColumnOrNull(kind);
                 if (column == null)
-                    throw new InvalidOperationException($"Invalid call to '{nameof(GetValue)}'");
+                    throw new InvalidOperationException(Strings.InvalidCallToGetValue);
                 GetGetter<TValue>(column.Value)(ref value);
             }
 
@@ -301,7 +301,7 @@ namespace Microsoft.ML
                     if (getter == null)
                         throw new ArgumentNullException(nameof(getter));
                     if (type.RawType != typeof(TValue))
-                        throw new ArgumentException($"{nameof(type)}.{nameof(type.RawType)} must be of type '{typeof(TValue).FullName}'.", nameof(type));
+                        throw new ArgumentException(string.Format(Strings.MustBeOfType, nameof(type), nameof(type.RawType), typeof(TValue).FullName), nameof(type));
 
                     _items.Add((name, type, getter, annotations));
                 }
@@ -342,7 +342,7 @@ namespace Microsoft.ML
                     if (type == null)
                         throw new ArgumentNullException(nameof(type));
                     if (type.RawType != typeof(TValue))
-                        throw new ArgumentException($"{nameof(type)}.{nameof(type.RawType)} must be of type '{typeof(TValue).FullName}'.", nameof(type));
+                        throw new ArgumentException(string.Format(Strings.MustBeOfType, nameof(type), nameof(type.RawType), typeof(TValue).FullName), nameof(type));
 
                     Add(name, type, (ref TValue dst) => dst = value, annotations);
                 }
@@ -366,7 +366,7 @@ namespace Microsoft.ML
 
                     var typedGetter = getter as ValueGetter<TValue>;
                     if (typedGetter == null)
-                        throw new ArgumentException($"{nameof(getter)} must be of type '{typeof(ValueGetter<TValue>).FullName}'", nameof(getter));
+                        throw new ArgumentException(string.Format(Strings.MustBeOfTypeVariant2, nameof(getter), typeof(ValueGetter<TValue>).FullName), nameof(getter));
                     _items.Add((name, type, typedGetter, annotations));
                 }
             }

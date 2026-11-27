@@ -14,10 +14,10 @@ namespace Microsoft.ML.Internal.Utilities
         private protected FuncMethodInfo(MethodInfo methodInfo)
         {
             Contracts.CheckValue(methodInfo, nameof(methodInfo));
-            Contracts.CheckParam(methodInfo.IsGenericMethod, nameof(methodInfo), "Should be generic but is not");
+            Contracts.CheckParam(methodInfo.IsGenericMethod, nameof(methodInfo), Strings.ShouldBeGenericButIsNot);
 
             GenericMethodDefinition = methodInfo.GetGenericMethodDefinition();
-            Contracts.CheckParam(typeof(TResult).IsAssignableFrom(GenericMethodDefinition.ReturnType), nameof(methodInfo), "Cannot be generic on return type");
+            Contracts.CheckParam(typeof(TResult).IsAssignableFrom(GenericMethodDefinition.ReturnType), nameof(methodInfo), Strings.CannotBeGenericOnReturnType);
         }
 
         protected MethodInfo GenericMethodDefinition { get; }

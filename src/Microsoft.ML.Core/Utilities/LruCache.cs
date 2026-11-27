@@ -30,7 +30,7 @@ namespace Microsoft.ML.Internal.Utilities
         /// </summary>
         public LruCache(int size)
         {
-            Contracts.CheckParam(size > 0, nameof(size), "Must be positive");
+            Contracts.CheckParam(size > 0, nameof(size), Strings.MustBePositive);
             _size = size;
             _cache = new Dictionary<TKey, LinkedListNode<KeyValuePair<TKey, TValue>>>(_size);
             _lru = new LinkedList<KeyValuePair<TKey, TValue>>();

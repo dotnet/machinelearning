@@ -232,9 +232,9 @@ namespace Microsoft.ML.Transforms
             bool dropValid = Utils.Size(dropColumns) > 0;
 
             // Check that both are not valid
-            _host.Check(!(keepValid && dropValid), "Both " + nameof(keepColumns) + " and " + nameof(dropColumns) + " are set. Exactly one can be specified.");
+            _host.Check(!(keepValid && dropValid), Strings.KeepAndDropColumnsCannotBothBeSpecified);
             // Check that both are invalid
-            _host.Check(!(!keepValid && !dropValid), "Neither " + nameof(keepColumns) + " and " + nameof(dropColumns) + " is set. Exactly one must be specified.");
+            _host.Check(!(!keepValid && !dropValid), Strings.KeepOrDropColumnsMustBeSpecified);
 
             _selectedColumns = (keepValid) ? keepColumns : dropColumns;
             KeepColumns = keepValid;
@@ -319,7 +319,7 @@ namespace Microsoft.ML.Transforms
                 case HiddenColumnOption.Drop:
                     return false;
                 default:
-                    throw env.Except("Unsupported hide option specified");
+                    throw env.Except(Strings.UnsupportedHideOptionSpecified);
             }
         }
 

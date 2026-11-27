@@ -40,7 +40,7 @@ namespace Microsoft.ML.Tokenizers
         {
             if (!Base64.IsValid(base64String.AsSpan(offset, length), out int decodedLength))
             {
-                throw new FormatException($"Invalid base64 string '{base64String.Substring(offset, length)}'");
+                throw new FormatException(string.Format(Strings.InvalidBase64String, base64String.Substring(offset, length)));
             }
 
             byte[] bytes = new byte[decodedLength];

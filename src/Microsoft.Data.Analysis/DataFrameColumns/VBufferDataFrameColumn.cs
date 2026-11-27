@@ -83,7 +83,7 @@ namespace Microsoft.Data.Analysis
         {
             if (rowIndex >= Length)
             {
-                throw new ArgumentOutOfRangeException(Strings.IndexIsGreaterThanColumnLength, nameof(rowIndex));
+                throw new ArgumentOutOfRangeException(nameof(rowIndex), Strings.IndexIsGreaterThanColumnLength);
             }
 
             return (int)(rowIndex / MaxCapacity);
@@ -121,7 +121,7 @@ namespace Microsoft.Data.Analysis
         {
             if (value == null)
             {
-                throw new NotSupportedException("Null values are not supported by VBufferDataFrameColumn");
+                throw new NotSupportedException(Strings.NullValuesAreNotSupportedByVBufferDataFrameColumn);
             }
             else if (value is VBuffer<T> vbuffer)
             {
@@ -205,7 +205,7 @@ namespace Microsoft.Data.Analysis
             }
             else
             {
-                throw new IndexOutOfRangeException(nameof(row));
+                throw new IndexOutOfRangeException(Strings.IndexIsGreaterThanColumnLength);
             }
         }
 

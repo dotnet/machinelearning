@@ -43,7 +43,7 @@ namespace Microsoft.ML.Data
             SKBitmap image = SKBitmap.Decode(imageStream);
             if (image is null)
             {
-                throw new ArgumentException($"Invalid input stream contents", nameof(imageStream));
+                throw new ArgumentException(Strings.InvalidInputStreamContents, nameof(imageStream));
             }
 
             return new MLImage(image);
@@ -64,7 +64,7 @@ namespace Microsoft.ML.Data
             SKBitmap image = SKBitmap.Decode(imagePath);
             if (image is null)
             {
-                throw new ArgumentException($"Invalid path", nameof(imagePath));
+                throw new ArgumentException(Strings.InvalidPath, nameof(imagePath));
             }
 
             return new MLImage(image);
@@ -82,22 +82,22 @@ namespace Microsoft.ML.Data
         {
             if (pixelFormat != MLPixelFormat.Bgra32 && pixelFormat != MLPixelFormat.Rgba32)
             {
-                throw new ArgumentException($"Unsupported pixel format", nameof(pixelFormat));
+                throw new ArgumentException(Strings.UnsupportedPixelFormat, nameof(pixelFormat));
             }
 
             if (width <= 0)
             {
-                throw new ArgumentException($"Invalid width value.", nameof(width));
+                throw new ArgumentException(Strings.InvalidWidthValue, nameof(width));
             }
 
             if (height <= 0)
             {
-                throw new ArgumentException($"Invalid height value.", nameof(height));
+                throw new ArgumentException(Strings.InvalidHeightValue, nameof(height));
             }
 
             if (imagePixelData.Length != width * height * 4)
             {
-                throw new ArgumentException($"Invalid {nameof(imagePixelData)} buffer size.");
+                throw new ArgumentException(Strings.InvalidImagePixelDataBufferSize);
             }
 
             SKBitmap image = new SKBitmap(new SKImageInfo(width, height, pixelFormat == MLPixelFormat.Bgra32 ? SKColorType.Bgra8888 : SKColorType.Rgba8888));
@@ -164,7 +164,7 @@ namespace Microsoft.ML.Data
 
                 var pixelsPtr = _image.GetPixels();
                 if (pixelsPtr == IntPtr.Zero || _image.ByteCount <= 0)
-                    throw new InvalidOperationException("Pixel data is unavailable.");
+                    throw new InvalidOperationException(Strings.PixelDataIsUnavailable);
 
                 return new ReadOnlySpan<byte>(pixelsPtr.ToPointer(), _image.ByteCount);
             }
@@ -237,13 +237,13 @@ namespace Microsoft.ML.Data
 
             if (!_extensionToEncodingFormat.TryGetValue(ext, out SKEncodedImageFormat encodingFormat))
             {
-                throw new ArgumentException($"Path has invalid image file extension.", nameof(imagePath));
+                throw new ArgumentException(Strings.PathHasInvalidImageFileExtension, nameof(imagePath));
             }
 
             using SKData data = _image.Encode(encodingFormat, 100);
             if (data is null)
             {
-                throw new ArgumentException($"Saving image with the format '{ext}' is not supported. Try save it with `Jpeg`, `Png`, or `Webp` format.", nameof(imagePath));
+                throw new ArgumentException(string.Format(Strings.UnsupportedImageSaveFormat, ext), nameof(imagePath));
             }
 
             using var stream = new FileStream(imagePath, FileMode.Create, FileAccess.Write);
@@ -280,7 +280,7 @@ namespace Microsoft.ML.Data
 
             if (!_image.CanCopyTo(SKColorType.Bgra8888))
             {
-                throw new InvalidOperationException("Unsupported image format.");
+                throw new InvalidOperationException(Strings.UnsupportedImageFormat);
             }
 
             SKBitmap image1 = _image.Copy(SKColorType.Bgra8888);
@@ -298,12 +298,12 @@ namespace Microsoft.ML.Data
                 ImageResizeMode.Pad => ResizeWithPadding(width, height),
                 ImageResizeMode.Fill => ResizeFull(width, height),
                 >= ImageResizeMode.CropAnchorTop and <= ImageResizeMode.CropAnchorCentral => ResizeWithCrop(width, height, mode),
-                _ => throw new ArgumentException($"Invalid resize mode value.", nameof(mode))
+                _ => throw new ArgumentException(Strings.InvalidResizeModeValue, nameof(mode))
             };
 
             if (image is null)
             {
-                throw new InvalidOperationException($"Couldn't resize the image");
+                throw new InvalidOperationException(Strings.CouldntResizeTheImage);
             }
 
             return new MLImage(image);
@@ -449,7 +449,7 @@ namespace Microsoft.ML.Data
         {
             if (_image is null)
             {
-                throw new InvalidOperationException("Object is disposed.");
+                throw new InvalidOperationException(Strings.ObjectIsDisposed);
             }
         }
     }

@@ -111,7 +111,7 @@ namespace Microsoft.ML.Data
                 if (Directory.Exists(imageFolder))
                     ImageFolder = Path.GetFullPath(imageFolder);
                 else
-                    throw new ArgumentException(String.Format("Directory \"{0}\" does not exist.", imageFolder));
+                    throw new ArgumentException(string.Format(Strings.DirectoryDoesNotExist, imageFolder));
             }
             _useImageType = type;
         }
@@ -303,7 +303,7 @@ namespace Microsoft.ML.Data
                 {
                     long fileLength = fs.Length;
                     if (fileLength > int.MaxValue)
-                        throw new IOException($"File {path} too big to open.");
+                        throw new IOException(string.Format(Strings.FileTooBigToOpen, path));
                     else if (fileLength == 0)
                     {
                         byte[] imageBuffer;

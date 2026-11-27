@@ -31,7 +31,7 @@ namespace Microsoft.ML.TorchSharp.Roberta.Modules
             AttentionHeadSize = (int)hiddenSize / numAttentionHeads;
             if (NumAttentionHeads * AttentionHeadSize != hiddenSize)
             {
-                throw new ArgumentException($"NumAttentionHeads must be a factor of hiddenSize, got {numAttentionHeads} and {hiddenSize}.");
+                throw new ArgumentException(string.Format(Strings.NumAttentionHeadsMustBeAFactorOfHiddenSizeGotAnd, numAttentionHeads, hiddenSize));
             }
 
             query = torch.nn.Linear(hiddenSize, hiddenSize, true);

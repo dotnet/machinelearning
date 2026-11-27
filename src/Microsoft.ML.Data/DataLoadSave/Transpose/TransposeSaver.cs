@@ -83,8 +83,8 @@ namespace Microsoft.ML.Data.IO
         {
             _host.CheckValue(stream, nameof(stream));
             _host.CheckValue(data, nameof(data));
-            _host.CheckParam(stream.CanSeek, nameof(stream), "Must be seekable but is not");
-            _host.CheckParam(stream.Position == 0, nameof(stream), "Stream must be at beginning but appears to not be");
+            _host.CheckParam(stream.CanSeek, nameof(stream), Strings.MustBeSeekableButIsNot);
+            _host.CheckParam(stream.Position == 0, nameof(stream), Strings.StreamMustBeAtBeginningButAppearsToNotBe);
             _host.CheckNonEmpty(cols, nameof(cols));
 
             // If the input dataview is already a transposed data view, with all requested

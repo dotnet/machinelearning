@@ -79,7 +79,7 @@ namespace Microsoft.ML.Transforms
             _host.Check(columns.All(col => !string.IsNullOrWhiteSpace(col.Expression)));
             _host.Check(columns.All(col => !string.IsNullOrWhiteSpace(col.Name)));
             _host.Check(columns.All(col => Utils.Size(col.InputColumnNames) > 0));
-            _host.CheckParam(columns.All(col => Utils.Size(col.InputColumnNames) <= 5), nameof(ColumnOptions.InputColumnNames), "maximum number of inputs exceeded");
+            _host.CheckParam(columns.All(col => Utils.Size(col.InputColumnNames) <= 5), nameof(ColumnOptions.InputColumnNames), Strings.MaximumNumberOfInputsExceeded);
 
             _columns = columns;
         }
@@ -101,13 +101,13 @@ namespace Microsoft.ML.Transforms
 
             var node = LambdaParser.Parse(out List<Error> errors, out List<int> lineMap, chars, perm, inputTypes);
             if (Utils.Size(errors) > 0)
-                throw env.ExceptParam(nameof(expression), $"parsing failed: {errors[0].GetMessage()}");
+                throw env.ExceptParam(nameof(expression), string.Format(Strings.ParsingFailed, errors[0].GetMessage()));
 
             using (var ch = env.Start("LabmdaBinder.Run"))
                 LambdaBinder.Run(env, ref errors, node, msg => ch.Error(msg));
 
             if (Utils.Size(errors) > 0)
-                throw env.ExceptParam(nameof(expression), $"binding failed: {errors[0].GetMessage()}");
+                throw env.ExceptParam(nameof(expression), string.Format(Strings.BindingFailed, errors[0].GetMessage()));
             return node;
         }
 
@@ -122,7 +122,7 @@ namespace Microsoft.ML.Transforms
                 if (col.Kind != SchemaShape.Column.VectorKind.Scalar)
                 {
                     if (ivec >= 0)
-                        throw env.ExceptUserArg(nameof(inputColumnNames), "Can have at most one vector-valued source column");
+                        throw env.ExceptUserArg(nameof(inputColumnNames), Strings.CanHaveAtMostOneVectorValuedSourceColumn);
                     ivec = isrc;
                 }
                 inputTypes[isrc] = col.ItemType;
@@ -143,7 +143,7 @@ namespace Microsoft.ML.Transforms
                 if (col.Value.Type is VectorDataViewType)
                 {
                     if (ivec >= 0)
-                        throw env.ExceptUserArg(nameof(inputColumnNames), "Can have at most one vector-valued source column");
+                        throw env.ExceptUserArg(nameof(inputColumnNames), Strings.CanHaveAtMostOneVectorValuedSourceColumn);
                     ivec = isrc;
                 }
                 inputTypes[isrc] = col.Value.Type.GetItemType();
@@ -277,7 +277,7 @@ namespace Microsoft.ML.Transforms
 
                 Del = LambdaCompiler.Compile(out var errors, node);
                 if (Utils.Size(errors) > 0)
-                    throw ectx.Except($"generating code failed: {errors[0].GetMessage()}");
+                    throw ectx.Except(string.Format(Strings.GeneratingCodeFailed, errors[0].GetMessage()));
             }
         }
 
@@ -938,7 +938,7 @@ namespace Microsoft.ML.Transforms
                     for (int j = 0; j < inputColumnNames.Length; j++)
                     {
                         if (!InputSchema.TryGetColumnIndex(inputColumnNames[j], out _inputColumnIndices[i][j]))
-                            throw Host.Except($"Column {inputColumnNames[j]} does not exist in the input schema");
+                            throw Host.Except(string.Format(Strings.ColumnDoesNotExistInTheInputSchema, inputColumnNames[j]));
                     }
                 }
             }

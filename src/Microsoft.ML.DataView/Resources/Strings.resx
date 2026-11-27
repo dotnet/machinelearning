@@ -1,0 +1,87 @@
+﻿<?xml version='1.0' encoding='utf-8'?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="APrimitiveDataViewTypeCannotHaveADisposableRawType" xml:space="preserve">
+    <value>A PrimitiveDataViewType cannot have a disposable RawType</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.DataView/DataViewType.cs:81.</comment>
+  </data>
+  <data name="ColumnNotFound" xml:space="preserve">
+    <value>Column '{0}' not found</value>
+    <comment>Exception or validation message. Placeholders: {0}=name. Source: src/Microsoft.ML.DataView/DataViewSchema.cs:40.</comment>
+  </data>
+  <data name="ColumnIndexIsOutsideTheRangeOfAvailableGetters" xml:space="preserve">
+    <value>Column index is outside the range of available getters.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.DataView/DataViewSchema.cs:224.</comment>
+  </data>
+  <data name="DelegateAtIndexOfWasNull" xml:space="preserve">
+    <value>Delegate at index '{0}' of {1} was null.</value>
+    <comment>Exception or validation message. Placeholders: {0}=i, {1}=nameof(getters). Source: src/Microsoft.ML.DataView/DataViewSchema.cs:204.</comment>
+  </data>
+  <data name="GetterOfTypeExpectedButFound" xml:space="preserve">
+    <value>Getter of type '{0}' expected, but {1} found</value>
+    <comment>Exception or validation message. Placeholders: {0}=typeof(TValue), {1}=getter.GetType(). Source: src/Microsoft.ML.DataView/DataViewSchema.cs:215.</comment>
+  </data>
+  <data name="IfSpecifiedMustBeNoGreaterThanNewLogicalLength" xml:space="preserve">
+    <value>If specified, must be no greater than newLogicalLength</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.DataView/VBuffer.cs:431.</comment>
+  </data>
+  <data name="IfSpecifiedMustBeNonNegative" xml:space="preserve">
+    <value>If specified, must be non-negative.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.DataView/VBuffer.cs:429.</comment>
+  </data>
+  <data name="InvalidCallToGetGetter" xml:space="preserve">
+    <value>Invalid call to 'GetGetter'</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.DataView/DataViewSchema.cs:229.</comment>
+  </data>
+  <data name="InvalidCallToGetValue" xml:space="preserve">
+    <value>Invalid call to 'GetValue'</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.DataView/DataViewSchema.cs:241.</comment>
+  </data>
+  <data name="MinMustNotExceedMax" xml:space="preserve">
+    <value>min must not exceed max</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/ArrayUtils.cs:79.</comment>
+  </data>
+  <data name="MustBeNonNegative" xml:space="preserve">
+    <value>Must be non-negative.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.DataView/VBuffer.cs:427.</comment>
+  </data>
+  <data name="MustBeOfType" xml:space="preserve">
+    <value>{0}.{1} must be of type '{2}'.</value>
+    <comment>Exception or validation message. Placeholders: {0}=nameof(type), {1}=nameof(type.RawType), {2}=typeof(TValue).FullName. Source: src/Microsoft.ML.DataView/DataViewSchema.cs:304. Exception or validation message. Placeholders: {0}=nameof(type), {1}=nameof(type.RawType), {2}=typeof(TValue).FullName. Source: src/Microsoft.ML.DataView/DataViewSchema.cs:345.</comment>
+  </data>
+  <data name="MustBeOfTypeVariant2" xml:space="preserve">
+    <value>{0} must be of type '{1}'</value>
+    <comment>Exception or validation message. Placeholders: {0}=nameof(getter), {1}=typeof(ValueGetter&lt;TValue&gt;).FullName. Source: src/Microsoft.ML.DataView/DataViewSchema.cs:369.</comment>
+  </data>
+  <data name="NotLargeEnoughToHoldTheseValues" xml:space="preserve">
+    <value>Not large enough to hold these values.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.DataView/VBuffer.cs:288.</comment>
+  </data>
+  <data name="TheCardinalityOfAKeyDataViewTypeMustBeStrictlyPositive" xml:space="preserve">
+    <value>The cardinality of a KeyDataViewType must be strictly positive.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.DataView/KeyDataViewType.cs:76.</comment>
+  </data>
+  <data name="KeyCardinalityOutOfRange" xml:space="preserve">
+    <value>The cardinality of a {0} must not exceed {1}.{2} and must be strictly positive, but got {3}.</value>
+    <comment>Exception or validation message. Placeholders: {0}=nameof(KeyDataViewType), {1}=type.Name, {2}=nameof(uint.MaxValue), {3}=count. Source: src/Microsoft.ML.DataView/KeyDataViewType.cs:53.</comment>
+  </data>
+  <data name="TypeIsNotValidItMustBeOr" xml:space="preserve">
+    <value>Type is not valid, it must be {0}, {1}, {2}, or {3}.</value>
+    <comment>Exception or validation message. Placeholders: {0}=typeof(byte).Name, {1}=typeof(ushort).Name, {2}=typeof(uint).Name, {3}=typeof(ulong).Name. Source: src/Microsoft.ML.DataView/KeyDataViewType.cs:51.</comment>
+  </data>
+  <data name="CommitTruncatedPhysicalValuesCountCannotIncrease" xml:space="preserve">
+    <value>Updating physicalValuesCount during CommitTruncated cannot be greater than the original physicalValuesCount value used in Create.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.DataView/VBufferEditor.cs:160.</comment>
+  </data>
+</root>

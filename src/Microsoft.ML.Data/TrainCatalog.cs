@@ -91,7 +91,7 @@ namespace Microsoft.ML
         {
             Environment.CheckValue(data, nameof(data));
             Environment.CheckValue(estimator, nameof(estimator));
-            Environment.CheckParam(numFolds > 1, nameof(numFolds), "Must be more than 1");
+            Environment.CheckParam(numFolds > 1, nameof(numFolds), Strings.MustBeMoreThan1);
             Environment.CheckValueOrNull(samplingKeyColumn);
 
             var splitColumn = DataOperationsCatalog.CreateSplitColumn(Environment, ref data, samplingKeyColumn, seed, fallbackInEnvSeed: true);
@@ -447,10 +447,10 @@ namespace Microsoft.ML
             Environment.CheckNonEmpty(scoreColumnName, nameof(scoreColumnName));
 
             if (featureColumnName != null)
-                Environment.CheckNonEmpty(featureColumnName, nameof(featureColumnName), "The features column name should be non-empty if you want to calculate the Dbi metric.");
+                Environment.CheckNonEmpty(featureColumnName, nameof(featureColumnName), Strings.FeaturesColumnRequiredForDbi);
 
             if (labelColumnName != null)
-                Environment.CheckNonEmpty(labelColumnName, nameof(labelColumnName), "The label column name should be non-empty if you want to calculate the Nmi metric.");
+                Environment.CheckNonEmpty(labelColumnName, nameof(labelColumnName), Strings.LabelColumnRequiredForNmi);
 
             var eval = new ClusteringEvaluator(Environment, new ClusteringEvaluator.Arguments() { CalculateDbi = !string.IsNullOrEmpty(featureColumnName) });
             return eval.Evaluate(data, scoreColumnName, labelColumnName, featureColumnName);
@@ -526,7 +526,7 @@ namespace Microsoft.ML
             Environment.CheckNonEmpty(labelColumnName, nameof(labelColumnName));
             Environment.CheckNonEmpty(scoreColumnName, nameof(scoreColumnName));
             Environment.CheckNonEmpty(predictedLabelColumnName, nameof(predictedLabelColumnName));
-            Environment.CheckUserArg(topKPredictionCount >= 0, nameof(topKPredictionCount), "Must be non-negative");
+            Environment.CheckUserArg(topKPredictionCount >= 0, nameof(topKPredictionCount), Strings.MustBeNonNegative);
 
             var args = new MulticlassClassificationEvaluator.Arguments() { };
             if (topKPredictionCount > 0)

@@ -39,20 +39,20 @@ namespace Microsoft.ML.Trainers.FastTree
                 FastTreeTrainerOptions.UseLineSearch = true;
 
             if (FastTreeTrainerOptions.CompressEnsemble && FastTreeTrainerOptions.WriteLastEnsemble)
-                throw ch.Except("Ensemble compression cannot be done when forcing to write last ensemble (hl)");
+                throw ch.Except(Strings.EnsembleCompressionIncompatibleWithWriteLastEnsemble);
 
             if (FastTreeTrainerOptions.NumberOfLeaves > 2 && FastTreeTrainerOptions.HistogramPoolSize > FastTreeTrainerOptions.NumberOfLeaves - 1)
-                throw ch.Except("Histogram pool size (ps) must be at most numLeaves - 1.");
+                throw ch.Except(Strings.HistogramPoolSizePsMustBeAtMostNumLeaves1);
 
             if (FastTreeTrainerOptions.EnablePruning && !HasValidSet)
-                throw ch.Except("Cannot perform pruning (pruning) without a validation set (valid).");
+                throw ch.Except(Strings.CannotPerformPruningPruningWithoutAValidationSetValid);
 
             bool doEarlyStop = FastTreeTrainerOptions.EarlyStoppingRuleFactory != null;
             if (doEarlyStop && !HasValidSet)
-                throw ch.Except("Cannot perform early stopping without a validation set (valid).");
+                throw ch.Except(Strings.CannotPerformEarlyStoppingWithoutAValidationSetValid);
 
             if (FastTreeTrainerOptions.UseTolerantPruning && (!FastTreeTrainerOptions.EnablePruning || !HasValidSet))
-                throw ch.Except("Cannot perform tolerant pruning (prtol) without pruning (pruning) and a validation set (valid)");
+                throw ch.Except(Strings.TolerantPruningRequiresPruningAndValidationSet);
 
             base.CheckOptions(ch);
         }
@@ -87,7 +87,7 @@ namespace Microsoft.ML.Trainers.FastTree
                     optimizationAlgorithm = new ConjugateGradientDescent(Ensemble, TrainSet, InitTrainScores, gradientWrapper);
                     break;
                 default:
-                    throw ch.Except("Unknown optimization algorithm '{0}'", FastTreeTrainerOptions.OptimizationAlgorithm);
+                    throw ch.Except(Strings.UnknownOptimizationAlgorithm, FastTreeTrainerOptions.OptimizationAlgorithm);
             }
 
             optimizationAlgorithm.TreeLearner = ConstructTreeLearner(ch);

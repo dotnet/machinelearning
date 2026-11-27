@@ -190,19 +190,19 @@ namespace Microsoft.ML.EntryPoints
                 {
                     var val = fieldInfo.GetValue(defaults) as Optional;
                     if (val == null && !inputAttr.IsRequired)
-                        throw ectx.Except("Field '{0}' is an Optional<> type but is null by default, instead of set to a constructed implicit default.", fieldInfo.Name);
+                        throw ectx.Except(Strings.OptionalFieldDefaultCannotBeNull, fieldInfo.Name);
                     if (val != null && val.IsExplicit)
-                        throw ectx.Except("Field '{0}' is an Optional<> type with a non-implicit default value.", fieldInfo.Name);
+                        throw ectx.Except(Strings.OptionalFieldRequiresImplicitDefault, fieldInfo.Name);
                 }
 
                 var rangeAttr = fieldInfo.GetCustomAttributes(typeof(TlcModule.RangeAttribute), false).FirstOrDefault() as TlcModule.RangeAttribute;
                 if (rangeAttr != null)
                 {
                     if (!TlcModule.IsNumericKind(TlcModule.GetDataType(fieldInfo.FieldType)))
-                        throw ectx.Except("Field '{0}' has a range but is of a non-numeric type.", fieldInfo.Name);
+                        throw ectx.Except(Strings.RangeAttributeRequiresNumericField, fieldInfo.Name);
 
                     if (!rangeAttr.Type.Equals(fieldInfo.FieldType))
-                        throw ectx.Except("Field '{0}' has a range attribute that uses a type which is not equal to the field's FieldType.", fieldInfo.Name);
+                        throw ectx.Except(Strings.RangeAttributeTypeMismatch, fieldInfo.Name);
 
                     var jRange = new JObject();
                     if (rangeAttr.Sup != null)
@@ -344,7 +344,7 @@ namespace Microsoft.ML.EntryPoints
                     }
                     var fields = BuildInputManifest(ectx, type, catalog);
                     if (fields.Count == 0)
-                        throw ectx.Except("Unexpected parameter type: {0}", type);
+                        throw ectx.Except(Strings.UnexpectedParameterType, type);
                     jo[FieldNames.Kind] = "Struct";
                     jo[FieldNames.Fields] = fields;
                     return jo;
@@ -378,7 +378,7 @@ namespace Microsoft.ML.EntryPoints
                 case TlcModule.DataKind.Component:
                     string kind;
                     if (!catalog.TryGetComponentKind(type, out kind))
-                        throw ectx.Except("Field '{0}' is a component of unknown kind", fieldInfo.Name);
+                        throw ectx.Except(Strings.FieldIsAComponentOfUnknownKind, fieldInfo.Name);
 
                     jo = new JObject();
                     jo[FieldNames.Kind] = typeEnum.ToString();
@@ -432,13 +432,13 @@ namespace Microsoft.ML.EntryPoints
                     return value.ToString();
                 case TlcModule.DataKind.Dictionary:
                     // REVIEW: need to figure out how to represent these.
-                    throw ectx.ExceptNotSupp("Dictionary and component default values are not supported");
+                    throw ectx.ExceptNotSupp(Strings.DictionaryAndComponentDefaultValuesAreNotSupported);
                 case TlcModule.DataKind.Component:
                     var factory = value as IComponentFactory;
                     ectx.AssertValue(factory);
                     return BuildComponentToken(ectx, factory, catalog);
                 default:
-                    throw ectx.ExceptNotSupp("Encountered a default value for unsupported type {0}", dataType);
+                    throw ectx.ExceptNotSupp(Strings.EncounteredADefaultValueForUnsupportedType, dataType);
             }
         }
 
@@ -477,7 +477,7 @@ namespace Microsoft.ML.EntryPoints
                 // There was no default constructor found.
                 // This should never happen, since ComponentCatalog would error out if there is no default ctor.
                 ectx.Assert(false);
-                throw ectx.Except(ex, "Couldn't find default constructor");
+                throw ectx.Except(ex, Strings.CouldntFindDefaultConstructor);
             }
 
             var jResult = new JObject();

@@ -135,7 +135,7 @@ namespace Microsoft.ML.Transforms
             _host.CheckUserArg(Utils.Size(columns) > 0, nameof(columns));
             _host.CheckUserArg(slotsInOutput > 0, nameof(slotsInOutput));
             _host.CheckNonWhiteSpace(labelColumnName, nameof(labelColumnName));
-            _host.Check(numberOfBins > 1, "numBins must be greater than 1.");
+            _host.Check(numberOfBins > 1, Strings.NumBinsMustBeGreaterThan1);
 
             _columns = columns;
             _labelColumnName = labelColumnName;
@@ -225,7 +225,7 @@ namespace Microsoft.ML.Transforms
             if (!(label.IsKey || MutualInformationFeatureSelectionUtils.IsValidColumnType(label.ItemType)))
             {
                 throw _host.ExceptUserArg(nameof(inputSchema),
-                    $"Label column '{_labelColumnName}' does not have compatible type. Expected types are float, double, int, bool and key.");
+                    string.Format(Strings.LabelTypeMustBeFloatDoubleIntBoolOrKey, _labelColumnName));
             }
 
             var result = inputSchema.ToDictionary(x => x.Name);
@@ -236,10 +236,10 @@ namespace Microsoft.ML.Transforms
                 if (!MutualInformationFeatureSelectionUtils.IsValidColumnType(col.ItemType))
                 {
                     throw _host.ExceptUserArg(nameof(inputSchema),
-                        "Column '{0}' does not have compatible type. Expected types are float, double, int, bool and key.", colPair.inputColumnName);
+                        Strings.ColumnTypeMustBeFloatDoubleIntBoolOrKey, colPair.inputColumnName);
                 }
                 if (col.Kind == SchemaShape.Column.VectorKind.VariableVector)
-                    throw _host.ExceptUserArg(nameof(inputSchema), $"Variable length column '{col.Name}' is not allowed");
+                    throw _host.ExceptUserArg(nameof(inputSchema), string.Format(Strings.VariableLengthColumnIsNotAllowed, col.Name));
                 var metadata = new List<SchemaShape.Column>();
                 if (col.Annotations.TryFindColumn(AnnotationUtils.Kinds.SlotNames, out var slotMeta))
                     metadata.Add(slotMeta);
@@ -264,7 +264,7 @@ namespace Microsoft.ML.Transforms
             host.CheckNonEmpty(options.Columns, nameof(options.Columns));
             host.CheckUserArg(options.SlotsInOutput > 0, nameof(options.SlotsInOutput));
             host.CheckNonWhiteSpace(options.LabelColumnName, nameof(options.LabelColumnName));
-            host.Check(options.NumBins > 1, "numBins must be greater than 1.");
+            host.Check(options.NumBins > 1, Strings.NumBinsMustBeGreaterThan1);
 
             (string outputColumnName, string inputColumnName)[] cols = options.Columns.Select(col => (col, col)).ToArray();
             return new MutualInformationFeatureSelectingEstimator(env, options.LabelColumnName, options.SlotsInOutput, options.NumBins, cols).Fit(input).Transform(input) as IDataTransform;
@@ -442,14 +442,14 @@ namespace Microsoft.ML.Transforms
                 if (!schema.TryGetColumnIndex(labelColumnName, out int labelCol))
                 {
                     throw _host.ExceptUserArg(nameof(MutualInformationFeatureSelectingEstimator.Options.LabelColumnName),
-                        "Label column '{0}' not found", labelColumnName);
+                        Strings.LabelColumnNotFound, labelColumnName);
                 }
 
                 var labelType = schema[labelCol].Type;
                 if (!IsValidColumnType(labelType))
                 {
                     throw _host.ExceptUserArg(nameof(MutualInformationFeatureSelectingEstimator.Options.LabelColumnName),
-                        "Label column '{0}' does not have compatible type", labelColumnName);
+                        Strings.LabelColumnDoesNotHaveCompatibleType, labelColumnName);
                 }
 
                 var colSrcs = new int[size + 1];
@@ -460,20 +460,20 @@ namespace Microsoft.ML.Transforms
                     if (!schema.TryGetColumnIndex(colName, out int colSrc))
                     {
                         throw _host.ExceptUserArg(nameof(MutualInformationFeatureSelectingEstimator.Options.Columns),
-                            "Source column '{0}' not found", colName);
+                            Strings.SourceColumnNotFound, colName);
                     }
 
                     var colType = schema[colSrc].Type;
                     if (colType is VectorDataViewType vectorType && !vectorType.IsKnownSize)
                     {
                         throw _host.ExceptUserArg(nameof(MutualInformationFeatureSelectingEstimator.Options.Columns),
-                            "Variable length column '{0}' is not allowed", colName);
+                            Strings.VariableLengthColumnIsNotAllowed, colName);
                     }
 
                     if (!IsValidColumnType(colType.GetItemType()))
                     {
                         throw _host.ExceptUserArg(nameof(MutualInformationFeatureSelectingEstimator.Options.Columns),
-                            "Column '{0}' of type '{1}' does not have compatible type.", colName, colType);
+                            Strings.ColumnOfTypeDoesNotHaveCompatibleType, colName, colType);
                     }
 
                     colSrcs[i] = colSrc;

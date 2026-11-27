@@ -57,7 +57,7 @@ namespace Microsoft.ML
                 return OpCodes.Stind_I4;
             if (t == typeof(long) || t == typeof(ulong))
                 return OpCodes.Stind_I8;
-            throw Contracts.ExceptNotSupp("Type '{0}' is not supported.", t.FullName);
+            throw Contracts.ExceptNotSupp(Strings.TypeIsNotSupported, t.FullName);
         }
 
         /// <summary>
@@ -81,7 +81,7 @@ namespace Microsoft.ML
 
                 default:
                     Contracts.Assert(false);
-                    throw Contracts.ExceptNotSupp("Expected a FieldInfo or a PropertyInfo");
+                    throw Contracts.ExceptNotSupp(Strings.ExpectedAFieldInfoOrAPropertyInfo);
 
             }
         }
@@ -149,7 +149,7 @@ namespace Microsoft.ML
 
                 default:
                     Contracts.Assert(false);
-                    throw Contracts.ExceptNotSupp("Expected a FieldInfo or a PropertyInfo");
+                    throw Contracts.ExceptNotSupp(Strings.ExpectedAFieldInfoOrAPropertyInfo);
             }
         }
 

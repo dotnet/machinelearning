@@ -337,9 +337,9 @@ namespace Microsoft.ML.Runtime
         /// For signaling null or empty function parameters (strings, arrays, collections, etc).
         /// </summary>
         public static Exception ExceptEmpty(string paramName)
-            => Process(new ArgumentOutOfRangeException(paramName, string.Format("{0} cannot be null or empty", paramName)));
+            => Process(new ArgumentOutOfRangeException(paramName, string.Format(Strings.CannotBeNullOrEmpty, paramName)));
         public static Exception ExceptEmpty(this IExceptionContext ctx, string paramName)
-            => Process(new ArgumentOutOfRangeException(paramName, string.Format("{0} cannot be null or empty", paramName)), ctx);
+            => Process(new ArgumentOutOfRangeException(paramName, string.Format(Strings.CannotBeNullOrEmpty, paramName)), ctx);
         public static Exception ExceptEmpty(string paramName, string msg)
             => Process(new ArgumentOutOfRangeException(paramName, msg));
         public static Exception ExceptEmpty(this IExceptionContext ctx, string paramName, string msg)
@@ -353,9 +353,9 @@ namespace Microsoft.ML.Runtime
         /// For signaling null, empty or white-space function parameters (strings, arrays, collections, etc).
         /// </summary>
         public static Exception ExceptWhiteSpace(string paramName)
-            => Process(new ArgumentOutOfRangeException(paramName, string.Format("{0} cannot be null or white space", paramName)));
+            => Process(new ArgumentOutOfRangeException(paramName, string.Format(Strings.CannotBeNullOrWhiteSpace, paramName)));
         public static Exception ExceptWhiteSpace(this IExceptionContext ctx, string paramName)
-            => Process(new ArgumentOutOfRangeException(paramName, string.Format("{0} cannot be null or white space", paramName)), ctx);
+            => Process(new ArgumentOutOfRangeException(paramName, string.Format(Strings.CannotBeNullOrWhiteSpace, paramName)), ctx);
         public static Exception ExceptWhiteSpace(string paramName, string msg)
             => Process(new ArgumentOutOfRangeException(paramName, msg));
         public static Exception ExceptWhiteSpace(this IExceptionContext ctx, string paramName, string msg)
@@ -750,7 +750,7 @@ namespace Microsoft.ML.Runtime
         public static void CheckAlive(this IHostEnvironment env)
         {
             if (env is ICancelable cancelableEnv && cancelableEnv.IsCanceled)
-                throw Process(new OperationCanceledException("Operation was canceled."), env);
+                throw Process(new OperationCanceledException(Strings.OperationWasCanceled), env);
         }
 #endif
         /// <summary>

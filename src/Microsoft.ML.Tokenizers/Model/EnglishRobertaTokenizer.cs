@@ -185,12 +185,12 @@ namespace Microsoft.ML.Tokenizers
             }
             catch (Exception e)
             {
-                throw new ArgumentException($"Problems met when parsing JSON vocabulary object.{Environment.NewLine}Error message: {e.Message}");
+                throw new ArgumentException(string.Format(Strings.ProblemsMetWhenParsingJSONVocabularyObjectErrorMessage, Environment.NewLine, e.Message));
             }
 
             if (vocab is null)
             {
-                throw new ArgumentException($"Failed to read the vocabulary file.");
+                throw new ArgumentException(Strings.FailedToReadTheVocabularyFile);
             }
 
             return vocab;
@@ -216,7 +216,7 @@ namespace Microsoft.ML.Tokenizers
                     int index = line.IndexOf(' ');
                     if (index < 1 || index == line.Length - 1 || line.IndexOf(' ', index + 1) != -1)
                     {
-                        throw new FormatException($"Invalid format of merge file at line: \"{line}\"");
+                        throw new FormatException(string.Format(Strings.InvalidFormatOfMergeFileAtLine, line));
                     }
 
                     mergeRanks.Set((line.Substring(0, index), line.Substring(index + 1)), rank++);
@@ -225,7 +225,7 @@ namespace Microsoft.ML.Tokenizers
             catch (Exception e)
             {
                 // Report any issues encountered while consuming a data file as IOExceptions.
-                throw new IOException($"Cannot read the file Merge file.{Environment.NewLine}Error message: {e.Message}", e);
+                throw new IOException(string.Format(Strings.CannotReadTheFileMergeFileErrorMessage, Environment.NewLine, e.Message), e);
             }
 
             return mergeRanks;
@@ -411,7 +411,7 @@ namespace Microsoft.ML.Tokenizers
         {
             if (maxTokenCount <= 0)
             {
-                throw new ArgumentOutOfRangeException(nameof(maxTokenCount), "The maximum number of tokens must be greater than zero.");
+                throw new ArgumentOutOfRangeException(nameof(maxTokenCount), Strings.TheMaximumNumberOfTokensMustBeGreaterThanZero);
             }
 
             if (string.IsNullOrEmpty(text) && textSpan.IsEmpty)
@@ -496,7 +496,7 @@ namespace Microsoft.ML.Tokenizers
         {
             if (maxTokenCount <= 0)
             {
-                throw new ArgumentOutOfRangeException(nameof(maxTokenCount), "The maximum number of tokens must be greater than zero.");
+                throw new ArgumentOutOfRangeException(nameof(maxTokenCount), Strings.TheMaximumNumberOfTokensMustBeGreaterThanZero);
             }
 
             charsConsumed = 0;
@@ -543,7 +543,7 @@ namespace Microsoft.ML.Tokenizers
         {
             if (maxTokenCount <= 0)
             {
-                throw new ArgumentOutOfRangeException(nameof(maxTokenCount), "The max token count must be greater than 0.");
+                throw new ArgumentOutOfRangeException(nameof(maxTokenCount), Strings.TheMaxTokenCountMustBeGreaterThan0);
             }
 
             if (string.IsNullOrEmpty(text) && textSpan.IsEmpty)
@@ -1168,7 +1168,7 @@ namespace Microsoft.ML.Tokenizers
         {
             if (symbol is null)
             {
-                throw new ArgumentNullException(nameof(symbol), $"argument {nameof(symbol)} should not be null.");
+                throw new ArgumentNullException(nameof(symbol), Strings.ArgumentSymbolShouldNotBeNull);
             }
 
             if (!_stringSymbolToIndexMapping.TryGetValue(symbol, out int idx))
@@ -1207,7 +1207,7 @@ namespace Microsoft.ML.Tokenizers
             {
                 if (idx < 0)
                 {
-                    throw new ArgumentOutOfRangeException(nameof(idx), $"Index should be non-negative, got {idx}.");
+                    throw new ArgumentOutOfRangeException(nameof(idx), string.Format(Strings.IndexShouldBeNonNegativeGot, idx));
                 }
 
                 return idx < _symbols.Count ? _symbols[idx].Id : UnkIndex;
@@ -1259,12 +1259,12 @@ namespace Microsoft.ML.Tokenizers
                 var splitLine = line.Trim().Split(' ');
                 if (splitLine.Length != 2)
                 {
-                    throw new ArgumentException("Incorrect vocabulary format, expected \"<token> <cnt>\"");
+                    throw new ArgumentException(Strings.IncorrectVocabularyFormatExpectedTokenCnt);
                 }
 
                 if (!int.TryParse(splitLine[1], out int occurrenceScore))
                 {
-                    throw new ArgumentException($"Cannot parse the line: '{line}'.");
+                    throw new ArgumentException(string.Format(Strings.CannotParseTheLine, line));
                 }
 
                 if (!int.TryParse(splitLine[0], out var id))

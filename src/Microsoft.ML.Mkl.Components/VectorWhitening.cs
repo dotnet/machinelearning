@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -235,9 +235,9 @@ namespace Microsoft.ML.Transforms
         private static void ValidateModel(IExceptionContext ectx, float[] model, DataViewType col)
         {
             long valueCount = col.GetValueCount();
-            ectx.CheckDecode(Utils.Size(model) == valueCount * valueCount, "Invalid model size.");
+            ectx.CheckDecode(Utils.Size(model) == valueCount * valueCount, Strings.InvalidModelSize);
             for (int i = 0; i < model.Length; i++)
-                ectx.CheckDecode(FloatUtils.IsFinite(model[i]), "Found NaN or infinity in the model.");
+                ectx.CheckDecode(FloatUtils.IsFinite(model[i]), Strings.FoundNaNOrInfinityInTheModel);
         }
 
         // Sometime GetRowCount doesn't really return the number of rows in the associated IDataView.
@@ -404,9 +404,9 @@ namespace Microsoft.ML.Transforms
                     ccol, ccol, u, ccol, eigValues, null, ccol, null, ccol, unconv);
                 ch.Assert(r == 0);
                 if (r > 0)
-                    throw ch.Except("SVD did not converge.");
+                    throw ch.Except(Strings.SVDDidNotConverge);
                 if (r < 0)
-                    throw ch.Except("Invalid arguments to LAPACK gesvd, error: {0}", r);
+                    throw ch.Except(Strings.InvalidArgumentsToLAPACKGesvdError, r);
 
                 ch.Info("Scaling eigenvectors...");
                 // Scale eigenvalues first so we don't have to compute sqrt for every matrix element.
@@ -614,7 +614,7 @@ namespace Microsoft.ML.Transforms
                     (ref VBuffer<float> dst) =>
                     {
                         getSrc(ref src);
-                        Host.Check(src.Length == cslotSrc, "Invalid column size.");
+                        Host.Check(src.Length == cslotSrc, Strings.InvalidColumnSize);
                         FillValues(model, ref src, ref dst, cslotDst);
                     };
                 return del;
@@ -652,7 +652,7 @@ namespace Microsoft.ML.Transforms
                 Host.Assert(parameters.Kind == WhiteningKind.PrincipalComponentAnalysis || parameters.Kind == WhiteningKind.ZeroPhaseComponentAnalysis);
 
                 int rank = (parameters.Kind == WhiteningKind.PrincipalComponentAnalysis && parameters.Rank > 0) ? parameters.Rank : dimension;
-                Host.CheckParam(rank <= dimension, nameof(rank), "Rank must be at most the dimension of untransformed data.");
+                Host.CheckParam(rank <= dimension, nameof(rank), Strings.RankMustBeAtMostTheDimensionOfUntransformedData);
 
                 long[] modelDimension = { rank, dimension };
 

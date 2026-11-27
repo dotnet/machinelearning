@@ -144,7 +144,7 @@ namespace Microsoft.ML.Transforms
             _host = env.Register(nameof(CountTargetEncodingEstimator));
             _host.CheckValue(initialCounts, nameof(initialCounts));
             _host.CheckNonEmpty(columns, nameof(columns));
-            _host.Check(initialCounts.VerifyColumns(columns), nameof(columns));
+            _host.Check(initialCounts.VerifyColumns(columns), Strings.InitialCountColumnsMustMatchTheRequestedColumns);
 
             _hashingEstimator = new HashingEstimator(_host, initialCounts.HashingTransformer.Columns.ToArray());
             _countTableEstimator = new CountTableEstimator(_host, labelColumnName, initialCounts.CountTable,
@@ -167,15 +167,15 @@ namespace Microsoft.ML.Transforms
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(nameof(CountTargetEncodingEstimator));
             _host.CheckValue(options, nameof(options));
-            _host.CheckUserArg(Utils.Size(options.Columns) > 0, nameof(options.Columns), "Columns must be specified");
-            _host.CheckUserArg(!string.IsNullOrWhiteSpace(options.LabelColumn), nameof(options.LabelColumn), "Must specify the label column name");
+            _host.CheckUserArg(Utils.Size(options.Columns) > 0, nameof(options.Columns), Strings.ColumnsMustBeSpecified);
+            _host.CheckUserArg(!string.IsNullOrWhiteSpace(options.LabelColumn), nameof(options.LabelColumn), Strings.MustSpecifyTheLabelColumnName);
 
             if (!string.IsNullOrEmpty(options.InitialCountsModel))
             {
                 _countTableEstimator = LoadFromFile(env, options.InitialCountsModel, options.LabelColumn,
                     options.Columns.Select(col => new InputOutputColumnPair(col.Name)).ToArray());
                 if (_countTableEstimator == null)
-                    throw env.Except($"The file {options.InitialCountsModel} does not contain a CountTableTransformer");
+                    throw env.Except(string.Format(Strings.TheFileDoesNotContainACountTableTransformer, options.InitialCountsModel));
             }
             else if (options.SharedTable)
             {

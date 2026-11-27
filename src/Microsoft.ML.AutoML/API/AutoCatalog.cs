@@ -643,7 +643,7 @@ namespace Microsoft.ML.AutoML
         {
             Contracts.CheckValue(inputColumnNames, nameof(inputColumnNames));
             Contracts.CheckValue(outputColumnNames, nameof(outputColumnNames));
-            Contracts.Check(outputColumnNames.Count() == inputColumnNames.Count() && outputColumnNames.Count() > 0, "outputColumnNames and inputColumnNames must have the same length and greater than 0");
+            Contracts.Check(outputColumnNames.Count() == inputColumnNames.Count() && outputColumnNames.Count() > 0, Strings.InputAndOutputColumnNamesMustHaveEqualNonzeroLength);
             var replaceMissingValueOption = new ReplaceMissingValueOption
             {
                 InputColumnNames = inputColumnNames,
@@ -664,7 +664,7 @@ namespace Microsoft.ML.AutoML
         {
             Contracts.CheckValue(inputColumnNames, nameof(inputColumnNames));
             Contracts.CheckValue(outputColumnNames, nameof(outputColumnNames));
-            Contracts.Check(outputColumnNames.Count() == inputColumnNames.Count() && outputColumnNames.Count() > 0, "outputColumnNames and inputColumnNames must have the same length and greater than 0");
+            Contracts.Check(outputColumnNames.Count() == inputColumnNames.Count() && outputColumnNames.Count() > 0, Strings.InputAndOutputColumnNamesMustHaveEqualNonzeroLength);
 
             // by default, convertType's output kind is single
             var convertTypeOption = new ConvertTypeOption
@@ -683,7 +683,7 @@ namespace Microsoft.ML.AutoML
         /// <param name="inputColumnNames">input column names.</param>
         internal SweepablePipeline CatalogFeaturizer(string[] outputColumnNames, string[] inputColumnNames)
         {
-            Contracts.Check(outputColumnNames.Count() == inputColumnNames.Count() && outputColumnNames.Count() > 0, "outputColumnNames and inputColumnNames must have the same length and greater than 0");
+            Contracts.Check(outputColumnNames.Count() == inputColumnNames.Count() && outputColumnNames.Count() > 0, Strings.InputAndOutputColumnNamesMustHaveEqualNonzeroLength);
 
             var option = new OneHotOption
             {

@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -122,7 +122,7 @@ namespace Microsoft.ML.Trainers
                   TrainerUtils.MakeR4ScalarColumn(options.LabelColumnName), TrainerUtils.MakeR4ScalarWeightColumn(options.ExampleWeightColumnName))
         {
             Host.CheckValue(options, nameof(options));
-            Host.CheckUserArg(options.L2Regularization >= 0, nameof(options.L2Regularization), "L2 regularization term cannot be negative");
+            Host.CheckUserArg(options.L2Regularization >= 0, nameof(options.L2Regularization), Strings.L2RegularizationTermCannotBeNegative);
             _l2Weight = options.L2Regularization;
             _perParameterSignificance = options.CalculateStatistics;
             _batchSize = options.BatchSize;
@@ -154,20 +154,20 @@ namespace Microsoft.ML.Trainers
             {
                 ch.CheckValue(context, nameof(context));
                 var examples = context.TrainingSet;
-                ch.CheckParam(examples.Schema.Feature.HasValue, nameof(examples), "Need a feature column");
-                ch.CheckParam(examples.Schema.Label.HasValue, nameof(examples), "Need a labelColumn column");
+                ch.CheckParam(examples.Schema.Feature.HasValue, nameof(examples), Strings.NeedAFeatureColumn);
+                ch.CheckParam(examples.Schema.Label.HasValue, nameof(examples), Strings.NeedALabelColumnColumn);
 
                 // The labelColumn type must be either Float or a key type based on int (if allowKeyLabels is true).
                 var typeLab = examples.Schema.Label.Value.Type;
                 if (typeLab != NumberDataViewType.Single)
-                    throw ch.Except("Incompatible labelColumn column type {0}, must be {1}", typeLab, NumberDataViewType.Single);
+                    throw ch.Except(Strings.IncompatibleLabelColumnColumnTypeMustBe, typeLab, NumberDataViewType.Single);
 
                 // The feature type must be a vector of Float.
                 var typeFeat = examples.Schema.Feature.Value.Type as VectorDataViewType;
                 if (typeFeat == null || !typeFeat.IsKnownSize)
-                    throw ch.Except("Incompatible feature column type {0}, must be known sized vector of {1}", typeFeat, NumberDataViewType.Single);
+                    throw ch.Except(Strings.IncompatibleFeatureColumnTypeMustBeKnownSizedVectorOf, typeFeat, NumberDataViewType.Single);
                 if (typeFeat.ItemType != NumberDataViewType.Single)
-                    throw ch.Except("Incompatible feature column type {0}, must be vector of {1}", typeFeat, NumberDataViewType.Single);
+                    throw ch.Except(Strings.IncompatibleFeatureColumnTypeMustBeVectorOf, typeFeat, NumberDataViewType.Single);
 
                 CursOpt cursorOpt = CursOpt.Label | CursOpt.Features;
                 if (examples.Schema.Weight.HasValue)
@@ -262,7 +262,7 @@ namespace Microsoft.ML.Trainers
                     }
                     n++;
                 }
-                ch.Check(n > 0, "No training examples in dataset.");
+                ch.Check(n > 0, Strings.NoTrainingExamplesInDataset);
                 if (cursor.BadFeaturesRowCount > 0)
                     ch.Warning("Skipped {0} instances with missing features/labelColumn during training", cursor.SkippedRowCount);
 
@@ -278,7 +278,7 @@ namespace Microsoft.ML.Trainers
             }
 
             if (!(_l2Weight > 0) && n < m)
-                throw ch.Except("Ordinary least squares requires more examples than parameters. There are {0} parameters, but {1} examples. To enable training, use a positive L2 weight so this behaves as ridge regression.", m, n);
+                throw ch.Except(Strings.OrdinaryLeastSquaresRequiresMoreExamplesThanParameters, m, n);
 
             yMean = n == 0 ? 0 : xty[m - 1] / n;
 
@@ -291,14 +291,14 @@ namespace Microsoft.ML.Trainers
             catch (DllNotFoundException)
             {
                 // REVIEW: Is there no better way?
-                throw ch.ExceptNotSupp("The MKL library (libMklImports) or one of its dependencies is missing.");
+                throw ch.ExceptNotSupp(Strings.MissingLibMklImportsDependency);
             }
             // Invert X'X:
             Mkl.Pptri(Mkl.Layout.RowMajor, Mkl.UpLo.Lo, m, xtx);
 
             // Check that the solution is valid.
             for (int i = 0; i < beta.Length; ++i)
-                ch.Check(FloatUtils.IsFinite(beta[i]), "Non-finite values detected in OLS solution");
+                ch.Check(FloatUtils.IsFinite(beta[i]), Strings.NonFiniteValuesDetectedInOLSSolution);
         }
 
         private void ComputeMklRegression(IChannel ch, FloatLabelCursor.Factory cursorFactory, int m, ref Double[] beta, Double[] xtx, ref long n, ref Double yMean)
@@ -354,7 +354,7 @@ namespace Microsoft.ML.Trainers
                     }
                     n++;
                 }
-                ch.Check(n > 0, "No training examples in dataset.");
+                ch.Check(n > 0, Strings.NoTrainingExamplesInDataset);
                 if (cursor.BadFeaturesRowCount > 0)
                     ch.Warning("Skipped {0} instances with missing features/labelColumn during training", cursor.SkippedRowCount);
 
@@ -381,7 +381,7 @@ namespace Microsoft.ML.Trainers
             }
 
             if (!(_l2Weight > 0) && n < m)
-                throw ch.Except("Ordinary least squares requires more examples than parameters. There are {0} parameters, but {1} examples. To enable training, use a positive L2 weight so this behaves as ridge regression.", m, n);
+                throw ch.Except(Strings.OrdinaryLeastSquaresRequiresMoreExamplesThanParameters, m, n);
 
             yMean = n == 0 ? 0 : xty[0] / n;
 
@@ -394,7 +394,7 @@ namespace Microsoft.ML.Trainers
             catch (DllNotFoundException)
             {
                 // REVIEW: Is there no better way?
-                throw ch.ExceptNotSupp("The MKL library (libMklImports) or one of its dependencies is missing.");
+                throw ch.ExceptNotSupp(Strings.MissingLibMklImportsDependency);
             }
             // Solve for beta in (LL')beta = X'y:
             Mkl.Pptrs(Mkl.Layout.RowMajor, Mkl.UpLo.Lo, m, 1, xtx, xty, 1);
@@ -404,7 +404,7 @@ namespace Microsoft.ML.Trainers
 
             // Check that the solution is valid.
             for (int i = 0; i < xty.Length; ++i)
-                ch.Check(FloatUtils.IsFinite(xty[i]), "Non-finite values detected in OLS solution");
+                ch.Check(FloatUtils.IsFinite(xty[i]), Strings.NonFiniteValuesDetectedInOLSSolution);
 
             beta = xty;
             xty = null;
@@ -419,7 +419,7 @@ namespace Microsoft.ML.Trainers
 
             // Check for memory conditions first.
             if ((long)m * (m + 1) / 2 > int.MaxValue)
-                throw ch.Except("Cannot hold covariance matrix in memory with {0} features", m - 1);
+                throw ch.Except(Strings.CannotHoldCovarianceMatrixInMemoryWithFeatures, m - 1);
 
             // Track the number of examples.
             long n = 0;
@@ -524,10 +524,10 @@ namespace Microsoft.ML.Trainers
             {
                 // sqrt of diagonal entries of s2 * inverse(X'X + reg * I) * X'X * inverse(X'X + reg * I).
                 standardErrors[i] = Math.Sqrt(s2 * standardErrors[i]);
-                ch.Check(FloatUtils.IsFinite(standardErrors[i]), "Non-finite standard error detected from OLS solution");
+                ch.Check(FloatUtils.IsFinite(standardErrors[i]), Strings.NonFiniteStandardErrorDetectedFromOLSSolution);
                 tValues[i] = beta[i] / standardErrors[i];
                 pValues[i] = (float)MathUtils.TStatisticToPValue(tValues[i], n - m);
-                ch.Check(0 <= pValues[i] && pValues[i] <= 1, "p-Value calculated outside expected [0,1] range");
+                ch.Check(0 <= pValues[i] && pValues[i] <= 1, Strings.PValueOutsideExpectedZeroToOneInclusiveRange);
             }
 
             return new OlsModelParameters(Host, in weights, bias, standardErrors, tValues, pValues, rSquared, rSquaredAdjusted);
@@ -564,7 +564,7 @@ namespace Microsoft.ML.Trainers
             /// on whether this was upper or lower.)</param>
             public static void Pptrf(Layout layout, UpLo uplo, int n, Double[] ap)
             {
-                Contracts.CheckParam((long)n * (n + 1) / 2 <= ap.Length, nameof(ap), "vector had insufficient length");
+                Contracts.CheckParam((long)n * (n + 1) / 2 <= ap.Length, nameof(ap), Strings.VectorHadInsufficientLength);
                 int retval = PptrfInternal(layout, uplo, n, ap);
                 if (retval == 0)
                     return;
@@ -580,7 +580,7 @@ namespace Microsoft.ML.Trainers
                     case 3:
                         throw Contracts.ExceptParam(nameof(ap));
                     default:
-                        throw Contracts.ExceptParam(nameof(ap), "Input matrix was not positive-definite. Try using a larger L2 regularization weight.");
+                        throw Contracts.ExceptParam(nameof(ap), Strings.InputMatrixNotPositiveDefinite);
                 }
             }
 
@@ -603,8 +603,8 @@ namespace Microsoft.ML.Trainers
             /// or something larger)</param>
             public static void Pptrs(Layout layout, UpLo uplo, int n, int nrhs, Double[] ap, Double[] b, int ldb)
             {
-                Contracts.CheckParam((long)n * (n + 1) / 2 <= ap.Length, nameof(ap), "vector had insufficient length");
-                Contracts.CheckParam((long)n * ldb <= b.Length, nameof(b), "vector had insufficient length");
+                Contracts.CheckParam((long)n * (n + 1) / 2 <= ap.Length, nameof(ap), Strings.VectorHadInsufficientLength);
+                Contracts.CheckParam((long)n * ldb <= b.Length, nameof(b), Strings.VectorHadInsufficientLength);
                 int retval = PptrsInternal(layout, uplo, n, nrhs, ap, b, ldb);
                 if (retval == 0)
                     return;
@@ -646,7 +646,7 @@ namespace Microsoft.ML.Trainers
             /// of the matrix in the linear equation. The inverse is returned in this array.</param>
             public static void Pptri(Layout layout, UpLo uplo, int n, Double[] ap)
             {
-                Contracts.CheckParam((long)n * (n + 1) / 2 <= ap.Length, nameof(ap), "vector had insufficient length");
+                Contracts.CheckParam((long)n * (n + 1) / 2 <= ap.Length, nameof(ap), Strings.VectorHadInsufficientLength);
                 int retval = PptriInternal(layout, uplo, n, ap);
 
                 if (retval == 0)

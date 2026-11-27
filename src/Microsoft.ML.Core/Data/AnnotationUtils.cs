@@ -115,12 +115,12 @@ internal static class AnnotationUtils
     /// <summary>
     /// Returns a standard exception for responding to an invalid call to GetAnnotation.
     /// </summary>
-    public static Exception ExceptGetAnnotation() => Contracts.Except("Invalid call to GetAnnotation");
+    public static Exception ExceptGetAnnotation() => Contracts.Except(Strings.InvalidCallToGetAnnotation);
 
     /// <summary>
     /// Returns a standard exception for responding to an invalid call to GetAnnotation.
     /// </summary>
-    public static Exception ExceptGetAnnotation(this IExceptionContext ctx) => ctx.Except("Invalid call to GetAnnotation");
+    public static Exception ExceptGetAnnotation(this IExceptionContext ctx) => ctx.Except(Strings.InvalidCallToGetAnnotation);
 
     /// <summary>
     /// Helper to marshal a call to GetAnnotation{TValue} to a specific type.
@@ -141,7 +141,7 @@ internal static class AnnotationUtils
     /// </summary>
     public static VectorDataViewType GetNamesType(int size)
     {
-        Contracts.CheckParam(size > 0, nameof(size), "must be known size");
+        Contracts.CheckParam(size > 0, nameof(size), Strings.MustBeKnownSize);
         return new VectorDataViewType(TextDataViewType.Instance, size);
     }
 
@@ -153,7 +153,7 @@ internal static class AnnotationUtils
     /// </summary>
     public static VectorDataViewType GetCategoricalType(int rangeCount)
     {
-        Contracts.CheckParam(rangeCount > 0, nameof(rangeCount), "must be known size");
+        Contracts.CheckParam(rangeCount > 0, nameof(rangeCount), Strings.MustBeKnownSize);
         return new VectorDataViewType(NumberDataViewType.Int32, rangeCount, 2);
     }
 
@@ -323,7 +323,7 @@ internal static class AnnotationUtils
     /// of a scalar <see cref="BooleanDataViewType"/> type, which we assume, if set, should be <c>true</c>.</returns>
     public static bool IsNormalized(this SchemaShape.Column column)
     {
-        Contracts.CheckParam(column.IsValid, nameof(column), "struct not initialized properly");
+        Contracts.CheckParam(column.IsValid, nameof(column), Strings.StructNotInitializedProperly);
         return column.Annotations.TryFindColumn(Kinds.IsNormalized, out var metaCol)
             && metaCol.Kind == SchemaShape.Column.VectorKind.Scalar && !metaCol.IsKey
             && metaCol.ItemType == BooleanDataViewType.Instance;
@@ -338,7 +338,7 @@ internal static class AnnotationUtils
     /// <see cref="Kinds.SlotNames"/> annotation of definite sized vectors of text.</returns>
     public static bool HasSlotNames(this SchemaShape.Column col)
     {
-        Contracts.CheckParam(col.IsValid, nameof(col), "struct not initialized properly");
+        Contracts.CheckParam(col.IsValid, nameof(col), Strings.StructNotInitializedProperly);
         return col.Kind == SchemaShape.Column.VectorKind.Vector
             && col.Annotations.TryFindColumn(Kinds.SlotNames, out var metaCol)
             && metaCol.Kind == SchemaShape.Column.VectorKind.Vector && !metaCol.IsKey
@@ -378,7 +378,7 @@ internal static class AnnotationUtils
     public static bool TryGetCategoricalFeatureIndices(DataViewSchema schema, int colIndex, out int[] categoricalFeatures)
     {
         Contracts.CheckValue(schema, nameof(schema));
-        Contracts.Check(colIndex >= 0, nameof(colIndex));
+        Contracts.Check(colIndex >= 0, Strings.ColumnIndexMustBeNonNegative);
 
         bool isValid = false;
         categoricalFeatures = null;

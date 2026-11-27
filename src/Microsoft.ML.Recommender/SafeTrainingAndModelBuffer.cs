@@ -306,7 +306,7 @@ namespace Microsoft.ML.Recommender.Internal
             }
             if (numSkipped > 0)
                 ch.Warning("Skipped {0} instances with missing/negative features during data loading", numSkipped);
-            ch.Check(nodes.Count > 0, "No valid instances encountered during data loading");
+            ch.Check(nodes.Count > 0, Strings.NoValidInstancesEncounteredDuringDataLoading);
 
             return nodes.ToArray();
         }
@@ -382,13 +382,13 @@ namespace Microsoft.ML.Recommender.Internal
 
         public unsafe void Get(out int m, out int n, out int k, out float[] p, out float[] q)
         {
-            _host.Check(_pMFModel != null, "Attempted to get predictor before training");
+            _host.Check(_pMFModel != null, Strings.AttemptedToGetPredictorBeforeTraining);
             m = _pMFModel->M;
-            _host.Check(m > 0, "Number of rows should have been positive but was not");
+            _host.Check(m > 0, Strings.NumberOfRowsShouldHaveBeenPositiveButWasNot);
             n = _pMFModel->N;
-            _host.Check(n > 0, "Number of columns should have been positive but was not");
+            _host.Check(n > 0, Strings.NumberOfColumnsShouldHaveBeenPositiveButWasNot);
             k = _pMFModel->K;
-            _host.Check(k > 0, "Internal dimension should have been positive but was not");
+            _host.Check(k > 0, Strings.InternalDimensionShouldHaveBeenPositiveButWasNot);
 
             p = new float[m * k];
             q = new float[n * k];

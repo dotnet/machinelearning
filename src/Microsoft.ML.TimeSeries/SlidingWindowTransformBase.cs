@@ -63,15 +63,15 @@ namespace Microsoft.ML.Transforms.TimeSeries
         protected SlidingWindowTransformBase(Arguments args, string loaderSignature, IHostEnvironment env, IDataView input)
             : base(args.WindowSize + args.Lag - 1, args.WindowSize + args.Lag - 1, args.Name, args.Source, loaderSignature, env, input)
         {
-            Host.CheckUserArg(args.WindowSize >= 1, nameof(args.WindowSize), "Must be at least 1.");
-            Host.CheckUserArg(args.Lag >= 0, nameof(args.Lag), "Must be positive.");
+            Host.CheckUserArg(args.WindowSize >= 1, nameof(args.WindowSize), Strings.MustBeAtLeast1);
+            Host.CheckUserArg(args.Lag >= 0, nameof(args.Lag), Strings.MustBePositive);
             if (args.Lag == 0 && args.WindowSize <= 1)
             {
                 Host.Assert(args.WindowSize == 1);
                 throw Host.ExceptUserArg(nameof(args.Lag),
-                    $"If {args.Lag}=0 and {args.WindowSize}=1, the transform just copies the column. Use {ColumnCopyingTransformer.LoaderSignature} transform instead.");
+                    string.Format(Strings.ZeroLagSingleWindowShouldUseCopyTransform, args.Lag, args.WindowSize, ColumnCopyingTransformer.LoaderSignature));
             }
-            Host.CheckUserArg(Enum.IsDefined(typeof(BeginOptions), args.Begin), nameof(args.Begin), "Undefined value.");
+            Host.CheckUserArg(Enum.IsDefined(typeof(BeginOptions), args.Begin), nameof(args.Begin), Strings.UndefinedValue);
             _lag = args.Lag;
             _begin = args.Begin;
             _nanValue = GetNaValue();

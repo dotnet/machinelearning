@@ -79,7 +79,7 @@ namespace Microsoft.ML.Transforms
             : base(env, RegistrationName, input)
         {
             Host.CheckValue(options, nameof(options));
-            Host.CheckUserArg(options.PoolSize >= 0, nameof(options.PoolSize), "Cannot be negative");
+            Host.CheckUserArg(options.PoolSize >= 0, nameof(options.PoolSize), Strings.CannotBeNegative);
 
             _complement = options.Complement;
             _state = new TauswortheHybrid.State(options.Seed ?? (uint)Host.Rand.Next());

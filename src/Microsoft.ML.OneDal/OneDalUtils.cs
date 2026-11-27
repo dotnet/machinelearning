@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -82,7 +82,7 @@ namespace Microsoft.ML.OneDal
                     }
                     n++;
                 }
-                channel.Check(n > 0, "No training examples in dataset.");
+                channel.Check(n > 0, Strings.NoTrainingExamplesInDataset);
                 if (cursor.BadFeaturesRowCount > 0)
                     channel.Warning("Skipped {0} instances with missing features/labelColumn during training", cursor.SkippedRowCount);
             }

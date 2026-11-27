@@ -35,7 +35,7 @@ namespace Microsoft.ML.Tokenizers
                 modelProto.TrainerSpec.EosId >= modelProto.Pieces.Count ||
                 modelProto.TrainerSpec.UnkId >= modelProto.Pieces.Count)
             {
-                throw new ArgumentException("The BOS, EOS, or UNK token is not present in the vocabulary.");
+                throw new ArgumentException(Strings.VocabularyMissingRequiredSpecialToken);
             }
 
             _vocabReverse = new (string Piece, float Score, ModelProto.Types.SentencePiece.Types.Type Type)[modelProto.Pieces.Count];
@@ -217,7 +217,7 @@ namespace Microsoft.ML.Tokenizers
                 ByteCodeToIdOffset = _vocab.TryGetValue("<0x00>", out int id) ? id : MaxByteId;
                 if (!_vocab.ContainsKey("<0x00>") || !_vocab.TryGetValue("<0xFF>", out int maxByteId) || maxByteId - ByteCodeToIdOffset != 0xFF)
                 {
-                    throw new InvalidDataException("The tokenizer.json model enables byte_fallback but does not contain a contiguous <0x00>..<0xFF> byte-piece block required to represent it.");
+                    throw new InvalidDataException(Strings.ByteFallbackRequiresCompleteBytePieceBlock);
                 }
 
                 MaxByteId = maxByteId;
@@ -317,7 +317,7 @@ namespace Microsoft.ML.Tokenizers
 
             if (index >= pieces.Count)
             {
-                throw new ArgumentOutOfRangeException("unkId", "unkId must be a valid index in the vocabulary.");
+                throw new ArgumentOutOfRangeException("unkId", Strings.UnkIdMustBeAValidIndexInTheVocabulary);
             }
 
             return pieces[index].Piece;
@@ -334,7 +334,7 @@ namespace Microsoft.ML.Tokenizers
 
             if ((uint)unkId >= (uint)pieces.Count)
             {
-                throw new ArgumentOutOfRangeException("unkId", "unkId must be a valid index in the vocabulary.");
+                throw new ArgumentOutOfRangeException("unkId", Strings.UnkIdMustBeAValidIndexInTheVocabulary);
             }
 
             return pieces;
@@ -363,7 +363,7 @@ namespace Microsoft.ML.Tokenizers
         {
             if (required && id < 0)
             {
-                throw new ArgumentException($"The vocabulary does not contain the required special token.", paramName);
+                throw new ArgumentException(Strings.TheVocabularyDoesNotContainTheRequiredSpecialToken, paramName);
             }
             return id;
         }

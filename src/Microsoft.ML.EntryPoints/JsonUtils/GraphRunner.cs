@@ -46,7 +46,7 @@ namespace Microsoft.ML.EntryPoints
         {
             var missingInputs = _graph.GetMissingInputs();
             if (missingInputs.Any())
-                throw _host.Except("The following inputs are missing: {0}", string.Join(", ", missingInputs));
+                throw _host.Except(Strings.TheFollowingInputsAreMissing, string.Join(", ", missingInputs));
 
             while (_graph.HasRunnableNodes)
             {
@@ -57,7 +57,7 @@ namespace Microsoft.ML.EntryPoints
 
             var remainingNodes = _graph.Macros.Union(_graph.NonMacros).Where(x => !x.IsFinished).Select(x => x.Id).ToArray();
             if (remainingNodes.Any())
-                throw _host.Except("The following nodes didn't run due to circular dependency: {0}", string.Join(", ", remainingNodes));
+                throw _host.Except(Strings.TheFollowingNodesDidntRunDueToCircularDependency, string.Join(", ", remainingNodes));
         }
 
         private void RunAllNonMacros()
@@ -90,13 +90,13 @@ namespace Microsoft.ML.EntryPoints
             EntryPointVariable variable;
 
             if (!_graph.TryGetVariable(name, out variable))
-                throw _host.Except("Port '{0}' not found", name);
+                throw _host.Except(Strings.PortNotFound, name);
             if (variable.Value == null)
                 return null;
 
             var result = variable.Value as TOutput;
             if (result == null)
-                throw _host.Except("Incorrect type for output '{0}'", name);
+                throw _host.Except(Strings.IncorrectTypeForOutput, name);
             return result;
         }
 
@@ -126,13 +126,13 @@ namespace Microsoft.ML.EntryPoints
             EntryPointVariable variable;
 
             if (!_graph.TryGetVariable(name, out variable))
-                throw _host.Except("Port '{0}' not found", name);
+                throw _host.Except(Strings.PortNotFound, name);
             if (variable.HasOutputs)
-                throw _host.Except("Port '{0}' is not an input", name);
+                throw _host.Except(Strings.PortIsNotAnInput, name);
             if (variable.IsValueSet)
-                throw _host.Except("Port '{0}' is already set", name);
+                throw _host.Except(Strings.PortIsAlreadySet, name);
             if (!variable.Type.IsAssignableFrom(typeof(TInput)))
-                throw _host.Except("Port '{0}' is of incorrect type", name);
+                throw _host.Except(Strings.PortIsOfIncorrectType, name);
 
             variable.SetValue(input);
         }
@@ -146,7 +146,7 @@ namespace Microsoft.ML.EntryPoints
             EntryPointVariable variable;
 
             if (!_graph.TryGetVariable(name, out variable))
-                throw _host.Except("Variable '{0}' not found", name);
+                throw _host.Except(Strings.VariableNotFound, name);
             return TlcModule.GetDataType(variable.Type);
         }
     }

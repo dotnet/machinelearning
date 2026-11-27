@@ -274,7 +274,7 @@ namespace Microsoft.ML.Data
             /// <param name="index">The index of the field of the text file to read.</param>
             public Range(int index)
             {
-                Contracts.CheckParam(index >= 0, nameof(index), "Must be non-negative");
+                Contracts.CheckParam(index >= 0, nameof(index), Strings.MustBeNonNegative);
                 Min = index;
                 Max = index;
             }
@@ -288,8 +288,8 @@ namespace Microsoft.ML.Data
             /// of the lines, and read until the end.</param>
             public Range(int min, int? max)
             {
-                Contracts.CheckParam(min >= 0, nameof(min), "Must be non-negative");
-                Contracts.CheckParam(!(max < min), nameof(max), "If specified, must be greater than or equal to " + nameof(min));
+                Contracts.CheckParam(min >= 0, nameof(min), Strings.MustBeNonNegative);
+                Contracts.CheckParam(!(max < min), nameof(max), Strings.IfSpecifiedMustBeGreaterThanOrEqualToMin);
 
                 Min = min;
                 Max = max;
@@ -650,8 +650,8 @@ namespace Microsoft.ML.Data
                     if (segs[a].Lim > segs[b].Min)
                     {
                         throw user ?
-                            Contracts.ExceptUserArg(nameof(Column.Source), "Intervals specified for column '{0}' overlap", name) :
-                            Contracts.ExceptDecode("Intervals specified for column '{0}' overlap", name);
+                            Contracts.ExceptUserArg(nameof(Column.Source), Strings.IntervalsSpecifiedForColumnOverlap, name) :
+                            Contracts.ExceptDecode(Strings.IntervalsSpecifiedForColumnOverlap, name);
                     }
                 }
 
@@ -716,7 +716,7 @@ namespace Microsoft.ML.Data
                     foreach (var col in cols)
                     {
                         if (Utils.Size(col.Source) == 0)
-                            throw ch.ExceptUserArg(nameof(Column.Source), "Must specify some source column indices");
+                            throw ch.ExceptUserArg(nameof(Column.Source), Strings.MustSpecifySomeSourceColumnIndices);
                         if (!needInputSize && col.Source.Any(r => r.AutoEnd && r.Max == null))
                             needInputSize = true;
                     }
@@ -738,10 +738,10 @@ namespace Microsoft.ML.Data
                         if (Utils.Size(lines) > 0)
                             Parser.GetInputSize(parent, lines, out min, out max);
                         if (max == 0)
-                            throw ch.ExceptUserArg(nameof(Column.Source), "Can't determine the number of source columns without valid data");
+                            throw ch.ExceptUserArg(nameof(Column.Source), Strings.CannotDetermineSourceColumnCount);
                         ch.Assert(min <= max);
                         if (min < max)
-                            throw ch.ExceptUserArg(nameof(Column.Source), "The size of input lines is not consistent");
+                            throw ch.ExceptUserArg(nameof(Column.Source), Strings.TheSizeOfInputLinesIsNotConsistent);
                         // We reserve SrcLim for variable.
                         inputSize = Math.Min(min, SrcLim - 1);
                     }
@@ -774,7 +774,7 @@ namespace Microsoft.ML.Data
                         else
                         {
                             kind = col.Type == default ? InternalDataKind.R4 : col.Type;
-                            ch.CheckUserArg(Enum.IsDefined(typeof(InternalDataKind), kind), nameof(Column.Type), "Bad item type");
+                            ch.CheckUserArg(Enum.IsDefined(typeof(InternalDataKind), kind), nameof(Column.Type), Strings.BadItemType);
                             itemType = ColumnTypeExtensions.PrimitiveTypeFromKind(kind);
                         }
 
@@ -789,7 +789,7 @@ namespace Microsoft.ML.Data
                             // Check for remaining range, raise flag.
                             if (range.AllOther)
                             {
-                                ch.CheckUserArg(iinfoOther < 0, nameof(Range.AllOther), "At most one all other range can be specified");
+                                ch.CheckUserArg(iinfoOther < 0, nameof(Range.AllOther), Strings.AtMostOneAllOtherRangeCanBeSpecified);
                                 iinfoOther = iinfo;
                                 isegOther = i;
                                 typeOther = itemType;
@@ -812,7 +812,7 @@ namespace Microsoft.ML.Data
                             {
                                 ch.Assert(needInputSize && 0 < inputSize && inputSize < SrcLim);
                                 if (min >= inputSize)
-                                    throw ch.ExceptUserArg(nameof(range.Min), "Column #{0} not found in the dataset (it only has {1} columns)", min, inputSize);
+                                    throw ch.ExceptUserArg(nameof(range.Min), Strings.ColumnNotFoundInTheDatasetItOnlyHasColumns, min, inputSize);
                                 seg = new Segment(min, inputSize, true);
                                 ch.Assert(!seg.IsVariable);
                             }
@@ -888,7 +888,7 @@ namespace Microsoft.ML.Data
                                 segsNew.Add(new Segment(min, lim, true));
                         }
 
-                        ch.CheckUserArg(segsNew.Count > 0, nameof(Range.AllOther), "No index is selected as all other indexes.");
+                        ch.CheckUserArg(segsNew.Count > 0, nameof(Range.AllOther), Strings.NoIndexIsSelectedAsAllOtherIndexes);
                         Infos[iinfoOther] = ColInfo.Create(cols[iinfoOther].Name.Trim(), typeOther, segsNew.ToArray(), true);
                     }
 
@@ -1166,7 +1166,7 @@ namespace Microsoft.ML.Data
             if (Utils.Size(cols) == 0 && !TryParseSchema(_host, headerFile ?? dataSample, ref options, out cols, out error))
             {
                 if (error)
-                    throw _host.Except("TextLoader options embedded in the file are invalid");
+                    throw _host.Except(Strings.TextLoaderOptionsEmbeddedInTheFileAreInvalid);
 
                 // Default to a single Label and the rest Features.
                 // REVIEW: Should probably default to the label being a key, but with what range?
@@ -1199,11 +1199,11 @@ namespace Microsoft.ML.Data
 
             // Note that _maxDim == 0 means sparsity is illegal.
             _inputSize = options.InputSize ?? 0;
-            _host.Check(_inputSize >= 0, "inputSize");
+            _host.Check(_inputSize >= 0, Strings.InputSize);
             if (_inputSize >= SrcLim)
                 _inputSize = SrcLim - 1;
 
-            _host.CheckNonEmpty(options.Separator, nameof(options.Separator), "Must specify a separator");
+            _host.CheckNonEmpty(options.Separator, nameof(options.Separator), Strings.MustSpecifyASeparator);
 
             //Default arg.Separator is tab and default options. Separators is also a '\t'.
             //At a time only one default can be different and whichever is different that will
@@ -1241,13 +1241,13 @@ namespace Microsoft.ML.Data
             }
 
             if (options.DecimalMarker != '.' && options.DecimalMarker != ',')
-                throw _host.ExceptUserArg(nameof(Options.DecimalMarker), "Decimal marker cannot be the '{0}' character. It must be '.' or ','.", options.DecimalMarker);
+                throw _host.ExceptUserArg(nameof(Options.DecimalMarker), Strings.DecimalMarkerCannotBeTheCharacterItMustBeOr, options.DecimalMarker);
             if (!options.AllowQuoting && options.DecimalMarker == ',' && _separators.Contains(','))
-                throw _host.ExceptUserArg(nameof(Options.AllowQuoting), "Quoting must be allowed if decimal marker and separator are the ',' character.");
+                throw _host.ExceptUserArg(nameof(Options.AllowQuoting), Strings.CommaDecimalAndSeparatorRequireQuoting);
             _decimalMarker = options.DecimalMarker;
             _escapeChar = options.EscapeChar;
             if (_separators.Contains(_escapeChar))
-                throw _host.ExceptUserArg(nameof(Options.EscapeChar), "EscapeChar '{0}' can't be used both as EscapeChar and separator", _escapeChar);
+                throw _host.ExceptUserArg(nameof(Options.EscapeChar), Strings.EscapeCharCantBeUsedBothAsEscapeCharAndSeparator, _escapeChar);
 
             _bindings = new Bindings(this, cols, headerFile, dataSample);
             _parser = new Parser(this);
@@ -1269,7 +1269,7 @@ namespace Microsoft.ML.Data
                 case "colon":
                 case ":":
                     _host.CheckUserArg((_flags & OptionFlags.AllowSparse) == 0, nameof(Options.Separator),
-                        "When the separator is colon, turn off allowSparse");
+                        Strings.WhenTheSeparatorIsColonTurnOffAllowSparse);
                     return ':';
                 case "semicolon":
                 case ";":
@@ -1280,7 +1280,7 @@ namespace Microsoft.ML.Data
                 default:
                     char ch = sep[0];
                     if (sep.Length != 1 || ch < ' ' || '0' <= ch && ch <= '9' || ch == '"')
-                        throw _host.ExceptUserArg(nameof(Options.Separator), "Illegal separator: '{0}'", sep);
+                        throw _host.ExceptUserArg(nameof(Options.Separator), Strings.IllegalSeparator, sep);
                     return sep[0];
             }
         }
@@ -1581,7 +1581,7 @@ LDone:
             var memberInfos = (fieldInfos as IEnumerable<MemberInfo>).Concat(propertyInfos).ToArray();
 
             if (memberInfos.Length == 0)
-                throw host.ExceptParam(nameof(TInput), $"Should define at least one public, readable field or property in {nameof(TInput)}.");
+                throw host.ExceptParam(nameof(TInput), Strings.ShouldDefineAtLeastOnePublicReadableFieldOrProperty);
 
             var columns = new List<Column>();
 
@@ -1591,7 +1591,7 @@ LDone:
                 var mappingAttr = memberInfo.GetCustomAttribute<LoadColumnAttribute>();
 
                 if (mappingAttr == null)
-                    throw host.Except($"{(memberInfo is FieldInfo ? "Field" : "Property")} '{memberInfo.Name}' is missing the {nameof(LoadColumnAttribute)} attribute");
+                    throw host.Except(string.Format(Strings.IsMissingTheAttribute, (memberInfo is FieldInfo ? "Field" : "Property"), memberInfo.Name, nameof(LoadColumnAttribute)));
 
                 var mappingAttrName = memberInfo.GetCustomAttribute<ColumnNameAttribute>();
 
@@ -1610,18 +1610,18 @@ LDone:
                 {
                     case FieldInfo field:
                         if (!InternalDataKindExtensions.TryGetDataKind(field.FieldType.IsArray ? field.FieldType.GetElementType() : field.FieldType, out dk))
-                            throw Contracts.Except($"Field {memberInfo.Name} is of unsupported type.");
+                            throw Contracts.Except(string.Format(Strings.FieldIsOfUnsupportedType, memberInfo.Name));
 
                         break;
 
                     case PropertyInfo property:
                         if (!InternalDataKindExtensions.TryGetDataKind(property.PropertyType.IsArray ? property.PropertyType.GetElementType() : property.PropertyType, out dk))
-                            throw Contracts.Except($"Property {memberInfo.Name} is of unsupported type.");
+                            throw Contracts.Except(string.Format(Strings.PropertyIsOfUnsupportedType, memberInfo.Name));
                         break;
 
                     default:
                         Contracts.Assert(false);
-                        throw Contracts.ExceptNotSupp("Expected a FieldInfo or a PropertyInfo");
+                        throw Contracts.ExceptNotSupp(Strings.ExpectedAFieldInfoOrAPropertyInfo);
                 }
 
                 column.Type = dk;

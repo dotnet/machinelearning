@@ -51,7 +51,9 @@ namespace Microsoft.Data.Analysis
             ReadOnlyDataFrameBuffer<byte> nullBitMapBuffer = new ReadOnlyDataFrameBuffer<byte>(nullBits, nullBits.Length);
 
             if (length + 1 != offsetBuffer.Length)
-                throw new ArgumentException(nameof(offsetBuffer));
+                throw new ArgumentException(
+                    Strings.OffsetsBufferLengthMustEqualTheColumnLengthPlusOne,
+                    nameof(offsets));
 
             _dataBuffers = new List<ReadOnlyDataFrameBuffer<byte>>();
             _offsetsBuffers = new List<ReadOnlyDataFrameBuffer<int>>();
@@ -221,7 +223,7 @@ namespace Microsoft.Data.Analysis
         {
             if (rowIndex >= Length)
             {
-                throw new ArgumentOutOfRangeException(Strings.IndexIsGreaterThanColumnLength, nameof(rowIndex));
+                throw new ArgumentOutOfRangeException(nameof(rowIndex), Strings.IndexIsGreaterThanColumnLength);
             }
 
             // Since the strings here could be of variable length, scan linearly
@@ -518,7 +520,7 @@ namespace Microsoft.Data.Analysis
             }
             else
             {
-                throw new NotSupportedException(nameof(TKey));
+                throw new NotSupportedException(String.Format(Strings.NotSupportedColumnType, typeof(TKey)));
             }
         }
 
@@ -527,7 +529,7 @@ namespace Microsoft.Data.Analysis
         {
             if (value == null)
             {
-                throw new ArgumentException(nameof(value));
+                throw new ArgumentNullException(nameof(value));
             }
             if (inPlace)
             {

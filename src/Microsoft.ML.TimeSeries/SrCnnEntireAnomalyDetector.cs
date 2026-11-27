@@ -202,21 +202,21 @@ namespace Microsoft.ML.TimeSeries
 
         private void CheckOptionArguments(SrCnnEntireAnomalyDetectorOptions options)
         {
-            Host.CheckUserArg(options.Period >= 0, nameof(options.Period), "Must be an integer equal to or greater than 0.");
+            Host.CheckUserArg(options.Period >= 0, nameof(options.Period), Strings.MustBeAnIntegerEqualToOrGreaterThan0);
 
-            Host.CheckUserArg(options.BatchSize == -1 || options.BatchSize >= MinBatchSize, nameof(options.BatchSize), "Must be -1 or no less than 12.");
-            Host.CheckUserArg(options.BatchSize >= 4 * options.Period || options.BatchSize == -1 || options.Period == 0, nameof(options.BatchSize), "Must be at least four times the length of one period.");
+            Host.CheckUserArg(options.BatchSize == -1 || options.BatchSize >= MinBatchSize, nameof(options.BatchSize), Strings.MustBeNegativeOneOrAtLeastTwelve);
+            Host.CheckUserArg(options.BatchSize >= 4 * options.Period || options.BatchSize == -1 || options.Period == 0, nameof(options.BatchSize), Strings.BatchSizeMustCoverFourPeriods);
 
-            Host.CheckUserArg(options.Threshold >= 0 && options.Threshold <= 1, nameof(options.Threshold), "Must be in [0,1].");
+            Host.CheckUserArg(options.Threshold >= 0 && options.Threshold <= 1, nameof(options.Threshold), Strings.MustBeBetweenZeroAndOneInclusive);
             Host.CheckUserArg(options.DetectMode == SrCnnDetectMode.AnomalyOnly
                 || options.DetectMode == SrCnnDetectMode.AnomalyAndExpectedValue
-                || options.DetectMode == SrCnnDetectMode.AnomalyAndMargin, nameof(options.DetectMode), "Invalid detectMode");
+                || options.DetectMode == SrCnnDetectMode.AnomalyAndMargin, nameof(options.DetectMode), Strings.InvalidDetectMode);
 
             Host.CheckUserArg(options.DeseasonalityMode == SrCnnDeseasonalityMode.Stl
                 || options.DeseasonalityMode == SrCnnDeseasonalityMode.Mean
-                || options.DeseasonalityMode == SrCnnDeseasonalityMode.Median, nameof(options.DeseasonalityMode), "Invalid detectMode");
+                || options.DeseasonalityMode == SrCnnDeseasonalityMode.Median, nameof(options.DeseasonalityMode), Strings.InvalidDetectMode);
 
-            Host.CheckUserArg(options.Sensitivity >= 0 && options.Sensitivity <= 100, nameof(options.Sensitivity), "Must be in [0,100].");
+            Host.CheckUserArg(options.Sensitivity >= 0 && options.Sensitivity <= 100, nameof(options.Sensitivity), Strings.MustBeBetweenZeroAndOneHundredInclusive);
         }
 
         protected override ColumnBindingsBase SchemaBindings => _bindings;
@@ -303,7 +303,7 @@ namespace Microsoft.ML.TimeSeries
                 {
                     if (_previousBatch.Count == 0)
                     {
-                        throw Contracts.Except("The input must contain no less than 12 points.");
+                        throw Contracts.Except(Strings.TheInputMustContainNoLessThan12Points);
                     }
                     _bLen = _previousBatch.Count - _batch.Count;
                     _previousBatch = _previousBatch.GetRange(_batch.Count, _bLen);
@@ -1017,7 +1017,7 @@ namespace Microsoft.ML.TimeSeries
                         _units[i] = averageTrendPart + Math.Abs(_trends[i]) * trendFraction;
                         if (double.IsInfinity(_units[i]))
                         {
-                            throw new ArithmeticException("Not finite unit value");
+                            throw new ArithmeticException(Strings.NotFiniteUnitValue);
                         }
                     }
                 }

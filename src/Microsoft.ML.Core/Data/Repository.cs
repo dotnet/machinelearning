@@ -326,7 +326,7 @@ internal sealed class RepositoryWriter : Repository
         string pathTemp;
         GetPath(out pathEnt, out pathTemp, dir, name, true);
         if (!PathMap.TryAdd(pathEnt, pathTemp))
-            throw ExceptionContext.ExceptParam(nameof(name), "Duplicate entry: '{0}'", pathEnt);
+            throw ExceptionContext.ExceptParam(nameof(name), Strings.DuplicateEntry, pathEnt);
 
         Stream stream;
         if (pathTemp != null)
@@ -432,7 +432,7 @@ internal sealed class RepositoryWriter : Repository
 
         if (assemblyInternationalVersionAttribute == null)
         {
-            throw new ApplicationException($"Cannot determine product version from assembly {assembly.FullName}.");
+            throw new ApplicationException(string.Format(Strings.CannotDetermineProductVersionFromAssembly, assembly.FullName));
         }
 
         return assemblyInternationalVersionAttribute.ConstructorArguments
@@ -467,7 +467,7 @@ internal sealed class RepositoryReader : Repository
         }
         catch (Exception ex)
         {
-            throw ExceptionContext.ExceptDecode(ex, "Failed to open a zip archive");
+            throw ExceptionContext.ExceptDecode(ex, Strings.FailedToOpenAZipArchive);
         }
 
         _entries = new Dictionary<string, ZipArchiveEntry>();
@@ -492,7 +492,7 @@ internal sealed class RepositoryReader : Repository
         string pathEnt;
         string pathTemp;
         GetPath(out pathEnt, out pathTemp, dir, name, false);
-        throw ExceptionContext.Except("Repository doesn't contain entry {0}", pathEnt);
+        throw ExceptionContext.Except(Strings.RepositoryDoesntContainEntry, pathEnt);
     }
 
     public Entry OpenEntryOrNull(string name)
@@ -534,14 +534,14 @@ internal sealed class RepositoryReader : Repository
                 Directory.CreateDirectory(Path.GetDirectoryName(pathTemp));
                 entry.ExtractToFile(pathTemp);
                 if (!PathMap.TryAdd(pathLower, pathTemp))
-                    throw ExceptionContext.ExceptParam(nameof(name), "Duplicate entry: '{0}'", pathLower);
+                    throw ExceptionContext.ExceptParam(nameof(name), Strings.DuplicateEntry, pathLower);
 
                 stream = new FileStream(pathTemp, FileMode.Open, FileAccess.Read, FileShare.Read);
             }
             else
             {
                 // Extract to a memory stream.
-                ExceptionContext.CheckDecode(entry.Length < int.MaxValue, "Repository stream too large to read into memory");
+                ExceptionContext.CheckDecode(entry.Length < int.MaxValue, Strings.RepositoryStreamTooLargeToReadIntoMemory);
                 stream = new MemoryStream((int)entry.Length);
                 using (var src = entry.Open())
                     src.CopyTo(stream);

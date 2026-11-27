@@ -1431,7 +1431,7 @@ namespace Microsoft.ML.Data
                             if (!v.Consume(irow, indexBase + srcCur, ref fields.Spans[isrc]))
                             {
                                 if (!v.HasNA)
-                                    throw Contracts.Except($"Could not parse value {fields.Spans[isrc]} in slot {indexBase + srcCur} of column {info.Name} in line {line}");
+                                    throw Contracts.Except(string.Format(Strings.CouldNotParseValueInSlotOfColumnInLine, fields.Spans[isrc], indexBase + srcCur, info.Name, line));
                                 v.Rows.Stats.LogBadValue(line, info.Name, indexBase + srcCur);
                             }
                         }
@@ -1467,7 +1467,7 @@ namespace Microsoft.ML.Data
                     if (!v.Consume(irow, 0, ref vs.Spans[isrc]))
                     {
                         if (!v.HasNA)
-                            throw Contracts.Except($"Could not parse value {vs.Spans[isrc]} in line {line}, column {info.Name}");
+                            throw Contracts.Except(string.Format(Strings.CouldNotParseValueInLineColumn, vs.Spans[isrc], line, info.Name));
                         v.Rows.Stats.LogBadValue(line, info.Name);
                     }
                 }

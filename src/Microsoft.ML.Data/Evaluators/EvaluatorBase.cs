@@ -257,7 +257,7 @@ namespace Microsoft.ML.Data
 
             public bool Start()
             {
-                Host.Check(PassNum == -1, "Start() should only be called before processing any data.");
+                Host.Check(PassNum == -1, Strings.StartShouldOnlyBeCalledBeforeProcessingAnyData);
                 PassNum = 0;
                 return IsActive();
             }
@@ -370,7 +370,7 @@ namespace Microsoft.ML.Data
                 if (stratType.GetKeyCount() == 0 && !(stratType is TextDataViewType))
                 {
                     throw Contracts.ExceptUserArg(nameof(MamlEvaluatorBase.ArgumentsBase.StratColumns),
-                        "Stratification column '{stratCol}' has type '{stratType}', but must be a known count key or text");
+                        Strings.StratificationColumnHasTypeButMustBeAKnownCount);
                 }
                 return Utils.MarshalInvoke(CreateDictionary<int>, stratType.RawType, schema, stratCol, stratType, createAgg);
             }

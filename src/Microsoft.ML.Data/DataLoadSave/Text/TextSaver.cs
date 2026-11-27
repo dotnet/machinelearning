@@ -168,7 +168,7 @@ namespace Microsoft.ML.Data.IO
                     && typeNames.Size == type.Size && typeNames.ItemType is TextDataViewType)
                 {
                     cursor.Schema[source].Annotations.GetValue(AnnotationUtils.Kinds.SlotNames, ref _slotNames);
-                    Contracts.Check(_slotNames.Length == typeNames.Size, "Unexpected slot names length");
+                    Contracts.Check(_slotNames.Length == typeNames.Size, Strings.UnexpectedSlotNamesLength);
                 }
                 _slotCount = type.Size;
             }
@@ -276,7 +276,7 @@ namespace Microsoft.ML.Data.IO
 
         private static char SepStrToChar(string sep)
         {
-            Contracts.CheckUserArg(!string.IsNullOrEmpty(sep), nameof(Arguments.Separator), "Must specify a separator");
+            Contracts.CheckUserArg(!string.IsNullOrEmpty(sep), nameof(Arguments.Separator), Strings.MustSpecifyASeparator);
             sep = sep.ToLowerInvariant();
             switch (sep)
             {
@@ -296,7 +296,7 @@ namespace Microsoft.ML.Data.IO
                 case "|":
                     return '|';
                 default:
-                    throw Contracts.ExceptUserArg(nameof(Arguments.Separator), "Invalid separator - must be: space, tab, comma, semicolon, or bar");
+                    throw Contracts.ExceptUserArg(nameof(Arguments.Separator), Strings.InvalidSeparatorMustBeSpaceTabCommaSemicolonOrBar);
             }
         }
 

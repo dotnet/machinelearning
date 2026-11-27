@@ -309,14 +309,14 @@ namespace Microsoft.ML.Transforms
                     case ReplacementKind.Maximum:
                     case ReplacementKind.Mode:
                         if (!(type.GetItemType() is NumberDataViewType))
-                            throw Host.Except("Cannot perform mean imputations on non-numeric '{0}'", type.GetItemType());
+                            throw Host.Except(Strings.CannotPerformMeanImputationsOnNonNumeric, type.GetItemType());
                         imputationModes[iinfo] = kind;
                         Utils.Add(ref columnsToImpute, iinfo);
                         sourceColumns.Add(input.Schema[colSrc]);
                         break;
                     default:
                         Host.Assert(false);
-                        throw Host.Except("Internal error, undefined ReplacementKind '{0}' assigned in NAReplaceTransform.", columns[iinfo].Replacement);
+                        throw Host.Except(Strings.UndefinedReplacementKindInNAReplaceTransform, columns[iinfo].Replacement);
                 }
             }
 
@@ -419,7 +419,7 @@ namespace Microsoft.ML.Transforms
                 strToT(in srcTxt, ref val);
                 // Make sure that the srcTxt can legitimately be converted to dstType, throw error otherwise.
                 if (isNA(in val))
-                    throw Contracts.Except("No conversion of '{0}' to '{1}'", srcStr, dstType.GetItemType());
+                    throw Contracts.Except(Strings.NoConversionOfTo, srcStr, dstType.GetItemType());
             }
 
             return val;
@@ -439,7 +439,7 @@ namespace Microsoft.ML.Transforms
                 var item = options.Columns[i];
                 var kind = item.Kind ?? options.ReplacementKind;
                 if (!Enum.IsDefined(typeof(ReplacementKind), kind))
-                    throw env.ExceptUserArg(nameof(options.ReplacementKind), "Undefined sorting criteria '{0}' detected for column '{1}'", kind, item.Name);
+                    throw env.ExceptUserArg(nameof(options.ReplacementKind), Strings.UndefinedSortingCriteriaDetectedForColumn, kind, item.Name);
 
                 cols[i] = new MissingValueReplacingEstimator.ColumnOptions(
                     item.Name,
@@ -489,7 +489,7 @@ namespace Microsoft.ML.Transforms
             Host.Assert(type.RawType == typeof(T) || type.GetItemType().RawType == typeof(T));
 
             if (!saver.TryWriteTypeAndValue<T>(stream, type, ref rep, out int bytesWritten))
-                throw Host.Except("We do not know how to serialize terms of type '{0}'", type);
+                throw Host.Except(Strings.UnknownTermSerializationType, type);
         }
 
         private protected override void SaveModel(ModelSaveContext ctx)
@@ -571,18 +571,18 @@ namespace Microsoft.ML.Transforms
                     }
                     var repType = _parent._repIsDefault[i] != null ? _parent._replaceTypes[i] : _parent._replaceTypes[i].GetItemType();
                     if (!type.GetItemType().Equals(repType.GetItemType()))
-                        throw Host.ExceptParam(nameof(InputSchema), "Column '{0}' item type '{1}' does not match expected ColumnType of '{2}'",
+                        throw Host.ExceptParam(nameof(InputSchema), Strings.ColumnItemTypeDoesNotMatchExpectedColumnTypeOf,
                             _infos[i].InputColumnName, _parent._replaceTypes[i].GetItemType().ToString(), _infos[i].TypeSrc);
                     // If type is a vector and the value is not either a scalar or a vector of the same size, throw an error.
                     if (repType is VectorDataViewType repVectorType)
                     {
                         if (vectorType == null)
-                            throw Host.ExceptParam(nameof(inputSchema), "Column '{0}' item type '{1}' cannot be a vector when Columntype is a scalar of type '{2}'",
+                            throw Host.ExceptParam(nameof(inputSchema), Strings.ScalarColumnCannotHaveVectorItemType,
                                 _infos[i].InputColumnName, repType, type);
                         if (!vectorType.IsKnownSize)
-                            throw Host.ExceptParam(nameof(inputSchema), "Column '{0}' is unknown size vector '{1}' must be a scalar instead of type '{2}'", _infos[i].InputColumnName, type, parent._replaceTypes[i]);
+                            throw Host.ExceptParam(nameof(inputSchema), Strings.UnknownSizeVectorMustBeScalar, _infos[i].InputColumnName, type, parent._replaceTypes[i]);
                         if (vectorType.Size != repVectorType.Size)
-                            throw Host.ExceptParam(nameof(inputSchema), "Column '{0}' item type '{1}' must be a scalar or a vector of the same size as Columntype '{2}'",
+                            throw Host.ExceptParam(nameof(inputSchema), Strings.ColumnItemShapeMismatch,
                                  _infos[i].InputColumnName, repType, type);
                     }
                     _types[i] = type;

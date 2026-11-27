@@ -78,8 +78,8 @@ namespace Microsoft.ML.Trainers.FastTree
 
         private void LoadSampledLabels(float[] distribution, float[] weights, int sampleCount, int destinationIndex, int leaf)
         {
-            Contracts.Check(sampleCount == _labelsDistribution.Length / NumLeaves, "Bad quantile sample count");
-            Contracts.Check(_instanceWeights == null || sampleCount == _instanceWeights.Length / NumLeaves, "Bad quantile weight count");
+            Contracts.Check(sampleCount == _labelsDistribution.Length / NumLeaves, Strings.BadQuantileSampleCount);
+            Contracts.Check(_instanceWeights == null || sampleCount == _instanceWeights.Length / NumLeaves, Strings.BadQuantileWeightCount);
 
             if (weights != null)
             {

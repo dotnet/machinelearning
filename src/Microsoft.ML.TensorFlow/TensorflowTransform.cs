@@ -344,11 +344,11 @@ namespace Microsoft.ML.Transforms
                 (Operation inputTensor, int inputTensorIndex) = GetOperationFromName(input, session);
 
                 if (inputTensor == null)
-                    throw host.ExceptParam(nameof(inputs), $"Input column '{input}' does not exist in the model");
+                    throw host.ExceptParam(nameof(inputs), string.Format(Strings.InputColumnDoesNotExistInTheModel, input));
 
                 TF_DataType tfInputType = string.Compare(inputTensor.OpType, "PlaceHolder", true) == 0 ? inputTensor.OutputType(inputTensorIndex) : inputTensor.InputType(inputTensorIndex);
                 if (!IsTypeSupported(tfInputType))
-                    throw host.ExceptParam(nameof(session), $"Input type '{tfInputType}' of input column '{input}' is not supported in TensorFlow");
+                    throw host.ExceptParam(nameof(session), string.Format(Strings.InputTypeOfInputColumnIsNotSupportedInTensorFlow, tfInputType, input));
 
                 tfInputTypes[index] = tfInputType;
                 tfInputShapes[index] = ((Tensor)inputTensor).shape;
@@ -389,11 +389,11 @@ namespace Microsoft.ML.Transforms
             {
                 host.CheckNonWhiteSpace(outputs[i], nameof(outputs));
                 if (!newNames.Add(outputs[i]))
-                    throw host.ExceptParam(nameof(outputs), $"Output column '{outputs[i]}' specified multiple times");
+                    throw host.ExceptParam(nameof(outputs), string.Format(Strings.OutputColumnSpecifiedMultipleTimes, outputs[i]));
 
                 (Tensor outputTensor, int outputIndex) = GetOperationFromName(outputs[i], session);
                 if (outputTensor == null)
-                    throw host.ExceptParam(nameof(outputs), $"Output column '{outputs[i]}' does not exist in the model");
+                    throw host.ExceptParam(nameof(outputs), string.Format(Strings.OutputColumnDoesNotExistInTheModel, outputs[i]));
 
                 var tfOutputType = ((Operation)outputTensor).OutputType(outputIndex);
                 var shape = GetTensorShape(new TF_Output((Operation)outputTensor, outputIndex), session.graph);
@@ -554,7 +554,7 @@ namespace Microsoft.ML.Transforms
 
                     var type = inputSchema[_inputColIndices[i]].Type;
                     if (type is VectorDataViewType vecType && vecType.Size == 0)
-                        throw Host.Except("Variable length input columns not supported");
+                        throw Host.Except(Strings.VariableLengthInputColumnsNotSupported);
 
                     _isInputVector[i] = type is VectorDataViewType;
                     var expectedType = Tf2MlNetType(_parent.TFInputTypes[i]);
@@ -594,7 +594,7 @@ namespace Microsoft.ML.Transforms
                         // The column length should be divisible by this, so that the other dimensions can be integral.
                         long typeValueCount = type.GetValueCount();
                         if (typeValueCount % valCount != 0)
-                            throw Contracts.Except($"Input shape mismatch: Input '{_parent.Inputs[i]}' has shape {originalShape.ToString()}, but input data is of length {typeValueCount}.");
+                            throw Contracts.Except(string.Format(Strings.TensorFlowInputShapeMismatch, _parent.Inputs[i], originalShape.ToString(), typeValueCount));
 
                         // This cover the 2-variable scenario e.g. [?, ?, ?, C] where we can assume typeDims provides the information of [W, H, C]
                         // The shape will become [?, W, H, C]
@@ -613,7 +613,7 @@ namespace Microsoft.ML.Transforms
                         // d such that d*d*3 is equal to the length of the input column.
                         var d = numOfUnkDim > 0 ? Math.Pow(typeValueCount / valCount, 1.0 / numOfUnkDim) : 0;
                         if (d - (int)d != 0)
-                            throw Contracts.Except($"Input shape mismatch: Input '{_parent.Inputs[i]}' has shape {originalShape.ToString()}, but input data is of length {typeValueCount}.");
+                            throw Contracts.Except(string.Format(Strings.TensorFlowInputShapeMismatch, _parent.Inputs[i], originalShape.ToString(), typeValueCount));
 
                         // Fill in the unknown dimensions.
                         var l = new long[originalShapeNdim];
@@ -696,7 +696,7 @@ namespace Microsoft.ML.Transforms
             }
 
             protected override Delegate MakeGetter(DataViewRow input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
-                => throw new NotImplementedException("This should never be called!");
+                => throw new NotImplementedException(Strings.ThisShouldNeverBeCalled);
 
             private Delegate MakeGetter<T>(DataViewRow input, int iinfo, ITensorValueGetter[] srcTensorGetters, string[] activeOutputColNames, OutputCache outputCache) where T : unmanaged
             {

@@ -76,7 +76,7 @@ namespace Microsoft.ML.Trainers
                 var linInitPred = (initPred as IWeaklyTypedCalibratedModelParameters)?.WeaklyTypedSubModel as LinearModelParameters;
                 linInitPred = linInitPred ?? initPred as LinearModelParameters;
                 Host.CheckParam(context.InitialPredictor == null || linInitPred != null, nameof(context),
-                    "Initial predictor was not a linear predictor.");
+                    Strings.InitialPredictorWasNotALinearPredictor);
                 return TrainCore(ch, preparedData, linInitPred, weightSetCount);
             }
         }
@@ -121,7 +121,7 @@ namespace Microsoft.ML.Trainers
             if (examples.Schema.Weight.HasValue)
                 ch.Assert(examplesToFeedTrain.Schema.Weight.HasValue);
 
-            ch.Check(examplesToFeedTrain.Schema.Feature.Value.Type is VectorDataViewType vecType && vecType.Size > 0, "Training set has no features, aborting training.");
+            ch.Check(examplesToFeedTrain.Schema.Feature.Value.Type is VectorDataViewType vecType && vecType.Size > 0, Strings.TrainingSetHasNoFeaturesAbortingTraining);
             return examplesToFeedTrain;
         }
 
@@ -240,10 +240,10 @@ namespace Microsoft.ML.Trainers
             internal virtual void Check(IHostEnvironment env)
             {
                 Contracts.AssertValue(env);
-                env.CheckUserArg(L2Regularization == null || L2Regularization >= 0, nameof(L2Regularization), "L2 constant must be non-negative.");
-                env.CheckUserArg(L1Regularization == null || L1Regularization >= 0, nameof(L1Regularization), "L1 threshold must be non-negative.");
-                env.CheckUserArg(MaximumNumberOfIterations == null || MaximumNumberOfIterations > 0, nameof(MaximumNumberOfIterations), "Max number of iterations must be positive.");
-                env.CheckUserArg(ConvergenceTolerance > 0 && ConvergenceTolerance <= 1, nameof(ConvergenceTolerance), "Convergence tolerance must be positive and no larger than 1.");
+                env.CheckUserArg(L2Regularization == null || L2Regularization >= 0, nameof(L2Regularization), Strings.L2ConstantMustBeNonNegative);
+                env.CheckUserArg(L1Regularization == null || L1Regularization >= 0, nameof(L1Regularization), Strings.L1ThresholdMustBeNonNegative);
+                env.CheckUserArg(MaximumNumberOfIterations == null || MaximumNumberOfIterations > 0, nameof(MaximumNumberOfIterations), Strings.MaxNumberOfIterationsMustBePositive);
+                env.CheckUserArg(ConvergenceTolerance > 0 && ConvergenceTolerance <= 1, nameof(ConvergenceTolerance), Strings.ConvergenceToleranceMustBePositiveAndNoLargerThan1);
 
                 if (L2Regularization < L2LowerBound)
                 {
@@ -336,7 +336,7 @@ namespace Microsoft.ML.Trainers
             if (SdcaTrainerOptions.NumberOfThreads.HasValue)
             {
                 numThreads = SdcaTrainerOptions.NumberOfThreads.Value;
-                Host.CheckUserArg(numThreads > 0, nameof(OptionsBase.NumberOfThreads), "The number of threads must be either null or a positive integer.");
+                Host.CheckUserArg(numThreads > 0, nameof(OptionsBase.NumberOfThreads), Strings.ThreadCountMustBeNullOrPositive);
             }
             else
                 numThreads = ComputeNumThreads(cursorFactory);
@@ -448,7 +448,7 @@ namespace Microsoft.ML.Trainers
             if (numBad > 0)
                 ch.Warning("Skipped {0} instances with missing features/label during training", numBad);
 
-            ch.Check(count > 0, "Training set has 0 instances, aborting training.");
+            ch.Check(count > 0, Strings.TrainingSetHas0InstancesAbortingTraining);
             // Tune the default hyperparameters based on dataset size.
             if (SdcaTrainerOptions.MaximumNumberOfIterations == null)
                 SdcaTrainerOptions.MaximumNumberOfIterations = TuneDefaultMaxIterations(ch, count, numThreads);
@@ -577,7 +577,7 @@ namespace Microsoft.ML.Trainers
                     {
                         Host.CheckAlive();
                         long longIdx = getIndexFromIdAndRow(cursor.Id, row);
-                        Contracts.Assert(0 <= longIdx && longIdx < invariants.Length, $"longIdx={longIdx}, invariants.Length={invariants.Length}");
+                        Contracts.Assert(0 <= longIdx && longIdx < invariants.Length, string.Format("longIdx={0}, invariants.Length={1}", longIdx, invariants.Length));
                         int idx = (int)longIdx;
                         var features = cursor.Features;
                         var normSquared = VectorUtils.NormSquared(features);
@@ -1475,7 +1475,7 @@ namespace Microsoft.ML.Trainers
             internal override void Check(IHostEnvironment env)
             {
                 base.Check(env);
-                env.CheckUserArg(PositiveInstanceWeight > 0, nameof(PositiveInstanceWeight), "Weight for positive instances must be positive");
+                env.CheckUserArg(PositiveInstanceWeight > 0, nameof(PositiveInstanceWeight), Strings.WeightForPositiveInstancesMustBePositive);
             }
         }
 
@@ -1915,10 +1915,10 @@ namespace Microsoft.ML.Trainers
             internal void Check(IHostEnvironment env)
             {
                 Contracts.CheckValue(env, nameof(env));
-                env.CheckUserArg(L2Regularization >= 0, nameof(L2Regularization), "Must be non-negative.");
-                env.CheckUserArg(LearningRate > 0, nameof(LearningRate), "Must be positive.");
-                env.CheckUserArg(NumberOfIterations > 0, nameof(NumberOfIterations), "Must be positive.");
-                env.CheckUserArg(PositiveInstanceWeight > 0, nameof(PositiveInstanceWeight), "Must be positive");
+                env.CheckUserArg(L2Regularization >= 0, nameof(L2Regularization), Strings.MustBeNonNegative);
+                env.CheckUserArg(LearningRate > 0, nameof(LearningRate), Strings.MustBePositive);
+                env.CheckUserArg(NumberOfIterations > 0, nameof(NumberOfIterations), Strings.MustBePositive);
+                env.CheckUserArg(PositiveInstanceWeight > 0, nameof(PositiveInstanceWeight), Strings.MustBePositive);
 
                 if (LearningRate * L2Regularization >= 1)
                 {
@@ -2035,7 +2035,7 @@ namespace Microsoft.ML.Trainers
             if (_options.NumberOfThreads.HasValue)
             {
                 numThreads = _options.NumberOfThreads.Value;
-                ch.CheckUserArg(numThreads > 0, nameof(_options.NumberOfThreads), "The number of threads must be either null or a positive integer.");
+                ch.CheckUserArg(numThreads > 0, nameof(_options.NumberOfThreads), Strings.ThreadCountMustBeNullOrPositive);
             }
             else
                 numThreads = ComputeNumThreads(cursorFactory);

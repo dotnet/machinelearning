@@ -106,7 +106,7 @@ namespace Microsoft.ML.Trainers.FastTree
                          pSumTargetsByBin, pSumWeightsByBin, pCountByBin,
                          input.TotalCount, input.SumTargets, input.SumWeights);
                     if (rv < 0)
-                        throw Contracts.Except("CSumup returned error {0}", rv);
+                        throw Contracts.Except(Strings.CSumupReturnedError, rv);
                 }
             }
         }
@@ -180,7 +180,7 @@ namespace Microsoft.ML.Trainers.FastTree
                                 }
                                 break;
                             default:
-                                throw Contracts.Except("Unsupported bits per item {0}", numBits);
+                                throw Contracts.Except(Strings.UnsupportedBitsPerItem, numBits);
                         }
                     }
                     else
@@ -221,7 +221,7 @@ namespace Microsoft.ML.Trainers.FastTree
                                 }
                                 break;
                             default:
-                                throw Contracts.Except("Unsupported bits per item {0}", numBits);
+                                throw Contracts.Except(Strings.UnsupportedBitsPerItem, numBits);
                         }
                     }
                 }

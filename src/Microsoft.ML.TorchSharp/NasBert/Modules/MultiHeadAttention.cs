@@ -74,14 +74,14 @@ namespace Microsoft.ML.TorchSharp.NasBert.Modules
             _scaling = Math.Pow(_headDim, -0.5);
             if (_headDim * _numHeads != _embeddingDim)
             {
-                throw new ArgumentException("EmbeddingDim must be divisible by NumHeads");
+                throw new ArgumentException(Strings.EmbeddingDimMustBeDivisibleByNumHeads);
             }
 
             _selfAttention = selfAttention;
             _encoderDecoderAttention = encoderDecoderAttention;
             if (_selfAttention && !_qkvSameDim)
             {
-                throw new ArgumentException("Self-attention requires query, key and value to be of the same size");
+                throw new ArgumentException(Strings.SelfAttentionInputSizesMustMatch);
             }
 
             _addBiasProj = bias;
@@ -161,8 +161,7 @@ namespace Microsoft.ML.TorchSharp.NasBert.Modules
 
             if (query.IsNull() || query.size().Length != 3 || query.size(2) != _embeddingDim)
             {
-                throw new ArgumentException("query must NOT be null and must be 3D in multi-head attention;" +
-                                            "the last dimension should be the same as embedding dimension.");
+                throw new ArgumentException(Strings.MultiHeadAttentionQueryShapeInvalid);
             }
 
             using var disposeScope = torch.NewDisposeScope();
@@ -184,7 +183,7 @@ namespace Microsoft.ML.TorchSharp.NasBert.Modules
                     if (_selfAttention || !_encoderDecoderAttention)
                     {
                         throw new ArgumentException(
-                            "prevKey and prevValue are only valid in encoder-decoder attention.");
+                            Strings.PrevKeyAndPrevValueAreOnlyValidInEncoderDecoderAttention);
                     }
 
                     key = value = null;

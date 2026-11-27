@@ -311,7 +311,7 @@ namespace Microsoft.ML
         {
             Contracts.CheckNonEmpty(path, nameof(path));
             if (!File.Exists(path) && StreamUtils.ExpandWildCards(path).Length < 1)
-                throw Contracts.ExceptParam(nameof(path), "File or directory does not exist at path: {0}", path);
+                throw Contracts.ExceptParam(nameof(path), Strings.FileOrDirectoryDoesNotExistAtPath, path);
         }
     }
 }

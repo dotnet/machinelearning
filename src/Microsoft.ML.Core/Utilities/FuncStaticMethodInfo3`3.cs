@@ -28,7 +28,7 @@ namespace Microsoft.ML.Internal.Utilities
         public FuncStaticMethodInfo3(Func<T1, T2, TResult> function)
             : base(function.Method)
         {
-            Contracts.CheckParam(GenericMethodDefinition.IsStatic, nameof(function), "Should be a static method");
+            Contracts.CheckParam(GenericMethodDefinition.IsStatic, nameof(function), Strings.ShouldBeAStaticMethod);
         }
     }
 }

@@ -114,7 +114,7 @@ namespace Microsoft.ML.AutoML
             var lineCount = firstChunk.Count(x => x == '\n');
             if (lineCount == 0)
             {
-                throw new ArgumentException("Couldn't identify line breaks. Provided file is not text?");
+                throw new ArgumentException(Strings.CouldntIdentifyLineBreaksProvidedFileIsNotText);
             }
 
             long approximateRowCount = (long)(lineCount * fileSize * 1.0 / firstChunk.Length);
@@ -203,7 +203,7 @@ namespace Microsoft.ML.AutoML
                 var resultBuffer = resultStream.ToArray();
                 if (resultBuffer.Length == 0)
                 {
-                    throw new ArgumentException("File is not text, or couldn't detect line breaks");
+                    throw new ArgumentException(Strings.FileIsNotTextOrCouldntDetectLineBreaks);
                 }
 
                 return resultBuffer;

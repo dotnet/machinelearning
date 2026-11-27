@@ -357,7 +357,7 @@ namespace Microsoft.ML.Trainers.FastTree
                 if (_unbalancedSets)
                 {
                     BinaryClassificationTest.ComputeExampleCounts(_labels, out _npos, out _nneg);
-                    Contracts.Check(_nneg > 0 && _npos > 0, "Only one class in training set.");
+                    Contracts.Check(_nneg > 0 && _npos > 0, Strings.OnlyOneClassInTrainingSet);
                 }
                 _parallelTraining = parallelTraining;
             }

@@ -87,7 +87,7 @@ namespace Microsoft.ML.Data
             Contracts.AssertValue(host);
             _host = host;
             _host.AssertValue(view);
-            _host.CheckParam(Utils.Size(columns) > 0, nameof(columns), "Cannot be empty");
+            _host.CheckParam(Utils.Size(columns) > 0, nameof(columns), Strings.CannotBeEmpty);
 
             // REVIEW: Might be a good idea to not have the view as is, but to
             // instead apply choose columns to it first. This could simplify some of
@@ -138,9 +138,9 @@ namespace Microsoft.ML.Data
                     // surprise me. Also I expect this to never happen...
                     var type = schema[_cols[c].Index].Type;
                     if (!saver.IsColumnSavable(type))
-                        throw ch.ExceptParam(nameof(view), "Column named '{0}' is not serializable by the transposer", _cols[c].Name);
+                        throw ch.ExceptParam(nameof(view), Strings.ColumnNamedIsNotSerializableByTheTransposer, _cols[c].Name);
                     if (type is VectorDataViewType vectorType && !vectorType.IsKnownSize)
-                        throw ch.ExceptParam(nameof(view), "Column named '{0}' is vector, but not of known size, and so cannot be transposed", _cols[c].Name);
+                        throw ch.ExceptParam(nameof(view), Strings.UnknownSizeVectorCannotBeTransposed, _cols[c].Name);
                 }
 
                 var slicer = new DataViewSlicer(_host, view, columns);
@@ -185,7 +185,7 @@ namespace Microsoft.ML.Data
                     rowCount = DataViewUtils.ComputeRowCount(_view);
                 ch.Assert(rowCount >= 0);
                 if (rowCount > Utils.ArrayMaxSize)
-                    throw _host.ExceptParam(nameof(view), "View has {0} rows, we cannot transpose with more than {1}", rowCount, Utils.ArrayMaxSize);
+                    throw _host.ExceptParam(nameof(view), Strings.ViewHasRowsWeCannotTransposeWithMoreThan, rowCount, Utils.ArrayMaxSize);
                 RowCount = (int)rowCount;
             }
         }
@@ -204,14 +204,14 @@ namespace Microsoft.ML.Data
         {
             Contracts.AssertValue(host, "host");
             host.AssertValue(view, "view");
-            host.CheckParam(Utils.Size(columns) > 0, nameof(columns), "Cannot be empty");
+            host.CheckParam(Utils.Size(columns) > 0, nameof(columns), Strings.CannotBeEmpty);
 
             var schema = view.Schema;
             int[] indices = new int[columns.Length];
             for (int c = 0; c < columns.Length; ++c)
             {
                 if (!schema.TryGetColumnIndex(columns[c], out indices[c]))
-                    throw host.ExceptParam(nameof(columns), "Column named '{0}' not found", columns[c]);
+                    throw host.ExceptParam(nameof(columns), Strings.ColumnNamedNotFound, columns[c]);
             }
             return indices;
         }
@@ -225,7 +225,7 @@ namespace Microsoft.ML.Data
             for (int c = 0; c < columns.Length; ++c)
             {
                 if (!(0 <= columns[c] && columns[c] < schema.Count))
-                    throw host.ExceptParam(nameof(columns), "Column index {0} illegal for data with {1} column", columns[c], schema.Count);
+                    throw host.ExceptParam(nameof(columns), Strings.ColumnIndexIllegalForDataWithColumn, columns[c], schema.Count);
             }
             return columns;
         }
@@ -239,7 +239,7 @@ namespace Microsoft.ML.Data
                 if (_tview?.GetSlotType(col) != null)
                     return _tview.GetSlotCursor(col);
                 // Note that i-th transposed column is actually all the values at the i-th original column.
-                throw _host.ExceptParam(nameof(col), "Bad call to GetSlotCursor on untransposable column '{0}'", _tview.Schema[col].Name);
+                throw _host.ExceptParam(nameof(col), Strings.BadCallToGetSlotCursorOnUntransposableColumn, _tview.Schema[col].Name);
             }
             var type = ((ITransposeDataView)this).GetSlotType(col).ItemType.RawType;
 
@@ -317,8 +317,7 @@ namespace Microsoft.ML.Data
                     _getter = GetGetterCore();
                 ValueGetter<VBuffer<TValue>> getter = _getter as ValueGetter<VBuffer<TValue>>;
                 if (getter == null)
-                    throw Ch.Except($"Invalid TValue: '{typeof(TValue)}', " +
-                        $"expected type: '{_getter.GetType().GetGenericArguments().First().GetGenericArguments().First()}'.");
+                    throw Ch.Except(string.Format(Strings.InvalidTValueExpectedType, typeof(TValue), _getter.GetType().GetGenericArguments().First().GetGenericArguments().First()));
                 return getter;
             }
 
@@ -377,7 +376,7 @@ namespace Microsoft.ML.Data
                 return
                     (ref VBuffer<T> dst) =>
                     {
-                        Ch.Check(IsGood, RowCursorUtils.FetchValueStateError);
+                        Ch.Check(IsGood, Strings.ValuesUnavailableOutsideCursorPosition);
                         if (!valid)
                         {
                             var currentColumn = _view.Schema[_col];
@@ -509,7 +508,7 @@ namespace Microsoft.ML.Data
             /// </summary>
             private void EnsureValid()
             {
-                Ch.Check(IsGood, RowCursorUtils.FetchValueStateError);
+                Ch.Check(IsGood, Strings.ValuesUnavailableOutsideCursorPosition);
                 Ch.Assert(_slotCurr >= 0);
                 if (_colStored == _colCurr)
                     return;
@@ -694,7 +693,7 @@ namespace Microsoft.ML.Data
 
             private void Getter(ref VBuffer<T> dst)
             {
-                Ch.Check(IsGood, RowCursorUtils.FetchValueStateError);
+                Ch.Check(IsGood, Strings.ValuesUnavailableOutsideCursorPosition);
                 EnsureValid();
                 Ch.Assert(0 <= _slotCurr && _slotCurr < Utils.Size(_cbuff) && _cbuff[_slotCurr].Buffer.Length == _len);
                 _cbuff[_slotCurr].Buffer.CopyTo(ref dst);
@@ -1171,8 +1170,7 @@ namespace Microsoft.ML.Data
                             var originFn = _getters[column.Index];
                             var fn = originFn as ValueGetter<TValue>;
                             if (fn == null)
-                                throw Contracts.Except($"Invalid TValue in GetGetter: '{typeof(TValue)}', " +
-                                    $"expected type: '{originFn.GetType().GetGenericArguments().First()}'.");
+                                throw Contracts.Except(string.Format(Strings.InvalidTValueInGetGetterExpectedType, typeof(TValue), originFn.GetType().GetGenericArguments().First()));
                             return fn;
                         }
 
@@ -1297,7 +1295,7 @@ namespace Microsoft.ML.Data
                 /// </summary>
                 public override bool IsColumnActive(DataViewSchema.Column column)
                 {
-                    Ch.Check(column.Index < Schema.Count, nameof(column));
+                    Ch.Check(column.Index < Schema.Count, Strings.ColumnIndexMustBeLessThanTheSchemaColumnCount);
                     int splitInd;
                     int splitCol;
                     _slicer.OutputColumnToSplitterIndices(column.Index, out splitInd, out splitCol);
@@ -1345,10 +1343,10 @@ namespace Microsoft.ML.Data
             {
                 var getter = cursor.GetGetter<T>();
                 if (!cursor.MoveNext())
-                    throw Contracts.Except("Could not get single value on column '{0}' because there are no slots", view.Schema[col].Name);
+                    throw Contracts.Except(Strings.ColumnHasNoSlots, view.Schema[col].Name);
                 getter(ref dst);
                 if (cursor.MoveNext())
-                    throw Contracts.Except("Could not get single value on column '{0}' because there is more than one slot", view.Schema[col].Name);
+                    throw Contracts.Except(Strings.ColumnHasMultipleSlots, view.Schema[col].Name);
             }
         }
 
@@ -1370,13 +1368,13 @@ namespace Microsoft.ML.Data
             ctx.CheckValue(cursor, nameof(cursor));
             var type = typeof(TValue);
             if (!type.IsGenericEx(typeof(VBuffer<>)))
-                throw ctx.Except("Invalid TValue: '{0}'", typeof(TValue));
+                throw ctx.Except(Strings.InvalidTValue, typeof(TValue));
             var genTypeArgs = type.GetGenericArguments();
             ctx.Assert(genTypeArgs.Length == 1);
 
             var getter = Utils.MarshalInvoke(_slotCursorGetGetterMethodInfo, cursor, genTypeArgs[0]) as ValueGetter<TValue>;
             if (getter == null)
-                throw ctx.Except("Invalid TValue: '{0}'", typeof(TValue));
+                throw ctx.Except(Strings.InvalidTValue, typeof(TValue));
             return getter;
         }
 
@@ -1500,12 +1498,11 @@ namespace Microsoft.ML.Data
                 public override ValueGetter<TValue> GetGetter<TValue>(DataViewSchema.Column column)
                 {
                     Ch.CheckParam(column.Index == 0, nameof(column));
-                    Ch.CheckParam(_getter != null, nameof(column), "requested column not active");
+                    Ch.CheckParam(_getter != null, nameof(column), Strings.RequestedColumnNotActive);
 
                     var getter = _getter as ValueGetter<TValue>;
                     if (getter == null)
-                        throw Ch.Except($"Invalid TValue: '{typeof(TValue)}', " +
-                            $"expected type: '{_getter.GetType().GetGenericArguments().First()}'.");
+                        throw Ch.Except(string.Format(Strings.InvalidTValueExpectedType, typeof(TValue), _getter.GetType().GetGenericArguments().First()));
                     return getter;
                 }
 
@@ -1513,7 +1510,7 @@ namespace Microsoft.ML.Data
 
                 private void GetId(ref DataViewRowId id)
                 {
-                    Ch.Check(_slotCursor.SlotIndex >= 0, RowCursorUtils.FetchValueStateError);
+                    Ch.Check(_slotCursor.SlotIndex >= 0, Strings.ValuesUnavailableOutsideCursorPosition);
                     id = new DataViewRowId((ulong)_slotCursor.SlotIndex, 0);
                 }
 
@@ -1568,7 +1565,7 @@ namespace Microsoft.ML.Data
 
             private void GetId(ref DataViewRowId id)
             {
-                Ch.Check(_slotCursor.SlotIndex >= 0, RowCursorUtils.FetchValueStateError);
+                Ch.Check(_slotCursor.SlotIndex >= 0, Strings.ValuesUnavailableOutsideCursorPosition);
                 id = new DataViewRowId((ulong)_slotCursor.SlotIndex, 0);
             }
 

@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -236,7 +236,7 @@ namespace Microsoft.ML
             get
             {
                 if (_metricValue == null)
-                    throw Contracts.Except("Run result does not contain a metric");
+                    throw Contracts.Except(Strings.RunResultDoesNotContainAMetric);
                 return _metricValue.Value;
             }
         }

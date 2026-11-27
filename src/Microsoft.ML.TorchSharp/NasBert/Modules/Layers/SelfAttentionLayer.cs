@@ -58,7 +58,7 @@ namespace Microsoft.ML.TorchSharp.NasBert.Modules.Layers
 
             if (!ParseArguments(param, out var selfAttentionMask, out var selfAttentionPaddingMask))
             {
-                throw new ArgumentException("Invalid arguments.");
+                throw new ArgumentException(Strings.InvalidArgumentsVariant2);
             }
 
             var attention = SelfAttention.forward(query: x, key: x, value: x,

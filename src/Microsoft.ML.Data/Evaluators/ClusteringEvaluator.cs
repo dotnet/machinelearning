@@ -172,9 +172,9 @@ namespace Microsoft.ML.Data
             addAgg =
                 (stratColKey, stratColVal, agg) =>
                 {
-                    Host.Check(agg.Weighted == hasWeight, "All aggregators must either be weighted or unweighted");
+                    Host.Check(agg.Weighted == hasWeight, Strings.AllAggregatorsMustEitherBeWeightedOrUnweighted);
                     Host.Check(agg.UnweightedCounters.CalculateDbi == aggregator.UnweightedCounters.CalculateDbi,
-                        "All aggregators must either compute DBI or not compute DBI");
+                        Strings.AllAggregatorsMustEitherComputeDBIOrNotComputeDBI);
 
                     stratCol.Add(stratColKey);
                     stratVal.Add(stratColVal);
@@ -427,7 +427,7 @@ namespace Microsoft.ML.Data
                 }
                 var intLabel = (int)label;
                 if (intLabel != label || intLabel < 0)
-                    throw Host.Except("Invalid label: {0}", label);
+                    throw Host.Except(Strings.InvalidLabel, label);
 
                 _scoreGetter(ref _scores);
                 Host.Check(_scores.Length == _scoresArr.Length);
@@ -812,7 +812,7 @@ namespace Microsoft.ML.Data
             {
                 string feat = EvaluateUtils.GetColName(_featureCol, schema.Feature, DefaultColumnNames.Features);
                 if (!schema.Schema.TryGetColumnIndex(feat, out int featCol))
-                    throw Host.ExceptUserArg(nameof(Arguments.FeatureColumn), "Features column '{0}' not found", feat);
+                    throw Host.ExceptUserArg(nameof(Arguments.FeatureColumn), Strings.FeaturesColumnNotFound, feat);
                 yield return RoleMappedSchema.ColumnRole.Feature.Bind(feat);
             }
         }

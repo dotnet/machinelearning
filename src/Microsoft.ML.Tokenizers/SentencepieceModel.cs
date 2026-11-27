@@ -21,7 +21,7 @@ namespace Sentencepiece
         {
             if (pos >= end)
             {
-                throw new InvalidDataException("Unexpected end of data while reading varint.");
+                throw new InvalidDataException(Strings.UnexpectedEndOfDataWhileReadingVarint);
             }
 
             byte b = data[pos++];
@@ -35,7 +35,7 @@ namespace Sentencepiece
             {
                 if (pos >= end)
                 {
-                    throw new InvalidDataException("Unexpected end of data while reading varint.");
+                    throw new InvalidDataException(Strings.UnexpectedEndOfDataWhileReadingVarint);
                 }
 
                 b = data[pos++];
@@ -51,7 +51,7 @@ namespace Sentencepiece
             {
                 if (pos >= end)
                 {
-                    throw new InvalidDataException("Unexpected end of data while reading varint.");
+                    throw new InvalidDataException(Strings.UnexpectedEndOfDataWhileReadingVarint);
                 }
 
                 if ((data[pos++] & 0x80) == 0)
@@ -60,7 +60,7 @@ namespace Sentencepiece
                 }
             }
 
-            throw new InvalidDataException("Malformed varint.");
+            throw new InvalidDataException(Strings.MalformedVarint);
         }
 
         internal static int ReadLengthPrefix(byte[] data, int end, ref int pos)
@@ -68,7 +68,7 @@ namespace Sentencepiece
             int length = ReadRawVarint32(data, end, ref pos);
             if ((uint)length > (uint)(end - pos))
             {
-                throw new InvalidDataException("Invalid length-delimited field size.");
+                throw new InvalidDataException(Strings.InvalidLengthDelimitedFieldSize);
             }
 
             return length;
@@ -86,7 +86,7 @@ namespace Sentencepiece
         {
             if (pos > end - 4)
             {
-                throw new InvalidDataException("Unexpected end of data while reading float.");
+                throw new InvalidDataException(Strings.UnexpectedEndOfDataWhileReadingFloat);
             }
 
             float value;
@@ -118,7 +118,7 @@ namespace Sentencepiece
                     {
                         if (pos >= end)
                         {
-                            throw new InvalidDataException("Unexpected end of data while skipping varint.");
+                            throw new InvalidDataException(Strings.UnexpectedEndOfDataWhileSkippingVarint);
                         }
 
                         if ((data[pos++] & 0x80) == 0)
@@ -128,7 +128,7 @@ namespace Sentencepiece
 
                         if (i == 9)
                         {
-                            throw new InvalidDataException("Malformed varint.");
+                            throw new InvalidDataException(Strings.MalformedVarint);
                         }
                     }
                     break;
@@ -136,7 +136,7 @@ namespace Sentencepiece
                 case 1: // 64-bit fixed
                     if (pos > end - 8)
                     {
-                        throw new InvalidDataException("Unexpected end of data while skipping fixed64.");
+                        throw new InvalidDataException(Strings.UnexpectedEndOfDataWhileSkippingFixed64);
                     }
                     pos += 8;
                     break;
@@ -149,13 +149,13 @@ namespace Sentencepiece
                 case 5: // 32-bit fixed
                     if (pos > end - 4)
                     {
-                        throw new InvalidDataException("Unexpected end of data while skipping fixed32.");
+                        throw new InvalidDataException(Strings.UnexpectedEndOfDataWhileSkippingFixed32);
                     }
                     pos += 4;
                     break;
 
                 default:
-                    throw new InvalidDataException($"Unknown or unsupported protobuf wire type {wireType}.");
+                    throw new InvalidDataException(string.Format(Strings.UnknownOrUnsupportedProtobufWireType, wireType));
             }
         }
     }

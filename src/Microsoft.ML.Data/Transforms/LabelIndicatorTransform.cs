@@ -223,7 +223,7 @@ namespace Microsoft.ML.Transforms
                         dst = src == _classIndex[iinfo];
                     };
             }
-            throw Host.ExceptNotSupp($"Label column type is not supported for binary remapping: {info.TypeSrc}. Supported types: key, float, double.");
+            throw Host.ExceptNotSupp(string.Format(Strings.BinaryRemappingLabelTypeUnsupported, info.TypeSrc));
         }
 
         [TlcModule.EntryPoint(Name = "Transforms.LabelIndicator", Desc = "Label remapper used by OVA", UserName = "LabelIndicator",

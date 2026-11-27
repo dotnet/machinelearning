@@ -35,7 +35,7 @@ namespace Microsoft.ML.Trainers.FastTree
                 case "DescendingStablePessimistic":
                     return new DescendingStablePessimisticPermutationComparer();
                 default:
-                    throw Contracts.ExceptNotSupp("DCGComparer of type '{0}' not supported", name);
+                    throw Contracts.ExceptNotSupp(Strings.DCGComparerOfTypeNotSupported, name);
             }
         }
     }

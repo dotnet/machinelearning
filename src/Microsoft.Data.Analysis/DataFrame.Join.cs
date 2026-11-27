@@ -405,7 +405,7 @@ namespace Microsoft.Data.Analysis
                 }
             }
             else
-                throw new NotImplementedException(nameof(joinAlgorithm));
+                throw new NotSupportedException(string.Format(Strings.JoinAlgorithmIsNotSupported, joinAlgorithm));
 
             DataFrame ret = new DataFrame();
 

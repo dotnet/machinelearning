@@ -58,7 +58,7 @@ namespace Microsoft.ML.Data.IO
 
         public MemoryStreamPool Get(int maxSize)
         {
-            Contracts.CheckParam(0 <= maxSize, nameof(maxSize), "Must be positive");
+            Contracts.CheckParam(0 <= maxSize, nameof(maxSize), Strings.MustBePositive);
             int index = IndexFor(maxSize);
             Contracts.Assert(0 <= index && index < _pools.Length);
             if (_pools[index] == null)

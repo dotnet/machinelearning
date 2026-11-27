@@ -171,7 +171,7 @@ namespace Microsoft.ML.Data
 
             IDataView fold;
             if (!metrics.TryGetValue(MetricKinds.OverallMetrics, out fold))
-                throw ch.Except("No overall metrics found");
+                throw ch.Except(Strings.NoOverallMetricsFound);
 
             string weightedMetrics;
             string unweightedMetrics = MetricWriter.GetPerFoldResults(Host, fold, out weightedMetrics);

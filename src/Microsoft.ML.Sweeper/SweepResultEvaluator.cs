@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -68,7 +68,7 @@ namespace Microsoft.ML.Sweeper
                     }
                 }
             }
-            throw _host.Except("Requested metric '{0}' does not exist. Options are:\n{1}", userMetric, sb.ToString());
+            throw _host.Except(Strings.RequestedMetricDoesNotExistOptionsAre, userMetric, sb.ToString());
         }
 
         public IRunResult GetRunResult(ParameterSet parameterSet, string resultFileName)

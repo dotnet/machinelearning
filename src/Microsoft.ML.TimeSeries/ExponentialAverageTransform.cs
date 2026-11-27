@@ -60,7 +60,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
         public ExponentialAverageTransform(IHostEnvironment env, Arguments args, IDataView input)
             : base(1, 1, args.Name, args.Source, LoaderSignature, env, input)
         {
-            Host.CheckUserArg(0 <= args.Decay && args.Decay <= 1, nameof(args.Decay), "Should be in [0, 1].");
+            Host.CheckUserArg(0 <= args.Decay && args.Decay <= 1, nameof(args.Decay), Strings.ShouldBeBetweenZeroAndOneInclusive);
             _decay = args.Decay;
         }
 

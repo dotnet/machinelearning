@@ -270,11 +270,11 @@ namespace Microsoft.ML.Trainers.FastTree
             {
                 int bagCount = FastTreeTrainerOptions.NumberOfTrees / FastTreeTrainerOptions.BaggingSize;
                 if (bagCount * FastTreeTrainerOptions.BaggingSize != FastTreeTrainerOptions.NumberOfTrees)
-                    throw ch.Except("Number of trees should be a multiple of number bag size");
+                    throw ch.Except(Strings.TreeCountMustBeMultipleOfBagSize);
             }
 
             if (!(0 <= FastTreeTrainerOptions.GainConfidenceLevel && FastTreeTrainerOptions.GainConfidenceLevel < 1))
-                throw ch.Except("Gain confidence level must be in the range [0,1)");
+                throw ch.Except(Strings.GainConfidenceLevelMustBeAtLeastZeroAndLessThanOne);
 
 #if OLD_DATALOAD
 #if !NO_STORE
@@ -839,7 +839,7 @@ namespace Microsoft.ML.Trainers.FastTree
                     }
                 }
             }
-            Contracts.Check(st != null, "unknown dataset passed to ConstructScoreTracker");
+            Contracts.Check(st != null, Strings.UnknownDatasetPassedToConstructScoreTracker);
             return st;
         }
 
@@ -865,7 +865,7 @@ namespace Microsoft.ML.Trainers.FastTree
             double[] initScores = GetInitScores(set);
             if (initScores != null)
             {
-                Contracts.Check(scores.Length == initScores.Length, "Length of initscores and scores mismatch");
+                Contracts.Check(scores.Length == initScores.Length, Strings.LengthOfInitscoresAndScoresMismatch);
                 for (int i = 0; i < scores.Length; i++)
                     scores[i] += initScores[i];
             }
@@ -883,7 +883,7 @@ namespace Microsoft.ML.Trainers.FastTree
                 if (set == TestSets[i])
                     return InitTestScores?[i];
             }
-            throw Contracts.Except("Queried for unknown set");
+            throw Contracts.Except(Strings.QueriedForUnknownSet);
         }
     }
 
@@ -1434,7 +1434,7 @@ namespace Microsoft.ML.Trainers.FastTree
                                             // Let's just be a little extra safe, since it's so easy to check and the results if there
                                             // is a bug in the upstream pipeline would be very severe.
                                             ch.Check(slotDropper == null,
-                                                "Multiple passes over the data seem to be producing different data. There is a bug in the upstream pipeline.");
+                                                Strings.UpstreamPipelineDataChangedBetweenPasses);
 
                                             // Destroy any constructed bin upper bounds. We'll calculate them over the next pass.
                                             foreach (var i in constructed)
@@ -1593,7 +1593,7 @@ namespace Microsoft.ML.Trainers.FastTree
                                 int ii = temp.IsDense ? i : tempIndices[i];
                                 var label = tempValues[i];
                                 if (UsingMaxLabel && !(0 <= label && label <= MaxLabel))
-                                    throw Host.Except("Found invalid label {0}. Value should be between 0 and {1}, inclusive.", label, MaxLabel);
+                                    throw Host.Except(Strings.FoundInvalidLabelValueShouldBeBetween0AndInclusive, label, MaxLabel);
                                 ratings[ii] = (short)label;
                                 actualLabels[ii] = (double)label;
                             }
@@ -1605,7 +1605,7 @@ namespace Microsoft.ML.Trainers.FastTree
                         if (PredictionKind == PredictionKind.Ranking)
                         {
                             if (groupIdx < 0)
-                                throw ch.Except("You need to provide {0} column for Ranking problem", DefaultColumnNames.GroupId);
+                                throw ch.Except(Strings.YouNeedToProvideColumnForRankingProblem, DefaultColumnNames.GroupId);
                             VBuffer<ulong> groupIds = default(VBuffer<ulong>);
                             trans.GetSingleSlotValue<ulong>(groupIdx, ref groupIds);
                             slotDropper?.DropSlots(ref groupIds, ref groupIds);
@@ -1774,7 +1774,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
                 MakeBoundariesAndCheckLabels(out _numMissingInstances, out long numInstances);
                 if (numInstances > Utils.ArrayMaxSize)
-                    throw Host.ExceptParam(nameof(data), "Input data had {0} rows, but can only accommodate {1}", numInstances, Utils.ArrayMaxSize);
+                    throw Host.ExceptParam(nameof(data), Strings.InputDataHadRowsButCanOnlyAccommodate, numInstances, Utils.ArrayMaxSize);
                 _numExamples = (int)numInstances;
             }
 
@@ -1868,7 +1868,7 @@ namespace Microsoft.ML.Trainers.FastTree
                             if (UsingMaxLabel)
                             {
                                 if (cursor.Label < 0 || cursor.Label > MaxLabel)
-                                    throw ch.Except("Found invalid label {0}. Value should be between 0 and {1}, inclusive.", cursor.Label, MaxLabel);
+                                    throw ch.Except(Strings.FoundInvalidLabelValueShouldBeBetween0AndInclusive, cursor.Label, MaxLabel);
                             }
 
                             foreach (var kvp in cursor.Features.Items())
@@ -1892,7 +1892,7 @@ namespace Microsoft.ML.Trainers.FastTree
                         missingInstances = cursor.BadFeaturesRowCount;
                     }
 
-                    ch.Check(totalInstances > 0, "All instances skipped due to missing features.");
+                    ch.Check(totalInstances > 0, Strings.AllInstancesSkippedDueToMissingFeatures);
 
                     if (missingInstances > 0)
                         ch.Warning("Skipped {0} instances with missing features during training", missingInstances);
@@ -2837,7 +2837,7 @@ namespace Microsoft.ML.Trainers.FastTree
             : base(env, name)
         {
             Host.CheckValue(trainedEnsemble, nameof(trainedEnsemble));
-            Host.CheckParam(numFeatures > 0, nameof(numFeatures), "must be positive");
+            Host.CheckParam(numFeatures > 0, nameof(numFeatures), Strings.MustBePositive);
             Host.CheckValueOrNull(innerArgs);
 
             // REVIEW: When we make the predictor wrapper, we may want to further "optimize"
@@ -2932,8 +2932,8 @@ namespace Microsoft.ML.Trainers.FastTree
         {
             Host.Check(typeof(TSrc) == typeof(VBuffer<float>));
             Host.Check(typeof(TDst) == typeof(VBuffer<float>));
-            Host.Check(top >= 0, "top must be non-negative");
-            Host.Check(bottom >= 0, "bottom must be non-negative");
+            Host.Check(top >= 0, Strings.TopMustBeNonNegative);
+            Host.Check(bottom >= 0, Strings.BottomMustBeNonNegative);
 
             BufferBuilder<float> builder = null;
             ValueMapper<VBuffer<float>, VBuffer<float>> del =

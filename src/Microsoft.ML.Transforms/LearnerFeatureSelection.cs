@@ -73,10 +73,10 @@ namespace Microsoft.ML.Transforms
                 if (Threshold.HasValue == NumSlotsToKeep.HasValue)
                 {
                     throw ectx.ExceptUserArg(nameof(Threshold),
-                        $"Either {nameof(Threshold)} or {nameof(NumSlotsToKeep)} to keep must be specified (but not both).");
+                        Strings.ThresholdAndNumSlotsToKeepMutuallyExclusive);
                 }
-                ectx.CheckUserArg((Threshold ?? 0) >= 0, nameof(Threshold), "Must be non-negative");
-                ectx.CheckUserArg((NumSlotsToKeep ?? int.MaxValue) > 0, nameof(NumSlotsToKeep), "Must be positive");
+                ectx.CheckUserArg((Threshold ?? 0) >= 0, nameof(Threshold), Strings.MustBeNonNegative);
+                ectx.CheckUserArg((NumSlotsToKeep ?? int.MaxValue) > 0, nameof(NumSlotsToKeep), Strings.MustBePositive);
             }
         }
 #pragma warning restore CS0649

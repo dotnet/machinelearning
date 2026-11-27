@@ -1,0 +1,31 @@
+﻿<?xml version='1.0' encoding='utf-8'?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="UnknownOptionType" xml:space="preserve">
+    <value>unknown option type</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.SearchSpace/Converter/OptionConverter.cs:42. Exception or validation message. Source: src/Microsoft.ML.SearchSpace/Converter/OptionConverter.cs:62.</comment>
+  </data>
+  <data name="UnknownSchemaType" xml:space="preserve">
+    <value>unknown schema type: {0}</value>
+    <comment>Exception or validation message. Placeholders: {0}=schema.Type. Source: src/Microsoft.ML.SearchSpace/Converter/NumericOptionConverter.cs:46.</comment>
+  </data>
+  <data name="UnknownType" xml:space="preserve">
+    <value>unknown type</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.SearchSpace/Converter/NumericOptionConverter.cs:78.</comment>
+  </data>
+  <data name="UnsupportedReaderType" xml:space="preserve">
+    <value>Unsupported reader type {0}</value>
+    <comment>Exception or validation message. Placeholders: {0}=reader.TokenType. Source: src/Microsoft.ML.SearchSpace/Converter/ParameterConverter.cs:50.</comment>
+  </data>
+</root>

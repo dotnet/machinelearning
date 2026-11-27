@@ -134,7 +134,7 @@ namespace Microsoft.ML.Trainers.LightGbm
         internal LightGbmMulticlassTrainer(IHostEnvironment env, Options options)
              : base(env, LoadNameValue, options, TrainerUtils.MakeU4ScalarColumn(options.LabelColumnName))
         {
-            Contracts.CheckUserArg(options.Sigmoid > 0, nameof(Options.Sigmoid), "must be > 0.");
+            Contracts.CheckUserArg(options.Sigmoid > 0, nameof(Options.Sigmoid), Strings.MustBeGreaterThanZero);
             _numberOfClassesIncludingNan = -1;
         }
 
@@ -217,7 +217,7 @@ namespace Microsoft.ML.Trainers.LightGbm
 
         private protected override OneVersusAllModelParameters CreatePredictor()
         {
-            Host.Check(TrainedEnsemble != null, "The predictor cannot be created before training is complete.");
+            Host.Check(TrainedEnsemble != null, Strings.ThePredictorCannotBeCreatedBeforeTrainingIsComplete);
 
             Host.Assert(_numberOfClassesIncludingNan > 1, "Must know the number of classes before creating a predictor.");
             Host.Assert(TrainedEnsemble.NumTrees % _numberOfClassesIncludingNan == 0, "Number of trees should be a multiple of number of classes.");
@@ -248,7 +248,7 @@ namespace Microsoft.ML.Trainers.LightGbm
                 if (!(labelType is BooleanDataViewType || labelType is KeyDataViewType || labelType == NumberDataViewType.Single))
                 {
                     throw ch.ExceptParam(nameof(data),
-                        $"Label column '{data.Schema.Label.Value.Name}' is of type '{labelType.RawType}', but must be of unsigned int, boolean or float.");
+                        string.Format(Strings.MulticlassLabelTypeInvalid, data.Schema.Label.Value.Name, labelType.RawType));
                 }
             }
         }
@@ -293,9 +293,9 @@ namespace Microsoft.ML.Trainers.LightGbm
                         maxLabel = Math.Max(maxLabel, labelColumn);
                     }
                 }
-                ch.CheckParam(minLabel >= 0, nameof(data), "Minimum value in label column cannot be negative");
+                ch.CheckParam(minLabel >= 0, nameof(data), Strings.MinimumValueInLabelColumnCannotBeNegative);
                 if (maxLabel >= _maxNumClass)
-                    throw ch.ExceptParam(nameof(data), $"Maximum value {maxLabel} in label column exceeds {_maxNumClass}");
+                    throw ch.ExceptParam(nameof(data), string.Format(Strings.MaximumValueInLabelColumnExceeds, maxLabel, _maxNumClass));
 
                 if (data.Schema.Label.Value.Type is KeyDataViewType keyType)
                 {

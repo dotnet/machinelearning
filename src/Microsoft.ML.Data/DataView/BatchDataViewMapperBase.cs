@@ -108,7 +108,7 @@ namespace Microsoft.ML.Data.DataView
 
             public override ValueGetter<TValue> GetGetter<TValue>(DataViewSchema.Column column)
             {
-                Contracts.CheckParam(IsColumnActive(column), nameof(column), "requested column is not active");
+                Contracts.CheckParam(IsColumnActive(column), nameof(column), Strings.RequestedColumnIsNotActive);
 
                 var col = _parent.SchemaBindings.MapColumnIndex(out bool isSrc, column.Index);
                 if (isSrc)
@@ -122,8 +122,7 @@ namespace Microsoft.ML.Data.DataView
                 Ch.Assert(getter != null);
                 var fn = getter as ValueGetter<TValue>;
                 if (fn == null)
-                    throw Ch.Except($"Invalid TValue in GetGetter: '{typeof(TValue)}', " +
-                            $"expected type: '{getter.GetType().GetGenericArguments().First()}'.");
+                    throw Ch.Except(string.Format(Strings.InvalidTValueInGetGetterExpectedType, typeof(TValue), getter.GetType().GetGenericArguments().First()));
                 return fn;
             }
 
@@ -132,7 +131,7 @@ namespace Microsoft.ML.Data.DataView
                 return
                     (ref DataViewRowId val) =>
                     {
-                        Ch.Check(IsGood, "Cannot call ID getter in current state");
+                        Ch.Check(IsGood, Strings.CannotCallIDGetterInCurrentState);
                         val = new DataViewRowId((ulong)Position, 0);
                     };
             }

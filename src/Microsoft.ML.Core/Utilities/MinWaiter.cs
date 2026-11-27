@@ -55,7 +55,7 @@ namespace Microsoft.ML.Internal.Utilities
         /// <param name="waiters">The initial number of waiters</param>
         public MinWaiter(int waiters)
         {
-            Contracts.CheckParam(waiters > 0, nameof(waiters), "Must have at least one waiter");
+            Contracts.CheckParam(waiters > 0, nameof(waiters), Strings.MustHaveAtLeastOneWaiter);
             _maxWaiters = waiters;
             _waiters = new Heap<WaitStats>((s1, s2) => s1.Line > s2.Line);
         }
@@ -75,7 +75,7 @@ namespace Microsoft.ML.Internal.Utilities
             WaitStats ev;
             lock (_waiters)
             {
-                Contracts.Check(_maxWaiters > 0, "All waiters have been retired, Wait should not be called at this point");
+                Contracts.Check(_maxWaiters > 0, Strings.WaitCalledAfterAllWaitersRetired);
                 // We should never reach the state
                 Contracts.Assert(_waiters.Count < _maxWaiters);
                 ev = new WaitStats(position);
@@ -99,7 +99,7 @@ namespace Microsoft.ML.Internal.Utilities
         {
             lock (_waiters)
             {
-                Contracts.Check(_maxWaiters > 0, "Attempt to retire more waiters than were initially declared");
+                Contracts.Check(_maxWaiters > 0, Strings.AttemptToRetireMoreWaitersThanWereInitiallyDeclared);
                 Contracts.Assert(_waiters.Count < _maxWaiters);
                 if (--_maxWaiters > 0)
                     SignalIfNeeded();

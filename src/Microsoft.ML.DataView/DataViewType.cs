@@ -78,7 +78,7 @@ namespace Microsoft.ML.Data
             : base(rawType)
         {
             if (typeof(IDisposable).GetTypeInfo().IsAssignableFrom(RawType.GetTypeInfo()))
-                throw new ArgumentException("A " + nameof(PrimitiveDataViewType) + " cannot have a disposable " + nameof(RawType), nameof(rawType));
+                throw new ArgumentException(Strings.APrimitiveDataViewTypeCannotHaveADisposableRawType, nameof(rawType));
         }
     }
 

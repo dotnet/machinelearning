@@ -81,16 +81,16 @@ namespace Microsoft.ML.Trainers.FastTree
             Contracts.CheckValue(env, nameof(env));
 
             // Capture the environment options from args.
-            env.CheckUserArg(!args.Parallel.HasValue || args.Parallel > 0, nameof(args.Parallel), "If defined must be positive");
+            env.CheckUserArg(!args.Parallel.HasValue || args.Parallel > 0, nameof(args.Parallel), Strings.IfDefinedMustBePositive);
 
             _host = env.Register("FastTreeSumupPerformance", args.RandomSeed, args.Verbose);
             _host.CheckValue(args, nameof(args));
 
-            _host.CheckUserArg(Enum.IsDefined(typeof(IntArrayType), args.Type) && args.Type != IntArrayType.Current, nameof(args.Type), "Value not defined");
-            _host.CheckUserArg(args.Length >= 0, nameof(args.Length), "Must be non-negative");
-            _host.CheckUserArg(args.Count >= 0, nameof(args.Count), "Must be non-negative");
-            _host.CheckUserArg(args.Bins > 0, nameof(args.Bins), "Must be positive");
-            _host.CheckUserArg(args.Seconds > 0, nameof(args.Seconds), "Must be positive");
+            _host.CheckUserArg(Enum.IsDefined(typeof(IntArrayType), args.Type) && args.Type != IntArrayType.Current, nameof(args.Type), Strings.ValueNotDefined);
+            _host.CheckUserArg(args.Length >= 0, nameof(args.Length), Strings.MustBeNonNegative);
+            _host.CheckUserArg(args.Count >= 0, nameof(args.Count), Strings.MustBeNonNegative);
+            _host.CheckUserArg(args.Bins > 0, nameof(args.Bins), Strings.MustBePositive);
+            _host.CheckUserArg(args.Seconds > 0, nameof(args.Seconds), Strings.MustBePositive);
 
             _type = args.Type;
             _len = args.Length;
@@ -109,7 +109,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
         private IEnumerable<int> CreateSparse(IChannel ch, Random rgen)
         {
-            ch.CheckUserArg(0 <= _param && _param < 1, nameof(Arguments.Parameter), "For sparse arrays");
+            ch.CheckUserArg(0 <= _param && _param < 1, nameof(Arguments.Parameter), Strings.ForSparseArrays);
             // The parameter is the level of sparsity. Use the geometric distribution to determine the number of
             // Geometric distribution (with 0 support) would be Math.
             double denom = Math.Log(1 - _param);
@@ -169,7 +169,7 @@ namespace Microsoft.ML.Trainers.FastTree
                             createIntArray = CreateDense;
                         break;
                     default:
-                        throw _host.ExceptNotImpl("Haven't yet wrote a random generator appropriate for {0}", _type);
+                        throw _host.ExceptNotImpl(Strings.RandomGeneratorNotImplementedForType, _type);
                 }
 
                 ParallelEnumerable.Range(0, arrays.Length).ForAll(i =>

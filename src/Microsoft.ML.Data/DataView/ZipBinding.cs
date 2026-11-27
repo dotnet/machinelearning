@@ -66,7 +66,7 @@ namespace Microsoft.ML.Data
         /// </summary>
         public void CheckColumnInRange(int col)
         {
-            Contracts.CheckParam(0 <= col && col < _cumulativeColCounts[_cumulativeColCounts.Length - 1], nameof(col), "Column index out of range");
+            Contracts.CheckParam(0 <= col && col < _cumulativeColCounts[_cumulativeColCounts.Length - 1], nameof(col), Strings.ColumnIndexOutOfRange);
         }
 
         public void GetColumnSource(int col, out int srcIndex, out int srcCol)

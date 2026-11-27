@@ -147,7 +147,7 @@ namespace Microsoft.ML.Data
             foreach (var column in input.Columns)
             {
                 if (!schema.TryGetColumnIndex(column.Source, out int col))
-                    throw env.ExceptUserArg(nameof(input.Columns), $"Column '{column.Source}' does not exist.");
+                    throw env.ExceptUserArg(nameof(input.Columns), string.Format(Strings.ColumnDoesNotExist, column.Source));
                 if (!schema[col].IsNormalized())
                     columnsToNormalize.Add(column);
             }

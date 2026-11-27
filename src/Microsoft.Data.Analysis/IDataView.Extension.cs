@@ -122,7 +122,7 @@ namespace Microsoft.ML
                 }
                 else
                 {
-                    throw new NotSupportedException(String.Format(Microsoft.Data.Strings.NotSupportedColumnType, type.RawType.Name));
+                    throw new NotSupportedException(String.Format(Strings.NotSupportedColumnType, type.RawType.Name));
                 }
             }
 
@@ -209,7 +209,7 @@ namespace Microsoft.ML
                 return new VBufferDataFrameColumn<ReadOnlyMemory<char>>(name);
             }
 
-            throw new NotSupportedException(String.Format(Microsoft.Data.Strings.VectorSubTypeNotSupported, itemType.ToString()));
+            throw new NotSupportedException(String.Format(Strings.VectorSubTypeNotSupported, itemType.ToString()));
         }
     }
 

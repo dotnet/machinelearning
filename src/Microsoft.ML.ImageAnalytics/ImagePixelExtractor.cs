@@ -273,7 +273,7 @@ namespace Microsoft.ML.Transforms.Image
             if (imageType.Height <= 0 || imageType.Width <= 0)
                 throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", inputColName, "known-size image", "unknown-size image");
             if ((long)imageType.Height * imageType.Width > int.MaxValue / 4)
-                throw Host.Except("Image dimensions are too large");
+                throw Host.Except(Strings.ImageDimensionsAreTooLarge);
         }
 
         private sealed class Mapper : OneToOneMapperBase
@@ -367,7 +367,7 @@ namespace Microsoft.ML.Transforms.Image
                         {
                             MLPixelFormat.Bgra32 => (3, 2, 1, 0),
                             MLPixelFormat.Rgba32 => (3, 0, 1, 2),
-                            _ => throw new InvalidOperationException($"Image pixel format is not supported")
+                            _ => throw new InvalidOperationException(Strings.ImagePixelFormatIsNotSupported)
                         };
 
                         int h = height;
@@ -619,7 +619,7 @@ namespace Microsoft.ML.Transforms.Image
                 if (item.UseRed ?? options.UseRed) { ColorsToExtract |= ColorBits.Red; Planes++; }
                 if (item.UseGreen ?? options.UseGreen) { ColorsToExtract |= ColorBits.Green; Planes++; }
                 if (item.UseBlue ?? options.UseBlue) { ColorsToExtract |= ColorBits.Blue; Planes++; }
-                Contracts.CheckUserArg(Planes > 0, nameof(item.UseRed), "Need to use at least one color plane");
+                Contracts.CheckUserArg(Planes > 0, nameof(item.UseRed), Strings.NeedToUseAtLeastOneColorPlane);
 
                 OrderOfExtraction = item.Order ?? options.Order;
                 InterleavePixelColors = item.Interleave ?? options.Interleave;
@@ -670,7 +670,7 @@ namespace Microsoft.ML.Transforms.Image
                 if ((ColorsToExtract & ColorBits.Red) == ColorBits.Red) Planes++;
                 if ((ColorsToExtract & ColorBits.Green) == ColorBits.Green) Planes++;
                 if ((ColorsToExtract & ColorBits.Blue) == ColorBits.Blue) Planes++;
-                Contracts.CheckParam(Planes > 0, nameof(colorsToExtract), "Need to use at least one color plane.");
+                Contracts.CheckParam(Planes > 0, nameof(colorsToExtract), Strings.NeedToUseAtLeastOneColorPlane);
 
                 InterleavePixelColors = interleavePixelColors;
 

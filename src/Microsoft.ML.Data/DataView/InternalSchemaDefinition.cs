@@ -156,7 +156,7 @@ namespace Microsoft.ML.Data
 
                 default:
                     Contracts.Assert(false);
-                    throw Contracts.ExceptNotSupp("Expected a FieldInfo or a PropertyInfo");
+                    throw Contracts.ExceptNotSupp(Strings.ExpectedAFieldInfoOrAPropertyInfo);
             }
         }
 
@@ -198,7 +198,7 @@ namespace Microsoft.ML.Data
             // It must be one of either ML.NET's pre-defined types or custom types registered by the user.
             if (!itemType.TryGetDataKind(out _) && !DataViewTypeManager.Knows(itemType, attributes))
             {
-                throw Contracts.ExceptParam(nameof(rawType), "Could not determine an IDataView type and registered custom types for member {0}", name);
+                throw Contracts.ExceptParam(nameof(rawType), Strings.CouldNotDetermineAnIDataViewTypeAndRegisteredCustomTypes, name);
             }
         }
 
@@ -222,7 +222,7 @@ namespace Microsoft.ML.Data
             {
                 var col = userSchemaDefinition[i];
                 if (col.MemberName == null)
-                    throw Contracts.ExceptParam(nameof(userSchemaDefinition), "Null field name detected in schema definition");
+                    throw Contracts.ExceptParam(nameof(userSchemaDefinition), Strings.NullFieldNameDetectedInSchemaDefinition);
 
                 bool isVector;
                 Type dataItemType;
@@ -236,7 +236,7 @@ namespace Microsoft.ML.Data
                         memberInfo = userType.GetProperty(col.MemberName);
 
                     if (memberInfo == null)
-                        throw Contracts.ExceptParam(nameof(userSchemaDefinition), "No field or property with name '{0}' found in type '{1}'",
+                        throw Contracts.ExceptParam(nameof(userSchemaDefinition), Strings.NoFieldOrPropertyWithNameFoundInType,
                             col.MemberName,
                             userType.FullName);
 
@@ -252,7 +252,7 @@ namespace Microsoft.ML.Data
                 {
                     var parameterType = col.ReturnType;
                     if (parameterType == null)
-                        throw Contracts.ExceptParam(nameof(userSchemaDefinition), "No return parameter found in computed column.");
+                        throw Contracts.ExceptParam(nameof(userSchemaDefinition), Strings.NoReturnParameterFoundInComputedColumn);
                     GetVectorAndItemType("returnType", parameterType, null, out isVector, out dataItemType);
                 }
                 // Infer the column name.
@@ -275,13 +275,13 @@ namespace Microsoft.ML.Data
                     VectorDataViewType columnVectorType = col.ColumnType as VectorDataViewType;
                     if (isVector != (columnVectorType != null))
                     {
-                        throw Contracts.ExceptParam(nameof(userSchemaDefinition), "Column '{0}' is supposed to be {1}, but type of associated field '{2}' is {3}",
+                        throw Contracts.ExceptParam(nameof(userSchemaDefinition), Strings.ColumnAndFieldTypeMismatch,
                             colName, columnVectorType != null ? "vector" : "scalar", col.MemberName, isVector ? "vector" : "scalar");
                     }
                     DataViewType itemType = columnVectorType?.ItemType ?? col.ColumnType;
                     if (itemType.RawType != dataItemType)
                     {
-                        throw Contracts.ExceptParam(nameof(userSchemaDefinition), "Column '{0}' is supposed to have item type {1}, but associated field has type {2}",
+                        throw Contracts.ExceptParam(nameof(userSchemaDefinition), Strings.ColumnItemAndFieldTypeMismatch,
                             colName, itemType.RawType, dataItemType);
                     }
                     colType = col.ColumnType;

@@ -76,7 +76,7 @@ namespace Microsoft.ML.Internal.Utilities
         public void Wait(long position, CancellationToken token = default(CancellationToken))
         {
             if (_ex != null)
-                throw Contracts.Except(_ex, "Event we were waiting on was subject to an exception");
+                throw Contracts.Except(_ex, Strings.EventWeWereWaitingOnWasSubjectToAnException);
             if (position <= _currCleared)
                 return;
             WaitStats ev;
@@ -84,7 +84,7 @@ namespace Microsoft.ML.Internal.Utilities
             {
                 // No need to do anything in this strange case.
                 if (_ex != null)
-                    throw Contracts.Except(_ex, "Event we were waiting on was subject to an exception");
+                    throw Contracts.Except(_ex, Strings.EventWeWereWaitingOnWasSubjectToAnException);
                 if (position <= _currCleared)
                     return;
                 ev = new WaitStats(position);
@@ -92,7 +92,7 @@ namespace Microsoft.ML.Internal.Utilities
             }
             ev.Event.Wait(token);
             if (_ex != null)
-                throw Contracts.Except(_ex, "Event we were waiting on was subject to an exception");
+                throw Contracts.Except(_ex, Strings.EventWeWereWaitingOnWasSubjectToAnException);
         }
 
         /// <summary>

@@ -39,7 +39,7 @@ namespace Microsoft.ML.Trainers.Ensemble
             Host.AssertValue(args, "args");
             Host.CheckUserArg(0 <= args.ValidationDatasetProportion && args.ValidationDatasetProportion < 1,
                     nameof(args.ValidationDatasetProportion),
-                    "The validation proportion for stacking should be greater than or equal to 0 and less than 1");
+                    Strings.StackingValidationProportionOutOfRange);
 
             ValidationDatasetProportion = args.ValidationDatasetProportion;
             BasePredictorType = args.GetPredictorFactory();
@@ -67,7 +67,7 @@ namespace Microsoft.ML.Trainers.Ensemble
 
         void ICanSaveModel.Save(ModelSaveContext ctx)
         {
-            Host.Check(Meta != null, "Can't save an untrained Stacking combiner");
+            Host.Check(Meta != null, Strings.CantSaveAnUntrainedStackingCombiner);
             Host.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel();
             SaveCore(ctx);
@@ -88,7 +88,7 @@ namespace Microsoft.ML.Trainers.Ensemble
 
         public Combiner<TOutput> GetCombiner()
         {
-            Contracts.Check(Meta != null, "Training of stacking combiner not complete");
+            Contracts.Check(Meta != null, Strings.TrainingOfStackingCombinerNotComplete);
 
             // Subtle point: We shouldn't get the ValueMapper delegate and cache it in a field
             // since generally ValueMappers cannot be assumed to be thread safe - they often
@@ -113,11 +113,11 @@ namespace Microsoft.ML.Trainers.Ensemble
             Contracts.Assert(Meta != null);
 
             var ivm = Meta as IValueMapper;
-            Contracts.Check(ivm != null, "Stacking predictor doesn't implement the expected interface");
+            Contracts.Check(ivm != null, Strings.StackingPredictorDoesntImplementTheExpectedInterface);
             if (!(ivm.InputType is VectorDataViewType vectorType) || vectorType.ItemType != NumberDataViewType.Single)
-                throw Contracts.Except("Stacking predictor input type is unsupported: {0}", ivm.InputType);
+                throw Contracts.Except(Strings.StackingPredictorInputTypeIsUnsupported, ivm.InputType);
             if (ivm.OutputType.RawType != typeof(TOutput))
-                throw Contracts.Except("Stacking predictor output type is unsupported: {0}", ivm.OutputType);
+                throw Contracts.Except(Strings.StackingPredictorOutputTypeIsUnsupported, ivm.OutputType);
         }
 
         public void Train(List<FeatureSubsetModel<TOutput>> models, RoleMappedData data, IHostEnvironment env)
@@ -129,7 +129,7 @@ namespace Microsoft.ML.Trainers.Ensemble
 
             using (var ch = host.Start("Training stacked model"))
             {
-                ch.Check(Meta == null, "Train called multiple times");
+                ch.Check(Meta == null, Strings.TrainCalledMultipleTimes);
                 ch.Check(BasePredictorType != null);
 
                 var maps = new ValueMapper<VBuffer<Single>, TOutput>[models.Count];
@@ -162,7 +162,7 @@ namespace Microsoft.ML.Trainers.Ensemble
                     ch.Check(data.Schema.Label.Value.Type is KeyDataViewType);
                     return CreateDataView(env, ch, data, maps, models, x => float.IsNaN(x) ? 0 : (uint)(x + 1));
                 default:
-                    throw ch.Except("Unsupported label type");
+                    throw ch.Except(Strings.UnsupportedLabelType);
             }
         }
 

@@ -22,7 +22,7 @@ namespace Microsoft.ML.Internal.Utilities
         {
             int numEvaluators = NumEvaluators(ini);
             if (!ini.Contains("Evaluators=" + numEvaluators))
-                throw Contracts.ExceptNotImpl("Need to make the replacing of Evaluators= more robust");
+                throw Contracts.ExceptNotImpl(Strings.NeedToMakeTheReplacingOfEvaluatorsMoreRobust);
             ini = ini.Replace("Evaluators=" + numEvaluators, "Evaluators=" + (numEvaluators + 1));
 
             StringBuilder bld = new StringBuilder(ini);
@@ -39,7 +39,7 @@ namespace Microsoft.ML.Internal.Utilities
             // Look for  "Evaluators=101"
             Regex numEvaluators = new Regex("Evaluators=([0-9]+)");
             Match match = numEvaluators.Match(ini);
-            Contracts.Check(match.Success, "Unable to retrieve number of evaluators from ini");
+            Contracts.Check(match.Success, Strings.UnableToRetrieveNumberOfEvaluatorsFromIni);
             string count = match.Groups[1].Value;
             return int.Parse(count);
         }

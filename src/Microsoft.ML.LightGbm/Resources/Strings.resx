@@ -1,0 +1,103 @@
+﻿<?xml version='1.0' encoding='utf-8'?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="CannotUseEmptyDataset" xml:space="preserve">
+    <value>Cannot use empty dataset.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.LightGbm/LightGbmTrainerBase.cs:806.</comment>
+  </data>
+  <data name="DatasetRowCountExceedsMaximum" xml:space="preserve">
+    <value>Dataset row count exceeded the maximum count of {0}</value>
+    <comment>Exception or validation message. Placeholders: {0}=Utils.ArrayMaxSize. Source: src/Microsoft.ML.LightGbm/LightGbmTrainerBase.cs:789.</comment>
+  </data>
+  <data name="GroupColumnIsMissing" xml:space="preserve">
+    <value>Group column is missing.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.LightGbm/LightGbmRankingTrainer.cs:257.</comment>
+  </data>
+  <data name="GroupColumnTypeInvalid" xml:space="preserve">
+    <value>Group column '{0}' is of type '{1}', but must be UInt32 or Key.</value>
+    <comment>Exception or validation message. Placeholders: {0}=groupCol.Name, {1}=groupType.RawType. Source: src/Microsoft.ML.LightGbm/LightGbmRankingTrainer.cs:263.</comment>
+  </data>
+  <data name="RegressionLabelTypeInvalid" xml:space="preserve">
+    <value>Label column '{0}' is of type '{1}', but must be an unsigned int, boolean or float.</value>
+    <comment>Exception or validation message. Placeholders: {0}=data.Schema.Label.Value.Name, {1}=labelType.RawType. Source: src/Microsoft.ML.LightGbm/LightGbmRegressionTrainer.cs:236.</comment>
+  </data>
+  <data name="RankingLabelTypeInvalid" xml:space="preserve">
+    <value>Label column '{0}' is of type '{1}', but must be Key or Single.</value>
+    <comment>Exception or validation message. Placeholders: {0}=labelCol.Name, {1}=labelType.RawType. Source: src/Microsoft.ML.LightGbm/LightGbmRankingTrainer.cs:253.</comment>
+  </data>
+  <data name="MulticlassLabelTypeInvalid" xml:space="preserve">
+    <value>Label column '{0}' is of type '{1}', but must be of unsigned int, boolean or float.</value>
+    <comment>Exception or validation message. Placeholders: {0}=data.Schema.Label.Value.Name, {1}=labelType.RawType. Source: src/Microsoft.ML.LightGbm/LightGbmMulticlassTrainer.cs:251.</comment>
+  </data>
+  <data name="BinaryLabelTypeInvalid" xml:space="preserve">
+    <value>Label column '{0}' is of type '{1}', but must be unsigned int, boolean or float.</value>
+    <comment>Exception or validation message. Placeholders: {0}=data.Schema.Label.Value.Name, {1}=labelType.RawType. Source: src/Microsoft.ML.LightGbm/LightGbmBinaryTrainer.cs:276.</comment>
+  </data>
+  <data name="LightGBMErrorCodeIsErrorMessageIs" xml:space="preserve">
+    <value>LightGBM Error, code is {0}, error message is '{1}'.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.LightGbm/WrappedLightGbmInterface.cs:243.</comment>
+  </data>
+  <data name="MaximumValueInLabelColumnExceeds" xml:space="preserve">
+    <value>Maximum value {0} in label column exceeds {1}</value>
+    <comment>Exception or validation message. Placeholders: {0}=maxLabel, {1}=_maxNumClass. Source: src/Microsoft.ML.LightGbm/LightGbmMulticlassTrainer.cs:298.</comment>
+  </data>
+  <data name="MinimumValueInLabelColumnCannotBeNegative" xml:space="preserve">
+    <value>Minimum value in label column cannot be negative</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.LightGbm/LightGbmMulticlassTrainer.cs:296.</comment>
+  </data>
+  <data name="MustBeGreaterThanZero" xml:space="preserve">
+    <value>must be &gt; 0.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.LightGbm/LightGbmBinaryTrainer.cs:198. Exception or validation message. Source: src/Microsoft.ML.LightGbm/LightGbmBinaryTrainer.cs:199. Exception or validation message. Source: src/Microsoft.ML.LightGbm/LightGbmMulticlassTrainer.cs:137. Exception or validation message. Source: src/Microsoft.ML.LightGbm/LightGbmRankingTrainer.cs:179. Exception or validation message. Source: src/Microsoft.ML.LightGbm/LightGbmTrainerBase.cs:372. Exception or validation message. Source: src/Microsoft.ML.LightGbm/LightGbmTrainerBase.cs:373. Exception or validation message. Source: src/Microsoft.ML.LightGbm/LightGbmTrainerBase.cs:374.</comment>
+  </data>
+  <data name="MustBeNonNegative" xml:space="preserve">
+    <value>must be &gt;= 0.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.LightGbm/LightGbmArguments.cs:49. Exception or validation message. Source: src/Microsoft.ML.LightGbm/LightGbmArguments.cs:50. Exception or validation message. Source: src/Microsoft.ML.LightGbm/LightGbmArguments.cs:53. Exception or validation message. Source: src/Microsoft.ML.LightGbm/LightGbmArguments.cs:54. Exception or validation message. Source: src/Microsoft.ML.LightGbm/LightGbmTrainerBase.cs:371. Exception or validation message. Source: src/Microsoft.ML.LightGbm/LightGbmTrainerBase.cs:375. Exception or validation message. Source: src/Microsoft.ML.LightGbm/LightGbmTrainerBase.cs:376.</comment>
+  </data>
+  <data name="MustBeAtLeastZeroAndLessThanOne" xml:space="preserve">
+    <value>must be in [0,1).</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.LightGbm/LightGbmArguments.cs:299. Exception or validation message. Source: src/Microsoft.ML.LightGbm/LightGbmArguments.cs:345.</comment>
+  </data>
+  <data name="MustBeGreaterThanZeroAndAtMostOne" xml:space="preserve">
+    <value>must be in (0,1].</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.LightGbm/LightGbmArguments.cs:51. Exception or validation message. Source: src/Microsoft.ML.LightGbm/LightGbmArguments.cs:52.</comment>
+  </data>
+  <data name="MustBeGreaterThanZeroAndLessThanOne" xml:space="preserve">
+    <value>must be in (0,1).</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.LightGbm/LightGbmArguments.cs:298. Exception or validation message. Source: src/Microsoft.ML.LightGbm/LightGbmArguments.cs:344.</comment>
+  </data>
+  <data name="NeedALabelColumn" xml:space="preserve">
+    <value>Need a label column</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.LightGbm/LightGbmTrainerBase.cs:526.</comment>
+  </data>
+  <data name="SizeOfArrayExceededTheArrayMaxSize" xml:space="preserve">
+    <value>Size of array exceeded the ArrayMaxSize</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.LightGbm/LightGbmTrainerBase.cs:1052.</comment>
+  </data>
+  <data name="SumOfTopRateAndOtherRateCannotBeLargerThan1" xml:space="preserve">
+    <value>Sum of topRate and otherRate cannot be larger than 1.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.LightGbm/LightGbmArguments.cs:346.</comment>
+  </data>
+  <data name="TheDataForRankingTaskShouldHaveGroupField" xml:space="preserve">
+    <value>The data for ranking task should have group field.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.LightGbm/LightGbmTrainerBase.cs:778.</comment>
+  </data>
+  <data name="TheDataShouldHaveLabel" xml:space="preserve">
+    <value>The data should have label.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.LightGbm/LightGbmTrainerBase.cs:772.</comment>
+  </data>
+  <data name="ThePredictorCannotBeCreatedBeforeTrainingIsComplete" xml:space="preserve">
+    <value>The predictor cannot be created before training is complete</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.LightGbm/LightGbmBinaryTrainer.cs:257. Exception or validation message. Source: src/Microsoft.ML.LightGbm/LightGbmRankingTrainer.cs:283. Exception or validation message. Source: src/Microsoft.ML.LightGbm/LightGbmRegressionTrainer.cs:219. Exception or validation message. Source: src/Microsoft.ML.LightGbm/LightGbmMulticlassTrainer.cs:220.</comment>
+  </data>
+</root>

@@ -384,7 +384,7 @@ namespace Microsoft.ML.AutoML
                 // if label column index > inferred # of columns, throw error
                 if (args.LabelColumnIndex >= cols.Count())
                 {
-                    throw new ArgumentOutOfRangeException(nameof(args.LabelColumnIndex), $"Label column index ({args.LabelColumnIndex}) is >= than # of inferred columns ({cols.Count()}).");
+                    throw new ArgumentOutOfRangeException(nameof(args.LabelColumnIndex), string.Format(Strings.LabelColumnIndexMustBeLessThanInferredColumnCount, args.LabelColumnIndex, cols.Count()));
                 }
 
                 labelColumn = cols[args.LabelColumnIndex.Value];
@@ -394,7 +394,7 @@ namespace Microsoft.ML.AutoML
                 labelColumn = cols.FirstOrDefault(c => c.Name == args.Label);
                 if (labelColumn == null)
                 {
-                    throw new ArgumentException($"Specified label column '{args.Label}' was not found.");
+                    throw new ArgumentException(string.Format(Strings.SpecifiedLabelColumnWasNotFound, args.Label));
                 }
             }
 

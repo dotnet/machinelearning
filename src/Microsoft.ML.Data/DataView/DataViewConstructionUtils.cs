@@ -70,7 +70,7 @@ namespace Microsoft.ML.Data
                 var name = col.Name;
                 var schemaDefinitionCol = schemaDefinition.FirstOrDefault(c => c.ColumnName == name);
                 if (schemaDefinitionCol == null)
-                    throw env.Except($"Type should contain a member named {name}");
+                    throw env.Except(string.Format(Strings.TypeShouldContainAMemberNamed, name));
 
                 //Always use column type from model as this type can be more specific.
                 //This can be corner case:
@@ -179,7 +179,7 @@ namespace Microsoft.ML.Data
 
             protected override TRow GetCurrentRowObject()
             {
-                Host.Check(Position >= 0, RowCursorUtils.FetchValueStateError);
+                Host.Check(Position >= 0, Strings.ValuesUnavailableOutsideCursorPosition);
                 return _value;
             }
         }
@@ -297,7 +297,7 @@ namespace Microsoft.ML.Data
                 else
                 {
                     // REVIEW: Is this even possible?
-                    throw Host.ExceptNotSupp("Type '{0}' is not yet supported.", outputType.FullName);
+                    throw Host.ExceptNotSupp(Strings.TypeIsNotYetSupported, outputType.FullName);
                 }
                 return Utils.MarshalInvoke(del, this, genericType, peek);
             }
@@ -416,7 +416,7 @@ namespace Microsoft.ML.Data
             private void CheckColumnInRange(int columnIndex)
             {
                 if (columnIndex < 0 || columnIndex >= _colCount)
-                    throw Host.Except("Column index must be between 0 and {0}", _colCount);
+                    throw Host.Except(Strings.ColumnIndexMustBeBetween0And, _colCount);
             }
 
             /// <summary>
@@ -428,14 +428,13 @@ namespace Microsoft.ML.Data
             /// <param name="column"> is the output column whose getter should be returned.</param>
             public override ValueGetter<TValue> GetGetter<TValue>(DataViewSchema.Column column)
             {
-                Host.CheckParam(column.Index <= _getters.Length && IsColumnActive(column), nameof(column), "requested column not active");
+                Host.CheckParam(column.Index <= _getters.Length && IsColumnActive(column), nameof(column), Strings.RequestedColumnNotActive);
 
                 var getter = _getters[column.Index];
                 Contracts.AssertValue(getter);
                 var fn = getter as ValueGetter<TValue>;
                 if (fn == null)
-                    throw Host.Except($"Invalid TValue in GetGetter for column #{column}: '{typeof(TValue)}', " +
-                        $"expected type: '{getter.GetType().GetGenericArguments().First()}'.");
+                    throw Host.Except(string.Format(Strings.InvalidTValueInGetGetterForColumnExpectedType, column, typeof(TValue), getter.GetType().GetGenericArguments().First()));
                 return fn;
             }
         }
@@ -650,7 +649,7 @@ namespace Microsoft.ML.Data
                         return
                             (ref DataViewRowId val) =>
                             {
-                                Ch.Check(IsGood, RowCursorUtils.FetchValueStateError);
+                                Ch.Check(IsGood, Strings.ValuesUnavailableOutsideCursorPosition);
                                 val = new DataViewRowId((ulong)Position, 0);
                             };
                     }
@@ -659,7 +658,7 @@ namespace Microsoft.ML.Data
                         return
                             (ref DataViewRowId val) =>
                             {
-                                Ch.Check(IsGood, RowCursorUtils.FetchValueStateError);
+                                Ch.Check(IsGood, Strings.ValuesUnavailableOutsideCursorPosition);
                                 val = new DataViewRowId((ulong)Index, 0);
                             };
                     }
@@ -667,7 +666,7 @@ namespace Microsoft.ML.Data
 
                 protected override TRow GetCurrentRowObject()
                 {
-                    Ch.Check(0 <= Position && Position < _data.Count, RowCursorUtils.FetchValueStateError);
+                    Ch.Check(0 <= Position && Position < _data.Count, Strings.ValuesUnavailableOutsideCursorPosition);
                     return _data[Index];
                 }
 
@@ -723,7 +722,7 @@ namespace Microsoft.ML.Data
                     return
                         (ref DataViewRowId val) =>
                         {
-                            Ch.Check(IsGood, RowCursorUtils.FetchValueStateError);
+                            Ch.Check(IsGood, Strings.ValuesUnavailableOutsideCursorPosition);
                             val = new DataViewRowId((ulong)Position, 0);
                         };
                 }
@@ -738,7 +737,7 @@ namespace Microsoft.ML.Data
                     var result = _enumerator.MoveNext();
                     _currentRow = result ? _enumerator.Current : null;
                     if (result && _currentRow == null)
-                        throw Ch.Except("Encountered null when iterating over data, this is not supported.");
+                        throw Ch.Except(Strings.EncounteredNullWhenIteratingOverDataThisIsNotSupported);
                     return result;
                 }
             }
@@ -791,7 +790,7 @@ namespace Microsoft.ML.Data
                     return
                         (ref DataViewRowId val) =>
                         {
-                            Ch.Check(IsGood, RowCursorUtils.FetchValueStateError);
+                            Ch.Check(IsGood, Strings.ValuesUnavailableOutsideCursorPosition);
                             val = new DataViewRowId((ulong)Position, 0);
                         };
                 }
@@ -893,7 +892,7 @@ namespace Microsoft.ML.Data
                 bool annotationIsVector = annotationVectorType != null;
                 if (isVector != annotationIsVector)
                 {
-                    throw Contracts.Except("Value inputted is supposed to be {0}, but type of Annotationinfo is {1}",
+                    throw Contracts.Except(Strings.AnnotationVectorShapeMismatch,
                         isVector ? "vector" : "scalar", annotationIsVector ? "vector" : "scalar");
                 }
 
@@ -901,7 +900,7 @@ namespace Microsoft.ML.Data
                 if (itemType != annotationItemType.RawType)
                 {
                     throw Contracts.Except(
-                        "Value inputted is supposed to have Type {0}, but type of Annotationinfo has {1}",
+                        Strings.AnnotationItemTypeMismatch,
                         itemType.ToString(), annotationItemType.RawType.ToString());
                 }
             }
@@ -962,7 +961,7 @@ namespace Microsoft.ML.Data
                 Contracts.Assert(AnnotationType.RawType == typeT);
                 return GetDirectValue;
             }
-            throw Contracts.ExceptNotImpl("Type '{0}' is not yet supported.", typeT.FullName);
+            throw Contracts.ExceptNotImpl(Strings.TypeIsNotYetSupported, typeT.FullName);
         }
 
         // We want to use MarshalInvoke instead of adding custom Reflection logic for calling GetGetter<TDst>

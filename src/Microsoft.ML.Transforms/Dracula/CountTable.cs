@@ -46,11 +46,11 @@ namespace Microsoft.ML.Transforms
 
         protected CountTableBase(int labelCardinality, float[] priorCounts, float garbageThreshold, float[] garbageCounts)
         {
-            Contracts.Check(0 < labelCardinality && labelCardinality < LabelCardinalityLim, "Label cardinality out of bounds");
+            Contracts.Check(0 < labelCardinality && labelCardinality < LabelCardinalityLim, Strings.LabelCardinalityOutOfBounds);
             Contracts.CheckValue(priorCounts, nameof(priorCounts));
             Contracts.Check(priorCounts.All(x => x >= 0));
             Contracts.Check(priorCounts.Length == labelCardinality);
-            Contracts.Check(garbageThreshold >= 0, "Garbage threshold must be non-negative");
+            Contracts.Check(garbageThreshold >= 0, Strings.GarbageThresholdMustBeNonNegative);
 
             if (garbageThreshold > 0)
             {

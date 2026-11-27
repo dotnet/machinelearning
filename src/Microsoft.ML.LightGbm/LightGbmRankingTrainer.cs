@@ -176,7 +176,7 @@ namespace Microsoft.ML.Trainers.LightGbm
         internal LightGbmRankingTrainer(IHostEnvironment env, Options options)
              : base(env, LoadNameValue, options, TrainerUtils.MakeR4ScalarColumn(options.LabelColumnName))
         {
-            Contracts.CheckUserArg(options.Sigmoid > 0, nameof(Options.Sigmoid), "must be > 0.");
+            Contracts.CheckUserArg(options.Sigmoid > 0, nameof(Options.Sigmoid), Strings.MustBeGreaterThanZero);
         }
 
         /// <summary>
@@ -250,17 +250,17 @@ namespace Microsoft.ML.Trainers.LightGbm
                 if (!(labelType is KeyDataViewType || labelType == NumberDataViewType.Single))
                 {
                     throw ch.ExceptParam(nameof(data),
-                        $"Label column '{labelCol.Name}' is of type '{labelType.RawType}', but must be Key or Single.");
+                        string.Format(Strings.RankingLabelTypeInvalid, labelCol.Name, labelType.RawType));
                 }
                 // Check group types.
                 if (!data.Schema.Group.HasValue)
-                    throw ch.ExceptValue(nameof(data.Schema.Group), "Group column is missing.");
+                    throw ch.ExceptValue(nameof(data.Schema.Group), Strings.GroupColumnIsMissing);
                 var groupCol = data.Schema.Group.Value;
                 var groupType = groupCol.Type;
                 if (!(groupType == NumberDataViewType.UInt32 || groupType is KeyDataViewType))
                 {
                     throw ch.ExceptParam(nameof(data),
-                       $"Group column '{groupCol.Name}' is of type '{groupType.RawType}', but must be UInt32 or Key.");
+                       string.Format(Strings.GroupColumnTypeInvalid, groupCol.Name, groupType.RawType));
                 }
             }
         }
@@ -280,7 +280,7 @@ namespace Microsoft.ML.Trainers.LightGbm
 
         private protected override LightGbmRankingModelParameters CreatePredictor()
         {
-            Host.Check(TrainedEnsemble != null, "The predictor cannot be created before training is complete");
+            Host.Check(TrainedEnsemble != null, Strings.ThePredictorCannotBeCreatedBeforeTrainingIsComplete);
             var innerArgs = LightGbmInterfaceUtils.JoinParameters(GbmOptions);
             return new LightGbmRankingModelParameters(Host, TrainedEnsemble, FeatureCount, innerArgs);
         }

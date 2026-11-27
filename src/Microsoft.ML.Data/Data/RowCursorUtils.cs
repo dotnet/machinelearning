@@ -34,7 +34,7 @@ namespace Microsoft.ML.Data
         {
             Contracts.CheckValue(row, nameof(row));
             Contracts.CheckParam(0 <= col && col < row.Schema.Count, nameof(col));
-            Contracts.CheckParam(row.IsColumnActive(row.Schema[col]), nameof(col), "column was not active");
+            Contracts.CheckParam(row.IsColumnActive(row.Schema[col]), nameof(col), Strings.ColumnWasNotActive);
 
             return Utils.MarshalInvoke(_getGetterAsDelegateCoreMethodInfo, row.Schema[col].Type.RawType, row, col);
         }
@@ -56,10 +56,10 @@ namespace Microsoft.ML.Data
             Contracts.CheckParam(typeDst is PrimitiveDataViewType, nameof(typeDst));
             Contracts.CheckValue(row, nameof(row));
             Contracts.CheckParam(0 <= col && col < row.Schema.Count, nameof(col));
-            Contracts.CheckParam(row.IsColumnActive(row.Schema[col]), nameof(col), "column was not active");
+            Contracts.CheckParam(row.IsColumnActive(row.Schema[col]), nameof(col), Strings.ColumnWasNotActive);
 
             var typeSrc = row.Schema[col].Type;
-            Contracts.Check(typeSrc is PrimitiveDataViewType, "Source column type must be primitive");
+            Contracts.Check(typeSrc is PrimitiveDataViewType, Strings.SourceColumnTypeMustBePrimitive);
 
             Func<DataViewType, DataViewType, DataViewRow, int, ValueGetter<int>> del = GetGetterAsCore<int, int>;
             var methodInfo = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(typeSrc.RawType, typeDst.RawType);
@@ -77,10 +77,10 @@ namespace Microsoft.ML.Data
             Contracts.CheckParam(typeDst.RawType == typeof(TDst), nameof(typeDst));
             Contracts.CheckValue(row, nameof(row));
             Contracts.CheckParam(0 <= col && col < row.Schema.Count, nameof(col));
-            Contracts.CheckParam(row.IsColumnActive(row.Schema[col]), nameof(col), "column was not active");
+            Contracts.CheckParam(row.IsColumnActive(row.Schema[col]), nameof(col), Strings.ColumnWasNotActive);
 
             var typeSrc = row.Schema[col].Type;
-            Contracts.Check(typeSrc is PrimitiveDataViewType, "Source column type must be primitive");
+            Contracts.Check(typeSrc is PrimitiveDataViewType, Strings.SourceColumnTypeMustBePrimitive);
 
             Func<DataViewType, DataViewType, DataViewRow, int, ValueGetter<TDst>> del = GetGetterAsCore<int, TDst>;
             var methodInfo = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(typeSrc.RawType, typeof(TDst));
@@ -122,10 +122,10 @@ namespace Microsoft.ML.Data
         {
             Contracts.CheckValue(row, nameof(row));
             Contracts.CheckParam(0 <= col && col < row.Schema.Count, nameof(col));
-            Contracts.CheckParam(row.IsColumnActive(row.Schema[col]), nameof(col), "column was not active");
+            Contracts.CheckParam(row.IsColumnActive(row.Schema[col]), nameof(col), Strings.ColumnWasNotActive);
 
             var typeSrc = row.Schema[col].Type;
-            Contracts.Check(typeSrc is PrimitiveDataViewType, "Source column type must be primitive");
+            Contracts.Check(typeSrc is PrimitiveDataViewType, Strings.SourceColumnTypeMustBePrimitive);
             return Utils.MarshalInvoke(GetGetterAsStringBuilderCore<int>, typeSrc.RawType, typeSrc, row, col);
         }
 
@@ -155,10 +155,10 @@ namespace Microsoft.ML.Data
             Contracts.CheckValue(typeDst, nameof(typeDst));
             Contracts.CheckValue(row, nameof(row));
             Contracts.CheckParam(0 <= col && col < row.Schema.Count, nameof(col));
-            Contracts.CheckParam(row.IsColumnActive(row.Schema[col]), nameof(col), "column was not active");
+            Contracts.CheckParam(row.IsColumnActive(row.Schema[col]), nameof(col), Strings.ColumnWasNotActive);
 
             var typeSrc = row.Schema[col].Type as VectorDataViewType;
-            Contracts.Check(typeSrc != null, "Source column type must be vector");
+            Contracts.Check(typeSrc != null, Strings.SourceColumnTypeMustBeVector);
 
             Func<VectorDataViewType, PrimitiveDataViewType, GetterFactory, ValueGetter<VBuffer<int>>> del = GetVecGetterAsCore<int, int>;
             var methodInfo = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(typeSrc.ItemType.RawType, typeDst.RawType);
@@ -175,10 +175,10 @@ namespace Microsoft.ML.Data
             Contracts.CheckParam(typeDst.RawType == typeof(TDst), nameof(typeDst));
             Contracts.CheckValue(row, nameof(row));
             Contracts.CheckParam(0 <= col && col < row.Schema.Count, nameof(col));
-            Contracts.CheckParam(row.IsColumnActive(row.Schema[col]), nameof(col), "column was not active");
+            Contracts.CheckParam(row.IsColumnActive(row.Schema[col]), nameof(col), Strings.ColumnWasNotActive);
 
             var typeSrc = row.Schema[col].Type as VectorDataViewType;
-            Contracts.Check(typeSrc != null, "Source column type must be vector");
+            Contracts.Check(typeSrc != null, Strings.SourceColumnTypeMustBeVector);
 
             Func<VectorDataViewType, PrimitiveDataViewType, GetterFactory, ValueGetter<VBuffer<TDst>>> del = GetVecGetterAsCore<int, TDst>;
             var methodInfo = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(typeSrc.ItemType.RawType, typeof(TDst));
@@ -391,7 +391,7 @@ namespace Microsoft.ML.Data
             }
 
             if (!(type is KeyDataViewType keyType))
-                throw Contracts.Except("Only floating point number, boolean, and key type values can be used as label.");
+                throw Contracts.Except(Strings.LabelTypeMustBeFloatBooleanOrKey);
 
             Contracts.Assert(TestGetLabelGetter(type) == null);
             ulong keyMax = (ulong)keyType.Count;
@@ -420,7 +420,7 @@ namespace Microsoft.ML.Data
                 return GetVecGetterAs<Single>(NumberDataViewType.Single, cursor);
             if (!(type is KeyDataViewType keyType))
             {
-                throw Contracts.Except("Only floating point number, boolean, and key type values can be used as label.");
+                throw Contracts.Except(Strings.LabelTypeMustBeFloatBooleanOrKey);
             }
             Contracts.Assert(TestGetLabelGetter(type) == null);
             ulong keyMax = (ulong)keyType.Count;
@@ -453,7 +453,7 @@ namespace Microsoft.ML.Data
         public static T Fetch<T>(IExceptionContext ectx, DataViewRow row, string name)
         {
             if (!row.Schema.TryGetColumnIndex(name, out int col))
-                throw ectx.Except($"Could not find column '{name}'");
+                throw ectx.Except(string.Format(Strings.CouldNotFindColumn, name));
             T val = default;
             row.GetGetter<T>(row.Schema[col])(ref val);
             return val;
@@ -474,7 +474,7 @@ namespace Microsoft.ML.Data
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(row, nameof(row));
-            env.CheckParam(Enumerable.Range(0, row.Schema.Count).All(c => row.IsColumnActive(row.Schema[c])), nameof(row), "Some columns were inactive");
+            env.CheckParam(Enumerable.Range(0, row.Schema.Count).All(c => row.IsColumnActive(row.Schema[c])), nameof(row), Strings.SomeColumnsWereInactive);
             return new OneRowDataView(env, row);
         }
 
@@ -496,7 +496,7 @@ namespace Microsoft.ML.Data
             foreach (var col in columnsNeeded)
             {
                 if (col.Index >= indicesRequested.Length)
-                    throw Contracts.Except($"The requested column: {col} is not part of the {nameof(sourceSchema)}");
+                    throw Contracts.Except(string.Format(Strings.TheRequestedColumnIsNotPartOfThe, col, nameof(sourceSchema)));
 
                 indicesRequested[col.Index] = true;
             }
@@ -570,13 +570,13 @@ namespace Microsoft.ML.Data
                 public override ValueGetter<TValue> GetGetter<TValue>(DataViewSchema.Column column)
                 {
                     Ch.CheckParam(column.Index < Schema.Count, nameof(column));
-                    Ch.CheckParam(IsColumnActive(column), nameof(column.Index), "Requested column is not active.");
+                    Ch.CheckParam(IsColumnActive(column), nameof(column.Index), Strings.RequestedColumnIsNotActive);
 
                     var getter = _parent._row.GetGetter<TValue>(column);
                     return
                         (ref TValue val) =>
                         {
-                            Ch.Check(IsGood, "Cannot call value getter in current state");
+                            Ch.Check(IsGood, Strings.CannotCallValueGetterInCurrentState);
                             getter(ref val);
                         };
                 }
@@ -598,7 +598,7 @@ namespace Microsoft.ML.Data
                     return
                         (ref DataViewRowId val) =>
                         {
-                            Ch.Check(IsGood, RowCursorUtils.FetchValueStateError);
+                            Ch.Check(IsGood, Strings.ValuesUnavailableOutsideCursorPosition);
                             val = new DataViewRowId((ulong)Position, 0);
                         };
                 }

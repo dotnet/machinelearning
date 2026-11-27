@@ -251,7 +251,7 @@ namespace Microsoft.ML.AutoML
             }
             catch (Exception e)
             {
-                throw new InvalidOperationException("SMAC sweeper localSearch threw exception", e);
+                throw new InvalidOperationException(Strings.SMACSweeperLocalSearchThrewException, e);
             }
         }
 

@@ -23,7 +23,7 @@ namespace Microsoft.ML.Transforms.Onnx
                 return localEnvironment.GetOptionOrDefault<OnnxSessionOptions>(OnnxSessionOptionsName);
             }
 
-            throw new ArgumentException("No Onnx Session Options");
+            throw new ArgumentException(Strings.NoOnnxSessionOptions);
         }
 
         public static void SetOnnxSessionOption(this IHostEnvironment env, OnnxSessionOptions onnxSessionOptions)
@@ -33,7 +33,7 @@ namespace Microsoft.ML.Transforms.Onnx
                 localEnvironment.SetOption(OnnxSessionOptionsName, onnxSessionOptions);
             }
             else
-                throw new ArgumentException("No Onnx Session Options");
+                throw new ArgumentException(Strings.NoOnnxSessionOptions);
         }
     }
 

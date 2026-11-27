@@ -112,13 +112,13 @@ namespace Microsoft.ML.Transforms
         {
             Host.CheckValue(options, nameof(options));
 
-            Host.CheckUserArg(options.PoolRows > 0, nameof(options.PoolRows), "pool size must be positive");
+            Host.CheckUserArg(options.PoolRows > 0, nameof(options.PoolRows), Strings.PoolSizeMustBePositive);
             _poolRows = options.PoolRows;
             _poolOnly = options.PoolOnly;
             _forceShuffle = options.ForceShuffle;
             _forceShuffleSource = options.ForceShuffleSource ?? (!_poolOnly && _forceShuffle);
             Host.CheckUserArg(!(_poolOnly && _forceShuffleSource),
-                nameof(options.ForceShuffleSource), "Cannot set both poolOnly and forceShuffleSource");
+                nameof(options.ForceShuffleSource), Strings.CannotSetBothPoolOnlyAndForceShuffleSource);
 
             if (_forceShuffle || _forceShuffleSource)
                 _forceShuffleSeed = options.ForceShuffleSeed ?? Host.Rand.NextSigned();
@@ -226,11 +226,11 @@ namespace Microsoft.ML.Transforms
         {
             Contracts.CheckValue(provider, nameof(provider));
 
-            provider.CheckParam(poolRows > 0, nameof(poolRows), "Must be positive");
+            provider.CheckParam(poolRows > 0, nameof(poolRows), Strings.MustBePositive);
             provider.CheckValue(cursor, nameof(cursor));
             // REVIEW: In principle, we could limit this check to only active columns,
             // if we extend the use of this utility.
-            provider.CheckParam(CanShuffleAll(cursor.Schema), nameof(cursor), "Cannot shuffle a cursor with some uncacheable columns");
+            provider.CheckParam(CanShuffleAll(cursor.Schema), nameof(cursor), Strings.CannotShuffleACursorWithSomeUncacheableColumns);
             provider.CheckValue(rand, nameof(rand));
 
             if (poolRows == 1)
@@ -648,7 +648,7 @@ namespace Microsoft.ML.Transforms
                         // to attempt further communication with the producer.
                         // Check whether something horrible happened.
                         if (_producerTaskException != null)
-                            throw Ch.Except(_producerTaskException, "Shuffle input cursor reader failed with an exception");
+                            throw Ch.Except(_producerTaskException, Strings.ShuffleInputCursorReaderFailedWithAnException);
                         _doneConsuming = true;
                         break;
                     }
@@ -712,13 +712,12 @@ namespace Microsoft.ML.Transforms
             public override ValueGetter<TValue> GetGetter<TValue>(DataViewSchema.Column column)
             {
                 Ch.CheckParam(column.Index < _colToActivesIndex.Length, nameof(column));
-                Ch.CheckParam(_colToActivesIndex[column.Index] >= 0, nameof(column), "requested column not active");
+                Ch.CheckParam(_colToActivesIndex[column.Index] >= 0, nameof(column), Strings.RequestedColumnNotActive);
 
                 var originGetter = _getters[_colToActivesIndex[column.Index]];
                 ValueGetter<TValue> getter = originGetter as ValueGetter<TValue>;
                 if (getter == null)
-                    throw Ch.Except($"Invalid TValue: '{typeof(TValue)}', " +
-                            $"expected type: '{originGetter.GetType().GetGenericArguments().First()}'.");
+                    throw Ch.Except(string.Format(Strings.InvalidTValueExpectedType, typeof(TValue), originGetter.GetType().GetGenericArguments().First()));
                 return getter;
             }
         }

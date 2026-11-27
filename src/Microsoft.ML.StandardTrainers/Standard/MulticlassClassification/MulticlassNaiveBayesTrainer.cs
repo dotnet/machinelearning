@@ -133,12 +133,12 @@ namespace Microsoft.ML.Trainers
         {
             Host.CheckValue(context, nameof(context));
             var data = context.TrainingSet;
-            Host.Check(data.Schema.Label.HasValue, "Missing Label column");
+            Host.Check(data.Schema.Label.HasValue, Strings.MissingLabelColumn);
             var labelCol = data.Schema.Label.Value;
             Host.Check(labelCol.Type == NumberDataViewType.Single || labelCol.Type is KeyDataViewType,
-                "Invalid type for Label column, only floats and known-size keys are supported");
+                Strings.LabelTypeMustBeFloatOrKnownSizeKey);
 
-            Host.Check(data.Schema.Feature.HasValue, "Missing Feature column");
+            Host.Check(data.Schema.Feature.HasValue, Strings.MissingFeatureColumn);
             int featureCount;
             data.CheckFeatureFloatVector(out featureCount);
             int labelCount = 0;
@@ -595,7 +595,7 @@ namespace Microsoft.ML.Trainers
 
         private void Map(in VBuffer<float> src, ref VBuffer<float> dst)
         {
-            Host.Check(src.Length == _featureCount, "Invalid number of features passed.");
+            Host.Check(src.Length == _featureCount, Strings.InvalidNumberOfFeaturesPassed);
 
             var srcValues = src.GetValues();
             var srcIndices = src.GetIndices();

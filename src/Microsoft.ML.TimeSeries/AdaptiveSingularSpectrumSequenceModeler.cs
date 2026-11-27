@@ -232,18 +232,18 @@ namespace Microsoft.ML.Transforms.TimeSeries
         {
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(LoaderSignature);
-            _host.CheckParam(windowSize >= 2, nameof(windowSize), "The window size should be at least 2."); // ...because otherwise we have nothing to autoregress on
-            _host.CheckParam(seriesLength > windowSize, nameof(seriesLength), "The series length should be greater than the window size.");
-            _host.Check(trainSize > 2 * windowSize, "The input size for training should be greater than twice the window size.");
-            _host.CheckParam(0 <= discountFactor && discountFactor <= 1, nameof(discountFactor), "The discount factor should be in [0,1].");
-            _host.CheckParam(maxGrowth == null || maxGrowth.Value.TimeSpan > 0, nameof(GrowthRatio.TimeSpan), "The time span must be strictly positive.");
-            _host.CheckParam(maxGrowth == null || maxGrowth.Value.Growth >= 0, nameof(GrowthRatio.Growth), "The growth must be non-negative.");
+            _host.CheckParam(windowSize >= 2, nameof(windowSize), Strings.TheWindowSizeShouldBeAtLeast2); // ...because otherwise we have nothing to autoregress on
+            _host.CheckParam(seriesLength > windowSize, nameof(seriesLength), Strings.TheSeriesLengthShouldBeGreaterThanTheWindowSize);
+            _host.Check(trainSize > 2 * windowSize, Strings.TrainingInputMustExceedTwiceWindowSize);
+            _host.CheckParam(0 <= discountFactor && discountFactor <= 1, nameof(discountFactor), Strings.DiscountFactorShouldBeBetweenZeroAndOneInclusive);
+            _host.CheckParam(maxGrowth == null || maxGrowth.Value.TimeSpan > 0, nameof(GrowthRatio.TimeSpan), Strings.TheTimeSpanMustBeStrictlyPositive);
+            _host.CheckParam(maxGrowth == null || maxGrowth.Value.Growth >= 0, nameof(GrowthRatio.Growth), Strings.TheGrowthMustBeNonNegative);
 
             if (maxRank != null)
             {
                 _maxRank = (int)maxRank;
                 _host.CheckParam(1 <= _maxRank && _maxRank < windowSize, nameof(maxRank),
-                    "The max rank should be in [1, windowSize).");
+                    Strings.MaxRankShouldBeAtLeastOneAndLessThanWindowSize);
             }
             else
                 _maxRank = windowSize - 1;
@@ -254,7 +254,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 if (rank != null)
                 {
                     _rank = (int)rank;
-                    _host.CheckParam(1 <= _rank && _rank < windowSize, nameof(rank), "The rank should be in [1, windowSize).");
+                    _host.CheckParam(1 <= _rank && _rank < windowSize, nameof(rank), Strings.RankShouldBeAtLeastOneAndLessThanWindowSize);
                 }
                 else
                     _rank = _maxRank;
@@ -1165,8 +1165,8 @@ namespace Microsoft.ML.Transforms.TimeSeries
         /// <param name="data">The training time-series.</param>
         internal override void Train(FixedSizeQueue<Single> data)
         {
-            _host.CheckParam(data != null, nameof(data), "The input series for training cannot be null.");
-            _host.CheckParam(data.Count >= _trainSize, nameof(data), "The input series for training does not have enough points for training.");
+            _host.CheckParam(data != null, nameof(data), Strings.TheInputSeriesForTrainingCannotBeNull);
+            _host.CheckParam(data.Count >= _trainSize, nameof(data), Strings.TheInputSeriesForTrainingDoesNotHaveEnoughPoints);
 
             Single[] dataArray = new Single[_trainSize];
 
@@ -1207,7 +1207,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
         internal override void Train(RoleMappedData data)
         {
             _host.CheckValue(data, nameof(data));
-            _host.CheckParam(data.Schema.Feature.HasValue, nameof(data), "Must have features column.");
+            _host.CheckParam(data.Schema.Feature.HasValue, nameof(data), Strings.MustHaveFeaturesColumn);
             var featureCol = data.Schema.Feature.Value;
             if (featureCol.Type != NumberDataViewType.Single)
                 throw _host.ExceptSchemaMismatch(nameof(data), "feature", featureCol.Name, "Single", featureCol.Type.ToString());
@@ -1417,7 +1417,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
         /// <param name="horizon">The forecast horizon.</param>
         internal override void Forecast(ref ForecastResultBase<Single> result, int horizon = 1)
         {
-            _host.CheckParam(horizon >= 1, nameof(horizon), "The horizon parameter should be greater than 0.");
+            _host.CheckParam(horizon >= 1, nameof(horizon), Strings.TheHorizonParameterShouldBeGreaterThan0);
             if (result == null)
                 result = new SsaForecastResult();
 
@@ -1499,14 +1499,14 @@ namespace Microsoft.ML.Transforms.TimeSeries
         /// <param name="confidenceLevel">The confidence level in [0, 1)</param>
         internal static void ComputeForecastIntervals(ref SsaForecastResult forecast, Single confidenceLevel = 0.95f)
         {
-            Contracts.CheckParam(0 <= confidenceLevel && confidenceLevel < 1, nameof(confidenceLevel), "The confidence level must be in [0, 1).");
+            Contracts.CheckParam(0 <= confidenceLevel && confidenceLevel < 1, nameof(confidenceLevel), Strings.ConfidenceLevelMustBeAtLeastZeroAndLessThanOne);
             Contracts.CheckValue(forecast, nameof(forecast));
-            Contracts.Check(forecast.CanComputeForecastIntervals, "The forecast intervals cannot be computed for this forecast object.");
+            Contracts.Check(forecast.CanComputeForecastIntervals, Strings.TheForecastIntervalsCannotBeComputedForThisForecastObject);
 
             var meanForecast = forecast.PointForecast.GetValues();
             var horizon = meanForecast.Length;
             var sdForecast = forecast.ForecastStandardDeviation.GetValues();
-            Contracts.Check(sdForecast.Length >= horizon, "The forecast standard deviation values are not available.");
+            Contracts.Check(sdForecast.Length >= horizon, Strings.TheForecastStandardDeviationValuesAreNotAvailable);
 
             forecast.ConfidenceLevel = confidenceLevel;
             if (horizon == 0)
@@ -1551,12 +1551,11 @@ namespace Microsoft.ML.Transforms.TimeSeries
 
         public void Update(IDataView dataView, string inputColumnName)
         {
-            _host.CheckParam(dataView != null, nameof(dataView), "The input series for updating cannot be null.");
+            _host.CheckParam(dataView != null, nameof(dataView), Strings.TheInputSeriesForUpdatingCannotBeNull);
 
             var data = new RoleMappedData(dataView, null, inputColumnName);
             if (data.Schema.Feature.Value.Type != NumberDataViewType.Single)
-                throw _host.ExceptUserArg(nameof(data.Schema.Feature.Value.Name), "The time series input column has " +
-                    "type '{0}', but must be a float.", data.Schema.Feature.Value.Type);
+                throw _host.ExceptUserArg(nameof(data.Schema.Feature.Value.Name), Strings.TimeSeriesInputMustBeFloat, data.Schema.Feature.Value.Type);
 
             var col = data.Schema.Feature.Value;
             using (var cursor = data.Data.GetRowCursor(data.Data.Schema))

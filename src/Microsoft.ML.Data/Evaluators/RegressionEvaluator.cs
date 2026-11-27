@@ -58,7 +58,7 @@ namespace Microsoft.ML.Data
             var t = score.Type;
             if (t != NumberDataViewType.Single)
                 throw Host.ExceptSchemaMismatch(nameof(schema), "score", score.Name, "Single", t.ToString());
-            Host.CheckParam(schema.Label.HasValue, nameof(schema), "Could not find the label column");
+            Host.CheckParam(schema.Label.HasValue, nameof(schema), Strings.CouldNotFindTheLabelColumn);
             t = schema.Label.Value.Type;
             if (t != NumberDataViewType.Single)
                 throw Host.ExceptSchemaMismatch(nameof(schema), "label", schema.Label.Value.Name, "Single", t.ToString());
@@ -71,7 +71,7 @@ namespace Microsoft.ML.Data
 
         private protected override IRowMapper CreatePerInstanceRowMapper(RoleMappedSchema schema)
         {
-            Contracts.CheckParam(schema.Label.HasValue, nameof(schema), "Could not find the label column");
+            Contracts.CheckParam(schema.Label.HasValue, nameof(schema), Strings.CouldNotFindTheLabelColumn);
             var scoreInfo = schema.GetUniqueColumn(AnnotationUtils.Const.ScoreValueKind.Score);
 
             return new RegressionPerInstanceEvaluator(Host, schema.Schema, scoreInfo.Name, schema.Label.Value.Name);
@@ -351,7 +351,7 @@ namespace Microsoft.ML.Data
         public RegressionMamlEvaluator(IHostEnvironment env, Arguments args)
             : base(args, env, AnnotationUtils.Const.ScoreColumnKind.Regression, "RegressionMamlEvaluator")
         {
-            Host.CheckUserArg(args.LossFunction != null, nameof(args.LossFunction), "Loss function must be specified.");
+            Host.CheckUserArg(args.LossFunction != null, nameof(args.LossFunction), Strings.LossFunctionMustBeSpecified);
 
             var evalArgs = new RegressionEvaluator.Arguments();
             evalArgs.LossFunction = args.LossFunction;
@@ -361,7 +361,7 @@ namespace Microsoft.ML.Data
         private protected override IEnumerable<string> GetPerInstanceColumnsToSave(RoleMappedSchema schema)
         {
             Host.CheckValue(schema, nameof(schema));
-            Host.CheckParam(schema.Label.HasValue, nameof(schema), "Schema must contain a label column");
+            Host.CheckParam(schema.Label.HasValue, nameof(schema), Strings.SchemaMustContainALabelColumn);
 
             // The regression evaluator outputs the label and score columns.
             yield return schema.Label.Value.Name;

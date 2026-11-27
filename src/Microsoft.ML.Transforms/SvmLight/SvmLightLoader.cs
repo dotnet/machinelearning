@@ -309,12 +309,12 @@ namespace Microsoft.ML.Data
                     {
                         if (index < _offset)
                         {
-                            throw Contracts.Except("Encountered 0 index while parsing a 1-based dataset");
+                            throw Contracts.Except(Strings.Encountered0IndexWhileParsingA1BasedDataset);
                         }
                         editor.Values[i] = index - _offset + 1;
                     }
                     else
-                        throw Contracts.Except($"Encountered non-parsable index '{inputValues[i]}' while parsing dataset");
+                        throw Contracts.Except(string.Format(Strings.EncounteredNonParsableIndexWhileParsingDataset, inputValues[i]));
                 }
                 output.FeatureKeys = editor.Commit();
             }
@@ -362,7 +362,7 @@ namespace Microsoft.ML.Data
 
             private void MapCore(ref VBuffer<uint> keys, ref VBuffer<float> values, Output output)
             {
-                Contracts.Check(keys.Length == values.Length, "number of keys does not match number of values.");
+                Contracts.Check(keys.Length == values.Length, Strings.NumberOfKeysDoesNotMatchNumberOfValues);
 
                 // Both of these inputs should be dense, but still work even if they're not.
                 VBufferUtils.Densify(ref keys);
@@ -379,7 +379,7 @@ namespace Microsoft.ML.Data
                     if (key == 0 || key > _keyMax)
                         continue;
                     if (_indexUsed[(int)key - 1])
-                        throw Contracts.Except("Duplicate keys found in dataset");
+                        throw Contracts.Except(Strings.DuplicateKeysFoundInDataset);
                     _bldr.AddFeature((int)key - 1, valuesValues[i]);
                     _indexUsed[(int)key - 1] = true;
                 }
@@ -470,7 +470,7 @@ namespace Microsoft.ML.Data
 
                 private void Getter(ref ReadOnlyMemory<char> val)
                 {
-                    Ch.Check(IsGood, "cannot call getter with cursor in its current state");
+                    Ch.Check(IsGood, Strings.CannotCallGetterWithCursorInItsCurrentState);
                     Ch.Assert(_isActive);
                     val = _text;
                 }
@@ -478,12 +478,11 @@ namespace Microsoft.ML.Data
                 public override ValueGetter<TValue> GetGetter<TValue>(DataViewSchema.Column column)
                 {
                     Ch.CheckParam(column.Index == 0, nameof(column));
-                    Ch.CheckParam(_isActive, nameof(column), "requested column not active");
+                    Ch.CheckParam(_isActive, nameof(column), Strings.RequestedColumnNotActive);
 
                     ValueGetter<TValue> getter = _getter as ValueGetter<TValue>;
                     if (getter == null)
-                        throw Ch.Except($"Invalid TValue: '{typeof(TValue)}', " +
-                            $"expected type: '{_getter.GetType().GetGenericArguments().First()}'.");
+                        throw Ch.Except(string.Format(Strings.InvalidTValueExpectedType, typeof(TValue), _getter.GetType().GetGenericArguments().First()));
                     return getter;
                 }
 
@@ -492,7 +491,7 @@ namespace Microsoft.ML.Data
                     return
                         (ref DataViewRowId val) =>
                         {
-                            Ch.Check(IsGood, "Cannot call ID getter in current state");
+                            Ch.Check(IsGood, Strings.CannotCallIDGetterInCurrentState);
                             val = new DataViewRowId((ulong)Position, 0);
                         };
                 }
@@ -554,7 +553,7 @@ namespace Microsoft.ML.Data
             _host = env.Register(LoaderSignature);
             if (options == null)
                 options = new Options();
-            _host.CheckUserArg(options.InputSize >= 0, nameof(options.InputSize), "Maximum feature index must be positive, or 0 to infer it from the dataset");
+            _host.CheckUserArg(options.InputSize >= 0, nameof(options.InputSize), Strings.MaximumFeatureIndexMustBePositiveOrZero);
 
             _indicesKind = options.FeatureIndices;
             if (_indicesKind != FeatureIndices.Names)
@@ -564,7 +563,7 @@ namespace Microsoft.ML.Data
                 else
                 {
                     if (dataSample == null || dataSample.Count == 0)
-                        throw env.Except("If the number of features is not specified, a dataset must be provided to infer it.");
+                        throw env.Except(Strings.DatasetRequiredToInferFeatureCount);
                     var data = GetData(_host, options.NumberOfRows, dataSample);
                     _featureCount = InferMax(_host, data) + (ulong)(_indicesKind == FeatureIndices.ZeroBased ? 1 : 0);
                 }
@@ -574,7 +573,7 @@ namespace Microsoft.ML.Data
             {
                 // We need to train a ValueToKeyMappingTransformer.
                 if (dataSample == null || dataSample.Count == 0)
-                    throw env.Except("To use the text feature names option, a dataset must be provided");
+                    throw env.Except(Strings.DatasetRequiredForTextFeatureNames);
 
                 var data = GetData(_host, options.NumberOfRows, dataSample);
                 _keyVectorsToIndexVectors = new ValueToKeyMappingEstimator(_host, nameof(IntermediateInput.FeatureKeys)).Fit(data);
@@ -703,7 +702,7 @@ namespace Microsoft.ML.Data
                 if (missingCount > 0)
                     ch.Warning($"{missingCount} of {count + missingCount} detected keys were missing, unparsable or greater than {int.MaxValue}");
                 if (count == 0)
-                    throw ch.Except("No int parsable keys found during key transform inference");
+                    throw ch.Except(Strings.NoIntParsableKeysFoundDuringKeyTransformInference);
                 ch.Info("Observed max was {0}", keyMax);
             }
             return (uint)keyMax;

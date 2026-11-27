@@ -40,7 +40,7 @@ namespace Microsoft.ML.Data.IO
                 case CompressionKind.Deflate:
                     return new DeflateStream(stream, CompressionMode.Compress, true);
                 default:
-                    throw Contracts.Except("unrecognized compression codec {0}", compression);
+                    throw Contracts.Except(Strings.UnrecognizedCompressionCodec, compression);
             }
         }
 
@@ -59,7 +59,7 @@ namespace Microsoft.ML.Data.IO
                 case CompressionKind.Deflate:
                     return new DeflateStream(stream, CompressionMode.Decompress, true);
                 default:
-                    throw Contracts.Except("unrecognized compression codec {0}", compression);
+                    throw Contracts.Except(Strings.UnrecognizedCompressionCodec, compression);
             }
         }
     }

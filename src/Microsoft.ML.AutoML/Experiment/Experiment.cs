@@ -108,7 +108,7 @@ namespace Microsoft.ML.AutoML
                     _logger.Error(e.Message);
                     break;
                 default:
-                    throw new NotImplementedException($"{nameof(ChannelMessageKind)}.{e.Kind} is not yet implemented.");
+                    throw new NotImplementedException(string.Format(Strings.IsNotYetImplemented, nameof(ChannelMessageKind), e.Kind));
             }
         }
 
@@ -188,7 +188,7 @@ namespace Microsoft.ML.AutoML
                     // If after third run, all runs have failed so far, throw exception
                     if (_history.Count() == 3 && _history.All(r => !r.RunSucceeded))
                     {
-                        throw new InvalidOperationException($"Training failed with the exception: {_history.Last().Exception}");
+                        throw new InvalidOperationException(string.Format(Strings.TrainingFailedWithTheException, _history.Last().Exception));
                     }
                 }
                 catch (OperationCanceledException e)

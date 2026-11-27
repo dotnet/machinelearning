@@ -175,14 +175,14 @@ namespace Microsoft.ML.Trainers.Recommender
             // float[m * k]: the left factor matrix
             // float[k * n]: the right factor matrix
 
-            _host.Check(NumberOfRows > 0, "Number of rows must be positive");
-            _host.Check(NumberOfColumns > 0, "Number of columns must be positive");
-            _host.Check(ApproximationRank > 0, "Number of latent factors must be positive");
+            _host.Check(NumberOfRows > 0, Strings.NumberOfRowsMustBePositive);
+            _host.Check(NumberOfColumns > 0, Strings.NumberOfColumnsMustBePositive);
+            _host.Check(ApproximationRank > 0, Strings.NumberOfLatentFactorsMustBePositive);
             ctx.Writer.Write(NumberOfRows);
             ctx.Writer.Write(NumberOfColumns);
             ctx.Writer.Write(ApproximationRank);
-            _host.Check(Utils.Size(_leftFactorMatrix) == NumberOfRows * ApproximationRank, "Unexpected matrix size of a factor matrix (matrix P in LIBMF paper)");
-            _host.Check(Utils.Size(_rightFactorMatrix) == NumberOfColumns * ApproximationRank, "Unexpected matrix size of a factor matrix (matrix Q in LIBMF paper)");
+            _host.Check(Utils.Size(_leftFactorMatrix) == NumberOfRows * ApproximationRank, Strings.FactorMatrixPSizeMismatch);
+            _host.Check(Utils.Size(_rightFactorMatrix) == NumberOfColumns * ApproximationRank, Strings.FactorMatrixQSizeMismatch);
             Utils.WriteSinglesNoCount(ctx.Writer, _leftFactorMatrix);
             Utils.WriteSinglesNoCount(ctx.Writer, _rightFactorMatrix);
         }

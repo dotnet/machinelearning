@@ -447,7 +447,7 @@ namespace Microsoft.ML.AutoML
                         }
                     }
 
-                    throw new ArgumentException($"The runner metric manager is of type {_metricManager.GetType()} which expected to be of type {typeof(ITrainValidateDatasetManager)} or {typeof(ICrossValidateDatasetManager)}");
+                    throw new ArgumentException(string.Format(Strings.RunnerMetricManagerTypeMismatch, _metricManager.GetType(), typeof(ITrainValidateDatasetManager), typeof(ICrossValidateDatasetManager)));
                 }
             }
             catch (Exception ex) when (ct.IsCancellationRequested)
@@ -474,7 +474,7 @@ namespace Microsoft.ML.AutoML
                 RegressionMetric.RSquared => metrics.RSquared,
                 RegressionMetric.MeanSquaredError => metrics.MeanSquaredError,
                 RegressionMetric.MeanAbsoluteError => metrics.MeanAbsoluteError,
-                _ => throw new NotImplementedException($"{metric} is not supported!"),
+                _ => throw new NotImplementedException(string.Format(Strings.IsNotSupported, metric)),
             };
         }
     }

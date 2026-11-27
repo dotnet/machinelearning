@@ -34,10 +34,10 @@ namespace Microsoft.ML.Trainers.Ensemble
             Host.CheckValue(args, nameof(args));
             Host.CheckParam(0 <= args.ValidationDatasetProportion && args.ValidationDatasetProportion < 1,
                 nameof(args.ValidationDatasetProportion),
-                "Should be greater than or equal to 0 and less than 1");
+                Strings.ProportionMustBeInUnitInterval);
             Host.CheckParam(0 < args.LearnersSelectionProportion && args.LearnersSelectionProportion < 1,
                 nameof(args.LearnersSelectionProportion),
-                "Should be greater than 0 and less than 1");
+                Strings.ShouldBeGreaterThan0AndLessThan1);
             LearnersSelectionProportion = args.LearnersSelectionProportion;
             ValidationDatasetProportion = args.ValidationDatasetProportion;
         }

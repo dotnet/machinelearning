@@ -104,7 +104,7 @@ namespace Microsoft.Data.Analysis
         {
             if (rowIndex >= Length)
             {
-                throw new ArgumentOutOfRangeException(Strings.IndexIsGreaterThanColumnLength, nameof(rowIndex));
+                throw new ArgumentOutOfRangeException(nameof(rowIndex), Strings.IndexIsGreaterThanColumnLength);
             }
             return (int)(rowIndex / MaxCapacity);
         }
@@ -437,7 +437,7 @@ namespace Microsoft.Data.Analysis
             }
             else
             {
-                throw new NotImplementedException(nameof(TKey));
+                throw new NotSupportedException(String.Format(Strings.NotSupportedColumnType, typeof(TKey)));
             }
         }
 
@@ -524,7 +524,7 @@ namespace Microsoft.Data.Analysis
             }
             else
             {
-                throw new IndexOutOfRangeException(nameof(row));
+                throw new IndexOutOfRangeException(Strings.IndexIsGreaterThanColumnLength);
             }
         }
 

@@ -19,8 +19,7 @@ namespace Microsoft.ML.AutoML
             {
                 if (dataView.Schema.GetColumnOrNull(columnName) == null)
                 {
-                    throw new ArgumentException($"Specified column {columnName} " +
-                        $"is not found in the dataset.");
+                    throw new ArgumentException(string.Format(Strings.SpecifiedColumnIsNotFoundInTheDataset, columnName));
                 }
             }
         }

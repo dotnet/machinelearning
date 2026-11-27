@@ -150,7 +150,7 @@ namespace Microsoft.ML.TensorFlow
         {
             var mlNetType = Tf2MlNetTypeOrNull(type);
             if (mlNetType == null)
-                throw new NotSupportedException("TensorFlow type not supported.");
+                throw new NotSupportedException(Strings.TensorFlowTypeNotSupported);
             return mlNetType;
         }
 
@@ -199,9 +199,9 @@ namespace Microsoft.ML.TensorFlow
             catch (Exception ex)
             {
                 if (!string.IsNullOrEmpty(modelFile))
-                    throw ectx.Except(ex, $"TensorFlow exception triggered while loading model from '{modelFile}'");
+                    throw ectx.Except(ex, string.Format(Strings.TensorFlowModelLoadFailed, modelFile));
 #pragma warning disable MSML_NoMessagesForLoadContext
-                throw ectx.ExceptDecode(ex, "Tensorflow exception triggered while loading model.");
+                throw ectx.ExceptDecode(ex, Strings.TensorflowExceptionTriggeredWhileLoadingModel);
 #pragma warning restore MSML_NoMessagesForLoadContext
 
             }
@@ -219,8 +219,7 @@ namespace Microsoft.ML.TensorFlow
                 {
                     var directory = Path.GetDirectoryName(errorResult.FileName);
                     var name = Path.GetFileName(errorResult.FileName);
-                    throw ch.Except($"{errorMessage}\nMeta file could not be downloaded! " +
-                        $@"Please copy the model file '{name}' from '{url}' to '{directory}'.");
+                    throw ch.Except(string.Format(Strings.TensorFlowMetaFileDownloadFailed, errorMessage, name, url, directory));
                 }
             }
         }
@@ -236,7 +235,7 @@ namespace Microsoft.ML.TensorFlow
         internal static Session LoadTFSessionByModelFilePath(IExceptionContext ectx, string modelFile, bool metaGraph = false)
         {
             if (string.IsNullOrEmpty(modelFile))
-                throw ectx.Except($"TensorFlow exception triggered while loading model from '{modelFile}'");
+                throw ectx.Except(string.Format(Strings.TensorFlowModelLoadFailed, modelFile));
 
             Graph graph;
             try
@@ -252,7 +251,7 @@ namespace Microsoft.ML.TensorFlow
             catch (Exception ex)
             {
 #pragma warning disable MSML_NoMessagesForLoadContext
-                throw ectx.ExceptDecode(ex, "Tensorflow exception triggered while loading model.");
+                throw ectx.ExceptDecode(ex, Strings.TensorflowExceptionTriggeredWhileLoadingModel);
 #pragma warning restore MSML_NoMessagesForLoadContext
 
             }
@@ -261,7 +260,7 @@ namespace Microsoft.ML.TensorFlow
 
         private static Session LoadTFSession(IHostEnvironment env, string exportDirSavedModel)
         {
-            Contracts.Check(env != null, nameof(env));
+            Contracts.CheckValue(env, nameof(env));
             env.CheckValue(exportDirSavedModel, nameof(exportDirSavedModel));
             return Session.LoadFromSavedModel(exportDirSavedModel);
         }
@@ -270,7 +269,7 @@ namespace Microsoft.ML.TensorFlow
         // Given a modelPath, this utility method determines if we should treat it as a SavedModel or not
         internal static bool IsSavedModel(IHostEnvironment env, string modelPath)
         {
-            Contracts.Check(env != null, nameof(env));
+            Contracts.CheckValue(env, nameof(env));
             env.CheckNonWhiteSpace(modelPath, nameof(modelPath));
             FileAttributes attr = File.GetAttributes(modelPath);
             return attr.HasFlag(FileAttributes.Directory);
@@ -284,7 +283,7 @@ namespace Microsoft.ML.TensorFlow
         /// </summary>
         internal static void CreateFolderWithAclIfNotExists(IHostEnvironment env, string folder)
         {
-            Contracts.Check(env != null, nameof(env));
+            Contracts.CheckValue(env, nameof(env));
             env.CheckNonWhiteSpace(folder, nameof(folder));
 
             //if directory exists, do nothing.
@@ -313,14 +312,14 @@ namespace Microsoft.ML.TensorFlow
                 }
                 catch (Exception exc)
                 {
-                    throw Contracts.ExceptParam(nameof(folder), $"Failed to create folder for the provided path: {folder}. \nException: {exc.Message}");
+                    throw Contracts.ExceptParam(nameof(folder), string.Format(Strings.FailedToCreateFolderForTheProvidedPathException, folder, exc.Message));
                 }
             }
         }
 
         internal static void DeleteFolderWithRetries(IHostEnvironment env, string folder)
         {
-            Contracts.Check(env != null, nameof(env));
+            Contracts.CheckValue(env, nameof(env));
             int currentRetry = 0;
             int maxRetryCount = 10;
             using (var ch = env.Start("Delete folder"))
@@ -382,7 +381,7 @@ namespace Microsoft.ML.TensorFlow
             }
             catch (Exception exc)
             {
-                throw Contracts.ExceptParam(nameof(folder), $"Failed to create folder for the provided path: {folder}. \nException: {exc.Message}");
+                throw Contracts.ExceptParam(nameof(folder), string.Format(Strings.FailedToCreateFolderForTheProvidedPathException, folder, exc.Message));
             }
         }
 
@@ -398,7 +397,7 @@ namespace Microsoft.ML.TensorFlow
 
         internal static Session GetSession(IHostEnvironment env, string modelPath, bool metaGraph = false)
         {
-            Contracts.Check(env != null, nameof(env));
+            Contracts.CheckValue(env, nameof(env));
             if (IsSavedModel(env, modelPath))
             {
                 env.CheckUserArg(Directory.Exists(modelPath), nameof(modelPath));
@@ -512,7 +511,7 @@ namespace Microsoft.ML.TensorFlow
             else if (typeof(T) == typeof(ReadOnlyMemory<char>))
                 return new Tensor(data.ToString());
 
-            throw new ArgumentException($"Unsupported data type of {typeof(T)} to convert to Tensor.");
+            throw new ArgumentException(string.Format(Strings.UnsupportedDataTypeOfToConvertToTensor, typeof(T)));
         }
 
         /// <summary>

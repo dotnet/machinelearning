@@ -138,7 +138,7 @@ namespace Microsoft.ML.Numeric
         /// </summary>
         public static void Add(in VBuffer<float> src, ref VBuffer<float> dst)
         {
-            Contracts.Check(src.Length == dst.Length, "Vectors must have the same dimensionality.");
+            Contracts.Check(src.Length == dst.Length, Strings.VectorsMustHaveTheSameDimensionality);
 
             var srcValues = src.GetValues();
             if (srcValues.Length == 0)
@@ -166,7 +166,7 @@ namespace Microsoft.ML.Numeric
         /// </summary>
         public static void AddMult(in VBuffer<float> src, float c, ref VBuffer<float> dst)
         {
-            Contracts.Check(src.Length == dst.Length, "Vectors must have the same dimensionality.");
+            Contracts.Check(src.Length == dst.Length, Strings.VectorsMustHaveTheSameDimensionality);
 
             var srcValues = src.GetValues();
             if (srcValues.Length == 0 || c == 0)
@@ -191,7 +191,7 @@ namespace Microsoft.ML.Numeric
         /// </summary>
         public static void AddMult(in VBuffer<float> src, float c, ref VBuffer<float> dst, ref VBuffer<float> res)
         {
-            Contracts.Check(src.Length == dst.Length, "Vectors must have the same dimensionality.");
+            Contracts.Check(src.Length == dst.Length, Strings.VectorsMustHaveTheSameDimensionality);
             int length = src.Length;
 
             var srcValues = src.GetValues();
@@ -221,7 +221,7 @@ namespace Microsoft.ML.Numeric
         /// </summary>
         public static void AddMultInto(in VBuffer<float> a, float c, in VBuffer<float> b, ref VBuffer<float> dst)
         {
-            Contracts.Check(a.Length == b.Length, "Vectors must have the same dimensionality.");
+            Contracts.Check(a.Length == b.Length, Strings.VectorsMustHaveTheSameDimensionality);
 
             if (c == 0 || b.GetValues().Length == 0)
                 a.CopyTo(ref dst);

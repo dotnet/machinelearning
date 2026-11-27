@@ -30,7 +30,7 @@ internal static class Extension
             return AccessModifier.Internal;
         if (methodInfo.IsPublic)
             return AccessModifier.Public;
-        throw new ArgumentException("Did not find access modifier", nameof(methodInfo));
+        throw new ArgumentException(Strings.DidNotFindAccessModifier, nameof(methodInfo));
     }
 
     internal static AccessModifier Accessmodifier(this ConstructorInfo constructorInfo)
@@ -47,7 +47,7 @@ internal static class Extension
             return AccessModifier.Internal;
         if (constructorInfo.IsPublic)
             return AccessModifier.Public;
-        throw new ArgumentException("Did not find access modifier", nameof(constructorInfo));
+        throw new ArgumentException(Strings.DidNotFindAccessModifier, nameof(constructorInfo));
     }
 
     internal enum AccessModifier
@@ -249,11 +249,11 @@ public sealed class ComponentCatalog
             catch (TargetInvocationException ex)
             {
                 if (ex.InnerException != null && ex.InnerException.IsMarked())
-                    throw Contracts.Except(ex, "Error during class instantiation");
+                    throw Contracts.Except(ex, Strings.ErrorDuringClassInstantiation);
                 else
                     throw;
             }
-            throw Contracts.Except("Can't instantiate class '{0}'", Type.Name);
+            throw Contracts.Except(Strings.CantInstantiateClass, Type.Name);
         }
 
         /// <summary>
@@ -286,7 +286,7 @@ public sealed class ComponentCatalog
         public TRes CreateInstance<TRes>(IHostEnvironment env, object args, object[] extra)
         {
             if (!typeof(TRes).IsAssignableFrom(Type))
-                throw Contracts.Except("Loadable class '{0}' does not derive from '{1}'", LoadNames[0], typeof(TRes).FullName);
+                throw Contracts.Except(Strings.LoadableClassDoesNotDeriveFrom, LoadNames[0], typeof(TRes).FullName);
             return (TRes)CreateInstance(env, args, extra);
         }
 
@@ -296,7 +296,7 @@ public sealed class ComponentCatalog
         public TRes CreateInstance<TRes>(IHostEnvironment env)
         {
             if (!typeof(TRes).IsAssignableFrom(Type))
-                throw Contracts.Except("Loadable class '{0}' does not derive from '{1}'", LoadNames[0], typeof(TRes).FullName);
+                throw Contracts.Except(Strings.LoadableClassDoesNotDeriveFrom, LoadNames[0], typeof(TRes).FullName);
             return (TRes)CreateInstance(env, CreateArguments(), null);
         }
 
@@ -312,7 +312,7 @@ public sealed class ComponentCatalog
             var ctor = ArgType.GetConstructor(Type.EmptyTypes);
             if (ctor == null)
             {
-                throw Contracts.Except("Loadable class '{0}' has ArgType '{1}', which has no suitable constructor",
+                throw Contracts.Except(Strings.LoadableClassHasArgTypeWhichHasNoSuitableConstructor,
                     UserName, ArgType);
             }
 
@@ -354,13 +354,13 @@ public sealed class ComponentCatalog
             // Macro nodes have a 3rd parameter, the entry point node.
             var parameters = method.GetParameters();
             if (parameters.Length != 2 && parameters.Length != 3)
-                throw Contracts.Except("Method '{0}' has {1} parameters, but must have 2 or 3", method.Name, parameters.Length);
+                throw Contracts.Except(Strings.MethodHasParametersButMustHave2Or3, method.Name, parameters.Length);
             if (parameters[0].ParameterType != typeof(IHostEnvironment))
-                throw Contracts.Except("Method '{0}', 1st parameter is {1}, but must be IHostEnvironment", method.Name, parameters[0].ParameterType);
+                throw Contracts.Except(Strings.Method1stParameterIsButMustBeIHostEnvironment, method.Name, parameters[0].ParameterType);
             InputType = parameters[1].ParameterType;
             var outputType = method.ReturnType;
             if (!outputType.IsClass)
-                throw Contracts.Except("Method '{0}' returns {1}, but must return a class", method.Name, outputType);
+                throw Contracts.Except(Strings.MethodReturnsButMustReturnAClass, method.Name, outputType);
             OutputType = outputType;
 
             InputKinds = FindEntryPointKinds(InputType);
@@ -418,17 +418,17 @@ public sealed class ComponentCatalog
 
             Kind = kind;
             if (!IsValidName(Kind))
-                throw Contracts.Except("Invalid component kind: '{0}'", Kind);
+                throw Contracts.Except(Strings.InvalidComponentKind, Kind);
 
             Aliases = attribute.Aliases;
             if (!IsValidName(Name))
-                throw Contracts.Except("Component name '{0}' is not valid.", Name);
+                throw Contracts.Except(Strings.ComponentNameIsNotValid, Name);
 
             if (Aliases != null && Aliases.Any(x => !IsValidName(x)))
-                throw Contracts.Except("Component '{0}' has an invalid alias '{1}'", Name, Aliases.First(x => !IsValidName(x)));
+                throw Contracts.Except(Strings.ComponentHasAnInvalidAlias, Name, Aliases.First(x => !IsValidName(x)));
 
             if (!typeof(IComponentFactory).IsAssignableFrom(argumentType))
-                throw Contracts.Except("Component '{0}' must inherit from IComponentFactory", argumentType);
+                throw Contracts.Except(Strings.ComponentMustInheritFromIComponentFactory, argumentType);
 
             ArgumentType = argumentType;
             InterfaceType = interfaceType;
@@ -493,7 +493,7 @@ public sealed class ComponentCatalog
 
             if (ctor.Accessmodifier() == create.Accessmodifier())
             {
-                throw Contracts.Except($"Can't load type {instType}, because it has both create and constructor methods with the same visibility. Please indicate which one should be used by changing either the signature or the visibility of one of them.");
+                throw Contracts.Except(string.Format(Strings.AmbiguousTypeLoaderFactoryMethod, instType));
             }
             if (ctor.Accessmodifier() > create.Accessmodifier())
             {
@@ -538,7 +538,7 @@ public sealed class ComponentCatalog
                 {
                     if (throwOnError)
                     {
-                        throw Contracts.Except($"ComponentCatalog cannot map name '{name}' and SignatureType '{sigType}' to {info.Type.Name}, already mapped to {infoCur.Type.Name}.");
+                        throw Contracts.Except(string.Format(Strings.ComponentCatalogCannotMapNameAndSignatureTypeToAlreadyMappedTo, name, sigType, info.Type.Name, infoCur.Type.Name));
                     }
                 }
                 else
@@ -607,7 +607,7 @@ public sealed class ComponentCatalog
                 continue;
 
             if (!typeof(IComponentFactory).IsAssignableFrom(faceType))
-                throw Contracts.Except("Component signature '{0}' doesn't inherit from '{1}'", faceType, typeof(IComponentFactory));
+                throw Contracts.Except(Strings.ComponentSignatureDoesntInheritFrom, faceType, typeof(IComponentFactory));
 
             try
             {
@@ -616,7 +616,7 @@ public sealed class ComponentCatalog
             }
             catch (MissingMemberException ex)
             {
-                throw Contracts.Except(ex, "Component type '{0}' doesn't have a default constructor", faceType);
+                throw Contracts.Except(ex, Strings.ComponentTypeDoesntHaveADefaultConstructor, faceType);
             }
 
             var info = new ComponentInfo(faceType, faceAttr.Kind, nestedType, attr);
@@ -699,7 +699,7 @@ public sealed class ComponentCatalog
                         if (throwOnError)
                         {
                             throw Contracts.Except(
-                                $"Can't instantiate loadable class '{attr.InstanceType.Name}' with name '{attr.LoadNames[0]}'");
+                                string.Format(Strings.CantInstantiateLoadableClassWithName, attr.InstanceType.Name, attr.LoadNames[0]));
                         }
                         Contracts.Assert(getter == null && ctor == null && create == null);
                     }
@@ -759,7 +759,7 @@ public sealed class ComponentCatalog
     internal static string SignatureToString(Type sig)
     {
         Contracts.CheckValue(sig, nameof(sig));
-        Contracts.CheckParam(sig.BaseType == typeof(MulticastDelegate), nameof(sig), "Must be a delegate type");
+        Contracts.CheckParam(sig.BaseType == typeof(MulticastDelegate), nameof(sig), Strings.MustBeADelegateType);
         string kind = sig.Name;
         if (kind.Length > "Signature".Length && kind.StartsWith("Signature"))
             kind = kind.Substring("Signature".Length);
@@ -813,7 +813,7 @@ public sealed class ComponentCatalog
     [BestFriend]
     internal LoadableClassInfo GetLoadableClassInfo(string loadName, Type signatureType)
     {
-        Contracts.CheckParam(signatureType.BaseType == typeof(MulticastDelegate), nameof(signatureType), "signatureType must be a delegate type");
+        Contracts.CheckParam(signatureType.BaseType == typeof(MulticastDelegate), nameof(signatureType), Strings.SignatureTypeMustBeADelegateType);
         Contracts.CheckValueOrNull(loadName);
         loadName = (loadName ?? "").ToLowerInvariant().Trim();
         return FindClassCore(new LoadableClassInfo.Key(loadName, signatureType));
@@ -859,7 +859,7 @@ public sealed class ComponentCatalog
     internal bool TryFindComponent(Type interfaceType, Type argumentType, out ComponentInfo component)
     {
         Contracts.CheckValue(interfaceType, nameof(interfaceType));
-        Contracts.CheckParam(interfaceType.IsInterface, nameof(interfaceType), "Must be interface");
+        Contracts.CheckParam(interfaceType.IsInterface, nameof(interfaceType), Strings.MustBeInterface);
         Contracts.CheckValue(argumentType, nameof(argumentType));
 
         component = _components.FirstOrDefault(x => x.InterfaceType == interfaceType && x.ArgumentType == argumentType);
@@ -870,7 +870,7 @@ public sealed class ComponentCatalog
     internal bool TryFindComponent(Type interfaceType, string alias, out ComponentInfo component)
     {
         Contracts.CheckValue(interfaceType, nameof(interfaceType));
-        Contracts.CheckParam(interfaceType.IsInterface, nameof(interfaceType), "Must be interface");
+        Contracts.CheckParam(interfaceType.IsInterface, nameof(interfaceType), Strings.MustBeInterface);
         Contracts.CheckNonEmpty(alias, nameof(alias));
         component = _components.FirstOrDefault(x => x.InterfaceType == interfaceType && (x.Name == alias || (x.Aliases != null && x.Aliases.Contains(alias))));
         return component != null;
@@ -884,7 +884,7 @@ public sealed class ComponentCatalog
     internal bool TryFindComponentCaseInsensitive(Type interfaceType, string alias, out ComponentInfo component)
     {
         Contracts.CheckValue(interfaceType, nameof(interfaceType));
-        Contracts.CheckParam(interfaceType.IsInterface, nameof(interfaceType), "Must be interface");
+        Contracts.CheckParam(interfaceType.IsInterface, nameof(interfaceType), Strings.MustBeInterface);
         Contracts.CheckNonEmpty(alias, nameof(alias));
         if (TryFindComponent(interfaceType, alias, out component))
             return true;
@@ -916,7 +916,7 @@ public sealed class ComponentCatalog
     internal IEnumerable<ComponentInfo> GetAllComponents(string kind)
     {
         Contracts.CheckNonEmpty(kind, nameof(kind));
-        Contracts.CheckParam(IsValidName(kind), nameof(kind), "Invalid component kind");
+        Contracts.CheckParam(IsValidName(kind), nameof(kind), Strings.InvalidComponentKindVariant2);
         return _components.Where(x => x.Kind == kind).OrderBy(x => x.Name);
     }
 
@@ -979,7 +979,7 @@ public sealed class ComponentCatalog
         TRes result;
         if (TryCreateInstance(env, signatureType, out result, name, options, extra))
             return result;
-        throw Contracts.Except("Unknown loadable class: {0}", name).MarkSensitive(MessageSensitivity.None);
+        throw Contracts.Except(Strings.UnknownLoadableClass, name).MarkSensitive(MessageSensitivity.None);
     }
 
     /// <summary>
@@ -1010,28 +1010,28 @@ public sealed class ComponentCatalog
         }
 
         if (!typeof(TRes).IsAssignableFrom(info.Type))
-            throw env.Except("Loadable class '{0}' does not derive from '{1}'", name, typeof(TRes).FullName);
+            throw env.Except(Strings.LoadableClassDoesNotDeriveFrom, name, typeof(TRes).FullName);
 
         int carg = Utils.Size(extra);
 
         if (info.ExtraArgCount != carg)
         {
             throw env.Except(
-                "Wrong number of extra parameters for loadable class '{0}', need '{1}', given '{2}'",
+                Strings.WrongNumberOfExtraParametersForLoadableClassNeedGiven,
                 name, info.ExtraArgCount, carg);
         }
 
         if (info.ArgType == null)
         {
             if (!string.IsNullOrEmpty(options))
-                throw env.Except("Loadable class '{0}' doesn't support settings", name);
+                throw env.Except(Strings.LoadableClassDoesntSupportSettings, name);
             result = (TRes)info.CreateInstance(env, null, extra);
             return true;
         }
 
         object args = info.CreateArguments();
         if (args == null)
-            throw Contracts.Except("Can't instantiate arguments object '{0}' for '{1}'", info.ArgType.Name, name);
+            throw Contracts.Except(Strings.CantInstantiateArgumentsObjectFor, info.ArgType.Name, name);
 
         ParseArguments(env, args, options, name);
         result = (TRes)info.CreateInstance(env, args, extra);
@@ -1065,7 +1065,7 @@ public sealed class ComponentCatalog
         catch (Exception e)
         {
             Contracts.Assert(false);
-            throw Contracts.Except(e, "Unexpected exception thrown while parsing: " + e.Message);
+            throw Contracts.Except(e, string.Format(Strings.UnexpectedExceptionThrownWhileParsing, e.Message));
         }
 
         if (errorMsg != null)
@@ -1089,7 +1089,7 @@ public sealed class ComponentCatalog
                         {
                             if (throwOnError)
                             {
-                                throw Contracts.Except($"An extension for '{key.AttributeType.Name}' with contract '{key.ContractName}' has already been registered in the ComponentCatalog.");
+                                throw Contracts.Except(string.Format(Strings.DuplicateComponentCatalogExtension, key.AttributeType.Name, key.ContractName));
                             }
                         }
                         else
@@ -1136,7 +1136,7 @@ public sealed class ComponentCatalog
 
         if (exportedValue == null)
         {
-            throw env.Except($"Unable to locate an extension for the contract '{contractName}'. Ensure you have called {nameof(ComponentCatalog)}.{nameof(ComponentCatalog.RegisterAssembly)} with the Assembly that contains a class decorated with a '{attributeType.FullName}'.");
+            throw env.Except(string.Format(Strings.ExtensionContractNotFound, contractName, nameof(ComponentCatalog), nameof(ComponentCatalog.RegisterAssembly), attributeType.FullName));
         }
 
         return exportedValue;

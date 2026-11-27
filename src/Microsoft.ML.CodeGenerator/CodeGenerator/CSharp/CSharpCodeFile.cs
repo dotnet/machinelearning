@@ -34,7 +34,7 @@ namespace Microsoft.ML.CodeGenerator.CodeGenerator.CSharp
             var extension = Path.GetExtension(Name);
             if (extension != ".cs")
             {
-                throw new Exception("CSharp file extesion must be .cs");
+                throw new Exception(Strings.CSharpFileExtesionMustBeCs);
             }
 
             Utilities.Utils.WriteOutputToFiles(File, Name, location);

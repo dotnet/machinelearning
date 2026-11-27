@@ -180,7 +180,7 @@ namespace Microsoft.ML.Data.IO
                 {
                     Stream stream = _parent._file.Open(0);
                     stream.Seek(_offset, SeekOrigin.Begin);
-                    Contracts.Check(stream.Position == _offset, "Unexpected position on substream");
+                    Contracts.Check(stream.Position == _offset, Strings.UnexpectedPositionOnSubstream);
                     SubsetStream ss = new SubsetStream(stream, _length);
                     var binArgs = new BinaryLoader.Arguments();
                     if (_parent._threads > 0)
@@ -398,7 +398,7 @@ namespace Microsoft.ML.Data.IO
             _host = env.Register(LoadName);
             _host.CheckValue(args, nameof(args));
             _host.CheckValue(file, nameof(file));
-            _host.Check(file.Count == 1, "Transposed loader accepts a single file only");
+            _host.Check(file.Count == 1, Strings.TransposedLoaderAcceptsASingleFileOnly);
 
             _threads = args.Threads ?? 0;
             if (_threads < 0)
@@ -427,7 +427,7 @@ namespace Microsoft.ML.Data.IO
             Contracts.CheckValue(host, nameof(host));
             _host = host;
             _host.CheckValue(file, nameof(file));
-            _host.Check(file.Count == 1, "Transposed loader accepts a single file only");
+            _host.Check(file.Count == 1, Strings.TransposedLoaderAcceptsASingleFileOnly);
 
             // *** Binary format **
             // int: Number of threads if explicitly defined, or 0 if the
@@ -560,7 +560,7 @@ namespace Microsoft.ML.Data.IO
             int cb = reader.Read(headerBytes, 0, Header.HeaderSize);
             if (cb != Header.HeaderSize)
             {
-                throw _host.ExceptDecode("Read only {0} bytes in file, expected header size of {1}",
+                throw _host.ExceptDecode(Strings.ReadOnlyBytesInFileExpectedHeaderSizeOf,
                     cb, Header.HeaderSize);
             }
             Header header;
@@ -573,38 +573,38 @@ namespace Microsoft.ML.Data.IO
             // formatting.
 
             _host.CheckDecode(header.Signature == Header.SignatureValue,
-                "This does not appear to be a transposed dataview file");
+                Strings.ThisDoesNotAppearToBeATransposedDataviewFile);
 
             // Obviously the compatibility version can't exceed the true version of the file.
             if (header.CompatibleVersion > header.Version)
             {
-                throw _host.ExceptDecode("Compatibility version {0} cannot be greater than file version {1}",
+                throw _host.ExceptDecode(Strings.CompatibilityVersionCannotBeGreaterThanFileVersion,
                     Header.VersionToString(header.CompatibleVersion), Header.VersionToString(header.Version));
             }
 
             if (header.Version < ReaderFirstVersion)
             {
-                throw _host.ExceptDecode("Unexpected version {0} encountered, earliest expected here was {1}",
+                throw _host.ExceptDecode(Strings.UnexpectedVersionEncounteredEarliestExpectedHereWas,
                     Header.VersionToString(header.Version), Header.VersionToString(ReaderFirstVersion));
             }
             if (header.CompatibleVersion > ReaderVersion)
             {
-                throw _host.Except("Cannot read version {0} data, latest that can be handled is {1}",
+                throw _host.Except(Strings.CannotReadVersionDataLatestThatCanBeHandledIs,
                     Header.VersionToString(header.CompatibleVersion), Header.VersionToString(ReaderVersion));
             }
 
-            _host.CheckDecode(header.RowCount >= 0, "Row count cannot be negative");
-            _host.CheckDecode(header.ColumnCount >= 0, "Column count cannot be negative");
+            _host.CheckDecode(header.RowCount >= 0, Strings.RowCountCannotBeNegative);
+            _host.CheckDecode(header.ColumnCount >= 0, Strings.ColumnCountCannotBeNegative);
             // Check the table of contents offset, though we do not at this time have the contents themselves.
             if (header.ColumnCount != 0 && header.SubIdvTableOffset < Header.HeaderSize)
-                throw _host.ExceptDecode("Table of contents offset {0} less than header size, impossible", header.SubIdvTableOffset);
+                throw _host.ExceptDecode(Strings.TableOfContentsOffsetLessThanHeaderSizeImpossible, header.SubIdvTableOffset);
 
             // Check the tail signature.
             if (header.TailOffset < Header.HeaderSize)
-                throw _host.ExceptDecode("Tail offset {0} less than header size, impossible", header.TailOffset);
+                throw _host.ExceptDecode(Strings.TailOffsetLessThanHeaderSizeImpossible, header.TailOffset);
             reader.Seek(header.TailOffset);
             ulong tailSig = reader.ReadUInt64();
-            _host.CheckDecode(tailSig == Header.TailSignatureValue, "Incorrect tail signature");
+            _host.CheckDecode(tailSig == Header.TailSignatureValue, Strings.IncorrectTailSignature);
             return header;
         }
 
@@ -640,7 +640,7 @@ namespace Microsoft.ML.Data.IO
             var view = _entries[col].GetViewOrNull();
             if (view == null)
             {
-                throw _host.ExceptParam(nameof(col), "Bad call to GetSlotCursor on untransposable column '{0}'",
+                throw _host.ExceptParam(nameof(col), Strings.BadCallToGetSlotCursorOnUntransposableColumn,
                     Schema[col].Name);
             }
             _host.CheckParam(0 <= col && col < _header.ColumnCount, nameof(col));
@@ -693,8 +693,7 @@ namespace Microsoft.ML.Data.IO
             {
                 ValueGetter<VBuffer<TValue>> getter = _getter as ValueGetter<VBuffer<TValue>>;
                 if (getter == null)
-                    throw Ch.Except($"Invalid TValue: '{typeof(TValue)}', " +
-                        $"expected type: '{_getter.GetType().GetGenericArguments().First().GetGenericArguments().First()}'.");
+                    throw Ch.Except(string.Format(Strings.InvalidTValueExpectedType, typeof(TValue), _getter.GetType().GetGenericArguments().First().GetGenericArguments().First()));
                 return getter;
             }
 
@@ -846,7 +845,7 @@ namespace Microsoft.ML.Data.IO
                 return
                     (ref DataViewRowId val) =>
                     {
-                        Ch.Check(IsGood, RowCursorUtils.FetchValueStateError);
+                        Ch.Check(IsGood, Strings.ValuesUnavailableOutsideCursorPosition);
                         val = new DataViewRowId((ulong)Position, 0);
                     };
             }
@@ -881,14 +880,13 @@ namespace Microsoft.ML.Data.IO
             /// <param name="column"> is the output column whose getter should be returned.</param>
             public override ValueGetter<TValue> GetGetter<TValue>(DataViewSchema.Column column)
             {
-                Ch.CheckParam(column.Index <= _colToActivesIndex.Length && IsColumnActive(column), nameof(column), "requested column not active");
+                Ch.CheckParam(column.Index <= _colToActivesIndex.Length && IsColumnActive(column), nameof(column), Strings.RequestedColumnNotActive);
                 Ch.AssertValue(_getters[_colToActivesIndex[column.Index]]);
 
                 var originGetter = _getters[_colToActivesIndex[column.Index]];
                 var getter = originGetter as ValueGetter<TValue>;
                 if (getter == null)
-                    throw Ch.Except($"Invalid TValue: '{typeof(TValue)}', " +
-                        $"expected type: '{originGetter.GetType().GetGenericArguments().First()}'.");
+                    throw Ch.Except(string.Format(Strings.InvalidTValueExpectedType, typeof(TValue), originGetter.GetType().GetGenericArguments().First()));
                 return getter;
             }
         }

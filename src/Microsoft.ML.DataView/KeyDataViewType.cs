@@ -48,10 +48,9 @@ namespace Microsoft.ML.Data
             : base(type)
         {
             if (!IsValidDataType(type))
-                throw Contracts.ExceptParam(nameof(type), $"Type is not valid, it must be {typeof(byte).Name}, {typeof(ushort).Name}, {typeof(uint).Name}, or {typeof(ulong).Name}.");
+                throw Contracts.ExceptParam(nameof(type), string.Format(Strings.TypeIsNotValidItMustBeOr, typeof(byte).Name, typeof(ushort).Name, typeof(uint).Name, typeof(ulong).Name));
             if (count == 0 || GetMaxInt(type) < count)
-                throw Contracts.ExceptParam(nameof(count), $"The cardinality of a {nameof(KeyDataViewType)} must not exceed {type.Name}.{nameof(uint.MaxValue)} " +
-                    $"and must be strictly positive, but got {count}.");
+                throw Contracts.ExceptParam(nameof(count), string.Format(Strings.KeyCardinalityOutOfRange, nameof(KeyDataViewType), type.Name, nameof(uint.MaxValue), count));
             Count = count;
         }
 
@@ -73,7 +72,7 @@ namespace Microsoft.ML.Data
         public KeyDataViewType(Type type, int count)
             : this(type, (ulong)count)
         {
-            Contracts.CheckParam(0 < count, nameof(count), "The cardinality of a " + nameof(KeyDataViewType) + " must be strictly positive.");
+            Contracts.CheckParam(0 < count, nameof(count), Strings.TheCardinalityOfAKeyDataViewTypeMustBeStrictlyPositive);
         }
 
         /// <summary>

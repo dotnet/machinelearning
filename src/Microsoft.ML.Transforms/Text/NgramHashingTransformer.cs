@@ -184,7 +184,7 @@ namespace Microsoft.ML.Transforms.Text
             foreach (var column in _columns)
             {
                 if (column.MaximumNumberOfInverts != 0)
-                    throw Host.ExceptParam(nameof(columns), $"Found colunm with {nameof(column.MaximumNumberOfInverts)} set to non zero value, please use {nameof(NgramHashingEstimator)} instead");
+                    throw Host.ExceptParam(nameof(columns), Strings.NgramHashMaximumNumberOfInvertsRequiresEstimator);
             }
         }
 
@@ -952,21 +952,20 @@ namespace Microsoft.ML.Transforms.Text
                 Contracts.CheckValue(name, nameof(name));
                 Contracts.CheckValue(inputColumnNames, nameof(inputColumnNames));
                 Contracts.CheckParam(!inputColumnNames.Any(r => string.IsNullOrWhiteSpace(r)), nameof(inputColumnNames),
-                    "Contained some null or empty items");
+                    Strings.ContainedSomeNullOrEmptyItems);
                 if (maximumNumberOfInverts < -1)
-                    throw Contracts.ExceptParam(nameof(maximumNumberOfInverts), "Value too small, must be -1 or larger");
+                    throw Contracts.ExceptParam(nameof(maximumNumberOfInverts), Strings.ValueTooSmallMustBeNegativeOneOrLarger);
                 // If the bits is 31 or higher, we can't declare a KeyValues of the appropriate length,
                 // this requiring a VBuffer of length 1u << 31 which exceeds int.MaxValue.
                 if (maximumNumberOfInverts != 0 && numberOfBits >= 31)
-                    throw Contracts.ExceptParam(nameof(numberOfBits), $"Cannot support maximumNumberOfInverts for a {0} bit hash. 30 is the maximum possible.", numberOfBits);
+                    throw Contracts.ExceptParam(nameof(numberOfBits), string.Format(Strings.HashInvertLimitUnsupportedForBitCount, 0), numberOfBits);
 
                 if (ngramLength == 1 && skipLength != 0)
-                    throw Contracts.ExceptUserArg(nameof(skipLength), string.Format(
-                        "{0} (actual value: {1}) can only be zero when {2} set to one.", nameof(skipLength), skipLength, nameof(ngramLength)));
+                    throw Contracts.ExceptUserArg(nameof(skipLength), string.Format(Strings.ActualValueCanOnlyBeZeroWhenSetToOne, nameof(skipLength), skipLength, nameof(ngramLength)));
                 if (ngramLength + skipLength > NgramBufferBuilder.MaxSkipNgramLength)
                 {
                     throw Contracts.ExceptUserArg(nameof(skipLength),
-                        $"The sum of skipLength and ngramLength must be less than or equal to {NgramBufferBuilder.MaxSkipNgramLength}");
+                        string.Format(Strings.SkipLengthAndNgramLengthExceedLimit, NgramBufferBuilder.MaxSkipNgramLength));
                 }
 
                 FriendlyNames = null;
@@ -1020,7 +1019,7 @@ namespace Microsoft.ML.Transforms.Text
                 Contracts.AssertValue(ctx);
                 Contracts.CheckValue(inputColumnNames, nameof(inputColumnNames));
                 Contracts.CheckParam(!inputColumnNames.Any(r => string.IsNullOrWhiteSpace(r)), nameof(inputColumnNames),
-                   "Contained some null or empty items");
+                   Strings.ContainedSomeNullOrEmptyItems);
                 InputColumnNamesArray = inputColumnNames;
                 Name = name;
                 // *** Binary format ***

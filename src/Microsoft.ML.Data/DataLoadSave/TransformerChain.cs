@@ -240,8 +240,7 @@ namespace Microsoft.ML.Data
         IRowToRowMapper ITransformer.GetRowToRowMapper(DataViewSchema inputSchema)
         {
             Contracts.CheckValue(inputSchema, nameof(inputSchema));
-            Contracts.Check(((ITransformer)this).IsRowToRowMapper, nameof(ITransformer.GetRowToRowMapper) + " method called despite " +
-                nameof(ITransformer.IsRowToRowMapper) + " being false.");
+            Contracts.Check(((ITransformer)this).IsRowToRowMapper, Strings.GetRowToRowMapperMethodCalledDespiteIsRowToRowMapperBeingFalse);
 
             IRowToRowMapper[] mappers = new IRowToRowMapper[_transformers.Length];
             DataViewSchema schema = inputSchema;
@@ -293,7 +292,7 @@ namespace Microsoft.ML.Data
             if (predictor == null)
                 return transformChain;
             var roles = ModelFileUtils.LoadRoleMappingsOrNull(env, stream);
-            env.CheckDecode(roles != null, "Predictor model must contain role mappings");
+            env.CheckDecode(roles != null, Strings.PredictorModelMustContainRoleMappings);
             var roleMappings = roles.ToArray();
 
             ITransformer pred = null;
@@ -318,7 +317,7 @@ namespace Microsoft.ML.Data
                 pred = new RankingPredictionTransformer<IPredictorProducing<float>>(env, predictor as IPredictorProducing<float>, chain.Schema,
                     roles.Where(x => x.Key.Value == RoleMappedSchema.ColumnRole.Feature.Value).First().Value);
             else
-                throw env.Except("Don't know how to map prediction kind {0}", predictor.PredictionKind);
+                throw env.Except(Strings.DontKnowHowToMapPredictionKind, predictor.PredictionKind);
             return transformChain.Append(pred);
         }
     }

@@ -824,7 +824,7 @@ namespace Microsoft.ML.Transforms
                 Name = name;
                 InputColumnName = inputColumnName;
                 EnsureZeroMean = substractMean;
-                Contracts.CheckUserArg(0 < scale && scale < float.PositiveInfinity, nameof(scale), "scale must be a positive finite value");
+                Contracts.CheckUserArg(0 < scale && scale < float.PositiveInfinity, nameof(scale), Strings.ScaleMustBeAPositiveFiniteValue);
                 Scale = scale;
                 Norm = normalizerKind;
             }

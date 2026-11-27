@@ -211,10 +211,10 @@ namespace Microsoft.ML.Data
         public static void CheckTrainer(IExceptionContext ectx, IComponentFactory<ITrainer> trainer, string dataFile)
         {
             Contracts.CheckValueOrNull(ectx);
-            ectx.CheckValue(trainer, nameof(TrainCommand.Arguments.Trainer), "A trainer is required.");
+            ectx.CheckValue(trainer, nameof(TrainCommand.Arguments.Trainer), Strings.ATrainerIsRequired);
 
             if (string.IsNullOrWhiteSpace(dataFile))
-                throw ectx.ExceptUserArg(nameof(TrainCommand.Arguments.DataFile), "Data file must be defined.");
+                throw ectx.ExceptUserArg(nameof(TrainCommand.Arguments.DataFile), Strings.DataFileMustBeDefined);
         }
 
         /// <summary>
@@ -239,7 +239,7 @@ namespace Microsoft.ML.Data
             if (userName == defaultName)
                 return null;
 #pragma warning disable MSML_ContractsNameUsesNameof
-            throw ectx.ExceptUserArg(argName, $"Could not find column '{userName}'");
+            throw ectx.ExceptUserArg(argName, string.Format(Strings.CouldNotFindColumn, userName));
 #pragma warning restore MSML_ContractsNameUsesNameof
         }
 
@@ -447,7 +447,7 @@ namespace Microsoft.ML.Data
             ch.CheckValue(view, nameof(view));
             ch.CheckValueOrNull(featureColumn);
             ch.CheckUserArg(Enum.IsDefined(typeof(NormalizeOption), autoNorm), nameof(TrainCommand.Arguments.NormalizeFeatures),
-                "Normalize option is invalid. Specify one of 'norm=No', 'norm=Warn', 'norm=Auto', or 'norm=Yes'.");
+                Strings.InvalidNormalizeOption);
 
             if (autoNorm == NormalizeOption.No)
             {
@@ -518,9 +518,9 @@ namespace Microsoft.ML.Data
                 return Enumerable.Empty<KeyValuePair<ColumnRole, string>>();
             foreach (var kindName in customColumnArg)
             {
-                ectx.CheckUserArg(!string.IsNullOrWhiteSpace(kindName.Value), nameof(TrainCommand.Arguments.CustomColumns), "Names for columns with custom kind must not be empty");
+                ectx.CheckUserArg(!string.IsNullOrWhiteSpace(kindName.Value), nameof(TrainCommand.Arguments.CustomColumns), Strings.NamesForColumnsWithCustomKindMustNotBeEmpty);
                 if (string.IsNullOrWhiteSpace(kindName.Key))
-                    throw ectx.ExceptUserArg(nameof(TrainCommand.Arguments.CustomColumns), "Custom column with name '{0}' needs a kind. Use col[<Kind>]={0}", kindName.Value);
+                    throw ectx.ExceptUserArg(nameof(TrainCommand.Arguments.CustomColumns), Strings.CustomColumnWithNameNeedsAKindUseColKind, kindName.Value);
             }
             return customColumnArg.Select(kindName => new ColumnRole(kindName.Key).Bind(kindName.Value));
         }

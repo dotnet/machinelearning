@@ -26,6 +26,17 @@
   </ItemGroup>
 
   <ItemGroup>
+    <EmbeddedResource Include="..\..\src\Microsoft.ML.Tokenizers\Resources\Strings.resx"
+                      Link="Resources\Strings.resx">
+      <LogicalName>$(AssemblyName).Resources.Strings.resources</LogicalName>
+      <StronglyTypedClassName>Strings</StronglyTypedClassName>
+      <StronglyTypedFileName>$(IntermediateOutputPath)Strings.Designer.cs</StronglyTypedFileName>
+      <StronglyTypedLanguage>CSharp</StronglyTypedLanguage>
+      <StronglyTypedManifestPrefix>$(AssemblyName).Resources</StronglyTypedManifestPrefix>
+      <StronglyTypedNamespace>$(AssemblyName).Resources</StronglyTypedNamespace>
+    </EmbeddedResource>
+    <Using Include="$(AssemblyName).Resources.Strings"
+           Alias="Strings" />
     <Compile Include="..\..\src\Common\tests\RetryHelper.cs" />
     <Compile Include="..\..\src\Microsoft.ML.Tokenizers\Utils\DoubleArrayTrie.cs" />
     <Compile Include="..\..\src\Microsoft.ML.Tokenizers\Utils\OrdinalUtf8StringComparer.cs" />

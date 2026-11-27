@@ -75,7 +75,7 @@ namespace Microsoft.ML.Trainers.FastTree
         public int CompareTo(TestResult o)
         {
             if (LossFunctionName != o.LossFunctionName)
-                throw Contracts.Except("Cannot compare unrelated metrics");
+                throw Contracts.Except(Strings.CannotCompareUnrelatedMetrics);
 
             return FinalValue.CompareTo(o.FinalValue) * (LowerIsBetter ? -1 : 1);
         }
@@ -136,7 +136,7 @@ namespace Microsoft.ML.Trainers.FastTree
                 case ValueOperator.SqrtAverage:
                     return Math.Sqrt(RawValue / Factor);
                 default:
-                    throw Contracts.Except("Unsupported value operator: {0}", Operator);
+                    throw Contracts.Except(Strings.UnsupportedValueOperator, Operator);
             }
         }
     }
@@ -300,7 +300,7 @@ namespace Microsoft.ML.Trainers.FastTree
         protected override void UpdateBest(TestResult r)
         {
             if (BestResult != null && r.LowerIsBetter != BestResult.LowerIsBetter)
-                throw Contracts.Except("TestResult don't match");
+                throw Contracts.Except(Strings.TestResultDontMatch);
 
             double currentValue = ComputeTests().First().FinalValue * (r.LowerIsBetter ? -1.0 : 1.0);
             double toleranceFactor = 1.0 - (_tolerance * (r.LowerIsBetter ? -1.0 : 1.0));
@@ -345,7 +345,7 @@ namespace Microsoft.ML.Trainers.FastTree
             : base(scoreTracker)
         {
             Labels = labels;
-            Contracts.Check(scoreTracker.Dataset.NumDocs == labels.Length, "Mismatch between dataset and labels");
+            Contracts.Check(scoreTracker.Dataset.NumDocs == labels.Length, Strings.MismatchBetweenDatasetAndLabels);
             _sortingAlgorithm = sortingAlgorithm;
             DcgCalculator = new DcgCalculator(Dataset.MaxDocsPerQuery, _sortingAlgorithm);
         }
@@ -386,7 +386,7 @@ namespace Microsoft.ML.Trainers.FastTree
             : base(scoreTracker, labels, sortingAlgorithm)
         {
             Contracts.CheckParam(ndcgTruncation == 1 || ndcgTruncation == 3, nameof(ndcgTruncation),
-                nameof(FastNdcgTest) + " only supports NDCG1 & NDCG3");
+                Strings.FastNDCGTestOnlySupportsNDCG1NDCG3);
             NdcgTruncation = ndcgTruncation;
         }
 
@@ -447,7 +447,7 @@ namespace Microsoft.ML.Trainers.FastTree
                     fastNdcg = DcgCalculator.Ndcg3(Dataset, trainQueriesTopLabels);
                     break;
                 default:
-                    throw Contracts.Except("FastNDCGTest only supports NDCG1 & NDCG3");
+                    throw Contracts.Except(Strings.FastNDCGTestOnlySupportsNDCG1NDCG3);
             }
             List<TestResult> result = new List<TestResult>()
             {
@@ -525,7 +525,7 @@ namespace Microsoft.ML.Trainers.FastTree
             : base(scoreTracker)
         {
             _labels = FastTreeRegressionTrainer.GetDatasetRegressionLabels(scoreTracker.Dataset);
-            Contracts.Check(scoreTracker.Dataset.NumDocs == _labels.Length, "Mismatch between dataset and labels");
+            Contracts.Check(scoreTracker.Dataset.NumDocs == _labels.Length, Strings.MismatchBetweenDatasetAndLabels);
             _resultType = resultType;
         }
 
@@ -599,7 +599,7 @@ namespace Microsoft.ML.Trainers.FastTree
             _binaryLabels = binaryLabels;
             _sigmoidParameter = sigmoidParameter;
 
-            Contracts.Check(scoreTracker.Dataset.NumDocs == binaryLabels.Length, "Mismatch between dataset and labels");
+            Contracts.Check(scoreTracker.Dataset.NumDocs == binaryLabels.Length, Strings.MismatchBetweenDatasetAndLabels);
 
             long npos;
             long nneg;

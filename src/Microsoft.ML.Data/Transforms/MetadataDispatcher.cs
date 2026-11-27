@@ -57,7 +57,7 @@ namespace Microsoft.ML.Data
             {
                 if (getters == null)
                     return this;
-                Contracts.CheckParam(!getters.Any(g => g == null), nameof(getters), "Invalid getter info");
+                Contracts.CheckParam(!getters.Any(g => g == null), nameof(getters), Strings.InvalidGetterInfo);
                 return new ColInfo(SchemaSrc, IndexSrc, FilterSrc, getters);
             }
         }
@@ -74,7 +74,7 @@ namespace Microsoft.ML.Data
 
             protected GetterInfo(string kind, DataViewType type)
             {
-                Contracts.CheckNonWhiteSpace(kind, nameof(kind), "Invalid metadata kind");
+                Contracts.CheckNonWhiteSpace(kind, nameof(kind), Strings.InvalidMetadataKind);
                 Contracts.CheckValue(type, nameof(type));
                 Kind = kind;
                 Type = type;
@@ -104,7 +104,7 @@ namespace Microsoft.ML.Data
             public GetterInfoDelegate(string kind, DataViewType type, AnnotationUtils.AnnotationGetter<TValue> getter)
                 : base(kind, type)
             {
-                Contracts.Check(type.RawType == typeof(TValue), "Incompatible types");
+                Contracts.Check(type.RawType == typeof(TValue), Strings.IncompatibleTypes);
                 Contracts.CheckValue(getter, nameof(getter));
                 Getter = getter;
             }
@@ -126,7 +126,7 @@ namespace Microsoft.ML.Data
             public GetterInfoPrimitive(string kind, DataViewType type, TValue value)
                 : base(kind, type)
             {
-                Contracts.Check(type.RawType == typeof(TValue), "Incompatible types");
+                Contracts.Check(type.RawType == typeof(TValue), Strings.IncompatibleTypes);
                 Value = value;
             }
 
@@ -158,9 +158,9 @@ namespace Microsoft.ML.Data
         protected ColInfo CreateInfo(DataViewSchema schemaSrc = null, int indexSrc = -1,
             Func<string, int, bool> filterSrc = null)
         {
-            Contracts.Check(!_sealed, "MetadataDispatcher sealed");
-            Contracts.Check(schemaSrc == null || (0 <= indexSrc && indexSrc < schemaSrc.Count), "indexSrc out of range");
-            Contracts.Check(filterSrc == null || schemaSrc != null, "filterSrc should be null if schemaSrc is null");
+            Contracts.Check(!_sealed, Strings.MetadataDispatcherSealed);
+            Contracts.Check(schemaSrc == null || (0 <= indexSrc && indexSrc < schemaSrc.Count), Strings.IndexSrcOutOfRange);
+            Contracts.Check(filterSrc == null || schemaSrc != null, Strings.FilterSrcShouldBeNullIfSchemaSrcIsNull);
             return new ColInfo(schemaSrc, indexSrc, filterSrc);
         }
 
@@ -171,10 +171,10 @@ namespace Microsoft.ML.Data
         /// </summary>
         protected void RegisterColumn(int index, ColInfo info)
         {
-            Contracts.Check(!_sealed, "MetadataDispatcher sealed");
+            Contracts.Check(!_sealed, Strings.MetadataDispatcherSealed);
             Contracts.CheckValue(info, nameof(info));
-            Contracts.CheckParam(0 <= index && index < _infos.Length, nameof(index), "Out of range");
-            Contracts.CheckParam(_infos[index] == null, nameof(index), "Column already registered");
+            Contracts.CheckParam(0 <= index && index < _infos.Length, nameof(index), Strings.OutOfRange);
+            Contracts.CheckParam(_infos[index] == null, nameof(index), Strings.ColumnAlreadyRegistered);
             _infos[index] = info;
         }
 
@@ -203,7 +203,7 @@ namespace Microsoft.ML.Data
         /// </summary>
         public IEnumerable<KeyValuePair<string, DataViewType>> GetMetadataTypes(int index)
         {
-            Contracts.Check(_sealed, "MetadataDispatcher not sealed");
+            Contracts.Check(_sealed, Strings.MetadataDispatcherNotSealed);
 
             var info = GetColInfoOrNull(index);
             if (info == null)
@@ -249,7 +249,7 @@ namespace Microsoft.ML.Data
         /// </summary>
         public DataViewType GetMetadataTypeOrNull(string kind, int index)
         {
-            Contracts.Check(_sealed, "MetadataDispatcher not sealed");
+            Contracts.Check(_sealed, Strings.MetadataDispatcherNotSealed);
 
             var info = GetColInfoOrNull(index);
             if (info == null)
@@ -274,7 +274,7 @@ namespace Microsoft.ML.Data
         /// </summary>
         public void GetMetadata<TValue>(IExceptionContext ectx, string kind, int index, ref TValue value)
         {
-            ectx.Check(_sealed, "MetadataDispatcher not sealed");
+            ectx.Check(_sealed, Strings.MetadataDispatcherNotSealed);
             ectx.Check(0 <= index && index < _infos.Length);
 
             var info = _infos[index];
@@ -397,7 +397,7 @@ namespace Microsoft.ML.Data
                 _info = _md.CreateInfo(schemaSrc, indexSrc, filterSrc);
 
                 var tmp = _md.GetColInfoOrNull(_index);
-                Contracts.Check(tmp == null, "Duplicate building of metadata");
+                Contracts.Check(tmp == null, Strings.DuplicateBuildingOfMetadata);
             }
 
             /// <summary>
@@ -406,14 +406,14 @@ namespace Microsoft.ML.Data
             public void AddGetter<TValue>(string kind, DataViewType type,
                 AnnotationUtils.AnnotationGetter<TValue> getter)
             {
-                Contracts.Check(_md != null, "Builder disposed");
+                Contracts.Check(_md != null, Strings.BuilderDisposed);
                 Contracts.CheckNonEmpty(kind, nameof(kind));
                 Contracts.CheckValue(type, nameof(type));
                 Contracts.CheckValue(getter, nameof(getter));
-                Contracts.CheckParam(type.RawType == typeof(TValue), nameof(type), "Given type doesn't match type parameter");
+                Contracts.CheckParam(type.RawType == typeof(TValue), nameof(type), Strings.GivenTypeDoesntMatchTypeParameter);
 
                 if (_getters != null && _getters.Any(g => g.Kind == kind))
-                    throw Contracts.Except("Duplicate specification of metadata");
+                    throw Contracts.Except(Strings.DuplicateSpecificationOfMetadata);
                 Utils.Add(ref _getters, new GetterInfoDelegate<TValue>(kind, type, getter));
             }
 
@@ -422,14 +422,14 @@ namespace Microsoft.ML.Data
             /// </summary>
             public void AddPrimitive<TValue>(string kind, DataViewType type, TValue value)
             {
-                Contracts.Check(_md != null, "Builder disposed");
+                Contracts.Check(_md != null, Strings.BuilderDisposed);
                 Contracts.CheckNonEmpty(kind, nameof(kind));
                 Contracts.CheckValue(type, nameof(type));
-                Contracts.CheckParam(type.RawType == typeof(TValue), nameof(type), "Given type doesn't match type parameter");
-                Contracts.CheckParam(type is PrimitiveDataViewType, nameof(type), "Must be a primitive type");
+                Contracts.CheckParam(type.RawType == typeof(TValue), nameof(type), Strings.GivenTypeDoesntMatchTypeParameter);
+                Contracts.CheckParam(type is PrimitiveDataViewType, nameof(type), Strings.MustBeAPrimitiveType);
 
                 if (_getters != null && _getters.Any(g => g.Kind == kind))
-                    throw Contracts.Except("Duplicate specification of metadata");
+                    throw Contracts.Except(Strings.DuplicateSpecificationOfMetadata);
                 Utils.Add(ref _getters, new GetterInfoPrimitive<TValue>(kind, type, value));
             }
 

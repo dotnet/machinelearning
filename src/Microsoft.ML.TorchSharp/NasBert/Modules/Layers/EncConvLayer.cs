@@ -47,7 +47,7 @@ namespace Microsoft.ML.TorchSharp.NasBert.Modules.Layers
         {
             if (!ParseArguments(param, out var selfAttentionPaddingMask))
             {
-                throw new ArgumentException($"Invalid arguments: {param}.");
+                throw new ArgumentException(string.Format(Strings.InvalidArguments, param));
             }
 
             using var x1 = ForwardOneLayer(x, selfAttentionPaddingMask, Conv1, LayerNorm1);

@@ -33,7 +33,7 @@ namespace Microsoft.ML.AutoML
         {
             if (inputs.Length != outputs.Length)
             {
-                throw new Exception("inputs and outputs count must match");
+                throw new Exception(Strings.InputsAndOutputsCountMustMatch);
             }
 
             var res = new List<InputOutputColumnPair>();

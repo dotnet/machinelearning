@@ -93,7 +93,7 @@ namespace Microsoft.ML.Data
             // REVIEW: We could actually handle this by using something other than
             // a single array in the cache, but I don't view this as terribly urgent.
             if (_rowCount > Utils.ArrayMaxSize)
-                throw _host.Except("The input data view has too many ({0}) rows. CacheDataView can only cache up to {1} rows", _rowCount, Utils.ArrayMaxSize);
+                throw _host.Except(Strings.CacheDataViewRowLimitExceeded, _rowCount, Utils.ArrayMaxSize);
 
             _cacheLock = new object();
             _cacheFillerThreads = new ConcurrentBag<Task>();
@@ -124,7 +124,7 @@ namespace Microsoft.ML.Data
                 Array.Sort(tmp);
                 prefetch = tmp;
                 if (prefetch.Length > 0 && (prefetch[0] < 0 || prefetch[prefetch.Length - 1] >= schema.Count))
-                    throw env.Except("Prefetch array had column indices out of range");
+                    throw env.Except(Strings.PrefetchArrayHadColumnIndicesOutOfRange);
             }
             int ip = 0;
             inputToSubset = null;
@@ -147,7 +147,7 @@ namespace Microsoft.ML.Data
                     if (ip < prefetch.Length && prefetch[ip] == c)
                     {
                         throw env.Except(
-                            "Asked to prefetch column '{0}' into cache, but it is of unhandled type '{1}'",
+                            Strings.UnhandledCachePrefetchColumnType,
                             schema[c].Name, type);
                     }
                 }
@@ -182,7 +182,7 @@ namespace Microsoft.ML.Data
         public int MapInputToCacheColumnIndex(int inputIndex)
         {
             int inputIndexLim = _inputToSubsetColIndex == null ? _subsetInput.Schema.Count : _inputToSubsetColIndex.Length;
-            _host.CheckParam(0 <= inputIndex && inputIndex < inputIndexLim, nameof(inputIndex), "Input column index not in range");
+            _host.CheckParam(0 <= inputIndex && inputIndex < inputIndexLim, nameof(inputIndex), Strings.InputColumnIndexNotInRange);
             var result = _inputToSubsetColIndex == null ? inputIndex : _inputToSubsetColIndex[inputIndex];
             _host.Assert(-1 <= result && result < _subsetInput.Schema.Count);
             return result;
@@ -385,8 +385,6 @@ namespace Microsoft.ML.Data
             _host.AssertValue(caches);
             _host.AssertValue(waiter);
 
-            const string inconsistentError = "Inconsistent number of rows from input data view detected. This indicates a bug within the implementation of the input data view.";
-
             try
             {
                 using (cursor)
@@ -400,11 +398,11 @@ namespace Microsoft.ML.Data
                         {
                             rowCount++;
                             if (rowCount > Utils.ArrayMaxSize)
-                                throw _host.Except("The input data view has too many ({0}) rows. CacheDataView can only cache up to {1} rows", rowCount, Utils.ArrayMaxSize);
+                                throw _host.Except(Strings.CacheDataViewRowLimitExceeded, rowCount, Utils.ArrayMaxSize);
                             for (int ic = 0; ic < caches.Length; ++ic)
                                 caches[ic].CacheCurrent();
                             // REVIEW: Should this be a check, since we cannot control the implementation of the input?
-                            _host.Assert(_rowCount == -1 || rowCount <= _rowCount, inconsistentError);
+                            _host.Assert(_rowCount == -1 || rowCount <= _rowCount, "Inconsistent number of rows from input data view detected. This indicates a bug within the implementation of the input data view.");
                             waiter.Increment();
                         }
                     }
@@ -415,15 +413,15 @@ namespace Microsoft.ML.Data
                         {
                             rowCount++;
                             if (_rowCount > Utils.ArrayMaxSize)
-                                throw _host.Except("The input data view has too many ({0}) rows. CacheDataView can only cache up to {1} rows", _rowCount, Utils.ArrayMaxSize);
-                            _host.Assert(_rowCount == -1 || rowCount <= _rowCount, inconsistentError);
+                                throw _host.Except(Strings.CacheDataViewRowLimitExceeded, _rowCount, Utils.ArrayMaxSize);
+                            _host.Assert(_rowCount == -1 || rowCount <= _rowCount, "Inconsistent number of rows from input data view detected. This indicates a bug within the implementation of the input data view.");
                             waiter.Increment();
                         }
                     }
                     long rc = Interlocked.CompareExchange(ref _rowCount, rowCount, -1);
                     for (int ic = 0; ic < caches.Length; ++ic)
                         caches[ic].Freeze();
-                    _host.Assert(rc == -1 || rc == rowCount, inconsistentError);
+                    _host.Assert(rc == -1 || rc == rowCount, "Inconsistent number of rows from input data view detected. This indicates a bug within the implementation of the input data view.");
                     if (rc == -1)
                         ch.Trace("Number of rows determined as {0}", rowCount);
                     waiter.IncrementAll();
@@ -492,7 +490,7 @@ namespace Microsoft.ML.Data
                 return
                     (ref TValue value) =>
                     {
-                        Ch.Check(Position >= 0, RowCursorUtils.FetchValueStateError);
+                        Ch.Check(Position >= 0, Strings.ValuesUnavailableOutsideCursorPosition);
                         cache.Fetch((int)_index.GetIndex(), ref value);
                     };
             }
@@ -542,7 +540,7 @@ namespace Microsoft.ML.Data
                 return
                     (ref DataViewRowId val) =>
                     {
-                        Ch.Check(Position >= 0, RowCursorUtils.FetchValueStateError);
+                        Ch.Check(Position >= 0, Strings.ValuesUnavailableOutsideCursorPosition);
                         val = new DataViewRowId((ulong)Position, 0);
                     };
             }
@@ -774,7 +772,7 @@ namespace Microsoft.ML.Data
                 return
                     (ref DataViewRowId val) =>
                     {
-                        Contracts.Check(_curr >= 0, "Cannot call ID getter in current state");
+                        Contracts.Check(_curr >= 0, Strings.CannotCallIDGetterInCurrentState);
                         val = new DataViewRowId((ulong)_curr, 0);
                     };
             }
@@ -839,7 +837,7 @@ namespace Microsoft.ML.Data
                 return
                     (ref DataViewRowId val) =>
                     {
-                        Contracts.Check(_curr >= 0, "Cannot call ID getter in current state");
+                        Contracts.Check(_curr >= 0, Strings.CannotCallIDGetterInCurrentState);
                         val = new DataViewRowId((ulong)_perm[_curr], 0);
                     };
             }
@@ -975,7 +973,7 @@ namespace Microsoft.ML.Data
                 return
                     (ref DataViewRowId val) =>
                     {
-                        Contracts.Check(_curr >= 0, "Cannot call ID getter in current state");
+                        Contracts.Check(_curr >= 0, Strings.CannotCallIDGetterInCurrentState);
                         val = new DataViewRowId((ulong)_curr, 0);
                     };
             }
@@ -1081,7 +1079,7 @@ namespace Microsoft.ML.Data
                 return
                     (ref DataViewRowId val) =>
                     {
-                        Contracts.Check(_curr >= 0, "Cannot call ID getter in current state");
+                        Contracts.Check(_curr >= 0, Strings.CannotCallIDGetterInCurrentState);
                         val = new DataViewRowId((ulong)_perm[_curr], 0);
                     };
             }
@@ -1203,14 +1201,13 @@ namespace Microsoft.ML.Data
 
             public sealed override ValueGetter<TValue> GetGetter<TValue>(DataViewSchema.Column column)
             {
-                Ch.CheckParam(column.Index <= _colToActivesIndex.Length && IsColumnActive(column), nameof(column), "requested column not active");
+                Ch.CheckParam(column.Index <= _colToActivesIndex.Length && IsColumnActive(column), nameof(column), Strings.RequestedColumnNotActive);
                 Ch.Check(_colToActivesIndex[column.Index] < _getters.Length);
 
                 var originGetter = _getters[_colToActivesIndex[column.Index]];
                 var getter = originGetter as ValueGetter<TValue>;
                 if (getter == null)
-                    throw Ch.Except($"Invalid TValue: '{typeof(TValue)}', " +
-                        $"expected type: '{originGetter.GetType().GetGenericArguments().First()}'.");
+                    throw Ch.Except(string.Format(Strings.InvalidTValueExpectedType, typeof(TValue), originGetter.GetType().GetGenericArguments().First()));
                 return getter;
             }
 
@@ -1363,7 +1360,7 @@ namespace Microsoft.ML.Data
 
                     _getter(ref _temp);
                     if (_uniformLength != 0 && _uniformLength != _temp.Length)
-                        throw Ctx.Except("Caching expected vector of size {0}, but {1} encountered.", _uniformLength, _temp.Length);
+                        throw Ctx.Except(Strings.CachingExpectedVectorOfSizeButEncountered, _uniformLength, _temp.Length);
                     Ctx.Assert(_uniformLength == 0 || _uniformLength == _temp.Length);
                     if (!_temp.IsDense)
                         _indices.AddRange(_temp.GetIndices());

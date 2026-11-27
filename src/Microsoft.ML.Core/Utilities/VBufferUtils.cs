@@ -112,7 +112,7 @@ namespace Microsoft.ML.Internal.Utilities
         /// This is passed the index, and two values</param>
         public static void ForEachBothDefined<T>(in VBuffer<T> a, in VBuffer<T> b, Action<int, T, T> visitor)
         {
-            Contracts.Check(a.Length == b.Length, "Vectors must have the same dimensionality.");
+            Contracts.Check(a.Length == b.Length, Strings.VectorsMustHaveTheSameDimensionality);
             Contracts.CheckValue(visitor, nameof(visitor));
 
             var aValues = a.GetValues();
@@ -163,7 +163,7 @@ namespace Microsoft.ML.Internal.Utilities
         /// <param name="visitor">Function to apply to each pair of non-zero values - passed the index, and two values</param>
         public static void ForEachEitherDefined<T>(in VBuffer<T> a, in VBuffer<T> b, Action<int, T, T> visitor)
         {
-            Contracts.Check(a.Length == b.Length, "Vectors must have the same dimensionality.");
+            Contracts.Check(a.Length == b.Length, Strings.VectorsMustHaveTheSameDimensionality);
             Contracts.CheckValue(visitor, nameof(visitor));
 
             var aValues = a.GetValues();
@@ -588,7 +588,7 @@ namespace Microsoft.ML.Internal.Utilities
         /// </summary>
         private static void ApplyWithCore<TSrc, TDst>(in VBuffer<TSrc> src, ref VBuffer<TDst> dst, PairManipulator<TSrc, TDst> manip, bool outer)
         {
-            Contracts.Check(src.Length == dst.Length, "Vectors must have the same dimensionality.");
+            Contracts.Check(src.Length == dst.Length, Strings.VectorsMustHaveTheSameDimensionality);
             Contracts.CheckValue(manip, nameof(manip));
 
             // We handle all of the permutations of the density/sparsity of src/dst through
@@ -875,7 +875,7 @@ namespace Microsoft.ML.Internal.Utilities
         /// </summary>
         private static void ApplyWithCoreCopy<TSrc, TDst>(in VBuffer<TSrc> src, ref VBuffer<TDst> dst, ref VBuffer<TDst> res, PairManipulatorCopy<TSrc, TDst> manip, bool outer)
         {
-            Contracts.Check(src.Length == dst.Length, "Vectors must have the same dimensionality.");
+            Contracts.Check(src.Length == dst.Length, Strings.VectorsMustHaveTheSameDimensionality);
             Contracts.CheckValue(manip, nameof(manip));
 
             int length = src.Length;
@@ -1166,7 +1166,7 @@ namespace Microsoft.ML.Internal.Utilities
         /// </summary>
         public static void ApplyInto<TSrc1, TSrc2, TDst>(in VBuffer<TSrc1> a, in VBuffer<TSrc2> b, ref VBuffer<TDst> dst, Func<int, TSrc1, TSrc2, TDst> func)
         {
-            Contracts.Check(a.Length == b.Length, "Vectors must have the same dimensionality.");
+            Contracts.Check(a.Length == b.Length, Strings.VectorsMustHaveTheSameDimensionality);
             Contracts.CheckValue(func, nameof(func));
 
             // We handle the following cases:

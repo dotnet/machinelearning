@@ -70,7 +70,7 @@ namespace Microsoft.ML.Data
             protected ServerChannel.IServer InitServer(IChannel ch)
             {
                 Host.CheckValue(ch, nameof(ch));
-                ch.Check(Host != null, nameof(InitServer) + " called prematurely");
+                ch.Check(Host != null, Strings.InitServerCalledPrematurely);
                 return _serverFactory?.CreateComponent(Host, ch);
             }
 
@@ -82,7 +82,7 @@ namespace Microsoft.ML.Data
                 // methods designed to allow null.
                 env.CheckValue(options, nameof(options));
 
-                env.CheckUserArg(!(options.Parallel < 0), nameof(options.Parallel), "Degree of parallelism must be non-negative (or null)");
+                env.CheckUserArg(!(options.Parallel < 0), nameof(options.Parallel), Strings.DegreeOfParallelismMustBeNonNegativeOrNull);
 
                 // Capture the environment options from args.
                 env = env.Register(name, options.RandomSeed, options.Verbose);
@@ -264,7 +264,7 @@ namespace Microsoft.ML.Data
                         ch.Trace("Loading predictor");
                         predictor = ModelFileUtils.LoadPredictorOrNull(Host, rep);
                         if (wantPredictor == true)
-                            Host.Check(predictor != null, "Could not load predictor from model file");
+                            Host.Check(predictor != null, Strings.CouldNotLoadPredictorFromModelFile);
                     }
 
                     // Next create the loader.
@@ -402,7 +402,7 @@ namespace Microsoft.ML.Data
         {
             Contracts.CheckValue(loader, nameof(loader));
             Contracts.CheckValue(file, nameof(file));
-            Contracts.CheckParam(file.CanWrite, nameof(file), "Must be writable");
+            Contracts.CheckParam(file.CanWrite, nameof(file), Strings.MustBeWritable);
 
             using (var stream = file.CreateWriteStream())
             {
@@ -417,7 +417,7 @@ namespace Microsoft.ML.Data
         {
             Contracts.CheckValue(loader, nameof(loader));
             Contracts.CheckValue(stream, nameof(stream));
-            Contracts.CheckParam(stream.CanWrite, nameof(stream), "Must be writable");
+            Contracts.CheckParam(stream.CanWrite, nameof(stream), Strings.MustBeWritable);
 
             using (var rep = RepositoryWriter.CreateNew(stream, host))
             {

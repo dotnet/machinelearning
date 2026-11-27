@@ -39,7 +39,7 @@ namespace Microsoft.Extensions.ML
 
             if (!File.Exists(filePath))
             {
-                throw new ArgumentException($"The provided model file {filePath} doesn't exist.");
+                throw new ArgumentException(string.Format(Strings.TheProvidedModelFileDoesntExist, filePath));
             }
 
             var directory = Path.GetDirectoryName(filePath);
@@ -94,13 +94,13 @@ namespace Microsoft.Extensions.ML
 
         public override IChangeToken GetReloadToken()
         {
-            if (_reloadToken == null) throw new InvalidOperationException("Start must be called on a ModelLoader before it can be used.");
+            if (_reloadToken == null) throw new InvalidOperationException(Strings.ModelLoaderMustBeStarted);
             return _reloadToken;
         }
 
         public override ITransformer GetModel()
         {
-            if (_model == null) throw new InvalidOperationException("Start must be called on a ModelLoader before it can be used.");
+            if (_model == null) throw new InvalidOperationException(Strings.ModelLoaderMustBeStarted);
 
             return _model;
         }
@@ -133,7 +133,7 @@ namespace Microsoft.Extensions.ML
         {
             var fs = WaitForFile(_filePath, FileMode.Open, FileAccess.Read, FileShare.Read);
             if (fs == null)
-                throw new IOException($"Model file {_filePath} still got locked after 5 seconds, fail to reload.");
+                throw new IOException(string.Format(Strings.ModelFileReloadFailedDueToLock, _filePath));
 
             using (fs)
             {

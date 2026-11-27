@@ -145,7 +145,7 @@ namespace Microsoft.ML.Model.Pfa
 
             public static JToken Union(params JToken[] types)
             {
-                Contracts.CheckParam(Utils.Size(types) >= 2, nameof(types), "Union must have at least two types");
+                Contracts.CheckParam(Utils.Size(types) >= 2, nameof(types), Strings.UnionMustHaveAtLeastTwoTypes);
                 return new JArray(types);
             }
 

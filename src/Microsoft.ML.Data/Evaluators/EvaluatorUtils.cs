@@ -75,10 +75,10 @@ namespace Microsoft.ML.Data
             if (col >= 0)
             {
                 schema[col].Annotations.GetValue(AnnotationUtils.Kinds.ScoreColumnKind, ref tmp);
-                throw env.ExceptUserArg(nameof(EvaluateCommand.Arguments.Evaluator), "No default evaluator found for score column kind '{0}'.", tmp.ToString());
+                throw env.ExceptUserArg(nameof(EvaluateCommand.Arguments.Evaluator), Strings.NoDefaultEvaluatorFoundForScoreColumnKind, tmp.ToString());
             }
 
-            throw env.ExceptParam(nameof(schema), "No score columns have been automatically detected.");
+            throw env.ExceptParam(nameof(schema), Strings.NoScoreColumnsHaveBeenAutomaticallyDetected);
         }
 
         // Lambda used as validator/filter in calls to GetMaxMetadataKind.
@@ -120,7 +120,7 @@ namespace Microsoft.ML.Data
 #pragma warning disable MSML_ContractsNameUsesNameof // This utility method is meant to reflect the argument name of whatever is calling it, so we take that as a parameter, rather than using nameof directly as in most cases.
                 var col = schema.GetColumnOrNull(name);
                 if (!col.HasValue)
-                    throw ectx.ExceptUserArg(argName, "Score column is missing");
+                    throw ectx.ExceptUserArg(argName, Strings.ScoreColumnIsMissing);
 #pragma warning restore MSML_ContractsNameUsesNameof
                 return col.Value;
             }
@@ -151,7 +151,7 @@ namespace Microsoft.ML.Data
                 return defCol;
 
 #pragma warning disable MSML_ContractsNameUsesNameof
-            throw ectx.ExceptUserArg(argName, "Score column is missing");
+            throw ectx.ExceptUserArg(argName, Strings.ScoreColumnIsMissing);
 #pragma warning restore MSML_ContractsNameUsesNameof
         }
 
@@ -175,9 +175,9 @@ namespace Microsoft.ML.Data
 #pragma warning disable MSML_ContractsNameUsesNameof
                 var col = schema.GetColumnOrNull(name);
                 if (!col.HasValue)
-                    throw ectx.ExceptUserArg(argName, "{0} column is missing", valueKind);
+                    throw ectx.ExceptUserArg(argName, Strings.ColumnIsMissing, valueKind);
                 if (!testType(col.Value.Type))
-                    throw ectx.ExceptUserArg(argName, "{0} column has incompatible type", valueKind);
+                    throw ectx.ExceptUserArg(argName, Strings.ColumnHasIncompatibleType, valueKind);
 #pragma warning restore MSML_ContractsNameUsesNameof
                 return col.Value;
             }
@@ -245,7 +245,7 @@ namespace Microsoft.ML.Data
         {
             ectx.AssertValue(type);
             if (type != NumberDataViewType.Single)
-                throw ectx.ExceptUserArg(nameof(EvaluateCommand.Arguments.WeightColumn), "Incompatible Weight column. Weight column type must be {0}.", NumberDataViewType.Single);
+                throw ectx.ExceptUserArg(nameof(EvaluateCommand.Arguments.WeightColumn), Strings.WeightColumnTypeMismatch, NumberDataViewType.Single);
         }
 
         /// <summary>
@@ -268,7 +268,7 @@ namespace Microsoft.ML.Data
             {
                 if (!schema.TryGetColumnIndex(MetricKinds.ColumnNames.StratVal, out stratVal))
                 {
-                    throw Contracts.Except("If data contains a '{0}' column, it must also contain a '{1}' column",
+                    throw Contracts.Except(Strings.PairedColumnMissing,
                         MetricKinds.ColumnNames.StratCol, MetricKinds.ColumnNames.StratVal);
                 }
             }
@@ -328,7 +328,7 @@ namespace Microsoft.ML.Data
                         continue;
 
                     // There should only be one row where isWeighted is false and strat=0.
-                    Contracts.Check(!foundRow, "Multiple metric rows found in metrics data view.");
+                    Contracts.Check(!foundRow, Strings.MultipleMetricRowsFoundInMetricsDataView);
 
                     foundRow = true;
                     for (int i = 0; i < colCount; i++)
@@ -460,7 +460,7 @@ namespace Microsoft.ML.Data
         {
             Contracts.CheckNonEmpty(views, nameof(views));
             Contracts.CheckValue(itemType, nameof(itemType));
-            Contracts.CheckParam(typeof(T) == itemType.RawType, nameof(itemType), "Generic type does not match the item type");
+            Contracts.CheckParam(typeof(T) == itemType.RawType, nameof(itemType), Strings.GenericTypeDoesNotMatchTheItemType);
 
             var numIdvs = views.Length;
             var slotNames = new Dictionary<string, int>();
@@ -473,11 +473,11 @@ namespace Microsoft.ML.Data
                 var idv = views[i];
                 int col;
                 if (!idv.Schema.TryGetColumnIndex(columnName, out col))
-                    throw env.Except("Data view number {0} does not contain column '{1}'", i, columnName);
+                    throw env.Except(Strings.DataViewNumberDoesNotContainColumn, i, columnName);
 
                 var type = typeSrc[i] = idv.Schema[col].Type;
                 if (!idv.Schema[col].HasSlotNames(type.GetVectorSize()))
-                    throw env.Except("Column '{0}' in data view number {1} did not contain slot names metadata", columnName, i);
+                    throw env.Except(Strings.SlotNamesMetadataMissing, columnName, i);
                 idv.Schema[col].Annotations.GetValue(AnnotationUtils.Kinds.SlotNames, ref slotNamesCur);
 
                 var map = maps[i] = new int[slotNamesCur.Length];
@@ -563,20 +563,20 @@ namespace Microsoft.ML.Data
             {
                 var schema = schemas[i];
                 if (!schema.TryGetColumnIndex(columnName, out indices[i]))
-                    throw Contracts.Except($"Schema number {i} does not contain column '{columnName}'");
+                    throw Contracts.Except(string.Format(Strings.SchemaNumberDoesNotContainColumn, i, columnName));
 
                 var type = schema[indices[i]].Type;
                 var keyValueType = schema[indices[i]].Annotations.Schema.GetColumnOrNull(AnnotationUtils.Kinds.KeyValues)?.Type;
                 VectorDataViewType vectorType = type as VectorDataViewType;
                 bool typeIsVector = vectorType != null;
                 if (typeIsVector != isVec)
-                    throw Contracts.Except($"Column '{columnName}' in schema number {i} does not have the correct type");
+                    throw Contracts.Except(string.Format(Strings.ColumnInSchemaNumberDoesNotHaveTheCorrectType, columnName, i));
                 DataViewType keyValueItemType = (keyValueType as VectorDataViewType)?.ItemType ?? keyValueType;
                 if (keyValueItemType == null || keyValueItemType.RawType != typeof(T))
-                    throw Contracts.Except($"Column '{columnName}' in schema number {i} does not have the correct type of key values");
+                    throw Contracts.Except(string.Format(Strings.KeyValuesMetadataTypeMismatch, columnName, i));
                 DataViewType typeItemType = vectorType?.ItemType ?? type;
                 if (!(typeItemType is KeyDataViewType itemKeyType) || typeItemType.RawType != typeof(uint))
-                    throw Contracts.Except($"Column '{columnName}' must be a U4 key type, but is '{typeItemType}'");
+                    throw Contracts.Except(string.Format(Strings.ColumnMustBeAU4KeyTypeButIs, columnName, typeItemType));
 
                 schema[indices[i]].GetKeyValues(ref keyNamesCur);
 
@@ -651,7 +651,7 @@ namespace Microsoft.ML.Data
             for (int i = 0; i < views.Length; i++)
             {
                 if (!views[i].Schema.TryGetColumnIndex(columnName, out var index))
-                    throw env.Except($"Data view {i} doesn't contain a column '{columnName}'");
+                    throw env.Except(string.Format(Strings.DataViewDoesntContainAColumn, i, columnName));
                 ValueMapper<uint, uint> mapper =
                     (in uint src, ref uint dst) =>
                     {
@@ -1148,7 +1148,7 @@ namespace Microsoft.ML.Data
                     {
                         // If !average, we should have only one relevant row.
                         if (numWeightedResults > numFolds)
-                            throw Contracts.Except("Multiple weighted rows found in metrics data view.");
+                            throw Contracts.Except(Strings.MultipleWeightedRowsFoundInMetricsDataView);
 
                         numWeightedResults++;
                         UpdateSums(isWeightedCol, stratCol, stratVal, weightedAgg, numFolds > 1, metricNames, hasWeighted,
@@ -1158,7 +1158,7 @@ namespace Microsoft.ML.Data
                     {
                         // If !average, we should have only one relevant row.
                         if (numResults > numFolds)
-                            throw Contracts.Except("Multiple unweighted rows found in metrics data view.");
+                            throw Contracts.Except(Strings.MultipleUnweightedRowsFoundInMetricsDataView);
 
                         numResults++;
                         UpdateSums(isWeightedCol, stratCol, stratVal, agg, numFolds > 1, metricNames, hasWeighted, hasStrats,
@@ -1237,7 +1237,7 @@ namespace Microsoft.ML.Data
                     if (keyValuesType == null || !(keyValuesType.ItemType is TextDataViewType) ||
                         keyValuesType.Size != typeKeyCount)
                     {
-                        throw env.Except("Column '{0}' must have key values metadata",
+                        throw env.Except(Strings.ColumnMustHaveKeyValuesMetadata,
                             MetricKinds.ColumnNames.StratCol);
                     }
 
@@ -1357,7 +1357,7 @@ namespace Microsoft.ML.Data
         public static string GetConfusionTableAsFormattedString(IHost host, IDataView confusionDataView, out string weightedConfusionTable, bool binary = true, int sample = -1)
         {
             host.CheckValue(confusionDataView, nameof(confusionDataView));
-            host.CheckParam(sample == -1 || sample >= 2, nameof(sample), "Should be -1 to indicate no sampling, or at least 2");
+            host.CheckParam(sample == -1 || sample >= 2, nameof(sample), Strings.SamplingSizeMustBeMinusOneOrAtLeastTwo);
 
             var weightColumn = confusionDataView.Schema.GetColumnOrNull(MetricKinds.ColumnNames.Weight);
             bool isWeighted = weightColumn.HasValue;
@@ -1380,12 +1380,12 @@ namespace Microsoft.ML.Data
         public static ConfusionMatrix GetConfusionMatrix(IHost host, IDataView confusionDataView, bool binary = true, int sample = -1, bool getWeighted = false)
         {
             host.CheckValue(confusionDataView, nameof(confusionDataView));
-            host.CheckParam(sample == -1 || sample >= 2, nameof(sample), "Should be -1 to indicate no sampling, or at least 2");
+            host.CheckParam(sample == -1 || sample >= 2, nameof(sample), Strings.SamplingSizeMustBeMinusOneOrAtLeastTwo);
 
             // check that there is a Weight column, if isWeighted parameter is set to true.
             var weightColumn = confusionDataView.Schema.GetColumnOrNull(MetricKinds.ColumnNames.Weight);
             if (getWeighted)
-                host.CheckParam(weightColumn.HasValue, nameof(getWeighted), "There is no Weight column in the confusionMatrix data view.");
+                host.CheckParam(weightColumn.HasValue, nameof(getWeighted), Strings.ThereIsNoWeightColumnInTheConfusionMatrixDataView);
 
             // Get the counts names.
             var countColumn = confusionDataView.Schema[MetricKinds.ColumnNames.Count];
@@ -1501,7 +1501,7 @@ namespace Microsoft.ML.Data
 
                     countGetter(ref count);
                     if (count.Length != numClasses)
-                        throw Contracts.Except("Expected {0} values in 'Count' column, but got {1}.", numClasses, count.Length);
+                        throw Contracts.Except(Strings.ExpectedValuesInCountColumnButGot, numClasses, count.Length);
                     int row = labelIndexToConfIndexMap[numRows];
                     foreach (var val in count.Items())
                     {
@@ -1773,7 +1773,7 @@ namespace Microsoft.ML.Data
             if (!data.Schema.TryGetColumnIndex(MetricKinds.ColumnNames.StratCol, out stratCol))
                 return data;
             var type = data.Schema[stratCol].Type;
-            env.Check(type.GetKeyCount() > 0, "Expected a known count key type stratification column");
+            env.Check(type.GetKeyCount() > 0, Strings.ExpectedAKnownCountKeyTypeStratificationColumn);
             var filterArgs = new NAFilter.Arguments();
             filterArgs.Columns = new[] { MetricKinds.ColumnNames.StratCol };
             filterArgs.Complement = true;
@@ -1781,7 +1781,7 @@ namespace Microsoft.ML.Data
 
             int stratVal;
             var found = data.Schema.TryGetColumnIndex(MetricKinds.ColumnNames.StratVal, out stratVal);
-            env.Check(found, "If stratification column exist, data view must also contain a StratVal column");
+            env.Check(found, Strings.StratificationRequiresStratValColumn);
 
             data = ColumnSelectingTransformer.CreateDrop(env, data, data.Schema[stratCol].Name, data.Schema[stratVal].Name);
             return data;

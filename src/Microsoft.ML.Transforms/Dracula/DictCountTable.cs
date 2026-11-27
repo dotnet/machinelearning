@@ -48,8 +48,8 @@ namespace Microsoft.ML.Transforms
             : base(labelCardinality, priorCounts, garbageThreshold, garbageCounts)
         {
             Contracts.CheckValue(counts, nameof(counts));
-            Contracts.Check(counts.Length == labelCardinality, "Counts must be parallel to label cardinality");
-            Contracts.Check(counts.All(x => x != null), "Count dictionaries must all exist");
+            Contracts.Check(counts.Length == labelCardinality, Strings.CountsMustBeParallelToLabelCardinality);
+            Contracts.Check(counts.All(x => x != null), Strings.CountDictionariesMustAllExist);
             Tables = counts;
         }
 
@@ -157,7 +157,7 @@ namespace Microsoft.ML.Transforms
 
         internal DictCountTableBuilder(float garbageThreshold)
         {
-            Contracts.CheckParam(garbageThreshold >= 0, nameof(garbageThreshold), "Garbage threshold must be non-negative");
+            Contracts.CheckParam(garbageThreshold >= 0, nameof(garbageThreshold), Strings.GarbageThresholdMustBeNonNegative);
             _garbageThreshold = garbageThreshold;
         }
 

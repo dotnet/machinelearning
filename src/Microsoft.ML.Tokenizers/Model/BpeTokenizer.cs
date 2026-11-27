@@ -59,7 +59,7 @@ namespace Microsoft.ML.Tokenizers
 
                 if (!_vocab.TryGetValue(value, out int id))
                 {
-                    throw new InvalidOperationException($"Unknown Token '{value}' was not present in '{nameof(Vocabulary)}'.");
+                    throw new InvalidOperationException(string.Format(Strings.UnknownTokenWasNotPresentIn, value, nameof(Vocabulary)));
                 }
 
                 _unknownTokenId = id;
@@ -146,7 +146,7 @@ namespace Microsoft.ML.Tokenizers
 
             if (options.Vocabulary is null)
             {
-                throw new ArgumentNullException(nameof(options.Vocabulary), "The vocabulary cannot be null.");
+                throw new ArgumentNullException(nameof(options.Vocabulary), Strings.TheVocabularyCannotBeNull);
             }
 
             Dictionary<StringSpanOrdinalKey, int> vocab = new Dictionary<StringSpanOrdinalKey, int>(1000);
@@ -158,7 +158,7 @@ namespace Microsoft.ML.Tokenizers
 
             if (vocab.Count == 0)
             {
-                throw new InvalidOperationException("The vocabulary cannot be empty.");
+                throw new InvalidOperationException(Strings.TheVocabularyCannotBeEmpty);
             }
 
             Vec<(string, string)> merges = default;
@@ -170,13 +170,13 @@ namespace Microsoft.ML.Tokenizers
                 {
                     if (merge is null)
                     {
-                        throw new InvalidOperationException("The merge entries cannot be null.");
+                        throw new InvalidOperationException(Strings.TheMergeEntriesCannotBeNull);
                     }
 
                     int index = merge.IndexOf(' ');
                     if (index < 0 || index == merge.Length - 1 || merge.IndexOf(' ', index + 1) >= 0)
                     {
-                        throw new InvalidOperationException($"Invalid merger file format");
+                        throw new InvalidOperationException(Strings.InvalidMergerFileFormat);
                     }
 
                     merges.Push((merge.Substring(0, index), merge.Substring(index + 1)));
@@ -322,7 +322,7 @@ namespace Microsoft.ML.Tokenizers
             {
                 if (_vocab.TryGetValue(beginningOfSentenceToken, out int aId) is false && specialTokens?.TryGetValue(beginningOfSentenceToken, out aId) is false)
                 {
-                    throw new InvalidOperationException($"The beginning of sentence token '{beginningOfSentenceToken}' was not present in the vocabulary.");
+                    throw new InvalidOperationException(string.Format(Strings.BeginningOfSentenceTokenAbsentFromVocabulary, beginningOfSentenceToken));
                 }
 
                 BeginningOfSentenceId = aId;
@@ -333,7 +333,7 @@ namespace Microsoft.ML.Tokenizers
             {
                 if (_vocab.TryGetValue(endOfSentenceToken, out int aId) is false && specialTokens?.TryGetValue(endOfSentenceToken, out aId) is false)
                 {
-                    throw new InvalidOperationException($"The end of sentence token '{endOfSentenceToken}' was not present in the vocabulary.");
+                    throw new InvalidOperationException(string.Format(Strings.EndOfSentenceTokenAbsentFromVocabulary, endOfSentenceToken));
                 }
 
                 EndOfSentenceId = aId;
@@ -367,23 +367,23 @@ namespace Microsoft.ML.Tokenizers
 
                 if (!_vocab.TryGetValue(mergeValues.a, out int aId))
                 {
-                    throw new InvalidOperationException($"Trying to merge a token '{mergeValues.a}' which not exist in the vocabulary.");
+                    throw new InvalidOperationException(string.Format(Strings.MergeTokenMissingFromVocabulary, mergeValues.a));
                 }
 
                 if (!_vocab.TryGetValue(mergeValues.b, out int bId))
                 {
-                    throw new InvalidOperationException($"Trying to merge a token '{mergeValues.b}' which not exist in the vocabulary.");
+                    throw new InvalidOperationException(string.Format(Strings.MergeTokenMissingFromVocabulary, mergeValues.b));
                 }
 
                 if (mergeValues.b.Length <= prefixLen)
                 {
-                    throw new InvalidOperationException($"The merge value '{mergeValues.b}' is too short to be merged with a prefix of length {prefixLen}. This implies that the merge file is either damaged or missing the prefix in its entries.");
+                    throw new InvalidOperationException(string.Format(Strings.MergeValueShorterThanPrefix, mergeValues.b, prefixLen));
                 }
 
                 string newToken = $"{mergeValues.a}{mergeValues.b.Substring(prefixLen)}";
                 if (!_vocab.TryGetValue(newToken, out int newId))
                 {
-                    throw new InvalidOperationException($"Trying to merge a token '{newToken}' which not exist in the vocabulary.");
+                    throw new InvalidOperationException(string.Format(Strings.MergeTokenMissingFromVocabulary, newToken));
                 }
 
                 Merges.Add(new Pair<int>(aId, bId), (i, newId));
@@ -491,7 +491,7 @@ namespace Microsoft.ML.Tokenizers
             int maxTokenCount = settings.MaxTokenCount;
             if (maxTokenCount <= 0)
             {
-                throw new ArgumentOutOfRangeException(nameof(settings.MaxTokenCount), "The maximum number of tokens must be greater than zero.");
+                throw new ArgumentOutOfRangeException(nameof(settings.MaxTokenCount), Strings.TheMaximumNumberOfTokensMustBeGreaterThanZero);
             }
 
             if (string.IsNullOrEmpty(text) && textSpan.IsEmpty)
@@ -558,7 +558,7 @@ namespace Microsoft.ML.Tokenizers
             int maxTokenCount = settings.MaxTokenCount;
             if (maxTokenCount <= 0)
             {
-                throw new ArgumentOutOfRangeException(nameof(settings.MaxTokenCount), "The maximum number of tokens must be greater than zero.");
+                throw new ArgumentOutOfRangeException(nameof(settings.MaxTokenCount), Strings.TheMaximumNumberOfTokensMustBeGreaterThanZero);
             }
 
             if (string.IsNullOrEmpty(text) && textSpan.IsEmpty)
@@ -638,7 +638,7 @@ namespace Microsoft.ML.Tokenizers
         {
             if (maxTokenCount <= 0)
             {
-                throw new ArgumentOutOfRangeException(nameof(maxTokenCount), "The maximum number of tokens must be greater than zero.");
+                throw new ArgumentOutOfRangeException(nameof(maxTokenCount), Strings.TheMaximumNumberOfTokensMustBeGreaterThanZero);
             }
 
             charsConsumed = 0;
@@ -691,7 +691,7 @@ namespace Microsoft.ML.Tokenizers
         {
             if (maxTokenCount <= 0)
             {
-                throw new ArgumentOutOfRangeException(nameof(maxTokenCount), "The max token count must be greater than 0.");
+                throw new ArgumentOutOfRangeException(nameof(maxTokenCount), Strings.TheMaxTokenCountMustBeGreaterThan0);
             }
 
             if (string.IsNullOrEmpty(text) && textSpan.IsEmpty)
@@ -1179,7 +1179,7 @@ namespace Microsoft.ML.Tokenizers
                 int index = line.IndexOf(' ');
                 if (index < 0 || index == line.Length - 1 || line[(index + 1)..].IndexOf(' ') >= 0)
                 {
-                    throw new InvalidOperationException($"Invalid merger file format at line: {lineNumber}");
+                    throw new InvalidOperationException(string.Format(Strings.InvalidMergerFileFormatAtLine, lineNumber));
                 }
                 merges.Push((line[..index].ToString(), line[(index + 1)..].ToString()));
                 lineStart = lineEnd + 1;
@@ -1291,7 +1291,7 @@ namespace Microsoft.ML.Tokenizers
                             word.Add(unk.Value.Id, unk.Value.Len);
                             if (!_vocab.TryGetValue(UnknownToken, out int value))
                             {
-                                throw new InvalidOperationException($"Unknown Token Out Of Vocabulary.");
+                                throw new InvalidOperationException(Strings.UnknownTokenOutOfVocabulary);
                             }
                             unk = (value, length);
                         }
@@ -1300,7 +1300,7 @@ namespace Microsoft.ML.Tokenizers
                     {
                         if (!_vocab.TryGetValue(UnknownToken, out int value))
                         {
-                            throw new InvalidOperationException($"Unknown Token Out Of Vocabulary.");
+                            throw new InvalidOperationException(Strings.UnknownTokenOutOfVocabulary);
                         }
                         unk = (value, length);
                     }

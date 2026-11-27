@@ -564,7 +564,7 @@ namespace Microsoft.ML.TorchSharp.NasBert
             }
 
             protected override Delegate MakeGetter(DataViewRow input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
-                => throw new NotImplementedException("This should never be called!");
+                => throw new NotImplementedException(Strings.ThisShouldNeverBeCalled);
 
             private protected class BertTensorCacher : TorchSharpBaseMapper.TensorCacher<Tensor>
             {

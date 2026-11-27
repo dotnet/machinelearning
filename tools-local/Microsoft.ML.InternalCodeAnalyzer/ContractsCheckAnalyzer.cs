@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Operations;
 
 namespace Microsoft.ML.InternalCodeAnalyzer
 {
@@ -149,14 +150,44 @@ namespace Microsoft.ML.InternalCodeAnalyzer
             if (exp.IsKind(SyntaxKind.SimpleMemberAccessExpression))
             {
                 var access = (MemberAccessExpressionSyntax)exp;
-                var field = context.SemanticModel.GetSymbolInfo(access).Symbol as IFieldSymbol;
-                return field?.IsConst ?? false;
+                ISymbol symbol = context.SemanticModel.GetSymbolInfo(access).Symbol;
+                if (symbol is IFieldSymbol field)
+                    return field.IsConst;
+
+                return symbol is IPropertySymbol property &&
+                    property.Type.SpecialType == SpecialType.System_String &&
+                    property.ContainingType.Name == "Strings";
             }
 
             if (exp.IsKind(SyntaxKind.InvocationExpression))
-                return ((InvocationExpressionSyntax)exp).Expression.ToString() == "nameof";
+            {
+                var invocation = (InvocationExpressionSyntax)exp;
+                if (invocation.Expression.ToString() == "nameof")
+                    return true;
+
+                if (context.SemanticModel.GetOperation(invocation) is IInvocationOperation operation &&
+                    operation.TargetMethod.Name == "Format" &&
+                    operation.TargetMethod.ContainingType.SpecialType == SpecialType.System_String)
+                {
+                    foreach (IArgumentOperation argument in operation.Arguments)
+                    {
+                        if (argument.Parameter?.Name == "format")
+                            return IsResourceProperty(argument.Value);
+                    }
+                }
+            }
 
             return exp.IsKind(SyntaxKind.StringLiteralExpression) || exp.IsKind(SyntaxKind.IdentifierName);
+        }
+
+        private static bool IsResourceProperty(IOperation operation)
+        {
+            while (operation is IConversionOperation conversion)
+                operation = conversion.Operand;
+
+            return operation is IPropertyReferenceOperation propertyReference &&
+                propertyReference.Property.Type.SpecialType == SpecialType.System_String &&
+                propertyReference.Property.ContainingType.Name == "Strings";
         }
 
         private static bool HasModelLoadContext(SyntaxNode node)

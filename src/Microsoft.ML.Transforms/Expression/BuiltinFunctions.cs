@@ -369,8 +369,8 @@ namespace Microsoft.ML.Transforms
         {
             Contracts.CheckNonEmpty(name, nameof(name));
             Contracts.CheckValue(fn, nameof(fn));
-            Contracts.CheckParam(Utils.Size(values) > 0, nameof(values), "Expected values to have positive length");
-            Contracts.CheckParam(!values.All(x => x != null), nameof(values), "Expected values to contain at least one null");
+            Contracts.CheckParam(Utils.Size(values) > 0, nameof(values), Strings.ExpectedValuesToHavePositiveLength);
+            Contracts.CheckParam(!values.All(x => x != null), nameof(values), Strings.ExpectedValuesToContainAtLeastOneNull);
 
             switch (name)
             {

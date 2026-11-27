@@ -58,7 +58,7 @@ namespace Microsoft.ML.Internal.Utilities
         {
             Contracts.CheckValue(x, nameof(x));
             Contracts.CheckValue(y, nameof(y));
-            Contracts.Check(x.Length == y.Length, "Input and output must be same length.");
+            Contracts.Check(x.Length == y.Length, Strings.InputAndOutputMustBeSameLength);
 
             int m = x.Length;
 
@@ -304,7 +304,7 @@ namespace Microsoft.ML.Internal.Utilities
         /// <remarks>Accurate to eight digits for all x.</remarks>
         public static double LogGamma(double x)
         {
-            Contracts.CheckParam(x > 0, nameof(x), "LogGamma invalid for x <= 0");
+            Contracts.CheckParam(x > 0, nameof(x), Strings.LogGammaRequiresPositiveX);
 
             double res = 0;
             if (x < 6)
@@ -347,7 +347,7 @@ namespace Microsoft.ML.Internal.Utilities
         /// <returns>The log factorial of n</returns>
         public static double LogFactorial(int n)
         {
-            Contracts.CheckParam(n >= 0, nameof(n), "LogFactorial is invalid for n < 0.");
+            Contracts.CheckParam(n >= 0, nameof(n), Strings.LogFactorialRequiresNonNegativeN);
 
             if (n >= LogFactorialCacheSize)
                 return LogGamma(n + 1);
@@ -376,7 +376,7 @@ namespace Microsoft.ML.Internal.Utilities
         /// <returns>The corresponding two-tailed p-value</returns>
         public static Double TStatisticToPValue(Double t, Double df)
         {
-            Contracts.CheckParam(df > 0, nameof(df), "Degrees of freedom must be positive");
+            Contracts.CheckParam(df > 0, nameof(df), Strings.DegreesOfFreedomMustBePositive);
 
             // REVIEW: Of some interest is calculating p-values for infinite
             // df, but this code will not handle that. In fact I have strong concerns

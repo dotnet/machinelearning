@@ -40,7 +40,7 @@ namespace Microsoft.ML.Internal.Utilities
         public override bool CanWrite => false;
 
         public override long Length
-            => throw Contracts.ExceptNotSupp("Stream cannot determine length.");
+            => throw Contracts.ExceptNotSupp(Strings.StreamCannotDetermineLength);
 
         public override long Position
         {
@@ -49,7 +49,7 @@ namespace Microsoft.ML.Internal.Utilities
             {
                 if (value != Position)
                 {
-                    throw Contracts.ExceptNotSupp("Stream cannot seek.");
+                    throw Contracts.ExceptNotSupp(Strings.StreamCannotSeek);
                 }
             }
         }
@@ -148,8 +148,8 @@ namespace Microsoft.ML.Internal.Utilities
         public override int Read(byte[] buffer, int offset, int count)
         {
             Contracts.CheckValue(buffer, nameof(buffer));
-            Contracts.CheckParam(0 <= offset && offset <= buffer.Length, nameof(offset), "invalid for this sized array");
-            Contracts.CheckParam(0 <= count && count <= buffer.Length - offset, nameof(count), "invalid for this sized array");
+            Contracts.CheckParam(0 <= offset && offset <= buffer.Length, nameof(offset), Strings.InvalidForThisSizedArray);
+            Contracts.CheckParam(0 <= count && count <= buffer.Length - offset, nameof(count), Strings.InvalidForThisSizedArray);
             int readCount = 0;
             while (readCount < count)
             {
@@ -176,12 +176,12 @@ namespace Microsoft.ML.Internal.Utilities
         }
 
         public override long Seek(long offset, SeekOrigin origin)
-            => throw Contracts.ExceptNotSupp("Stream cannot seek.");
+            => throw Contracts.ExceptNotSupp(Strings.StreamCannotSeek);
 
         public override void Write(byte[] buffer, int offset, int count)
-            => throw Contracts.ExceptNotSupp("Stream is not writable.");
+            => throw Contracts.ExceptNotSupp(Strings.StreamIsNotWritable);
 
         public override void SetLength(long value)
-            => throw Contracts.ExceptNotSupp("Stream is not writable.");
+            => throw Contracts.ExceptNotSupp(Strings.StreamIsNotWritable);
     }
 }

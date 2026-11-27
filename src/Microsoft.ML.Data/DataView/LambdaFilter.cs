@@ -30,13 +30,13 @@ namespace Microsoft.ML.Data
             if (typeSrc.RawType != typeof(TSrc))
             {
                 throw env.ExceptParam(nameof(predicate),
-                    "The source column type '{0}' doesn't match the input type of the predicate", typeSrc);
+                    Strings.PredicateSourceColumnTypeMismatch, typeSrc);
             }
 
             int colSrc;
             bool tmp = input.Schema.TryGetColumnIndex(src, out colSrc);
             if (!tmp)
-                throw env.ExceptParam(nameof(src), "The input data doesn't have a column named '{0}'", src);
+                throw env.ExceptParam(nameof(src), Strings.TheInputDataDoesntHaveAColumnNamed, src);
             var typeOrig = input.Schema[colSrc].Type;
 
             // REVIEW: Ideally this should support vector-type conversion. It currently doesn't.
@@ -50,7 +50,7 @@ namespace Microsoft.ML.Data
             else if (!Conversions.DefaultInstance.TryGetStandardConversion(typeOrig, typeSrc, out conv, out ident))
             {
                 throw env.ExceptParam(nameof(predicate),
-                    "The type of column '{0}', '{1}', cannot be converted to the input type of the predicate '{2}'",
+                    Strings.PredicateInputTypeConversionFailed,
                     src, typeOrig, typeSrc);
             }
 
@@ -98,7 +98,7 @@ namespace Microsoft.ML.Data
             private protected override void SaveModel(ModelSaveContext ctx)
             {
                 Host.Assert(false, "Shouldn't serialize this!");
-                throw Host.ExceptNotSupp("Shouldn't serialize this");
+                throw Host.ExceptNotSupp(Strings.ShouldntSerializeThis);
             }
 
             protected override bool? ShouldUseParallelCursors(Func<int, bool> predicate)

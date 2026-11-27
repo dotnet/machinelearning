@@ -106,7 +106,7 @@ namespace Microsoft.ML.Data
         public CrossValidationCommand(IHostEnvironment env, Arguments args)
             : base(env, args, RegistrationName)
         {
-            Host.CheckUserArg(ImplOptions.NumFolds >= 2, nameof(ImplOptions.NumFolds), "Number of folds must be greater than or equal to 2.");
+            Host.CheckUserArg(ImplOptions.NumFolds >= 2, nameof(ImplOptions.NumFolds), Strings.FoldCountMustBeAtLeastTwo);
             TrainUtils.CheckTrainer(Host, args.Trainer, args.DataFile);
             Utils.CheckOptionalUserDirectory(ImplOptions.SummaryFilename, nameof(ImplOptions.SummaryFilename));
             Utils.CheckOptionalUserDirectory(ImplOptions.OutputDataFile, nameof(ImplOptions.OutputDataFile));
@@ -214,7 +214,7 @@ namespace Microsoft.ML.Data
 
             // Print the overall results.
             if (!TryGetOverallMetrics(tasks.Select(t => t.Result.Metrics).ToArray(), out var overallList))
-                throw ch.Except("No overall metrics found");
+                throw ch.Except(Strings.NoOverallMetricsFound);
 
             var overall = eval.GetOverallResults(overallList.ToArray());
             MetricWriter.PrintOverallMetrics(Host, ch, ImplOptions.SummaryFilename, overall, ImplOptions.NumFolds);

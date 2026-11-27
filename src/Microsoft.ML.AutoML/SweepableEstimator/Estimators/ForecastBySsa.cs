@@ -12,7 +12,7 @@ namespace Microsoft.ML.AutoML.CodeGen
         {
             if (param.SeriesLength <= param.WindowSize || param.TrainSize <= 2 * param.WindowSize)
             {
-                throw new Exception("ForecastBySsa param check error");
+                throw new Exception(Strings.ForecastBySsaParamCheckError);
             }
 
             return context.Forecasting.ForecastBySsa(param.OutputColumnName, param.InputColumnName, param.WindowSize, param.SeriesLength, param.TrainSize, param.Horizon, confidenceLowerBoundColumn: param.ConfidenceLowerBoundColumn, confidenceUpperBoundColumn: param.ConfidenceUpperBoundColumn);

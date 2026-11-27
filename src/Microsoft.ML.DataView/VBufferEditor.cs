@@ -157,8 +157,7 @@ namespace Microsoft.ML.Data
         public VBuffer<T> CommitTruncated(int physicalValuesCount)
         {
             Contracts.CheckParam(physicalValuesCount <= Values.Length, nameof(physicalValuesCount),
-                "Updating " + nameof(physicalValuesCount) + " during " + nameof(CommitTruncated) +
-                " cannot be greater than the original physicalValuesCount value used in " + nameof(VBufferEditor.Create) + ".");
+                Strings.CommitTruncatedPhysicalValuesCountCannotIncrease);
 
             return new VBuffer<T>(_logicalLength, physicalValuesCount, _values, _indices);
         }

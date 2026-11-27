@@ -1,0 +1,55 @@
+﻿<?xml version='1.0' encoding='utf-8'?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="CannotBeSetToTrueUnlessInputModelFileIsAlsoSpecified" xml:space="preserve">
+    <value>Cannot be set to true unless InputModelFile is also specified.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.OnnxConverter/SaveOnnxCommand.cs:306.</comment>
+  </data>
+  <data name="CouldNotFindDeclaredInONNXGraph" xml:space="preserve">
+    <value>Could not find '{0}' declared in ONNX graph</value>
+    <comment>Exception or validation message. Placeholders: {0}=variableName. Source: src/Microsoft.ML.OnnxConverter/OnnxContextImpl.cs:105.</comment>
+  </data>
+  <data name="ModelAndPredictiveModelCannotBeSpecifiedAtTheSameTime" xml:space="preserve">
+    <value>Model and PredictiveModel cannot be specified at the same time when calling ONNX converter. Please check the content of args.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.OnnxConverter/SaveOnnxCommand.cs:116.</comment>
+  </data>
+  <data name="NumberOfElementsDoesntMatchTensorSize" xml:space="preserve">
+    <value>Number of elements doesn't match tensor size</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.OnnxConverter/OnnxContextImpl.cs:347. Exception or validation message. Source: src/Microsoft.ML.OnnxConverter/OnnxContextImpl.cs:358. Exception or validation message. Source: src/Microsoft.ML.OnnxConverter/OnnxContextImpl.cs:369. Exception or validation message. Source: src/Microsoft.ML.OnnxConverter/OnnxContextImpl.cs:380. Exception or validation message. Source: src/Microsoft.ML.OnnxConverter/OnnxContextImpl.cs:391. Exception or validation message. Source: src/Microsoft.ML.OnnxConverter/OnnxContextImpl.cs:402. Exception or validation message. Source: src/Microsoft.ML.OnnxConverter/OnnxContextImpl.cs:413.</comment>
+  </data>
+  <data name="OpSetVersionAboveSupportedMaximum" xml:space="preserve">
+    <value>Requested OpSet version {0} is higher than the current most updated OpSet version {1}</value>
+    <comment>Exception or validation message. Placeholders: {0}=opSetVersion, {1}=CurrentOpSetVersion. Source: src/Microsoft.ML.OnnxConverter/OnnxContextImpl.cs:63.</comment>
+  </data>
+  <data name="OpSetVersionBelowOperatorMinimum" xml:space="preserve">
+    <value>Requested OpSet version {0} is lower than {1}'s minimum OpSet version requirement: {2}</value>
+    <comment>Exception or validation message. Placeholders: {0}=_opSetVersion, {1}=registerTransformerName, {2}=thisTransformerMinumumOpSetVersion. Source: src/Microsoft.ML.OnnxConverter/OnnxContextImpl.cs:139.</comment>
+  </data>
+  <data name="OpSetVersionBelowRequiredMinimum" xml:space="preserve">
+    <value>Requested OpSet version {0} is lower than the minimum required OpSet version {1}</value>
+    <comment>Exception or validation message. Placeholders: {0}=opSetVersion, {1}=MinimumOpSetVersion. Source: src/Microsoft.ML.OnnxConverter/OnnxContextImpl.cs:62.</comment>
+  </data>
+  <data name="PipelineCannotBeFullyConvertedToOnnx" xml:space="preserve">
+    <value>The targeted pipeline can not be fully converted into a well-defined ONNX model. Please check if all steps in that pipeline are convertible to ONNX and all necessary variables are not dropped (via command line arguments).</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.OnnxConverter/SaveOnnxCommand.cs:206.</comment>
+  </data>
+  <data name="PredictorRequiredButMissing" xml:space="preserve">
+    <value>We were explicitly told to load the predictor but one was not present.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.OnnxConverter/SaveOnnxCommand.cs:383.</comment>
+  </data>
+  <data name="PredictorCannotBeSavedAsOnnx" xml:space="preserve">
+    <value>We were explicitly told to load the predictor but we do not know how to save it as ONNX.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.OnnxConverter/SaveOnnxCommand.cs:376.</comment>
+  </data>
+</root>

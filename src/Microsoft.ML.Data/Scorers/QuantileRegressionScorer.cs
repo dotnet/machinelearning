@@ -44,7 +44,7 @@ namespace Microsoft.ML.Data
             env.CheckValue(predictor, nameof(predictor));
 
             var pred = predictor as IQuantileRegressionPredictor;
-            env.Check(pred != null, "Predictor doesn't support quantile regression");
+            env.Check(pred != null, Strings.PredictorDoesntSupportQuantileRegression);
 
             var quantiles = ParseQuantiles(args.Quantiles);
             return pred.CreateMapper(quantiles);
@@ -52,17 +52,17 @@ namespace Microsoft.ML.Data
 
         private static Double[] ParseQuantiles(string quantiles)
         {
-            Contracts.CheckUserArg(quantiles != null, nameof(Arguments.Quantiles), "Quantiles are required");
+            Contracts.CheckUserArg(quantiles != null, nameof(Arguments.Quantiles), Strings.QuantilesAreRequired);
             Double[] quantilesArray = quantiles.Split(',').Select(
                 v =>
                 {
                     Double q;
                     if (!Double.TryParse(v, out q))
-                        throw Contracts.ExceptUserArg(nameof(Arguments.Quantiles), "Cannot parse quantile '{0}' as double.", v);
-                    Contracts.CheckUserArg(0 <= q && q <= 1, nameof(Arguments.Quantiles), "Quantile must be between 0 and 1.");
+                        throw Contracts.ExceptUserArg(nameof(Arguments.Quantiles), Strings.CannotParseQuantileAsDouble, v);
+                    Contracts.CheckUserArg(0 <= q && q <= 1, nameof(Arguments.Quantiles), Strings.QuantileMustBeBetween0And1);
                     return q;
                 }).ToArray();
-            Contracts.CheckUserArg(quantilesArray.Length > 0, nameof(Arguments.Quantiles), "There must be at least one quantile.");
+            Contracts.CheckUserArg(quantilesArray.Length > 0, nameof(Arguments.Quantiles), Strings.ThereMustBeAtLeastOneQuantile);
             return quantilesArray;
         }
     }

@@ -1,0 +1,35 @@
+﻿<?xml version='1.0' encoding='utf-8'?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="ModelFileReloadFailedDueToLock" xml:space="preserve">
+    <value>Model file {0} still got locked after 5 seconds, fail to reload.</value>
+    <comment>Exception or validation message. Placeholders: {0}=_filePath. Source: src/Microsoft.Extensions.ML/ModelLoaders/FileModelLoader.cs:136.</comment>
+  </data>
+  <data name="ModelLoaderMustBeStarted" xml:space="preserve">
+    <value>Start must be called on a ModelLoader before it can be used.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.Extensions.ML/ModelLoaders/FileModelLoader.cs:103. Exception or validation message. Source: src/Microsoft.Extensions.ML/ModelLoaders/FileModelLoader.cs:97. Exception or validation message. Source: src/Microsoft.Extensions.ML/ModelLoaders/UriModelLoader.cs:166. Exception or validation message. Source: src/Microsoft.Extensions.ML/ModelLoaders/UriModelLoader.cs:173.</comment>
+  </data>
+  <data name="TheProvidedModelFileDoesntExist" xml:space="preserve">
+    <value>The provided model file {0} doesn't exist.</value>
+    <comment>Exception or validation message. Placeholders: {0}=filePath. Source: src/Microsoft.Extensions.ML/ModelLoaders/FileModelLoader.cs:42.</comment>
+  </data>
+  <data name="DefaultModelMustBeConfigured" xml:space="preserve">
+    <value>You need to configure a default, not named, model before you use this method.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.Extensions.ML/PredictionEnginePool.cs:107.</comment>
+  </data>
+  <data name="ServicesCannotBeNull" xml:space="preserve">
+    <value>Services cannot be null.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.Extensions.ML/Builder/PredictionEnginePoolBuilder.cs:25.</comment>
+  </data>
+</root>

@@ -21,13 +21,13 @@ namespace Microsoft.ML.Internal.Utilities
         /// <returns>Sampled value</returns>
         public static long SampleLong(long rangeSize, Random rand)
         {
-            Contracts.CheckParam(rangeSize > 0, nameof(rangeSize), "rangeSize must be positive.");
+            Contracts.CheckParam(rangeSize > 0, nameof(rangeSize), Strings.RangeSizeMustBePositive);
 
             if (rangeSize < int.MaxValue)
                 return rand.Next((int)rangeSize);
 
             Contracts.Check(rangeSize <= (long)int.MaxValue * int.MaxValue,
-                "rangeSize must be no more than int.MaxValue^2");
+                Strings.RangeSizeMustBeNoMoreThanIntMaxValue2);
 
             int max = (int)Math.Ceiling(Math.Sqrt(rangeSize));
             while ((long)max * max < rangeSize)
@@ -76,7 +76,7 @@ namespace Microsoft.ML.Internal.Utilities
         /// <remarks>Uses Marsaglia and Tsang's fast algorithm</remarks>
         public static double SampleFromGamma(Random r, double alpha)
         {
-            Contracts.CheckParam(alpha > 0, nameof(alpha), "alpha must be positive");
+            Contracts.CheckParam(alpha > 0, nameof(alpha), Strings.AlphaMustBePositive);
 
             if (alpha < 1)
                 return SampleFromGamma(r, alpha + 1) * Math.Pow(r.NextDouble(), 1.0 / alpha);
@@ -126,7 +126,7 @@ namespace Microsoft.ML.Internal.Utilities
         public static void SampleFromDirichlet(Random rand, double[] alphas, double[] result)
         {
             Contracts.Check(alphas.Length == result.Length,
-                "Dirichlet parameters must have the same dimensionality as sample space.");
+                Strings.DirichletParametersMustHaveTheSameDimensionalityAsSampleSpace);
 
             double total = 0;
             for (int i = 0; i < alphas.Length; i++)

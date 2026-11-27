@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -64,11 +64,11 @@ namespace Microsoft.ML.Sweeper
 
             _host = env.Register("SweepCommand", args.RandomSeed);
 
-            _host.CheckValue(args.Runner, nameof(args.Runner), "Please specify a runner");
-            _host.CheckValue(args.Sweeper, nameof(args.Sweeper), "Please specify a sweeper");
-            _host.CheckUserArg(args.SweepNumBatches > 0, nameof(args.SweepNumBatches), "Must be positive");
-            _host.CheckUserArg(!(args.InitialSweepBatchSize <= 0), nameof(args.InitialSweepBatchSize), "Must be positive if specified");
-            _host.CheckUserArg(args.SweepBatchSize > 0, nameof(args.SweepBatchSize), "Must be positive");
+            _host.CheckValue(args.Runner, nameof(args.Runner), Strings.PleaseSpecifyARunner);
+            _host.CheckValue(args.Sweeper, nameof(args.Sweeper), Strings.PleaseSpecifyASweeper);
+            _host.CheckUserArg(args.SweepNumBatches > 0, nameof(args.SweepNumBatches), Strings.MustBePositive);
+            _host.CheckUserArg(!(args.InitialSweepBatchSize <= 0), nameof(args.InitialSweepBatchSize), Strings.MustBePositiveIfSpecified);
+            _host.CheckUserArg(args.SweepBatchSize > 0, nameof(args.SweepBatchSize), Strings.MustBePositive);
 
             _numBatches = args.SweepNumBatches;
             _initBatchSize = args.InitialSweepBatchSize ?? args.SweepBatchSize;
@@ -103,7 +103,7 @@ namespace Microsoft.ML.Sweeper
             }
             catch (Exception e)
             {
-                throw _host.Except(e, "Internal sweep training threw exception");
+                throw _host.Except(e, Strings.InternalSweepTrainingThrewException);
             }
             finally
             {

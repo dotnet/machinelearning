@@ -86,10 +86,9 @@ namespace Microsoft.ML.Trainers.FastTree
         {
             Env = env;
             if (options.InputColumnName == null)
-                throw Env.Except(nameof(options), "The " + nameof(options.InputColumnName) + " cannot be null.");
+                throw Env.ExceptParam(nameof(options), string.Format(Strings.TheCannotBeNull, nameof(options.InputColumnName)));
             if (options.TreesColumnName == null && options.LeavesColumnName == null && options.PathsColumnName == null)
-                throw Env.Except($"{nameof(OptionsBase.TreesColumnName)}, {nameof(OptionsBase.LeavesColumnName)}, and {nameof(OptionsBase.PathsColumnName)} cannot be all null at the same time. " +
-                    $"At least one output column name should be provided so at least one output column may be generated.");
+                throw Env.Except(Strings.AtLeastOneTreeOutputColumnMustBeSpecified);
 
             FeatureColumnName = options.InputColumnName;
             TreesColumnName = options.TreesColumnName;

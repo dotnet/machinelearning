@@ -121,7 +121,7 @@ namespace Microsoft.ML.Transforms.Text
         {
             var type = inputSchema[srcCol].Type;
             if (!TokenizingByCharactersEstimator.IsColumnTypeValid(type))
-                throw Host.ExceptParam(nameof(inputSchema), TokenizingByCharactersEstimator.ExpectedColumnType);
+                throw Host.ExceptParam(nameof(inputSchema), Strings.String);
         }
 
         private TokenizingByCharactersTransformer(IHost host, ModelLoadContext ctx) :

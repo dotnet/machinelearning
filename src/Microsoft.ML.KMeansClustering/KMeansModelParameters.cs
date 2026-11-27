@@ -75,9 +75,9 @@ namespace Microsoft.ML.Trainers
         internal KMeansModelParameters(IHostEnvironment env, int k, VBuffer<float>[] centroids, bool copyIn)
             : base(env, LoaderSignature)
         {
-            Host.CheckParam(k > 0, nameof(k), "Need at least one cluster");
-            Host.CheckParam(Utils.Size(centroids) >= k, nameof(centroids), "Not enough centroids for predictor initialization");
-            Host.CheckParam(centroids[0].Length > 0, nameof(centroids), "Centroid vectors should have at least one length");
+            Host.CheckParam(k > 0, nameof(k), Strings.NeedAtLeastOneCluster);
+            Host.CheckParam(Utils.Size(centroids) >= k, nameof(centroids), Strings.NotEnoughCentroidsForPredictorInitialization);
+            Host.CheckParam(centroids[0].Length > 0, nameof(centroids), Strings.CentroidVectorsShouldHaveAtLeastOneLength);
 
             _k = k;
             _dimensionality = centroids[0].Length;
@@ -87,9 +87,9 @@ namespace Microsoft.ML.Trainers
             for (int i = 0; i < _k; i++)
             {
                 Host.CheckParam(centroids[i].Length == _dimensionality,
-                    nameof(centroids), "Inconsistent dimensions found among centroids");
+                    nameof(centroids), Strings.InconsistentDimensionsFoundAmongCentroids);
                 Host.CheckParam(FloatUtils.IsFinite(centroids[i].GetValues()),
-                    nameof(centroids), "Cannot initialize K-means predictor with non-finite centroid coordinates");
+                    nameof(centroids), Strings.CannotInitializeKMeansPredictorWithNonFiniteCentroidCoordinates);
                 if (copyIn)
                     centroids[i].CopyTo(ref _centroids[i]);
                 else
@@ -153,7 +153,7 @@ namespace Microsoft.ML.Trainers
                 (in VBuffer<float> src, ref VBuffer<float> dst) =>
                 {
                     if (src.Length != _dimensionality)
-                        throw Host.Except($"Incorrect number of features: expected {_dimensionality}, got {src.Length}");
+                        throw Host.Except(string.Format(Strings.IncorrectNumberOfFeaturesExpectedGot, _dimensionality, src.Length));
                     var editor = VBufferEditor.Create(ref dst, _k);
                     Map(in src, editor.Values);
                     dst = editor.Commit();

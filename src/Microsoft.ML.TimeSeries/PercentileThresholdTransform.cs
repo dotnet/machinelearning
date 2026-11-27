@@ -67,8 +67,8 @@ namespace Microsoft.ML.Transforms.TimeSeries
         public PercentileThresholdTransform(IHostEnvironment env, Arguments args, IDataView input)
             : base(args.WindowSize, args.WindowSize, args.Name, args.Source, LoaderSignature, env, input)
         {
-            Host.CheckUserArg(args.WindowSize >= 1, nameof(args.WindowSize), "The size of the sliding window should be at least 1.");
-            Host.CheckUserArg(MinPercentile <= args.Percentile && args.Percentile <= MaxPercentile, nameof(args.Percentile), "The percentile value should be in [0, 100].");
+            Host.CheckUserArg(args.WindowSize >= 1, nameof(args.WindowSize), Strings.SlidingWindowSizeMustBePositive);
+            Host.CheckUserArg(MinPercentile <= args.Percentile && args.Percentile <= MaxPercentile, nameof(args.Percentile), Strings.PercentileValueShouldBeBetweenZeroAndOneHundredInclusive);
             _percentile = args.Percentile;
         }
 

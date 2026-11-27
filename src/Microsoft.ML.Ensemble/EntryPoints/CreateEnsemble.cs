@@ -151,7 +151,7 @@ namespace Microsoft.ML.Trainers.Ensemble
                     args.OutputCombiner = new VotingFactory();
                     break;
                 default:
-                    throw host.Except("Unknown combiner kind");
+                    throw host.Except(Strings.UnknownCombinerKind);
             }
 
             var trainer = new EnsembleTrainer(host, args);
@@ -183,7 +183,7 @@ namespace Microsoft.ML.Trainers.Ensemble
                     args.OutputCombiner = new AverageFactory();
                     break;
                 default:
-                    throw host.Except("Unknown combiner kind");
+                    throw host.Except(Strings.UnknownCombinerKind);
             }
 
             var trainer = new RegressionEnsembleTrainer(host, args);
@@ -216,7 +216,7 @@ namespace Microsoft.ML.Trainers.Ensemble
                     combiner = new Voting(host);
                     break;
                 default:
-                    throw host.Except("Unknown combiner kind");
+                    throw host.Except(Strings.UnknownCombinerKind);
             }
             var ensemble = SchemaBindablePipelineEnsembleBase.Create(host, input.Models, combiner, AnnotationUtils.Const.ScoreColumnKind.BinaryClassification);
             return CreatePipelineEnsemble<CommonOutputs.BinaryClassificationOutput>(host, input.Models, ensemble);
@@ -240,7 +240,7 @@ namespace Microsoft.ML.Trainers.Ensemble
                     combiner = new Average(host);
                     break;
                 default:
-                    throw host.Except("Unknown combiner kind");
+                    throw host.Except(Strings.UnknownCombinerKind);
             }
             var ensemble = SchemaBindablePipelineEnsembleBase.Create(host, input.Models, combiner, AnnotationUtils.Const.ScoreColumnKind.Regression);
             return CreatePipelineEnsemble<CommonOutputs.RegressionOutput>(host, input.Models, ensemble);
@@ -267,7 +267,7 @@ namespace Microsoft.ML.Trainers.Ensemble
                     combiner = new MultiVoting(host);
                     break;
                 default:
-                    throw host.Except("Unknown combiner kind");
+                    throw host.Except(Strings.UnknownCombinerKind);
             }
             var ensemble = SchemaBindablePipelineEnsembleBase.Create(host, input.Models, combiner, AnnotationUtils.Const.ScoreColumnKind.MulticlassClassification);
             return CreatePipelineEnsemble<CommonOutputs.MulticlassClassificationOutput>(host, input.Models, ensemble);
@@ -291,7 +291,7 @@ namespace Microsoft.ML.Trainers.Ensemble
                     combiner = new Average(host);
                     break;
                 default:
-                    throw host.Except("Unknown combiner kind");
+                    throw host.Except(Strings.UnknownCombinerKind);
             }
             var ensemble = SchemaBindablePipelineEnsembleBase.Create(host, input.Models, combiner, AnnotationUtils.Const.ScoreColumnKind.AnomalyDetection);
             return CreatePipelineEnsemble<CommonOutputs.AnomalyDetectionOutput>(host, input.Models, ensemble);
@@ -366,7 +366,7 @@ namespace Microsoft.ML.Trainers.Ensemble
             if (dataZipEntryNames.Length != dataSerialized.Length)
             {
                 throw ch.ExceptParam(nameof(dataSerialized),
-                    $"The length of {nameof(dataSerialized)} must be equal to the length of {nameof(dataZipEntryNames)}");
+                    Strings.SerializedDataAndEntryNameCountsMustMatch);
             }
 
             using (var ms = new MemoryStream())

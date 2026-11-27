@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -43,7 +43,7 @@ namespace Microsoft.ML.Tokenizers
 
             if (!File.Exists(vocabFile))
             {
-                throw new ArgumentException($"Could not find the vocabulary file '{vocabFile}'.");
+                throw new ArgumentException(string.Format(Strings.CouldNotFindTheVocabularyFile, vocabFile));
             }
 
             using Stream vocabStream = File.OpenRead(vocabFile);
@@ -51,7 +51,7 @@ namespace Microsoft.ML.Tokenizers
 
             if (dictionary is null)
             {
-                throw new InvalidOperationException($"The content of the vocabulary file '{vocabFile}' is not valid.");
+                throw new InvalidOperationException(string.Format(Strings.TheContentOfTheVocabularyFileIsNotValid, vocabFile));
             }
 
             Vocabulary = dictionary;
@@ -60,7 +60,7 @@ namespace Microsoft.ML.Tokenizers
             {
                 if (!File.Exists(mergesFile))
                 {
-                    throw new ArgumentException($"Could not find the merges file '{mergesFile}'.");
+                    throw new ArgumentException(string.Format(Strings.CouldNotFindTheMergesFile, mergesFile));
                 }
 
                 using Stream mergesStream = File.OpenRead(mergesFile);

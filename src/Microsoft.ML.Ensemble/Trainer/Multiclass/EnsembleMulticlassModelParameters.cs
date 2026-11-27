@@ -71,13 +71,13 @@ namespace Microsoft.ML.Trainers.Ensemble
             {
                 var vm = Models[i].Predictor as IValueMapper;
                 if (!IsValid(vm, out VectorDataViewType vmInputType, out VectorDataViewType vmOutputType))
-                    throw Host.Except("Predictor does not implement expected interface");
+                    throw Host.Except(Strings.PredictorDoesNotImplementExpectedInterface);
                 if (vmInputType.Size > 0)
                 {
                     if (inputType == null)
                         inputType = vmInputType;
                     else if (vmInputType.Size != inputType.Size)
-                        throw Host.Except("Predictor input type mismatch");
+                        throw Host.Except(Strings.PredictorInputTypeMismatch);
                 }
 
                 if (outputType == null || vmOutputType.Size > outputType.Size)

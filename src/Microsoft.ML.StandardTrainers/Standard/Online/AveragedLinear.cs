@@ -306,15 +306,15 @@ namespace Microsoft.ML.Trainers
         private protected AveragedLinearTrainer(AveragedLinearOptions options, IHostEnvironment env, string name, SchemaShape.Column label)
             : base(options, env, name, label)
         {
-            Contracts.CheckUserArg(options.LearningRate > 0, nameof(options.LearningRate), UserErrorPositive);
-            Contracts.CheckUserArg(!options.ResetWeightsAfterXExamples.HasValue || options.ResetWeightsAfterXExamples > 0, nameof(options.ResetWeightsAfterXExamples), UserErrorPositive);
+            Contracts.CheckUserArg(options.LearningRate > 0, nameof(options.LearningRate), Strings.MustBePositive);
+            Contracts.CheckUserArg(!options.ResetWeightsAfterXExamples.HasValue || options.ResetWeightsAfterXExamples > 0, nameof(options.ResetWeightsAfterXExamples), Strings.MustBePositive);
 
             // Weights are scaled down by 2 * L2 regularization on each update step, so 0.5 would scale all weights to 0, which is not sensible.
-            Contracts.CheckUserArg(0 <= options.L2Regularization && options.L2Regularization < 0.5, nameof(options.L2Regularization), "must be in range [0, 0.5)");
-            Contracts.CheckUserArg(options.RecencyGain >= 0, nameof(options.RecencyGain), UserErrorNonNegative);
-            Contracts.CheckUserArg(options.AveragedTolerance >= 0, nameof(options.AveragedTolerance), UserErrorNonNegative);
+            Contracts.CheckUserArg(0 <= options.L2Regularization && options.L2Regularization < 0.5, nameof(options.L2Regularization), Strings.MustBeAtLeastZeroAndLessThanOneHalf);
+            Contracts.CheckUserArg(options.RecencyGain >= 0, nameof(options.RecencyGain), Strings.MustBeNonNegative);
+            Contracts.CheckUserArg(options.AveragedTolerance >= 0, nameof(options.AveragedTolerance), Strings.MustBeNonNegative);
             // Verify user didn't specify parameters that conflict
-            Contracts.Check(!options.LazyUpdate || !options.RecencyGainMultiplicative && options.RecencyGain == 0, "Cannot have both recency gain and lazy updates.");
+            Contracts.Check(!options.LazyUpdate || !options.RecencyGainMultiplicative && options.RecencyGain == 0, Strings.CannotHaveBothRecencyGainAndLazyUpdates);
 
             AveragedLinearTrainerOptions = options;
         }

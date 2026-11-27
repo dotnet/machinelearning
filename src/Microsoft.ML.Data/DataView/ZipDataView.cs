@@ -64,7 +64,7 @@ namespace Microsoft.ML.Data
                 var cur = source.GetRowCount();
                 if (cur == null)
                     return null;
-                _host.Check(cur.Value >= 0, "One of the sources returned a negative row count");
+                _host.Check(cur.Value >= 0, Strings.OneOfTheSourcesReturnedANegativeRowCount);
                 if (min < 0 || min > cur.Value)
                     min = cur.Value;
             }
@@ -143,7 +143,7 @@ namespace Microsoft.ML.Data
                 return
                     (ref DataViewRowId val) =>
                     {
-                        Ch.Check(IsGood, RowCursorUtils.FetchValueStateError);
+                        Ch.Check(IsGood, Strings.ValuesUnavailableOutsideCursorPosition);
                         val = new DataViewRowId((ulong)Position, 0);
                     };
             }

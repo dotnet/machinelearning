@@ -185,7 +185,7 @@ namespace Microsoft.ML.Model.Pfa
         {
             Contracts.CheckValue(name, nameof(name));
             if (ContainsCell(name))
-                throw Contracts.ExceptParam(nameof(name), $"Cell {name} already exists");
+                throw Contracts.ExceptParam(nameof(name), string.Format(Strings.CellAlreadyExists, name));
             Contracts.CheckValue(type, nameof(type));
             Contracts.CheckValue(init, nameof(init));
             _cellBlocks.Add(new CellBlock(name, type, init));

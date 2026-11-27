@@ -165,7 +165,7 @@ namespace Microsoft.ML.Numeric
         /// <param name="result">Approximate minimum of <paramref name="f"/></param>
         public void Minimize(DStochasticGradient f, ref VBuffer<float> initial, ref VBuffer<float> result)
         {
-            Contracts.Check(FloatUtils.IsFinite(initial.GetValues()), "The initial vector contains NaNs or infinite values.");
+            Contracts.Check(FloatUtils.IsFinite(initial.GetValues()), Strings.TheInitialVectorContainsNaNsOrInfiniteValues);
             int dim = initial.Length;
 
             VBuffer<float> grad = VBufferUtils.CreateEmpty<float>(dim);
@@ -362,7 +362,7 @@ namespace Microsoft.ML.Numeric
         /// <param name="result">Approximate minimum</param>
         public void Minimize(DifferentiableFunction function, in VBuffer<float> initial, ref VBuffer<float> result)
         {
-            Contracts.Check(FloatUtils.IsFinite(initial.GetValues()), "The initial vector contains NaNs or infinite values.");
+            Contracts.Check(FloatUtils.IsFinite(initial.GetValues()), Strings.TheInitialVectorContainsNaNsOrInfiniteValues);
             LineFunc lineFunc = new LineFunc(function, in initial, UseCG);
             VBuffer<float> prev = default(VBuffer<float>);
             initial.CopyTo(ref prev);

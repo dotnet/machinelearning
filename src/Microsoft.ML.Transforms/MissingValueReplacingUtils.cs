@@ -47,7 +47,7 @@ namespace Microsoft.ML.Transforms
                 // Imputation by slot.
                 // REVIEW: It may be more appropriate to have a warning here instead.
                 if (vectorType.Size == 0)
-                    throw ch.Except("Imputation by slot is not allowed for vectors of unknown size.");
+                    throw ch.Except(Strings.SlotImputationRequiresKnownVectorSize);
 
                 if (kind == ReplacementKind.Mean)
                 {
@@ -97,8 +97,7 @@ namespace Microsoft.ML.Transforms
                 }
             }
             ch.Assert(false);
-            throw ch.Except("Internal error, unrecognized imputation method ReplacementKind '{0}' or unrecognized type '{1}' " +
-                "assigned in NAReplaceTransform.", kind, type);
+            throw ch.Except(Strings.UnrecognizedImputationMethodOrTypeInNAReplaceTransform, kind, type);
         }
 
         private static DataViewRowId Add(DataViewRowId left, ulong right)

@@ -51,14 +51,14 @@ namespace Microsoft.ML.Trainers.FastTree
                     tempDeltaList.Add(delta);
 
                 if (_length != length)
-                    throw Contracts.Except("Length provided to repeat vector is inconsistent with value enumeration");
+                    throw Contracts.Except(Strings.LengthProvidedToRepeatVectorIsInconsistentWithValueEnumeration);
 
                 // It is faster not to use a 4-bit dense array here. The memory difference is minor, since it's just
                 //  the sparse values that are saved on.
                 // TODO: Implement a special iterator for 4-bit array, and change this code to use the iterator, which
                 //          may be faster
                 if (bitsPerItem == IntArrayBits.Bits0)
-                    throw Contracts.Except("Use dense arrays for 0 bits");
+                    throw Contracts.Except(Strings.UseDenseArraysFor0Bits);
                 if (bitsPerItem <= IntArrayBits.Bits8)
                     bitsPerItem = IntArrayBits.Bits8;
 
@@ -75,7 +75,7 @@ namespace Microsoft.ML.Trainers.FastTree
             _deltasActualLength = length;
 
             if (BitsPerItem == IntArrayBits.Bits0)
-                throw Contracts.Except("Use dense arrays for 0 bits");
+                throw Contracts.Except(Strings.UseDenseArraysFor0Bits);
         }
 
         public DeltaRepeatIntArray(byte[] buffer, ref int position)

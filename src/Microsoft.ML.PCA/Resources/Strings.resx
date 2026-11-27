@@ -1,0 +1,47 @@
+﻿<?xml version='1.0' encoding='utf-8'?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="EmptyDataInColumn" xml:space="preserve">
+    <value>Empty data in column '{0}'</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.PCA/PcaTransformer.cs:455.</comment>
+  </data>
+  <data name="EmptyTrainingData" xml:space="preserve">
+    <value>Empty training data</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.PCA/PcaTrainer.cs:333.</comment>
+  </data>
+  <data name="OversamplingMustBeNonNegative" xml:space="preserve">
+    <value>Oversampling must be non-negative</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.PCA/PcaTrainer.cs:182. Exception or validation message. Source: src/Microsoft.ML.PCA/PcaTransformer.cs:768.</comment>
+  </data>
+  <data name="RankCannotBeLargerThanTheOriginalDimension" xml:space="preserve">
+    <value>Rank ({0}) cannot be larger than the original dimension ({1})</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.PCA/PcaTrainer.cs:217.</comment>
+  </data>
+  <data name="PcaRankOutOfRange" xml:space="preserve">
+    <value>Rank must be positive, and at most the dimension of untransformed data</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.PCA/PcaTransformer.cs:112.</comment>
+  </data>
+  <data name="RankMustBePositive" xml:space="preserve">
+    <value>Rank must be positive.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.PCA/PcaTransformer.cs:769. Exception or validation message. Source: src/Microsoft.ML.PCA/PcaTrainer.cs:181.</comment>
+  </data>
+  <data name="LearnedEigenvectorsContainNaN" xml:space="preserve">
+    <value>The learnt eigenvectors contained NaN values, consider modifying the dataset or lower the rank or oversampling parameters</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.PCA/PcaTrainer.cs:466.</comment>
+  </data>
+  <data name="WeightColumnDoesNotExist" xml:space="preserve">
+    <value>Weight column '{0}' does not exist.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.PCA/PcaTransformer.cs:533.</comment>
+  </data>
+</root>

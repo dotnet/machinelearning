@@ -1,0 +1,100 @@
+﻿<?xml version='1.0' encoding='utf-8'?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="ActivationFunctionNotSupported" xml:space="preserve">
+    <value>Activation function {0} not supported.</value>
+    <comment>Exception or validation message. Placeholders: {0}=name. Source: src/Microsoft.ML.TorchSharp/NasBert/Modules/ActivationFunction.cs:28.</comment>
+  </data>
+  <data name="AllNonZeroHiddenDimensionsShouldBeTheSame" xml:space="preserve">
+    <value>all non-zero hidden dimensions should be the same.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.TorchSharp/NasBert/Modules/SearchSpace.cs:35.</comment>
+  </data>
+  <data name="EmbeddingDimMustBeDivisibleByNumHeads" xml:space="preserve">
+    <value>EmbeddingDim must be divisible by NumHeads</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.TorchSharp/NasBert/Modules/MultiHeadAttention.cs:77.</comment>
+  </data>
+  <data name="MoveEosToBeginningRequiresEosIndex" xml:space="preserve">
+    <value>eosIndex must not be null or negative when moveEosToBeginning is true.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.TorchSharp/Utils/DataUtils.cs:63.</comment>
+  </data>
+  <data name="FallbackToCPUIsFalseButNoGPUDetected" xml:space="preserve">
+    <value>Fallback to CPU is false but no GPU detected</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.TorchSharp/Utils/TorchUtils.cs:41.</comment>
+  </data>
+  <data name="InconsistentCapacityWhenCopyingTensorGotAnd" xml:space="preserve">
+    <value>Inconsistent capacity when copying tensor, got {0} and {1}.</value>
+    <comment>Exception or validation message. Placeholders: {0}=src.numel(), {1}=dst.numel(). Source: src/Microsoft.ML.TorchSharp/Utils/DataUtils.cs:57.</comment>
+  </data>
+  <data name="InvalidArguments" xml:space="preserve">
+    <value>Invalid arguments: {0}.</value>
+    <comment>Exception or validation message. Placeholders: {0}=param. Source: src/Microsoft.ML.TorchSharp/NasBert/Modules/Layers/EncConvLayer.cs:50.</comment>
+  </data>
+  <data name="InvalidArgumentsVariant2" xml:space="preserve">
+    <value>Invalid arguments.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.TorchSharp/NasBert/Modules/Layers/SelfAttentionLayer.cs:61.</comment>
+  </data>
+  <data name="ModelFileCouldNotBeDownloaded" xml:space="preserve">
+    <value>{0}
+model file could not be downloaded!</value>
+    <comment>Exception or validation message. Placeholders: {0}=errorMessage. Source: src/Microsoft.ML.TorchSharp/AutoFormerV2/ObjectDetectionTrainer.cs:278. Exception or validation message. Placeholders: {0}=errorMessage. Source: src/Microsoft.ML.TorchSharp/Roberta/QATrainer.cs:262. Exception or validation message. Placeholders: {0}=errorMessage. Source: src/Microsoft.ML.TorchSharp/TorchSharpBaseTrainer.cs:188.</comment>
+  </data>
+  <data name="NumAttentionHeadsMustBeAFactorOfHiddenSizeGotAnd" xml:space="preserve">
+    <value>NumAttentionHeads must be a factor of hiddenSize, got {0} and {1}.</value>
+    <comment>Exception or validation message. Placeholders: {0}=numAttentionHeads, {1}=hiddenSize. Source: src/Microsoft.ML.TorchSharp/Roberta/Modules/AttentionSelf.cs:34.</comment>
+  </data>
+  <data name="PrevKeyAndPrevValueAreOnlyValidInEncoderDecoderAttention" xml:space="preserve">
+    <value>prevKey and prevValue are only valid in encoder-decoder attention.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.TorchSharp/NasBert/Modules/MultiHeadAttention.cs:187.</comment>
+  </data>
+  <data name="MultiHeadAttentionQueryShapeInvalid" xml:space="preserve">
+    <value>query must NOT be null and must be 3D in multi-head attention;the last dimension should be the same as embedding dimension.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.TorchSharp/NasBert/Modules/MultiHeadAttention.cs:164.</comment>
+  </data>
+  <data name="SelfAttentionInputSizesMustMatch" xml:space="preserve">
+    <value>Self-attention requires query, key and value to be of the same size</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.TorchSharp/NasBert/Modules/MultiHeadAttention.cs:84.</comment>
+  </data>
+  <data name="StreamMustBeReadable" xml:space="preserve">
+    <value>Stream should be non-null and its stream.CanRead property should be true.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.TorchSharp/Utils/FileUtils.cs:46.</comment>
+  </data>
+  <data name="TheInputTokenizerIsNotUsingTheEnglishRobertaModel" xml:space="preserve">
+    <value>The input tokenizer is not using the EnglishRoberta model.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.TorchSharp/Extensions/TokenizerExtensions.cs:46.</comment>
+  </data>
+  <data name="UnexpectedEndOfStream" xml:space="preserve">
+    <value>The number of bytes read from stream is less than expected. Please check the data files.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.TorchSharp/Utils/FileUtils.cs:59.</comment>
+  </data>
+  <data name="ThisShouldNeverBeCalled" xml:space="preserve">
+    <value>This should never be called!</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.TorchSharp/AutoFormerV2/ObjectDetectionTrainer.cs:791. Exception or validation message. Source: src/Microsoft.ML.TorchSharp/NasBert/NasBertTrainer.cs:567. Exception or validation message. Source: src/Microsoft.ML.TorchSharp/Roberta/QATrainer.cs:762. Exception or validation message. Source: src/Microsoft.ML.TorchSharp/TorchSharpBaseTrainer.cs:486.</comment>
+  </data>
+  <data name="TypeNotSupportedInDataLoading" xml:space="preserve">
+    <value>Type {0} not supported in data loading.</value>
+    <comment>Exception or validation message. Placeholders: {0}=typeof(T). Source: src/Microsoft.ML.TorchSharp/Utils/FileUtils.cs:50.</comment>
+  </data>
+  <data name="Unmatched" xml:space="preserve">
+    <value>unmatched!</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.TorchSharp/Roberta/QATrainer.cs:494.</comment>
+  </data>
+  <data name="UnsupportedLayerIndexMustBeAtLeastZeroAndLessThanUpperBound" xml:space="preserve">
+    <value>Unsupported layer index {0}. Expected to be within [0, {1}).</value>
+    <comment>Exception or validation message. Placeholders: {0}=layerIndex, {1}=NumLayerChoices. Source: src/Microsoft.ML.TorchSharp/NasBert/Modules/SearchSpace.cs:222.</comment>
+  </data>
+  <data name="UnknownLabelNameSerializationType" xml:space="preserve">
+    <value>We do not know how to serialize label names of type '{0}'</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.TorchSharp/AutoFormerV2/ObjectDetectionTrainer.cs:644. Exception or validation message. Source: src/Microsoft.ML.TorchSharp/NasBert/NerTrainer.cs:295. Exception or validation message. Source: src/Microsoft.ML.TorchSharp/NasBert/TextClassificationTrainer.cs:232.</comment>
+  </data>
+</root>

@@ -74,10 +74,10 @@ namespace Microsoft.ML.CodeGenerator.CSharp
                     case TrainerName.FastTreeRanking:
                         return new FastTreeRanking(node);
                     default:
-                        throw new ArgumentException($"The trainer '{trainer}' is not handled currently.");
+                        throw new ArgumentException(string.Format(Strings.TheTrainerIsNotHandledCurrently, trainer));
                 }
             }
-            throw new ArgumentException($"The trainer '{node.Name}' is not handled currently.");
+            throw new ArgumentException(string.Format(Strings.TheTrainerIsNotHandledCurrently, node.Name));
         }
     }
 }

@@ -161,7 +161,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 case AlertingScore.MartingaleScore:
                     return 4;
                 default:
-                    throw host.Except("The alerting score can be only (0) RawScore, (1) PValueScore or (2) MartingaleScore.");
+                    throw host.Except(Strings.AlertingScoreOutOfRange);
             }
         }
 
@@ -170,16 +170,15 @@ namespace Microsoft.ML.Transforms.TimeSeries
             Double alertThreshold)
             : base(Contracts.CheckRef(env, nameof(env)).Register(name), windowSize, initialWindowSize, outputColumnName, inputColumnName, new VectorDataViewType(NumberDataViewType.Double, GetOutputLength(alertingScore, env)))
         {
-            Host.CheckUserArg(Enum.IsDefined(typeof(MartingaleType), martingale), nameof(ArgumentsBase.Martingale), "Value is undefined.");
-            Host.CheckUserArg(Enum.IsDefined(typeof(AnomalySide), anomalySide), nameof(ArgumentsBase.Side), "Value is undefined.");
-            Host.CheckUserArg(Enum.IsDefined(typeof(AlertingScore), alertingScore), nameof(ArgumentsBase.AlertOn), "Value is undefined.");
-            Host.CheckUserArg(martingale != MartingaleType.None || alertingScore != AlertingScore.MartingaleScore, nameof(ArgumentsBase.Martingale), "A martingale type should be specified if alerting is based on the martingale score.");
+            Host.CheckUserArg(Enum.IsDefined(typeof(MartingaleType), martingale), nameof(ArgumentsBase.Martingale), Strings.ValueIsUndefined);
+            Host.CheckUserArg(Enum.IsDefined(typeof(AnomalySide), anomalySide), nameof(ArgumentsBase.Side), Strings.ValueIsUndefined);
+            Host.CheckUserArg(Enum.IsDefined(typeof(AlertingScore), alertingScore), nameof(ArgumentsBase.AlertOn), Strings.ValueIsUndefined);
+            Host.CheckUserArg(martingale != MartingaleType.None || alertingScore != AlertingScore.MartingaleScore, nameof(ArgumentsBase.Martingale), Strings.AlertingByMartingaleRequiresMartingaleType);
             Host.CheckUserArg(windowSize > 0 || alertingScore == AlertingScore.RawScore, nameof(ArgumentsBase.AlertOn),
-                "When there is no windowed buffering (i.e., " + nameof(ArgumentsBase.WindowSize) + " = 0), the alert can be generated only based on the raw score (i.e., "
-                + nameof(ArgumentsBase.AlertOn) + " = " + nameof(AlertingScore.RawScore) + ")");
-            Host.CheckUserArg(0 < powerMartingaleEpsilon && powerMartingaleEpsilon < 1, nameof(ArgumentsBase.PowerMartingaleEpsilon), "Should be in (0,1).");
-            Host.CheckUserArg(alertThreshold >= 0, nameof(ArgumentsBase.AlertThreshold), "Must be non-negative.");
-            Host.CheckUserArg(alertingScore != AlertingScore.PValueScore || (0 <= alertThreshold && alertThreshold <= 1), nameof(ArgumentsBase.AlertThreshold), "Must be in [0,1].");
+                Strings.WindowlessAlertingRequiresRawScore);
+            Host.CheckUserArg(0 < powerMartingaleEpsilon && powerMartingaleEpsilon < 1, nameof(ArgumentsBase.PowerMartingaleEpsilon), Strings.ShouldBeGreaterThanZeroAndLessThanOne);
+            Host.CheckUserArg(alertThreshold >= 0, nameof(ArgumentsBase.AlertThreshold), Strings.MustBeNonNegative);
+            Host.CheckUserArg(alertingScore != AlertingScore.PValueScore || (0 <= alertThreshold && alertThreshold <= 1), nameof(ArgumentsBase.AlertThreshold), Strings.MustBeBetweenZeroAndOneInclusive);
 
             ThresholdScore = alertingScore;
             Side = anomalySide;

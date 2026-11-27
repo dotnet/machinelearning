@@ -99,8 +99,8 @@
     <SystemCollectionsImmutableTestVersion>10.0.0</SystemCollectionsImmutableTestVersion>
     <SystemDataSQLiteCoreVersion>1.0.118</SystemDataSQLiteCoreVersion>
     <XunitCombinatorialVersion>1.6.24</XunitCombinatorialVersion>
-    <!-- Opt-out repo features -->
-    <UsingToolXliff>false</UsingToolXliff>
+    <!-- Arcade localization tooling -->
+    <UsingToolXliff>true</UsingToolXliff>
   </PropertyGroup>
   <!-- Manually updated dependencies coming from maintenance-packages -->
   <PropertyGroup>

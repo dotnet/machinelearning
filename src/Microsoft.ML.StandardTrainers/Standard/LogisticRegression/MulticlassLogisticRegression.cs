@@ -273,7 +273,7 @@ namespace Microsoft.ML.Trainers
                 editor.Values[c] += mult;
             }
 
-            Contracts.Check(FloatUtils.IsFinite(datumLoss), "Data contain bad values.");
+            Contracts.Check(FloatUtils.IsFinite(datumLoss), Strings.DataContainBadValues);
             return weight * datumLoss;
         }
 
@@ -285,7 +285,7 @@ namespace Microsoft.ML.Trainers
 
             // REVIEW: Support initializing the weights of a superset of features.
             if (pred.InputType.GetVectorSize() != NumFeatures)
-                throw Contracts.Except("The input training data must have the same features used to train the input predictor.");
+                throw Contracts.Except(Strings.TrainingFeaturesMustMatchInputPredictor);
 
             return InitializeWeights(pred.DenseWeightsEnumerable(), pred.GetBiases());
         }
@@ -293,7 +293,7 @@ namespace Microsoft.ML.Trainers
         private protected override MaximumEntropyModelParameters CreatePredictor()
         {
             if (_numClasses < 1)
-                throw Contracts.Except("Cannot create a multiclass predictor with {0} classes", _numClasses);
+                throw Contracts.Except(Strings.CannotCreateAMulticlassPredictorWithClasses, _numClasses);
             if (_numClasses == 1)
             {
                 using (var ch = Host.Start("Creating Predictor"))
@@ -502,9 +502,9 @@ namespace Microsoft.ML.Trainers
         {
             Contracts.CheckValue(weights, nameof(weights));
             Contracts.CheckValue(bias, nameof(bias));
-            Contracts.CheckParam(numClasses >= 2, nameof(numClasses), "Must be at least 2.");
+            Contracts.CheckParam(numClasses >= 2, nameof(numClasses), Strings.MustBeAtLeast2);
             NumberOfClasses = numClasses;
-            Contracts.CheckParam(numFeatures >= 1, nameof(numFeatures), "Must be positive.");
+            Contracts.CheckParam(numFeatures >= 1, nameof(numFeatures), Strings.MustBePositive);
             NumberOfFeatures = numFeatures;
             Contracts.Check(Utils.Size(weights) == NumberOfClasses);
             Contracts.Check(Utils.Size(bias) == NumberOfClasses);
@@ -766,8 +766,8 @@ namespace Microsoft.ML.Trainers
 
         ValueMapper<TSrc, TDst> IValueMapper.GetMapper<TSrc, TDst>()
         {
-            Host.Check(typeof(TSrc) == typeof(VBuffer<float>), "Invalid source type in GetMapper");
-            Host.Check(typeof(TDst) == typeof(VBuffer<float>), "Invalid destination type in GetMapper");
+            Host.Check(typeof(TSrc) == typeof(VBuffer<float>), Strings.InvalidSourceTypeInGetMapper);
+            Host.Check(typeof(TDst) == typeof(VBuffer<float>), Strings.InvalidDestinationTypeInGetMapper);
 
             ValueMapper<VBuffer<float>, VBuffer<float>> del =
                 (in VBuffer<float> src, ref VBuffer<float> dst) =>
@@ -781,7 +781,7 @@ namespace Microsoft.ML.Trainers
 
         private void PredictCore(in VBuffer<float> src, ref VBuffer<float> dst)
         {
-            Host.Check(src.Length == NumberOfFeatures, "src length should equal the number of features");
+            Host.Check(src.Length == NumberOfFeatures, Strings.SrcLengthShouldEqualTheNumberOfFeatures);
             var weights = Weights;
             if (!src.IsDense)
                 weights = DensifyWeights();

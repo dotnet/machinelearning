@@ -54,7 +54,7 @@ namespace Microsoft.ML.Numeric
         public GradientCheckingMonitor(ITerminationCriterion termCrit, int gradientCheckInterval)
         {
             Contracts.CheckParam(gradientCheckInterval > 0, nameof(gradientCheckInterval),
-                "gradientCheckInterval must be positive.");
+                Strings.GradientCheckIntervalMustBePositive);
 
             _termCrit = termCrit;
             _gradCheckInterval = gradientCheckInterval;

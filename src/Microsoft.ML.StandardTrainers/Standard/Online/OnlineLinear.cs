@@ -123,7 +123,7 @@ namespace Microsoft.ML.Trainers
             protected TrainStateBase(IChannel ch, int numFeatures, LinearModelParameters predictor, OnlineLinearTrainer<TTransformer, TModel> parent)
             {
                 Contracts.CheckValue(ch, nameof(ch));
-                ch.Check(numFeatures > 0, "Cannot train with zero features!");
+                ch.Check(numFeatures > 0, Strings.CannotTrainWithZeroFeatures);
                 ch.AssertValueOrNull(predictor);
                 ch.AssertValue(parent);
                 ch.Assert(Iteration == 0);
@@ -148,7 +148,7 @@ namespace Microsoft.ML.Trainers
                     if (weightStr.Length != numFeatures + 1)
                     {
                         throw ch.Except(
-                            "Could not initialize weights from 'initialWeights': expecting {0} values to initialize {1} weights and the intercept",
+                            Strings.InitialWeightsCountDoesNotMatchModel,
                             numFeatures + 1, numFeatures);
                     }
 
@@ -213,7 +213,7 @@ namespace Microsoft.ML.Trainers
             /// </summary>
             public virtual void FinishIteration(IChannel ch)
             {
-                Contracts.Check(NumIterExamples > 0, NoTrainingInstancesMessage);
+                Contracts.Check(NumIterExamples > 0, Strings.NoValidTrainingInstancesFoundAllInstancesHaveMissingFeatures);
 
                 ch.Trace("{0} Finished training iteration {1}; iterated over {2} examples.",
                     DateTime.UtcNow, Iteration, NumIterExamples);
@@ -262,8 +262,8 @@ namespace Microsoft.ML.Trainers
             : base(Contracts.CheckRef(env, nameof(env)).Register(name), TrainerUtils.MakeR4VecFeature(options.FeatureColumnName), label, TrainerUtils.MakeR4ScalarWeightColumn(options.InitialWeights))
         {
             Contracts.CheckValue(options, nameof(options));
-            Contracts.CheckUserArg(options.NumberOfIterations > 0, nameof(options.NumberOfIterations), UserErrorPositive);
-            Contracts.CheckUserArg(options.InitialWeightsDiameter >= 0, nameof(options.InitialWeightsDiameter), UserErrorNonNegative);
+            Contracts.CheckUserArg(options.NumberOfIterations > 0, nameof(options.NumberOfIterations), Strings.MustBePositive);
+            Contracts.CheckUserArg(options.InitialWeightsDiameter >= 0, nameof(options.InitialWeightsDiameter), Strings.MustBeNonNegative);
 
             OnlineLinearTrainerOptions = options;
             Name = name;
@@ -282,7 +282,7 @@ namespace Microsoft.ML.Trainers
             {
                 initLinearPred = null;
                 Host.CheckParam(initPredictor == null || initLinearPred != null, nameof(context),
-                    "Initial predictor was not a linear predictor.");
+                    Strings.InitialPredictorWasNotALinearPredictor);
             }
 
             var data = context.TrainingSet;
@@ -297,7 +297,7 @@ namespace Microsoft.ML.Trainers
                 ch.Assert(state.WeightsScale == 1);
                 float maxNorm = Math.Max(VectorUtils.MaxNorm(in state.Weights), Math.Abs(state.Bias));
                 ch.Check(FloatUtils.IsFinite(maxNorm),
-                    "The weights/bias contain invalid values (NaN or Infinite). Potential causes: high learning rates, no normalization, high initial weights, etc.");
+                    Strings.ModelWeightsContainInvalidValues);
                 return state.CreatePredictor();
             }
         }

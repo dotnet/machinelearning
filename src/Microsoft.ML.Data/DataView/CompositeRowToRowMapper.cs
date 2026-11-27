@@ -53,7 +53,7 @@ namespace Microsoft.ML.Data
         {
             Contracts.CheckValue(input, nameof(input));
             Contracts.CheckValue(activeColumns, nameof(activeColumns));
-            Contracts.CheckParam(input.Schema == InputSchema, nameof(input), "Schema did not match original schema");
+            Contracts.CheckParam(input.Schema == InputSchema, nameof(input), Strings.SchemaDidNotMatchOriginalSchema);
 
             var activeIndices = activeColumns.Select(c => c.Index).ToArray();
             if (InnerMappers.Length == 0)
@@ -66,7 +66,7 @@ namespace Microsoft.ML.Data
                     differentActive |= wantsActive != isActive;
 
                     if (wantsActive && !isActive)
-                        throw Contracts.ExceptParam(nameof(input), $"Mapper required column '{input.Schema[c].Name}' active but it was not.");
+                        throw Contracts.ExceptParam(nameof(input), string.Format(Strings.MapperRequiredColumnActiveButItWasNot, input.Schema[c].Name));
                 }
                 return input;
             }

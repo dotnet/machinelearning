@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -70,16 +70,16 @@ namespace Microsoft.ML.Sweeper
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register("Sweeper");
 
-            _host.CheckUserArg(options.NumOfTrees > 0, nameof(options.NumOfTrees), "parameter must be greater than 0");
-            _host.CheckUserArg(options.NMinForSplit > 1, nameof(options.NMinForSplit), "parameter must be greater than 1");
-            _host.CheckUserArg(options.SplitRatio > 0 && options.SplitRatio <= 1, nameof(options.SplitRatio), "parameter must be in range (0,1].");
-            _host.CheckUserArg(options.NumberInitialPopulation > 1, nameof(options.NumberInitialPopulation), "parameter must be greater than 1");
-            _host.CheckUserArg(options.LocalSearchParentCount > 0, nameof(options.LocalSearchParentCount), "parameter must be greater than 0");
-            _host.CheckUserArg(options.NumRandomEISearchConfigurations > 0, nameof(options.NumRandomEISearchConfigurations), "parameter must be greater than 0");
-            _host.CheckUserArg(options.NumNeighborsForNumericalParams > 0, nameof(options.NumNeighborsForNumericalParams), "parameter must be greater than 0");
+            _host.CheckUserArg(options.NumOfTrees > 0, nameof(options.NumOfTrees), Strings.ParameterMustBeGreaterThan0);
+            _host.CheckUserArg(options.NMinForSplit > 1, nameof(options.NMinForSplit), Strings.ParameterMustBeGreaterThan1);
+            _host.CheckUserArg(options.SplitRatio > 0 && options.SplitRatio <= 1, nameof(options.SplitRatio), Strings.ParameterMustBeGreaterThanZeroAndAtMostOne);
+            _host.CheckUserArg(options.NumberInitialPopulation > 1, nameof(options.NumberInitialPopulation), Strings.ParameterMustBeGreaterThan1);
+            _host.CheckUserArg(options.LocalSearchParentCount > 0, nameof(options.LocalSearchParentCount), Strings.ParameterMustBeGreaterThan0);
+            _host.CheckUserArg(options.NumRandomEISearchConfigurations > 0, nameof(options.NumRandomEISearchConfigurations), Strings.ParameterMustBeGreaterThan0);
+            _host.CheckUserArg(options.NumNeighborsForNumericalParams > 0, nameof(options.NumNeighborsForNumericalParams), Strings.ParameterMustBeGreaterThan0);
 
             _args = options;
-            _host.CheckUserArg(Utils.Size(options.SweptParameters) > 0, nameof(options.SweptParameters), "SMAC sweeper needs at least one parameter to sweep over");
+            _host.CheckUserArg(Utils.Size(options.SweptParameters) > 0, nameof(options.SweptParameters), Strings.SMACSweeperNeedsAtLeastOneParameterToSweepOver);
             _sweepParameters = options.SweptParameters.Select(p => p.CreateComponent(_host)).ToArray();
             _randomSweeper = new UniformRandomSweeper(env, new SweeperBase.OptionsBase(), _sweepParameters);
         }
@@ -255,7 +255,7 @@ namespace Microsoft.ML.Sweeper
             }
             catch (Exception e)
             {
-                throw _host.Except(e, "SMAC sweeper localSearch threw exception");
+                throw _host.Except(e, Strings.SMACSweeperLocalSearchThrewException);
             }
         }
 
@@ -307,7 +307,7 @@ namespace Microsoft.ML.Sweeper
                 else
                 {
                     INumericValueGenerator parameterNumeric = sweepParam as INumericValueGenerator;
-                    _host.Check(parameterNumeric != null, "SMAC sweeper can only sweep over discrete and numeric parameters");
+                    _host.Check(parameterNumeric != null, Strings.SMACSweeperCanOnlySweepOverDiscreteAndNumericParameters);
 
                     // Create k neighbors (typically 4) for every numerical parameter.
                     for (int j = 0; j < _args.NumNeighborsForNumericalParams; j++)
@@ -462,7 +462,7 @@ namespace Microsoft.ML.Sweeper
             else
             {
                 var parameterNumeric = sweepParam as INumericValueGenerator;
-                _host.Check(parameterNumeric != null, "SMAC sweeper can only sweep over discrete and numeric parameters");
+                _host.Check(parameterNumeric != null, Strings.SMACSweeperCanOnlySweepOverDiscreteAndNumericParameters);
 
                 // Normalizing all numeric parameters to [0,1] range.
                 return parameterNumeric.NormalizeValue(pset);

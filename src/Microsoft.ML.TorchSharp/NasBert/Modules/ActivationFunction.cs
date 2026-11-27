@@ -25,7 +25,7 @@ namespace Microsoft.ML.TorchSharp.NasBert.Modules
                 "gelu_fast" => new GeLUFast(),
                 "tanh" => torch.nn.Tanh(),
                 "linear" => torch.nn.Identity(),
-                _ => throw new NotSupportedException($"Activation function {name} not supported.")
+                _ => throw new NotSupportedException(string.Format(Strings.ActivationFunctionNotSupported, name))
             };
         }
 

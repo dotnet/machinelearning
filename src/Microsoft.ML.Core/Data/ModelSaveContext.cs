@@ -7,6 +7,7 @@ using System.IO;
 using System.Text;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Runtime;
+using ResourceStrings = Microsoft.ML.Core.Resources.Strings;
 
 namespace Microsoft.ML;
 
@@ -154,7 +155,7 @@ public sealed partial class ModelSaveContext : IDisposable
     [BestFriend]
     internal void SaveTextStream(string name, Action<TextWriter> action)
     {
-        _ectx.Check(InRepository, "Can't save a text stream when writing to a single stream");
+        _ectx.Check(InRepository, ResourceStrings.CannotSaveTextStreamToSingleStream);
         _ectx.CheckNonEmpty(name, nameof(name));
         _ectx.CheckValue(action, nameof(action));
 
@@ -170,7 +171,7 @@ public sealed partial class ModelSaveContext : IDisposable
     [BestFriend]
     internal void SaveBinaryStream(string name, Action<BinaryWriter> action)
     {
-        _ectx.Check(InRepository, "Can't save a text stream when writing to a single stream");
+        _ectx.Check(InRepository, ResourceStrings.CannotSaveTextStreamToSingleStream);
         _ectx.CheckNonEmpty(name, nameof(name));
         _ectx.CheckValue(action, nameof(action));
 
@@ -237,7 +238,7 @@ public sealed partial class ModelSaveContext : IDisposable
     [BestFriend]
     internal void Done()
     {
-        _ectx.Check(Header.ModelSignature != 0, "ModelSignature not specified!");
+        _ectx.Check(Header.ModelSignature != 0, ResourceStrings.ModelSignatureNotSpecified);
         ModelHeader.EndWrite(Writer, FpMin, ref Header, Strings, _loaderAssemblyName);
         Dispose();
     }

@@ -206,7 +206,7 @@ namespace Microsoft.ML.Transforms
                 // We both assert and check. If this fails, there is a bug somewhere (possibly in this code
                 // but more likely in the implementation of Base. On the other hand, we don't want to proceed
                 // if we've received garbage.
-                Host.Check(names.Length == srcVectorType.Size, "Unexpected slot name vector size");
+                Host.Check(names.Length == srcVectorType.Size, Strings.UnexpectedSlotNameVectorSize);
 
                 var sb = new StringBuilder();
                 int slot = 0;

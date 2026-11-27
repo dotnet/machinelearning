@@ -89,7 +89,7 @@ namespace Microsoft.ML.Data
         {
             var column = row.Schema.GetColumnOrNull(name);
             if (!column.HasValue)
-                throw ectx.Except($"Could not find column '{name}'");
+                throw ectx.Except(string.Format(Strings.CouldNotFindColumn, name));
             T val = default;
             row.GetGetter<T>(column.Value)(ref val);
             return val;

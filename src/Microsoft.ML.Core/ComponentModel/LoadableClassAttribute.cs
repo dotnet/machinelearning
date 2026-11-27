@@ -169,16 +169,16 @@ internal abstract class LoadableClassAttributeBase : Attribute
             loadNames = new string[] { userName };
 
         if (loadNames.Any(s => string.IsNullOrWhiteSpace(s)))
-            throw Contracts.ExceptEmpty(nameof(loadNames), "LoadableClass loadName parameter can't be empty");
+            throw Contracts.ExceptEmpty(nameof(loadNames), Strings.LoadableClassLoadNameParameterCantBeEmpty);
 
         var sigType = sigTypes[0];
         Contracts.CheckValue(sigType, nameof(sigTypes));
         Type[] types;
-        Contracts.CheckParam(sigType.BaseType == typeof(System.MulticastDelegate), nameof(sigTypes), "LoadableClass signature type must be a delegate type");
+        Contracts.CheckParam(sigType.BaseType == typeof(System.MulticastDelegate), nameof(sigTypes), Strings.LoadableClassSignatureTypeMustBeADelegateType);
 
         var meth = sigType.GetMethod("Invoke");
-        Contracts.CheckParam(meth != null, nameof(sigTypes), "LoadableClass signature type must be a delegate type");
-        Contracts.CheckParam(meth.ReturnType == typeof(void), nameof(sigTypes), "LoadableClass signature type must be a delegate type with void return");
+        Contracts.CheckParam(meth != null, nameof(sigTypes), Strings.LoadableClassSignatureTypeMustBeADelegateType);
+        Contracts.CheckParam(meth.ReturnType == typeof(void), nameof(sigTypes), Strings.LoadableClassSignatureMustReturnVoid);
 
         var parms = meth.GetParameters();
         int itypeBase = 0;
@@ -197,7 +197,7 @@ internal abstract class LoadableClassAttributeBase : Attribute
         {
             var parm = parms[itype];
             if ((parm.Attributes & (ParameterAttributes.Out | ParameterAttributes.Retval)) != 0)
-                throw Contracts.Except("Invalid signature parameter attributes");
+                throw Contracts.Except(Strings.InvalidSignatureParameterAttributes);
             types[itypeBase + itype] = parm.ParameterType;
         }
 
@@ -206,20 +206,20 @@ internal abstract class LoadableClassAttributeBase : Attribute
             sigType = sigTypes[i];
             Contracts.CheckValue(sigType, nameof(sigTypes));
 
-            Contracts.Check(sigType.BaseType == typeof(System.MulticastDelegate), "LoadableClass signature type must be a delegate type");
+            Contracts.Check(sigType.BaseType == typeof(System.MulticastDelegate), Strings.LoadableClassSignatureTypeMustBeADelegateType);
 
             meth = sigType.GetMethod("Invoke");
-            Contracts.CheckParam(meth != null, nameof(sigTypes), "LoadableClass signature type must be a delegate type");
-            Contracts.CheckParam(meth.ReturnType == typeof(void), nameof(sigTypes), "LoadableClass signature type must be a delegate type with void return");
+            Contracts.CheckParam(meth != null, nameof(sigTypes), Strings.LoadableClassSignatureTypeMustBeADelegateType);
+            Contracts.CheckParam(meth.ReturnType == typeof(void), nameof(sigTypes), Strings.LoadableClassSignatureMustReturnVoid);
             parms = meth.GetParameters();
-            Contracts.CheckParam(parms.Length + itypeBase == types.Length, nameof(sigTypes), "LoadableClass signatures must have the same number of parameters");
+            Contracts.CheckParam(parms.Length + itypeBase == types.Length, nameof(sigTypes), Strings.LoadableClassSignaturesMustHaveTheSameNumberOfParameters);
             for (int itype = 0; itype < parms.Length; itype++)
             {
                 var parm = parms[itype];
                 if ((parm.Attributes & (ParameterAttributes.Out | ParameterAttributes.Retval)) != 0)
-                    throw Contracts.ExceptParam(nameof(sigTypes), "Invalid signature parameter attributes");
+                    throw Contracts.ExceptParam(nameof(sigTypes), Strings.InvalidSignatureParameterAttributes);
                 Contracts.CheckParam(types[itypeBase + itype] == parm.ParameterType, nameof(sigTypes),
-                    "LoadableClass signatures must have the same set of parameters");
+                    Strings.LoadableClassSignaturesMustHaveTheSameSetOfParameters);
             }
         }
 

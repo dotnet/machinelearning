@@ -192,11 +192,11 @@ namespace Microsoft.ML.Data.IO
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register("BinarySaver");
 
-            _host.CheckUserArg(!args.MaxRowsPerBlock.HasValue || args.MaxRowsPerBlock > 0, nameof(args.MaxRowsPerBlock), "Must be positive.");
-            _host.CheckUserArg(!args.MaxBytesPerBlock.HasValue || args.MaxBytesPerBlock > 0, nameof(args.MaxBytesPerBlock), "Must be positive.");
+            _host.CheckUserArg(!args.MaxRowsPerBlock.HasValue || args.MaxRowsPerBlock > 0, nameof(args.MaxRowsPerBlock), Strings.MustBePositive);
+            _host.CheckUserArg(!args.MaxBytesPerBlock.HasValue || args.MaxBytesPerBlock > 0, nameof(args.MaxBytesPerBlock), Strings.MustBePositive);
 
             _host.CheckUserArg(args.MaxRowsPerBlock.HasValue || args.MaxBytesPerBlock.HasValue, nameof(args.MaxBytesPerBlock),
-                "Either " + nameof(args.MaxRowsPerBlock) + " or " + nameof(args.MaxBytesPerBlock) + " must have a value.");
+                Strings.EitherMaxRowsPerBlockOrMaxBytesPerBlockMustHaveAValue);
 
             _memPool = new MemoryStreamPool();
             _factory = new CodecFactory(_host, _memPool);
@@ -280,10 +280,10 @@ namespace Microsoft.ML.Data.IO
 
             foreach (var metaColumn in schema[col].Annotations.Schema)
             {
-                _host.Check(!string.IsNullOrEmpty(metaColumn.Name), "Metadata with null or empty kind detected, disallowed");
-                _host.Check(metaColumn.Type != null, "Metadata with null type detected, disallowed");
+                _host.Check(!string.IsNullOrEmpty(metaColumn.Name), Strings.MetadataWithNullOrEmptyKindDetectedDisallowed);
+                _host.Check(metaColumn.Type != null, Strings.MetadataWithNullTypeDetectedDisallowed);
                 if (!kinds.Add(metaColumn.Name))
-                    throw _host.Except("Metadata with duplicate kind '{0}' encountered, disallowed", metaColumn.Name, schema[col].Name);
+                    throw _host.Except(Strings.MetadataWithDuplicateKindEncounteredDisallowed, metaColumn.Name, schema[col].Name);
                 args[3] = metaColumn.Name;
                 args[4] = metaColumn.Type;
                 IValueCodec codec = (IValueCodec)methInfo.MakeGenericMethod(metaColumn.Type.RawType).Invoke(this, args);
@@ -295,13 +295,13 @@ namespace Microsoft.ML.Data.IO
                     continue;
                 }
                 offsets.Add(writer.BaseStream.Position);
-                _host.CheckIO(offsets[offsets.Count - 1] > offsets[offsets.Count - 2], "Bad offsets detected during write");
+                _host.CheckIO(offsets[offsets.Count - 1] > offsets[offsets.Count - 2], Strings.BadOffsetsDetectedDuringWrite);
                 metadataInfos.Add(Tuple.Create(metaColumn.Name, codec, (CompressionKind)args[5]));
                 count++;
             }
             if (metadataInfos.Count == 0)
             {
-                _host.CheckIO(writer.BaseStream.Position == offsets[0], "unexpected offset after no writing of metadata");
+                _host.CheckIO(writer.BaseStream.Position == offsets[0], Strings.UnexpectedOffsetAfterNoWritingOfMetadata);
                 return 0;
             }
             // Write the metadata table of contents just past the end of the last metadata block.
@@ -325,10 +325,10 @@ namespace Microsoft.ML.Data.IO
                 writer.Write(metadataInfos[i].Item1);
                 int stringLen = Encoding.UTF8.GetByteCount(metadataInfos[i].Item1);
                 expectedPosition += Utils.Leb128IntLength((ulong)stringLen) + stringLen;
-                _host.CheckIO(writer.BaseStream.Position == expectedPosition, "unexpected offsets after metadata table of contents kind");
+                _host.CheckIO(writer.BaseStream.Position == expectedPosition, Strings.UnexpectedOffsetsAfterMetadataTableOfContentsKind);
 
                 expectedPosition += _factory.WriteCodec(writer.BaseStream, metadataInfos[i].Item2);
-                _host.CheckIO(writer.BaseStream.Position == expectedPosition, "unexpected offsets after metadata table of contents type description");
+                _host.CheckIO(writer.BaseStream.Position == expectedPosition, Strings.UnexpectedOffsetsAfterMetadataTableOfContentsTypeDescription);
 
                 writer.Write((byte)metadataInfos[i].Item3);
                 expectedPosition++;
@@ -339,7 +339,7 @@ namespace Microsoft.ML.Data.IO
                 long blockSize = offsets[i + 1] - offsets[i];
                 writer.WriteLeb128Int((ulong)blockSize);
                 expectedPosition += Utils.Leb128IntLength((ulong)blockSize);
-                _host.CheckIO(writer.BaseStream.Position == expectedPosition, "unexpected offsets after metadata table of contents location");
+                _host.CheckIO(writer.BaseStream.Position == expectedPosition, Strings.UnexpectedOffsetsAfterMetadataTableOfContentsLocation);
             }
             _host.Assert(metadataInfos.Count == offsets.Count - 1);
             return offsets[metadataInfos.Count];
@@ -490,7 +490,7 @@ namespace Microsoft.ML.Data.IO
                                 writer.Write(lookup.DecompressedBlockLength);
                             }
                             ch.CheckIO(stream.Position == lookupOffsets[c] + (16 * blockLookups[c].Count),
-                                "unexpected offsets after block lookup table write");
+                                Strings.UnexpectedOffsetsAfterBlockLookupTableWrite);
                         }
                         // Write the metadata for each column.
                         long[] metadataTocOffsets = new long[activeColumns.Length];
@@ -516,9 +516,9 @@ namespace Microsoft.ML.Data.IO
                                 writer.Write(name);
                                 int nameLen = Encoding.UTF8.GetByteCount(name);
                                 expectedPosition += Utils.Leb128IntLength((uint)nameLen) + nameLen;
-                                ch.CheckIO(stream.Position == expectedPosition, "unexpected offsets after table of contents name");
+                                ch.CheckIO(stream.Position == expectedPosition, Strings.UnexpectedOffsetsAfterTableOfContentsName);
                                 expectedPosition += _factory.WriteCodec(stream, active.Codec);
-                                ch.CheckIO(stream.Position == expectedPosition, "unexpected offsets after table of contents type description");
+                                ch.CheckIO(stream.Position == expectedPosition, Strings.UnexpectedOffsetsAfterTableOfContentsTypeDescription);
                                 writer.Write((byte)_compression);
                                 expectedPosition++;
                                 // REVIEW: Right now the number of rows per block is fixed, so we
@@ -532,7 +532,7 @@ namespace Microsoft.ML.Data.IO
                                 // Offset of the metadata table of contents.
                                 writer.Write(metadataTocOffsets[c]);
                                 expectedPosition += sizeof(long);
-                                ch.CheckIO(stream.Position == expectedPosition, "unexpected offsets after table of contents");
+                                ch.CheckIO(stream.Position == expectedPosition, Strings.UnexpectedOffsetsAfterTableOfContents);
                                 c++;
                             }
                         }
@@ -645,9 +645,9 @@ namespace Microsoft.ML.Data.IO
             _host.CheckValue(stream, nameof(stream));
             _host.CheckValue(data, nameof(data));
             _host.CheckValueOrNull(colIndices);
-            _host.CheckParam(stream.CanWrite, nameof(stream), "cannot save to non-writable stream");
-            _host.CheckParam(stream.CanSeek, nameof(stream), "cannot save to non-seekable stream");
-            _host.CheckParam(stream.Position == 0, nameof(stream), "stream must be positioned at head of stream");
+            _host.CheckParam(stream.CanWrite, nameof(stream), Strings.CannotSaveToNonWritableStream);
+            _host.CheckParam(stream.CanSeek, nameof(stream), Strings.CannotSaveToNonSeekableStream);
+            _host.CheckParam(stream.Position == 0, nameof(stream), Strings.StreamMustBePositionedAtHeadOfStream);
 
             using (IChannel ch = _host.Start("Saving"))
             using (ExceptionMarshaller exMarshaller = new ExceptionMarshaller())
@@ -718,7 +718,7 @@ namespace Microsoft.ML.Data.IO
                 DataViewType type = schema[colIndices[c]].Type;
                 IValueCodec codec;
                 if (!_factory.TryGetCodec(type, out codec))
-                    throw _host.Except("Could not get codec for requested column {0} of type {1}", schema[c].Name, type);
+                    throw _host.Except(Strings.CouldNotGetCodecForRequestedColumnOfType, schema[c].Name, type);
                 _host.Assert(type.Equals(codec.Type));
                 activeSourceColumns[c] = new ColumnCodec(colIndices[c], codec);
             }
@@ -848,7 +848,7 @@ namespace Microsoft.ML.Data.IO
         {
             _host.CheckValue(stream, nameof(stream));
             _host.CheckValue(type, nameof(type));
-            _host.CheckParam(value.GetType() == type.RawType, nameof(value), "Value doesn't match type");
+            _host.CheckParam(value.GetType() == type.RawType, nameof(value), Strings.ValueDoesntMatchType);
 
             IValueCodec codec;
             if (!_factory.TryGetCodec(type, out codec))

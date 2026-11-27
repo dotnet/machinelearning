@@ -70,7 +70,7 @@ namespace Microsoft.ML.Internal.Utilities
         public ReservoirSamplerWithoutReplacement(Random rnd, int size, ValueGetter<T> getter)
         {
             Contracts.CheckValue(rnd, nameof(rnd));
-            Contracts.CheckParam(size > 0, nameof(size), "Reservoir size must be positive");
+            Contracts.CheckParam(size > 0, nameof(size), Strings.ReservoirSizeMustBePositive);
             Contracts.CheckValue(getter, nameof(getter));
 
             _rnd = rnd;
@@ -81,7 +81,7 @@ namespace Microsoft.ML.Internal.Utilities
         public void Sample()
         {
             if (_locked)
-                throw Contracts.Except("Cannot continue to sample after Lock() has been called");
+                throw Contracts.Except(Strings.CannotContinueToSampleAfterLockHasBeenCalled);
 
             _numSampled++;
 
@@ -107,7 +107,7 @@ namespace Microsoft.ML.Internal.Utilities
         public IEnumerable<T> GetSample()
         {
             if (!_locked)
-                throw Contracts.Except("Call Lock() before the call to GetSample()");
+                throw Contracts.Except(Strings.CallLockBeforeTheCallToGetSample);
 
             for (int i = 0; i < _numSampled; i++)
             {
@@ -149,7 +149,7 @@ namespace Microsoft.ML.Internal.Utilities
         public ReservoirSamplerWithReplacement(Random rnd, int size, ValueGetter<T> getter)
         {
             Contracts.CheckValue(rnd, nameof(rnd));
-            Contracts.CheckParam(size > 0, nameof(size), "Reservoir size must be positive");
+            Contracts.CheckParam(size > 0, nameof(size), Strings.ReservoirSizeMustBePositive);
             Contracts.CheckValue(getter, nameof(getter));
 
             _rnd = rnd;
@@ -161,7 +161,7 @@ namespace Microsoft.ML.Internal.Utilities
 
         public void Sample()
         {
-            Contracts.Check(!_locked, "Cannot continue to sample after Lock() has been called");
+            Contracts.Check(!_locked, Strings.CannotContinueToSampleAfterLockHasBeenCalled);
 
             _numSampled++;
 
@@ -245,7 +245,7 @@ namespace Microsoft.ML.Internal.Utilities
         /// </summary>
         public IEnumerable<T> GetSample()
         {
-            Contracts.Check(_locked, "Call Lock() before the call to GetSample()");
+            Contracts.Check(_locked, Strings.CallLockBeforeTheCallToGetSample);
 
             foreach (var ind in _reservoir)
                 yield return _cache[ind];

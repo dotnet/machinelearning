@@ -153,7 +153,7 @@ namespace Microsoft.ML.Data
                 else
                     ch.Info(MessageSensitivity.Schema, "The column '{0}' will not be written as it has unsavable column type.", data.Schema[i].Name);
             }
-            Host.NotSensitive().Check(cols.Count > 0, "No valid columns to save");
+            Host.NotSensitive().Check(cols.Count > 0, Strings.NoValidColumnsToSave);
 
             // Send the first N lines to console.
             if (ImplOptions.Rows > 0)
@@ -191,7 +191,7 @@ namespace Microsoft.ML.Data
             ch.CheckValue(saver, nameof(saver));
             ch.CheckValue(view, nameof(view));
             ch.CheckValue(file, nameof(file));
-            ch.CheckParam(file.CanWrite, nameof(file), "Cannot write to file");
+            ch.CheckParam(file.CanWrite, nameof(file), Strings.CannotWriteToFile);
 
             using (var stream = file.CreateWriteStream())
                 SaveDataView(ch, saver, view, stream, keepHidden);
@@ -216,7 +216,7 @@ namespace Microsoft.ML.Data
                     ch.Info(MessageSensitivity.Schema, "The column '{0}' will not be written as it has unsavable column type.", view.Schema[i].Name);
             }
 
-            ch.Check(cols.Count > 0, "No valid columns to save");
+            ch.Check(cols.Count > 0, Strings.NoValidColumnsToSave);
             saver.SaveData(stream, view, cols.ToArray());
         }
     }

@@ -510,9 +510,9 @@ namespace Microsoft.ML.Transforms.TimeSeries
 
         public static bool MklSymmetricEigenDecomposition(Single[] input, int size, out Single[] eigenValues, out Single[] eigenVectors)
         {
-            Contracts.CheckParam(size > 0, nameof(size), "The input matrix size must be strictly positive.");
+            Contracts.CheckParam(size > 0, nameof(size), Strings.TheInputMatrixSizeMustBeStrictlyPositive);
             var n2 = size * size;
-            Contracts.Check(Utils.Size(input) >= n2, "The input matrix must at least have " + n2 + " elements");
+            Contracts.Check(Utils.Size(input) >= n2, string.Format(Strings.TheInputMatrixMustAtLeastHaveElements, n2));
 
             eigenValues = null;
             eigenVectors = null;

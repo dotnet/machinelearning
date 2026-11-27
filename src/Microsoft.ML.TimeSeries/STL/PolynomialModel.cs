@@ -61,7 +61,7 @@ namespace Microsoft.ML.TimeSeries
         public LinearModel(IReadOnlyList<double> coeffs)
             : base(coeffs)
         {
-            Contracts.CheckParam(coeffs.Count == 2, nameof(coeffs), "must contain exact 2 elements.");
+            Contracts.CheckParam(coeffs.Count == 2, nameof(coeffs), Strings.MustContainExact2Elements);
 
             _b0 = coeffs[0];
             _b1 = coeffs[1];

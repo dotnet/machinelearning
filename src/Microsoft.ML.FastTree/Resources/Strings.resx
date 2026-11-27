@@ -1,0 +1,535 @@
+﻿<?xml version='1.0' encoding='utf-8'?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="AffineRegressionTreesUnsupported" xml:space="preserve">
+    <value>Affine regression trees unsupported</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.FastTree/TreeEnsemble/InternalRegressionTree.cs:428.</comment>
+  </data>
+  <data name="AllInstancesSkippedDueToMissingFeatures" xml:space="preserve">
+    <value>All instances skipped due to missing features.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.FastTree/FastTree.cs:1895.</comment>
+  </data>
+  <data name="ArrayContainedNullEntries" xml:space="preserve">
+    <value>Array contained null entries</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.FastTree/GamModelParameters.cs:88.</comment>
+  </data>
+  <data name="ArrayContainedWrongNumberOfEffectValues" xml:space="preserve">
+    <value>Array contained wrong number of effect values</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.FastTree/GamModelParameters.cs:89.</comment>
+  </data>
+  <data name="ArrayMustBeMonotonicallyIncreasing" xml:space="preserve">
+    <value>Array must be monotonically increasing</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.FastTree/GamModelParameters.cs:90.</comment>
+  </data>
+  <data name="BadLengthOfInput" xml:space="preserve">
+    <value>Bad length of input</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.FastTree/GamModelParameters.cs:204.</comment>
+  </data>
+  <data name="BadQuantileSampleCount" xml:space="preserve">
+    <value>Bad quantile sample count</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.FastTree/TreeEnsemble/InternalQuantileRegressionTree.cs:81.</comment>
+  </data>
+  <data name="BadQuantileWeightCount" xml:space="preserve">
+    <value>Bad quantile weight count</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.FastTree/TreeEnsemble/InternalQuantileRegressionTree.cs:82.</comment>
+  </data>
+  <data name="BitsForMaxItemOutOfRange" xml:space="preserve">
+    <value>Bits for max item must be in range [0,32], {0} is illegal</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.FastTree/Dataset/SegmentIntArray.cs:193.</comment>
+  </data>
+  <data name="BottomMustBeNonNegative" xml:space="preserve">
+    <value>bottom must be non-negative</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.FastTree/FastTree.cs:2936.</comment>
+  </data>
+  <data name="CSumupReturnedError" xml:space="preserve">
+    <value>CSumup returned error {0}</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.FastTree/Dataset/DenseIntArray.cs:109. Exception or validation message. Source: src/Microsoft.ML.FastTree/Dataset/SegmentIntArray.cs:575.</comment>
+  </data>
+  <data name="CSumupSumupdeltasparse" xml:space="preserve">
+    <value>CSumup sumupdeltasparse {0}</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.FastTree/Dataset/SparseIntArray.cs:520.</comment>
+  </data>
+  <data name="CannotCompareUnrelatedMetrics" xml:space="preserve">
+    <value>Cannot compare unrelated metrics</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.FastTree/Training/Test.cs:78.</comment>
+  </data>
+  <data name="CannotPerformEarlyStoppingWithoutAValidationSetValid" xml:space="preserve">
+    <value>Cannot perform early stopping without a validation set (valid).</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.FastTree/BoostingFastTree.cs:52.</comment>
+  </data>
+  <data name="CannotPerformPruningPruningWithoutAValidationSetValid" xml:space="preserve">
+    <value>Cannot perform pruning (pruning) without a validation set (valid).</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.FastTree/BoostingFastTree.cs:48.</comment>
+  </data>
+  <data name="TolerantPruningRequiresPruningAndValidationSet" xml:space="preserve">
+    <value>Cannot perform tolerant pruning (prtol) without pruning (pruning) and a validation set (valid)</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.FastTree/BoostingFastTree.cs:55.</comment>
+  </data>
+  <data name="CannotSubtractFeatureHistogramsOfDifferentLengths" xml:space="preserve">
+    <value>cannot subtract FeatureHistograms of different lengths</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.FastTree/Dataset/FeatureHistogram.cs:74.</comment>
+  </data>
+  <data name="CannotSumupValueWithDifferentLengths" xml:space="preserve">
+    <value>cannot sumup value with different lengths</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.FastTree/TreeEnsemble/InternalRegressionTree.cs:560.</comment>
+  </data>
+  <data name="CannotSwapRootOrLeaves" xml:space="preserve">
+    <value>Cannot swap root or leaves</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.FastTree/TreeEnsemble/InternalRegressionTree.cs:1468.</comment>
+  </data>
+  <data name="OptimalPathStorageSupportsAtMost21Bits" xml:space="preserve">
+    <value>Cannot use more than 21 bits if also storing the actual optimal path</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.FastTree/Dataset/SegmentIntArray.cs:195.</comment>
+  </data>
+  <data name="CombinedFastTreeModelsMustUsePlattCalibration" xml:space="preserve">
+    <value>Combining FastTree models can only be done when the models are calibrated with Platt calibrator</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.FastTree/TreeEnsemble/TreeEnsembleCombiner.cs:56.</comment>
+  </data>
+  <data name="ContainsDuplicateMappings" xml:space="preserve">
+    <value>Contains duplicate mappings</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.FastTree/GamModelParameters.cs:108.</comment>
+  </data>
+  <data name="ContainsOutOfRangeFeatureValue" xml:space="preserve">
+    <value>Contains out of range feature value</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.FastTree/GamModelParameters.cs:107.</comment>
+  </data>
+  <data name="DCGComparerOfTypeNotSupported" xml:space="preserve">
+    <value>DCGComparer of type '{0}' not supported</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.FastTree/Training/DcgPermutationComparer.cs:38.</comment>
+  </data>
+  <data name="DatasetSkeletonIsMissingACriticalField" xml:space="preserve">
+    <value>DatasetSkeleton is missing a critical field</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.FastTree/Dataset/Dataset.cs:505.</comment>
+  </data>
+  <data name="DestinationTypeDoesNotMatch" xml:space="preserve">
+    <value>Destination type does not match.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.FastTree/GamModelParameters.cs:406.</comment>
+  </data>
+  <data name="DupeIdGroupExceedsRange" xml:space="preserve">
+    <value>dupeId group exceeds range</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.FastTree/FastTreeRanking.cs:710.</comment>
+  </data>
+  <data name="EarlyStoppingMetricsShouldBe1Or21L12L2" xml:space="preserve">
+    <value>earlyStoppingMetrics should be 1 or 2. (1: L1, 2: L2)</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.FastTree/FastTreeRegression.cs:138.</comment>
+  </data>
+  <data name="EffectsArrayMustBeSameLengthAsBinUpperBoundsArray" xml:space="preserve">
+    <value>Effects array must be same length as binUpperBounds array.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.FastTree/GamModelParameters.cs:446.</comment>
+  </data>
+  <data name="EnsembleCompressionIncompatibleWithWriteLastEnsemble" xml:space="preserve">
+    <value>Ensemble compression cannot be done when forcing to write last ensemble (hl)</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.FastTree/BoostingFastTree.cs:42.</comment>
+  </data>
+  <data name="EnsembleContainsBothCalibratedAndUncalibratedModels" xml:space="preserve">
+    <value>Ensemble contains both calibrated and uncalibrated models</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.FastTree/TreeEnsemble/TreeEnsembleCombiner.cs:87.</comment>
+  </data>
+  <data name="CustomGainsFormatError" xml:space="preserve">
+    <value>Error in the format of custom gains. Inner exception is {0}</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.FastTree/FastTreeRanking.cs:165.</comment>
+  </data>
+  <data name="FastNDCGTestOnlySupportsNDCG1NDCG3" xml:space="preserve">
+    <value>FastNDCGTest only supports NDCG1 &amp; NDCG3</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.FastTree/Training/Test.cs:450. Exception or validation message. Source: src/Microsoft.ML.FastTree/Training/Test.cs:389.</comment>
+  </data>
+  <data name="FeatureBinIsInvalid" xml:space="preserve">
+    <value>Feature bin {0} is invalid</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.FastTree/Dataset/IntArray.cs:235. Exception or validation message. Source: src/Microsoft.ML.FastTree/Dataset/IntArray.cs:255.</comment>
+  </data>
+  <data name="ForSparseArrays" xml:space="preserve">
+    <value>For sparse arrays</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.FastTree/SumupPerformanceCommand.cs:112.</comment>
+  </data>
+  <data name="FoundInvalidLabelValueShouldBeBetween0AndInclusive" xml:space="preserve">
+    <value>Found invalid label {0}. Value should be between 0 and {1}, inclusive.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.FastTree/FastTree.cs:1596. Exception or validation message. Source: src/Microsoft.ML.FastTree/FastTree.cs:1871.</comment>
+  </data>
+  <data name="FoundModelsWithDifferentNumberOfFeatures" xml:space="preserve">
+    <value>Found models with different number of features</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.FastTree/TreeEnsemble/TreeEnsembleCombiner.cs:88.</comment>
+  </data>
+  <data name="GainConfidenceLevelMustBeAtLeastZeroAndLessThanOne" xml:space="preserve">
+    <value>Gain confidence level must be in the range [0,1)</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.FastTree/FastTree.cs:277.</comment>
+  </data>
+  <data name="HasGainLevelsWeRequireAtLeast5Elements" xml:space="preserve">
+    <value>Has {0} gain levels. We require at least 5 elements.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.FastTree/FastTreeRanking.cs:178.</comment>
+  </data>
+  <data name="RandomGeneratorNotImplementedForType" xml:space="preserve">
+    <value>Haven't yet wrote a random generator appropriate for {0}</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.FastTree/SumupPerformanceCommand.cs:172.</comment>
+  </data>
+  <data name="HistogramPoolSizePsMustBeAtMostNumLeaves1" xml:space="preserve">
+    <value>Histogram pool size (ps) must be at most numLeaves - 1.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.FastTree/BoostingFastTree.cs:45.</comment>
+  </data>
+  <data name="IfDefinedMustBePositive" xml:space="preserve">
+    <value>If defined must be positive</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.FastTree/SumupPerformanceCommand.cs:84.</comment>
+  </data>
+  <data name="LeafSplitImpossibleWithEmptyTreesDisabled" xml:space="preserve">
+    <value>Impossible to perform a leaf split, but the learner was configured to not allow empty trees</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.FastTree/Training/TreeLearners/LeastSquaresRegressionTreeLearner.cs:248.</comment>
+  </data>
+  <data name="Impossible" xml:space="preserve">
+    <value>Impossible!</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.FastTree/Dataset/Feature.cs:89.</comment>
+  </data>
+  <data name="InDatasetSplitFractionsMustSumTo10" xml:space="preserve">
+    <value>In Dataset.Split(), fractions must sum to 1.0</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.FastTree/Dataset/Dataset.cs:579.</comment>
+  </data>
+  <data name="IndexInconsistentWithLength" xml:space="preserve">
+    <value>Index {0} inconsistent with length {1}</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.FastTree/Dataset/SparseIntArray.cs:154.</comment>
+  </data>
+  <data name="IndexOccurredAfter" xml:space="preserve">
+    <value>index {0} occurred after {1}</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.FastTree/Dataset/SparseIntArray.cs:135.</comment>
+  </data>
+  <data name="IndexOutOfRange" xml:space="preserve">
+    <value>Index out of range.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.FastTree/GamModelParameters.cs:268. Exception or validation message. Source: src/Microsoft.ML.FastTree/GamModelParameters.cs:275. Exception or validation message. Source: src/Microsoft.ML.FastTree/GamModelParameters.cs:287. Exception or validation message. Source: src/Microsoft.ML.FastTree/GamModelParameters.cs:325.</comment>
+  </data>
+  <data name="InputArrayForHadElementsOughtToHave" xml:space="preserve">
+    <value>Input array for {0} had {1} elements, ought to have {2}</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.FastTree/Dataset/Dataset.cs:872.</comment>
+  </data>
+  <data name="InputDataHadRowsButCanOnlyAccommodate" xml:space="preserve">
+    <value>Input data had {0} rows, but can only accommodate {1}</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.FastTree/FastTree.cs:1777.</comment>
+  </data>
+  <data name="InputTypeDoesNotMatch" xml:space="preserve">
+    <value>Input type does not match.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.FastTree/GamModelParameters.cs:195.</comment>
+  </data>
+  <data name="ShuffledLabelOutOfRange" xml:space="preserve">
+    <value>Label {0} for example {1} outside of allowed range[0,{2}) when doing shuffled labels</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.FastTree/RandomForestRegression.cs:557.</comment>
+  </data>
+  <data name="LabelMustBeOfKnownCardinality" xml:space="preserve">
+    <value>Label must be of known cardinality.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.FastTree/TreeEnsembleFeaturizer.cs:770.</comment>
+  </data>
+  <data name="LazyTom" xml:space="preserve">
+    <value>Lazy Tom</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.FastTree/Dataset/NHotFeatureFlock.cs:34.</comment>
+  </data>
+  <data name="BoundaryAndQueryIdLengthsMismatch" xml:space="preserve">
+    <value>Length of boundaries array does not match length of queryID array</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.FastTree/Dataset/Dataset.cs:508.</comment>
+  </data>
+  <data name="LengthOfInitscoresAndScoresMismatch" xml:space="preserve">
+    <value>Length of initscores and scores mismatch</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.FastTree/FastTree.cs:868.</comment>
+  </data>
+  <data name="LabelAndDocIdLengthsMismatch" xml:space="preserve">
+    <value>Length of label array does not match length of docID array</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.FastTree/Dataset/Dataset.cs:507.</comment>
+  </data>
+  <data name="LengthOfMaxDCGDoesNotMatchNumberOfQueries" xml:space="preserve">
+    <value>Length of MaxDCG does not match number of queries</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.FastTree/Dataset/Dataset.cs:509.</comment>
+  </data>
+  <data name="LengthProvidedToRepeatVectorIsInconsistentWithValueEnumeration" xml:space="preserve">
+    <value>Length provided to repeat vector is inconsistent with value enumeration</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.FastTree/Dataset/RepeatIntArray.cs:54.</comment>
+  </data>
+  <data name="LengthProvidedToSegmentVectorIsInconsistentWithValueEnumeration" xml:space="preserve">
+    <value>Length provided to segment vector is inconsistent with value enumeration</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.FastTree/Dataset/SegmentIntArray.cs:85. Exception or validation message. Source: src/Microsoft.ML.FastTree/Dataset/SegmentIntArray.cs:93.</comment>
+  </data>
+  <data name="LengthProvidedToSparseVectorIsInconsistentWithValueEnumeration" xml:space="preserve">
+    <value>Length provided to sparse vector is inconsistent with value enumeration</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.FastTree/Dataset/SparseIntArray.cs:72.</comment>
+  </data>
+  <data name="InsufficientBitCountForMaximumValue" xml:space="preserve">
+    <value>Maximum specified bits {0} was not actually sufficient to encode maximum value {1}</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.FastTree/Dataset/SegmentIntArray.cs:242.</comment>
+  </data>
+  <data name="MayNotBeNull" xml:space="preserve">
+    <value>May not be null.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.FastTree/GamModelParameters.cs:67. Exception or validation message. Source: src/Microsoft.ML.FastTree/GamModelParameters.cs:68.</comment>
+  </data>
+  <data name="MismatchBetweenDatasetAndLabels" xml:space="preserve">
+    <value>Mismatch between dataset and labels</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.FastTree/Training/Test.cs:348. Exception or validation message. Source: src/Microsoft.ML.FastTree/Training/Test.cs:528. Exception or validation message. Source: src/Microsoft.ML.FastTree/Training/Test.cs:602.</comment>
+  </data>
+  <data name="ModelIsNotATreeEnsemble" xml:space="preserve">
+    <value>Model is not a tree ensemble</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.FastTree/TreeEnsemble/TreeEnsembleCombiner.cs:64.</comment>
+  </data>
+  <data name="UpstreamPipelineDataChangedBetweenPasses" xml:space="preserve">
+    <value>Multiple passes over the data seem to be producing different data. There is a bug in the upstream pipeline.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.FastTree/FastTree.cs:1437.</comment>
+  </data>
+  <data name="MustBeAtLeast2" xml:space="preserve">
+    <value>Must be at least 2.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.FastTree/FastTreeArguments.cs:621.</comment>
+  </data>
+  <data name="MustBeBetween0And1" xml:space="preserve">
+    <value>Must be between 0 and 1.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.FastTree/FastTreeArguments.cs:622. Exception or validation message. Source: src/Microsoft.ML.FastTree/FastTreeArguments.cs:624. Exception or validation message. Source: src/Microsoft.ML.FastTree/FastTreeArguments.cs:625. Exception or validation message. Source: src/Microsoft.ML.FastTree/FastTreeArguments.cs:628. Exception or validation message. Source: src/Microsoft.ML.FastTree/FastTreeArguments.cs:630. Exception or validation message. Source: src/Microsoft.ML.FastTree/FastTreeArguments.cs:632. Exception or validation message. Source: src/Microsoft.ML.FastTree/FastTreeArguments.cs:869.</comment>
+  </data>
+  <data name="MustBeBetween0And2" xml:space="preserve">
+    <value>Must be between 0 and 2.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.FastTree/FastTreeArguments.cs:639.</comment>
+  </data>
+  <data name="MustBeGreaterThanEqualToZero" xml:space="preserve">
+    <value>Must be greater than equal to zero.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.FastTree/FastTreeArguments.cs:640.</comment>
+  </data>
+  <data name="MustBeGreaterThanZero" xml:space="preserve">
+    <value>Must be greater than zero</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.FastTree/GamModelParameters.cs:71.</comment>
+  </data>
+  <data name="MustBeBetweenZeroAndOneInclusive" xml:space="preserve">
+    <value>Must be in [0, 1].</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.FastTree/GamTrainer.cs:205. Exception or validation message. Source: src/Microsoft.ML.FastTree/Training/EarlyStoppingCriteria.cs:209. Exception or validation message. Source: src/Microsoft.ML.FastTree/Training/EarlyStoppingCriteria.cs:220. Exception or validation message. Source: src/Microsoft.ML.FastTree/Training/EarlyStoppingCriteria.cs:315. Exception or validation message. Source: src/Microsoft.ML.FastTree/Training/EarlyStoppingCriteria.cs:323.</comment>
+  </data>
+  <data name="MustBeAtLeastZeroAndLessThanOne" xml:space="preserve">
+    <value>Must be in [0, 1).</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.FastTree/FastTreeArguments.cs:623. Exception or validation message. Source: src/Microsoft.ML.FastTree/GamTrainer.cs:206.</comment>
+  </data>
+  <data name="MustBeBetweenOneAndTwoInclusive" xml:space="preserve">
+    <value>Must be in the range [1, 2]</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.FastTree/FastTreeTweedie.cs:207.</comment>
+  </data>
+  <data name="MustBeNonNegative" xml:space="preserve">
+    <value>Must be non-negative.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.FastTree/FastTreeArguments.cs:626. Exception or validation message. Source: src/Microsoft.ML.FastTree/FastTreeArguments.cs:631. Exception or validation message. Source: src/Microsoft.ML.FastTree/FastTreeArguments.cs:633. Exception or validation message. Source: src/Microsoft.ML.FastTree/FastTreeArguments.cs:634. Exception or validation message. Source: src/Microsoft.ML.FastTree/FastTreeArguments.cs:635. Exception or validation message. Source: src/Microsoft.ML.FastTree/FastTreeArguments.cs:636. Exception or validation message. Source: src/Microsoft.ML.FastTree/FastTreeArguments.cs:637. Exception or validation message. Source: src/Microsoft.ML.FastTree/FastTreeArguments.cs:638. Exception or validation message. Source: src/Microsoft.ML.FastTree/FastTreeArguments.cs:865. Exception or validation message. Source: src/Microsoft.ML.FastTree/FastTreeArguments.cs:866. Exception or validation message. Source: src/Microsoft.ML.FastTree/FastTreeArguments.cs:871. Exception or validation message. Source: src/Microsoft.ML.FastTree/FastTreeArguments.cs:872. Exception or validation message. Source: src/Microsoft.ML.FastTree/Training/EarlyStoppingCriteria.cs:145. Exception or validation message. Source: src/Microsoft.ML.FastTree/Training/EarlyStoppingCriteria.cs:153. Exception or validation message. Source: src/Microsoft.ML.FastTree/SumupPerformanceCommand.cs:90. Exception or validation message. Source: src/Microsoft.ML.FastTree/SumupPerformanceCommand.cs:91.</comment>
+  </data>
+  <data name="MustBePositive" xml:space="preserve">
+    <value>must be positive.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.FastTree/FastTreeArguments.cs:324. Exception or validation message. Source: src/Microsoft.ML.FastTree/FastTree.cs:2840. Exception or validation message. Source: src/Microsoft.ML.FastTree/FastTreeArguments.cs:620. Exception or validation message. Source: src/Microsoft.ML.FastTree/FastTreeArguments.cs:629. Exception or validation message. Source: src/Microsoft.ML.FastTree/FastTreeArguments.cs:867. Exception or validation message. Source: src/Microsoft.ML.FastTree/FastTreeArguments.cs:868. Exception or validation message. Source: src/Microsoft.ML.FastTree/FastTreeArguments.cs:870. Exception or validation message. Source: src/Microsoft.ML.FastTree/GamTrainer.cs:203. Exception or validation message. Source: src/Microsoft.ML.FastTree/GamTrainer.cs:204. Exception or validation message. Source: src/Microsoft.ML.FastTree/GamTrainer.cs:207. Exception or validation message. Source: src/Microsoft.ML.FastTree/GamTrainer.cs:208. Exception or validation message. Source: src/Microsoft.ML.FastTree/GamTrainer.cs:209. Exception or validation message. Source: src/Microsoft.ML.FastTree/Training/EarlyStoppingCriteria.cs:210. Exception or validation message. Source: src/Microsoft.ML.FastTree/Training/EarlyStoppingCriteria.cs:221. Exception or validation message. Source: src/Microsoft.ML.FastTree/SumupPerformanceCommand.cs:92. Exception or validation message. Source: src/Microsoft.ML.FastTree/SumupPerformanceCommand.cs:93. Exception or validation message. Source: src/Microsoft.ML.FastTree/Training/EarlyStoppingCriteria.cs:499. Exception or validation message. Source: src/Microsoft.ML.FastTree/Training/EarlyStoppingCriteria.cs:507.</comment>
+  </data>
+  <data name="MustGreaterThan0" xml:space="preserve">
+    <value>Must greater than 0.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.FastTree/FastTreeArguments.cs:627.</comment>
+  </data>
+  <data name="MustHaveAtLeastOneEntry" xml:space="preserve">
+    <value>Must have at least one entry</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.FastTree/GamModelParameters.cs:70.</comment>
+  </data>
+  <data name="MustHaveSameNumberOfFeaturesAsBinEffects" xml:space="preserve">
+    <value>Must have same number of features as binEffects</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.FastTree/GamModelParameters.cs:69. Exception or validation message. Source: src/Microsoft.ML.FastTree/GamModelParameters.cs:72.</comment>
+  </data>
+  <data name="NeedAFeatureColumn" xml:space="preserve">
+    <value>Need a feature column</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.FastTree/TreeEnsembleFeaturizer.cs:526.</comment>
+  </data>
+  <data name="ObjectiveMustDefineStepSearchOrAdjustTreeOutputs" xml:space="preserve">
+    <value>No AdjustTreeOutputs defined. Objective function should define IStepSearch or AdjustTreeOutputsOverride should be set</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.FastTree/Training/OptimizationAlgorithms/GradientDescent.cs:120.</comment>
+  </data>
+  <data name="NumberOfSplitFeaturesMustBePositive" xml:space="preserve">
+    <value>Number of split features must be positive</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.FastTree/TreeEnsemble/InternalRegressionTree.cs:197.</comment>
+  </data>
+  <data name="TreeCountMustBeMultipleOfBagSize" xml:space="preserve">
+    <value>Number of trees should be a multiple of number bag size</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.FastTree/FastTree.cs:273.</comment>
+  </data>
+  <data name="OnAuxiliaryDataDisagreementOnWhetherThisIsQueryDoc" xml:space="preserve">
+    <value>On auxiliary data {0}, disagreement on whether this is query/doc</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.FastTree/Dataset/Dataset.cs:826.</comment>
+  </data>
+  <data name="OneOfTheModelsIsNull" xml:space="preserve">
+    <value>One of the models is null</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.FastTree/TreeEnsemble/TreeEnsembleCombiner.cs:50.</comment>
+  </data>
+  <data name="OnlyOneClassInTrainingSet" xml:space="preserve">
+    <value>Only one class in training set.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.FastTree/FastTreeClassification.cs:360.</comment>
+  </data>
+  <data name="OutputTypeDoesNotMatch" xml:space="preserve">
+    <value>Output type does not match.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.FastTree/GamModelParameters.cs:196.</comment>
+  </data>
+  <data name="PleaseSpecifyAPredictorModel" xml:space="preserve">
+    <value>Please specify a predictor model.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.FastTree/TreeEnsembleFeaturizer.cs:700.</comment>
+  </data>
+  <data name="PleaseSpecifyEitherATrainerOrAnInputModelFile" xml:space="preserve">
+    <value>Please specify either a trainer or an input model file.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.FastTree/TreeEnsembleFeaturizer.cs:620.</comment>
+  </data>
+  <data name="PredictorDoesNotHaveCompatibleType" xml:space="preserve">
+    <value>Predictor does not have compatible type</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.FastTree/TreeEnsembleFeaturizer.cs:725.</comment>
+  </data>
+  <data name="PredictorExpectsFeaturesButDataHasFeatures" xml:space="preserve">
+    <value>Predictor expects {0} features, but data has {1} features</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.FastTree/TreeEnsembleFeaturizer.cs:729.</comment>
+  </data>
+  <data name="PredictorInModelFileDoesNotHaveCompatibleType" xml:space="preserve">
+    <value>Predictor in model file does not have compatible type</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.FastTree/TreeEnsembleFeaturizer.cs:418. Exception or validation message. Source: src/Microsoft.ML.FastTree/TreeEnsembleFeaturizer.cs:654.</comment>
+  </data>
+  <data name="PredictorInModelFileExpectsFeaturesButDataHasFeatures" xml:space="preserve">
+    <value>Predictor in model file expects {0} features, but data has {1} features</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.FastTree/TreeEnsembleFeaturizer.cs:658.</comment>
+  </data>
+  <data name="PredictorWasNotAGamModelParametersBase" xml:space="preserve">
+    <value>Predictor was not a GamModelParametersBase</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.FastTree/GamModelParameters.cs:890.</comment>
+  </data>
+  <data name="QuantileProbabilityOutOfRange" xml:space="preserve">
+    <value>Probability argument for Quantile function should be between 0 to 1 inclusive</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.FastTree/RandomForestRegression.cs:74.</comment>
+  </data>
+  <data name="QueriedForUnknownSet" xml:space="preserve">
+    <value>Queried for unknown set</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.FastTree/FastTree.cs:886.</comment>
+  </data>
+  <data name="SegmentArrayCannotRepresentMoreThan31Bits" xml:space="preserve">
+    <value>Segment array cannot represent more than 31 bits</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.FastTree/Dataset/SegmentIntArray.cs:438. Exception or validation message. Source: src/Microsoft.ML.FastTree/Dataset/SegmentIntArray.cs:454.</comment>
+  </data>
+  <data name="SegmentPathfinderSupportsAtMost21Bits" xml:space="preserve">
+    <value>Segment array pathfinder currently does not support more than 21 bits</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.FastTree/Dataset/SegmentIntArray.cs:434.</comment>
+  </data>
+  <data name="AdvancedRankingOptionsRequireUnmanagedCode" xml:space="preserve">
+    <value>Shifted NDCG / ContinuousWeightedRanknet / distanceWeight2 / normalized lambdas are only supported by unmanaged code</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.FastTree/FastTreeRanking.cs:850.</comment>
+  </data>
+  <data name="ShouldBe1L1NormOr2L2Norm" xml:space="preserve">
+    <value>should be 1 (L1-norm) or 2 (L2-norm).</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.FastTree/FastTreeTweedie.cs:155.</comment>
+  </data>
+  <data name="ShouldBe1Or3" xml:space="preserve">
+    <value>should be 1 or 3.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.FastTree/FastTreeRanking.cs:190.</comment>
+  </data>
+  <data name="SizeErrorShouldEqualToNumLeaves1" xml:space="preserve">
+    <value>Size error, should equal to numLeaves - 1.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.FastTree/TreeEnsemble/InternalRegressionTree.cs:179. Exception or validation message. Source: src/Microsoft.ML.FastTree/TreeEnsemble/InternalRegressionTree.cs:180. Exception or validation message. Source: src/Microsoft.ML.FastTree/TreeEnsemble/InternalRegressionTree.cs:181. Exception or validation message. Source: src/Microsoft.ML.FastTree/TreeEnsemble/InternalRegressionTree.cs:182. Exception or validation message. Source: src/Microsoft.ML.FastTree/TreeEnsemble/InternalRegressionTree.cs:183. Exception or validation message. Source: src/Microsoft.ML.FastTree/TreeEnsemble/InternalRegressionTree.cs:184. Exception or validation message. Source: src/Microsoft.ML.FastTree/TreeEnsemble/InternalRegressionTree.cs:186. Exception or validation message. Source: src/Microsoft.ML.FastTree/TreeEnsemble/InternalRegressionTree.cs:187.</comment>
+  </data>
+  <data name="SizeErrorShouldEqualToNumLeaves" xml:space="preserve">
+    <value>Size error, should equal to numLeaves.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.FastTree/TreeEnsemble/InternalRegressionTree.cs:185.</comment>
+  </data>
+  <data name="SourceTypeDoesNotMatch" xml:space="preserve">
+    <value>Source type does not match.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.FastTree/GamModelParameters.cs:405.</comment>
+  </data>
+  <data name="TestResultDontMatch" xml:space="preserve">
+    <value>TestResult don't match</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.FastTree/Training/Test.cs:303.</comment>
+  </data>
+  <data name="TheIndexToDocumentExceedsRange" xml:space="preserve">
+    <value>the index to document exceeds range</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.FastTree/FastTreeRanking.cs:698.</comment>
+  </data>
+  <data name="InputIndexOutOfRange" xml:space="preserve">
+    <value>The input index, {0}, is invalid. Its valid range is from 0 (inclusive) to {1} (exclusive).</value>
+    <comment>Exception or validation message. Placeholders: {0}=nodeIndex, {1}=NumberOfNodes. Source: src/Microsoft.ML.FastTree/RegressionTree.cs:109.</comment>
+  </data>
+  <data name="LeafIndexOutOfRange" xml:space="preserve">
+    <value>The input leaf index, {0}, is invalid. Its valid range is from 0 (inclusive) to {1} (exclusive).</value>
+    <comment>Exception or validation message. Placeholders: {0}=leafIndex, {1}=NumberOfLeaves. Source: src/Microsoft.ML.FastTree/RegressionTree.cs:214. Exception or validation message. Placeholders: {0}=leafIndex, {1}=NumberOfLeaves. Source: src/Microsoft.ML.FastTree/RegressionTree.cs:230.</comment>
+  </data>
+  <data name="NodeIndexOutOfRange" xml:space="preserve">
+    <value>The input node index, {0}, is invalid. Its valid range is from 0 (inclusive) to {1} (exclusive).</value>
+    <comment>Exception or validation message. Placeholders: {0}=nodeIndex, {1}=NumberOfNodes. Source: src/Microsoft.ML.FastTree/RegressionTree.cs:126.</comment>
+  </data>
+  <data name="InitScoreCountMismatch" xml:space="preserve">
+    <value>The length of initScores do not match the length of training set</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.FastTree/Training/ScoreTracker.cs:69.</comment>
+  </data>
+  <data name="UnsupportedSortingAlgorithm" xml:space="preserve">
+    <value>The specified sorting algorithm is invalid. Only 'DescendingStable', 'DescendingReverse', 'DescendingDotNet', and 'DescendingStablePessimistic' are supported.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.FastTree/FastTreeArguments.cs:319.</comment>
+  </data>
+  <data name="ThisCodeShouldNotBeReachable" xml:space="preserve">
+    <value>This code should not be reachable</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.FastTree/Training/ScoreTracker.cs:135.</comment>
+  </data>
+  <data name="TopMustBeNonNegative" xml:space="preserve">
+    <value>top must be non-negative</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.FastTree/FastTree.cs:2935.</comment>
+  </data>
+  <data name="TransformNeedsAnInputFeaturesColumn" xml:space="preserve">
+    <value>Transform needs an input features column</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.FastTree/TreeEnsembleFeaturizer.cs:621.</comment>
+  </data>
+  <data name="UnsupportedTreeEnsemblePredictionKind" xml:space="preserve">
+    <value>Tree ensembles can be either of type BinaryClassification, Regression or Ranking</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.FastTree/TreeEnsemble/TreeEnsembleCombiner.cs:32.</comment>
+  </data>
+  <data name="AtLeastOneTreeOutputColumnMustBeSpecified" xml:space="preserve">
+    <value>TreesColumnName, LeavesColumnName, and PathsColumnName cannot be all null at the same time. At least one output column name should be provided so at least one output column may be generated.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.FastTree/TreeEnsembleFeaturizationEstimator.cs:91.</comment>
+  </data>
+  <data name="TreesFromDifferentWorkersDoNotMatch" xml:space="preserve">
+    <value>trees from different workers do not match</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.FastTree/TreeEnsemble/InternalRegressionTree.cs:586.</comment>
+  </data>
+  <data name="UnknownDatasetPassedToConstructScoreTracker" xml:space="preserve">
+    <value>unknown dataset passed to ConstructScoreTracker</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.FastTree/FastTree.cs:842.</comment>
+  </data>
+  <data name="UnknownOptimizationAlgorithm" xml:space="preserve">
+    <value>Unknown optimization algorithm '{0}'</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.FastTree/BoostingFastTree.cs:90.</comment>
+  </data>
+  <data name="UnsupportedBitsPerItem" xml:space="preserve">
+    <value>Unsupported bits per item {0}</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.FastTree/Dataset/DenseIntArray.cs:183. Exception or validation message. Source: src/Microsoft.ML.FastTree/Dataset/DenseIntArray.cs:224.</comment>
+  </data>
+  <data name="UnsupportedValueOperator" xml:space="preserve">
+    <value>Unsupported value operator: {0}</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.FastTree/Training/Test.cs:139.</comment>
+  </data>
+  <data name="UseDenseArraysFor0Bits" xml:space="preserve">
+    <value>Use dense arrays for 0 bits</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.FastTree/Dataset/RepeatIntArray.cs:61. Exception or validation message. Source: src/Microsoft.ML.FastTree/Dataset/RepeatIntArray.cs:78. Exception or validation message. Source: src/Microsoft.ML.FastTree/Dataset/SparseIntArray.cs:112. Exception or validation message. Source: src/Microsoft.ML.FastTree/Dataset/SparseIntArray.cs:162. Exception or validation message. Source: src/Microsoft.ML.FastTree/Dataset/SparseIntArray.cs:39. Exception or validation message. Source: src/Microsoft.ML.FastTree/Dataset/SparseIntArray.cs:79.</comment>
+  </data>
+  <data name="ValueIsGreaterThanTheGreatestNumberInTheArray" xml:space="preserve">
+    <value>value is greater than the greatest number in the array</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.FastTree/Utils/Algorithms.cs:25.</comment>
+  </data>
+  <data name="ValueIsLessThanTheFirstArrayElement" xml:space="preserve">
+    <value>value is less than the first array element</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.FastTree/Utils/Algorithms.cs:61.</comment>
+  </data>
+  <data name="ValueNotDefined" xml:space="preserve">
+    <value>Value not defined</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.FastTree/SumupPerformanceCommand.cs:89.</comment>
+  </data>
+  <data name="ValuesUnavailableOutsideCursorPosition" xml:space="preserve">
+    <value>Values cannot be fetched at this time. This method was called either before the first call to MoveNext, or at any point after that method returned false.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.FastTree/TreeEnsembleFeaturizer.cs:341.</comment>
+  </data>
+  <data name="WhenCombiningAuxiliaryDataTheTypesOfElementsMustMatch" xml:space="preserve">
+    <value>When combining auxiliary data, the types of elements must match. Distinct types {0} detected for data named {1}</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.FastTree/Dataset/Dataset.cs:846.</comment>
+  </data>
+  <data name="WriterMustNotBeNull" xml:space="preserve">
+    <value>writer must not be null.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.FastTree/GamModelParameters.cs:358. Exception or validation message. Source: src/Microsoft.ML.FastTree/GamModelParameters.cs:438.</comment>
+  </data>
+  <data name="YouNeedToProvideColumnForRankingProblem" xml:space="preserve">
+    <value>You need to provide {0} column for Ranking problem</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.FastTree/FastTree.cs:1608.</comment>
+  </data>
+  <data name="TheCannotBeNull" xml:space="preserve">
+    <value>The {0} cannot be null.</value>
+    <comment>Exception or validation message. Placeholders: {0}=nameof(options.InputColumnName). Source: src/Microsoft.ML.FastTree/TreeEnsembleFeaturizationEstimator.cs:89.</comment>
+  </data>
+</root>

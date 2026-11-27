@@ -113,11 +113,11 @@ namespace Microsoft.ML.Transforms.TimeSeries
             /// <param name="host">The host</param>
             public void InitState(int windowSize, int initialWindowSize, SequentialTransformBase<TInput, TOutput, TState> parentTransform, IHost host)
             {
-                Contracts.CheckValue(host, nameof(host), "The host cannot be null.");
-                host.Check(!_isIniatilized, "The window size can be set only once.");
+                Contracts.CheckValue(host, nameof(host), Strings.TheHostCannotBeNull);
+                host.Check(!_isIniatilized, Strings.TheWindowSizeCanBeSetOnlyOnce);
                 host.CheckValue(parentTransform, nameof(parentTransform));
-                host.CheckParam(windowSize >= 0, nameof(windowSize), "Must be non-negative.");
-                host.CheckParam(initialWindowSize >= 0, nameof(initialWindowSize), "Must be non-negative.");
+                host.CheckParam(windowSize >= 0, nameof(windowSize), Strings.MustBeNonNegative);
+                host.CheckParam(initialWindowSize >= 0, nameof(initialWindowSize), Strings.MustBeNonNegative);
 
                 Host = host;
                 WindowSize = windowSize;
@@ -276,8 +276,8 @@ namespace Microsoft.ML.Transforms.TimeSeries
             : base(host, input)
         {
             Contracts.AssertValue(Host);
-            Host.CheckParam(initialWindowSize >= 0, nameof(initialWindowSize), "Must be non-negative.");
-            Host.CheckParam(windowSize >= 0, nameof(windowSize), "Must be non-negative.");
+            Host.CheckParam(initialWindowSize >= 0, nameof(initialWindowSize), Strings.MustBeNonNegative);
+            Host.CheckParam(windowSize >= 0, nameof(windowSize), Strings.MustBeNonNegative);
             // REVIEW: Very bad design. This base class is responsible for reporting errors on
             // the arguments, but the arguments themselves are not derived form any base class.
             Host.CheckNonEmpty(inputColumnName, nameof(PercentileThresholdTransform.Arguments.Source));
@@ -411,7 +411,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
             /// </summary>
             public override bool IsColumnActive(DataViewSchema.Column column)
             {
-                Ch.Check(column.Index < Schema.Count, nameof(column));
+                Ch.Check(column.Index < Schema.Count, Strings.ColumnIndexMustBeLessThanTheSchemaColumnCount);
                 return Input.IsColumnActive(column);
             }
 
@@ -424,7 +424,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
             /// <param name="column"> is the output column whose getter should be returned.</param>
             public override ValueGetter<TValue> GetGetter<TValue>(DataViewSchema.Column column)
             {
-                Ch.Check(IsColumnActive(column), nameof(column));
+                Ch.Check(IsColumnActive(column), Strings.ColumnMustBeActive);
                 return Input.GetGetter<TValue>(column);
             }
         }

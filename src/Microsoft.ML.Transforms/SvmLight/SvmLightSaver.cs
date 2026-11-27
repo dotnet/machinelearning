@@ -97,19 +97,19 @@ namespace Microsoft.ML.Data
             {
                 var labelCol = data.Schema.GetColumnOrNull(_labelCol);
                 if (!labelCol.HasValue)
-                    throw ch.Except($"Column {_labelCol} not found in data");
+                    throw ch.Except(string.Format(Strings.ColumnNotFoundInData, _labelCol));
 
                 var featureCol = data.Schema.GetColumnOrNull(_featureCol);
                 if (!featureCol.HasValue)
-                    throw ch.Except($"Column {_featureCol} not found in data");
+                    throw ch.Except(string.Format(Strings.ColumnNotFoundInData, _featureCol));
 
                 var groupCol = !string.IsNullOrWhiteSpace(_groupCol) ? data.Schema.GetColumnOrNull(_groupCol) : default;
                 if (!string.IsNullOrWhiteSpace(_groupCol) && !groupCol.HasValue)
-                    throw ch.Except($"Column {_groupCol} not found in data");
+                    throw ch.Except(string.Format(Strings.ColumnNotFoundInData, _groupCol));
 
                 var weightCol = !string.IsNullOrWhiteSpace(_weightCol) ? data.Schema.GetColumnOrNull(_weightCol) : default;
                 if (!string.IsNullOrWhiteSpace(_weightCol) && !weightCol.HasValue)
-                    throw ch.Except($"Column {_weightCol} not found in data");
+                    throw ch.Except(string.Format(Strings.ColumnNotFoundInData, _weightCol));
 
                 foreach (var col in cols)
                 {

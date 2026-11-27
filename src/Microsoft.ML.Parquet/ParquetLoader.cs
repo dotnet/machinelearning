@@ -136,9 +136,9 @@ namespace Microsoft.ML.Data
 
             _host.CheckValue(args, nameof(args));
             _host.CheckValue(stream, nameof(stream));
-            _host.CheckParam(stream.CanRead, nameof(stream), "input stream must be readable");
-            _host.CheckParam(stream.CanSeek, nameof(stream), "input stream must be seekable");
-            _host.CheckParam(stream.Position == 0, nameof(stream), "input stream must be at head");
+            _host.CheckParam(stream.CanRead, nameof(stream), Strings.InputStreamMustBeReadable);
+            _host.CheckParam(stream.CanSeek, nameof(stream), Strings.InputStreamMustBeSeekable);
+            _host.CheckParam(stream.Position == 0, nameof(stream), Strings.InputStreamMustBeAtHead);
 
             using (var ch = _host.Start("Initializing host"))
             {
@@ -164,7 +164,7 @@ namespace Microsoft.ML.Data
                 }
                 catch (Exception ex)
                 {
-                    throw new InvalidDataException("Cannot read Parquet file", ex);
+                    throw new InvalidDataException(Strings.CannotReadParquetFile, ex);
                 }
 
                 _columnChunkReadSize = args.ColumnChunkReadSize;
@@ -224,7 +224,7 @@ namespace Microsoft.ML.Data
                 }
                 catch (Exception ex)
                 {
-                    throw new InvalidDataException("Cannot read Parquet file", ex);
+                    throw new InvalidDataException(Strings.CannotReadParquetFile, ex);
                 }
 
                 _columnsLoaded = InitColumns(schemaDataSet);
@@ -232,7 +232,7 @@ namespace Microsoft.ML.Data
             }
             else if (Schema == null)
             {
-                throw _host.Except("Parquet loader must be created with one file");
+                throw _host.Except(Strings.ParquetLoaderMustBeCreatedWithOneFile);
             }
         }
 
@@ -301,7 +301,7 @@ namespace Microsoft.ML.Data
             }
             else
             {
-                throw _host.ExceptNotSupp("Encountered unknown Parquet field type(Currently recognizes data, map, list, and struct).");
+                throw _host.ExceptNotSupp(Strings.UnknownParquetFieldType);
             }
         }
 
@@ -371,7 +371,7 @@ namespace Microsoft.ML.Data
         private static Stream OpenStream(IMultiStreamSource files)
         {
             Contracts.CheckValue(files, nameof(files));
-            Contracts.CheckParam(files.Count == 1, nameof(files), "Parquet loader must be created with one file");
+            Contracts.CheckParam(files.Count == 1, nameof(files), Strings.ParquetLoaderMustBeCreatedWithOneFile);
             return files.Open(0);
         }
 
@@ -470,7 +470,7 @@ namespace Microsoft.ML.Data
                 var numBlocks = MathUtils.DivisionCeiling((long)parent.GetRowCount(), _readerOptions.Count);
                 if (numBlocks > int.MaxValue)
                 {
-                    throw _loader._host.ExceptParam(nameof(Arguments.ColumnChunkReadSize), "Error due to too many blocks. Try increasing block size.");
+                    throw _loader._host.ExceptParam(nameof(Arguments.ColumnChunkReadSize), Strings.ErrorDueToTooManyBlocksTryIncreasingBlockSize);
                 }
                 var blockOrder = CreateOrderSequence((int)numBlocks);
                 _blockEnumerator = blockOrder.GetEnumerator();
@@ -543,7 +543,7 @@ namespace Microsoft.ML.Data
 
                 return (ref TValue value) =>
                 {
-                    Ch.Check(Position >= 0, RowCursorUtils.FetchValueStateError);
+                    Ch.Check(Position >= 0, Strings.ValuesUnavailableOutsideCursorPosition);
                     TSource val = (TSource)_columnValues[activeIdx][_curDataSetRow];
                     valueConverter(in val, ref value);
                 };
@@ -597,13 +597,12 @@ namespace Microsoft.ML.Data
             /// <param name="column"> is the output column whose getter should be returned.</param>
             public override ValueGetter<TValue> GetGetter<TValue>(DataViewSchema.Column column)
             {
-                Ch.CheckParam(IsColumnActive(column), nameof(column), "requested column not active");
+                Ch.CheckParam(IsColumnActive(column), nameof(column), Strings.RequestedColumnNotActive);
 
                 var originGetter = _getters[_colToActivesIndex[column.Index]];
                 var getter = originGetter as ValueGetter<TValue>;
                 if (getter == null)
-                    throw Ch.Except($"Invalid TValue: '{typeof(TValue)}', " +
-                            $"expected type: '{originGetter.GetType().GetGenericArguments().First()}'.");
+                    throw Ch.Except(string.Format(Strings.InvalidTValueExpectedType, typeof(TValue), originGetter.GetType().GetGenericArguments().First()));
 
                 return getter;
             }
@@ -614,7 +613,7 @@ namespace Microsoft.ML.Data
                    (ref DataViewRowId val) =>
                    {
                        // Unique row id consists of Position of cursor (how many times MoveNext has been called), and position in file
-                       Ch.Check(IsGood, RowCursorUtils.FetchValueStateError);
+                       Ch.Check(IsGood, Strings.ValuesUnavailableOutsideCursorPosition);
                        val = new DataViewRowId((ulong)(_readerOptions.Offset + _curDataSetRow), 0);
                    };
             }

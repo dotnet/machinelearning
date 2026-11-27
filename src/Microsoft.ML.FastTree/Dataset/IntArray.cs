@@ -232,7 +232,7 @@ namespace Microsoft.ML.Trainers.FastTree
                     || featureBin >= histogram.SumTargetsByBin.Length
                     || featureBin >= histogram.NumFeatureValues)
                 {
-                    throw Contracts.Except("Feature bin {0} is invalid", featureBin);
+                    throw Contracts.Except(Strings.FeatureBinIsInvalid, featureBin);
                 }
 
                 histogram.SumTargetsByBin[featureBin] += input.Outputs[i];
@@ -252,7 +252,7 @@ namespace Microsoft.ML.Trainers.FastTree
                     || featureBin >= histogram.SumTargetsByBin.Length
                     || featureBin >= histogram.NumFeatureValues)
                 {
-                    throw Contracts.Except("Feature bin {0} is invalid", featureBin);
+                    throw Contracts.Except(Strings.FeatureBinIsInvalid, featureBin);
                 }
 
                 histogram.SumTargetsByBin[featureBin] += input.Outputs[i];

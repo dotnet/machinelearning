@@ -70,7 +70,7 @@ namespace Microsoft.ML.Transforms
             object factoryObject = env.ComponentCatalog.GetExtensionValue(env, typeof(CustomMappingFactoryAttributeAttribute), contractName);
             if (!(factoryObject is ICustomMappingFactory mappingFactory))
             {
-                throw env.Except($"The class with contract '{contractName}' must derive from '{typeof(CustomMappingFactory<,>).FullName}' or from '{typeof(StatefulCustomMappingFactory<,,>).FullName}'.");
+                throw env.Except(string.Format(Strings.TheClassWithContractMustDeriveFromOrFrom, contractName, typeof(CustomMappingFactory<,>).FullName, typeof(StatefulCustomMappingFactory<,,>).FullName));
             }
 
             return mappingFactory.CreateTransformer(env, contractName);

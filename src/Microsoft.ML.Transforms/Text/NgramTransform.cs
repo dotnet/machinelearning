@@ -734,7 +734,7 @@ namespace Microsoft.ML.Transforms.Text
                             };
                         break;
                     default:
-                        throw Host.Except("Unsupported weighting criteria");
+                        throw Host.Except(Strings.UnsupportedWeightingCriteria);
                 }
                 return del;
             }
@@ -1038,11 +1038,10 @@ namespace Microsoft.ML.Transforms.Text
                 string inputColumnName = null)
             {
                 if (ngramLength == 1 && skipLength != 0)
-                    throw Contracts.ExceptUserArg(nameof(skipLength), string.Format(
-                        "{0} (actual value: {1}) can only be zero when {2} set to one.", nameof(skipLength), skipLength, nameof(ngramLength)));
+                    throw Contracts.ExceptUserArg(nameof(skipLength), string.Format(Strings.ActualValueCanOnlyBeZeroWhenSetToOne, nameof(skipLength), skipLength, nameof(ngramLength)));
                 if (ngramLength + skipLength > NgramBufferBuilder.MaxSkipNgramLength)
                     throw Contracts.ExceptUserArg(nameof(skipLength),
-                        $"The sum of skipLength and ngramLength must be less than or equal to {NgramBufferBuilder.MaxSkipNgramLength}");
+                        string.Format(Strings.SkipLengthAndNgramLengthExceedLimit, NgramBufferBuilder.MaxSkipNgramLength));
                 Contracts.CheckUserArg(0 < ngramLength && ngramLength <= NgramBufferBuilder.MaxSkipNgramLength, nameof(ngramLength));
 
                 var limits = new int[ngramLength];

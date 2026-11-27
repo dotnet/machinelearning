@@ -33,7 +33,7 @@ internal static class AssemblyLoadingUtils
                     Contracts.CheckNonEmpty(path, nameof(path));
                     if (!File.Exists(path))
                     {
-                        throw Contracts.ExceptParam(nameof(path), "File does not exist at path: {0}", path);
+                        throw Contracts.ExceptParam(nameof(path), Strings.FileDoesNotExistAtPath, path);
                     }
                     var assem = LoadAssembly(env, path);
                     if (assem != null)
@@ -65,7 +65,7 @@ internal static class AssemblyLoadingUtils
                 }
                 catch (Exception e)
                 {
-                    throw Contracts.ExceptIO(e, "Creating temp directory for extra assembly zip extraction failed: '{0}'", path);
+                    throw Contracts.ExceptIO(e, Strings.CreatingTempDirectoryForExtraAssemblyZipExtractionFailed, path);
                 }
 
                 try
@@ -74,7 +74,7 @@ internal static class AssemblyLoadingUtils
                 }
                 catch (Exception e)
                 {
-                    throw Contracts.ExceptIO(e, "Extracting extra assembly zip failed: '{0}'", path);
+                    throw Contracts.ExceptIO(e, Strings.ExtractingExtraAssemblyZipFailed, path);
                 }
 
                 LoadAssembliesInDir(env, dir, false);

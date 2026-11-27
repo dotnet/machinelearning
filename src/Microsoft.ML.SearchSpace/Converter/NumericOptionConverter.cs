@@ -43,7 +43,7 @@ namespace Microsoft.ML.SearchSpace.Converter
                 "int" => new UniformIntOption(Convert.ToInt32(schema.Min), Convert.ToInt32(schema.Max), schema.LogBase, Convert.ToInt32(schema.Default)),
                 "float" => new UniformSingleOption(Convert.ToSingle(schema.Min), Convert.ToSingle(schema.Max), schema.LogBase, Convert.ToSingle(schema.Default)),
                 "double" => new UniformDoubleOption(Convert.ToDouble(schema.Min), Convert.ToDouble(schema.Max), schema.LogBase, Convert.ToDouble(schema.Default)),
-                _ => throw new ArgumentException($"unknown schema type: {schema.Type}"),
+                _ => throw new ArgumentException(string.Format(Strings.UnknownSchemaType, schema.Type)),
             };
         }
 
@@ -75,7 +75,7 @@ namespace Microsoft.ML.SearchSpace.Converter
                     Max = Convert.ToSingle(singleOption.Max),
                     LogBase = singleOption.LogBase,
                 },
-                _ => throw new ArgumentException("unknown type"),
+                _ => throw new ArgumentException(Strings.UnknownType),
             };
 
             JsonSerializer.Serialize(writer, schema, options);

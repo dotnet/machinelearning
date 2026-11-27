@@ -41,7 +41,7 @@ namespace Microsoft.ML.Trainers.Ensemble
             _host = env.Register(LoadName);
             _args = args;
             _host.Check(0 < _args.FeaturesSelectionProportion && _args.FeaturesSelectionProportion < 1,
-                "The feature proportion for RandomFeatureSelector should be greater than 0 and lesser than 1");
+                Strings.RandomFeatureSelectorProportionMustBeBetweenZeroAndOne);
         }
 
         public Subset SelectFeatures(RoleMappedData data, Random rand)

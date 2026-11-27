@@ -59,8 +59,8 @@ namespace Microsoft.ML.Model.OnnxConverter
             _domain = domain;
             _onnxVersion = onnxVersion;
             _opSetVersion = opSetVersion <= CurrentOpSetVersion ?
-                            opSetVersion >= MinimumOpSetVersion ? opSetVersion : throw _host.ExceptParam(nameof(opSetVersion), $"Requested OpSet version {opSetVersion} is lower than the minimum required OpSet version {MinimumOpSetVersion}") :
-                            throw _host.ExceptParam(nameof(opSetVersion), $"Requested OpSet version {opSetVersion} is higher than the current most updated OpSet version {CurrentOpSetVersion}");
+                            opSetVersion >= MinimumOpSetVersion ? opSetVersion : throw _host.ExceptParam(nameof(opSetVersion), string.Format(Strings.OpSetVersionBelowRequiredMinimum, opSetVersion, MinimumOpSetVersion)) :
+                            throw _host.ExceptParam(nameof(opSetVersion), string.Format(Strings.OpSetVersionAboveSupportedMaximum, opSetVersion, CurrentOpSetVersion));
         }
 
         public override bool ContainsColumn(string colName) => _columnNameMap.ContainsKey(colName);
@@ -102,7 +102,7 @@ namespace Microsoft.ML.Model.OnnxConverter
         {
             _host.CheckNonEmpty(variableName, nameof(variableName));
             if (!_columnNameMap.ContainsValue(variableName))
-                throw _host.ExceptParam(nameof(variableName), $"Could not find '{variableName}' declared in ONNX graph");
+                throw _host.ExceptParam(nameof(variableName), string.Format(Strings.CouldNotFindDeclaredInONNXGraph, variableName));
 
             if (removeColumn)
             {
@@ -136,7 +136,7 @@ namespace Microsoft.ML.Model.OnnxConverter
         public override void CheckOpSetVersion(int thisTransformerMinumumOpSetVersion, string registerTransformerName)
         {
             if (_opSetVersion < thisTransformerMinumumOpSetVersion)
-                throw _host.ExceptParam(nameof(thisTransformerMinumumOpSetVersion), $"Requested OpSet version {_opSetVersion} is lower than {registerTransformerName}'s minimum OpSet version requirement: {thisTransformerMinumumOpSetVersion}");
+                throw _host.ExceptParam(nameof(thisTransformerMinumumOpSetVersion), string.Format(Strings.OpSetVersionBelowOperatorMinimum, _opSetVersion, registerTransformerName, thisTransformerMinumumOpSetVersion));
         }
 
         /// <summary>
@@ -344,7 +344,7 @@ namespace Microsoft.ML.Model.OnnxConverter
         {
             _host.CheckValue(values, nameof(values));
             if (dims != null)
-                _host.Check(dims.Aggregate((x, y) => x * y) == values.Count(), "Number of elements doesn't match tensor size");
+                _host.Check(dims.Aggregate((x, y) => x * y) == values.Count(), Strings.NumberOfElementsDoesntMatchTensorSize);
 
             name = AddVariable(name ?? "bools", makeUniqueName);
             _initializers.Add(OnnxUtils.MakeInt32s(name, typeof(bool), values.Select(v => Convert.ToInt32(v)), dims));
@@ -355,7 +355,7 @@ namespace Microsoft.ML.Model.OnnxConverter
         {
             _host.CheckValue(values, nameof(values));
             if (dims != null)
-                _host.Check(dims.Aggregate((x, y) => x * y) == values.Count(), "Number of elements doesn't match tensor size");
+                _host.Check(dims.Aggregate((x, y) => x * y) == values.Count(), Strings.NumberOfElementsDoesntMatchTensorSize);
 
             name = AddVariable(name ?? "floats", makeUniqueName);
             _initializers.Add(OnnxUtils.MakeFloats(name, values, dims));
@@ -366,7 +366,7 @@ namespace Microsoft.ML.Model.OnnxConverter
         {
             _host.CheckValue(values, nameof(values));
             if (dims != null)
-                _host.Check(dims.Aggregate((x, y) => x * y) == values.Count(), "Number of elements doesn't match tensor size");
+                _host.Check(dims.Aggregate((x, y) => x * y) == values.Count(), Strings.NumberOfElementsDoesntMatchTensorSize);
 
             name = AddVariable(name ?? "int32s", makeUniqueName);
             _initializers.Add(OnnxUtils.MakeInt32s(name, type, values, dims));
@@ -377,7 +377,7 @@ namespace Microsoft.ML.Model.OnnxConverter
         {
             _host.CheckValue(values, nameof(values));
             if (dims != null)
-                _host.Check(dims.Aggregate((x, y) => x * y) == values.Count(), "Number of elements doesn't match tensor size");
+                _host.Check(dims.Aggregate((x, y) => x * y) == values.Count(), Strings.NumberOfElementsDoesntMatchTensorSize);
 
             name = AddVariable(name ?? "strings", makeUniqueName);
             _initializers.Add(OnnxUtils.MakeStrings(name, values, dims));
@@ -388,7 +388,7 @@ namespace Microsoft.ML.Model.OnnxConverter
         {
             _host.CheckValue(values, nameof(values));
             if (dims != null)
-                _host.Check(dims.Aggregate((x, y) => x * y) == values.Count(), "Number of elements doesn't match tensor size");
+                _host.Check(dims.Aggregate((x, y) => x * y) == values.Count(), Strings.NumberOfElementsDoesntMatchTensorSize);
 
             name = AddVariable(name ?? "int64s", makeUniqueName);
             _initializers.Add(OnnxUtils.MakeInt64s(name, values, dims));
@@ -399,7 +399,7 @@ namespace Microsoft.ML.Model.OnnxConverter
         {
             _host.CheckValue(values, nameof(values));
             if (dims != null)
-                _host.Check(dims.Aggregate((x, y) => x * y) == values.Count(), "Number of elements doesn't match tensor size");
+                _host.Check(dims.Aggregate((x, y) => x * y) == values.Count(), Strings.NumberOfElementsDoesntMatchTensorSize);
 
             name = AddVariable(name ?? "doubles", makeUniqueName);
             _initializers.Add(OnnxUtils.MakeDoubles(name, values, dims));
@@ -410,7 +410,7 @@ namespace Microsoft.ML.Model.OnnxConverter
         {
             _host.CheckValue(values, nameof(values));
             if (dims != null)
-                _host.Check(dims.Aggregate((x, y) => x * y) == values.Count(), "Number of elements doesn't match tensor size");
+                _host.Check(dims.Aggregate((x, y) => x * y) == values.Count(), Strings.NumberOfElementsDoesntMatchTensorSize);
 
             name = AddVariable(name ?? "uints", makeUniqueName);
             _initializers.Add(OnnxUtils.MakeUInts(name, isUint64, values, dims));

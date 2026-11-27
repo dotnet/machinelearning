@@ -37,7 +37,7 @@ namespace Microsoft.ML.Transforms
             host.CheckNonEmpty(features, nameof(features));
 
             topExamples = topExamples ?? Utils.ArrayMaxSize;
-            host.Check(topExamples > 0, "Provide how many examples to use (positive number) or set to null to use whole dataset.");
+            host.Check(topExamples > 0, Strings.ExampleCountMustBePositiveOrNull);
 
             VBuffer<ReadOnlyMemory<char>> slotNames = default;
             var metricsDelta = new List<TResult>();

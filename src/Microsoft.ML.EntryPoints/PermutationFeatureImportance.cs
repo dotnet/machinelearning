@@ -62,8 +62,8 @@ namespace Microsoft.ML.Transforms
             RoleMappedData roleMappedData,
             PermutationFeatureImportanceArguments input)
         {
-            Contracts.Check(roleMappedData.Schema.Feature != null, "Feature column not found.");
-            Contracts.Check(roleMappedData.Schema.Label != null, "Label column not found.");
+            Contracts.Check(roleMappedData.Schema.Feature != null, Strings.FeatureColumnNotFound);
+            Contracts.Check(roleMappedData.Schema.Label != null, Strings.LabelColumnNotFound);
             IDataView result;
             if (predictor.PredictionKind == PredictionKind.BinaryClassification)
                 result = GetBinaryMetrics(env, predictor, roleMappedData, input);
@@ -75,8 +75,7 @@ namespace Microsoft.ML.Transforms
                 result = GetRankingMetrics(env, predictor, roleMappedData, input);
             else
                 throw Contracts.Except(
-                    "Unsupported predictor type. Predictor must be binary classifier, " +
-                    "multiclass classifier, regressor, or ranker.");
+                    Strings.PredictorMustBeClassifierRegressorOrRanker);
 
             return result;
         }
@@ -254,7 +253,7 @@ namespace Microsoft.ML.Transforms
             RoleMappedData roleMappedData,
             PermutationFeatureImportanceArguments input)
         {
-            Contracts.Check(roleMappedData.Schema.Group != null, "Group ID column not found.");
+            Contracts.Check(roleMappedData.Schema.Group != null, Strings.GroupIDColumnNotFound);
             var roles = roleMappedData.Schema.GetColumnRoleNames();
             var featureColumnName = roles.Where(x => x.Key.Value == RoleMappedSchema.ColumnRole.Feature.Value).First().Value;
             var labelColumnName = roles.Where(x => x.Key.Value == RoleMappedSchema.ColumnRole.Label.Value).First().Value;

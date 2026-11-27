@@ -8,6 +8,7 @@ using System.Reflection;
 using System.Text;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Runtime;
+using ResourceStrings = Microsoft.ML.Core.Resources.Strings;
 
 namespace Microsoft.ML;
 
@@ -119,7 +120,7 @@ internal sealed partial class ModelLoadContext : IDisposable
         Contracts.CheckValue(env, nameof(env));
         env.CheckValue(rep, nameof(rep));
         if (!LoadModelOrNull<TRes, TSig>(env, out result, rep, dir, extra))
-            throw env.ExceptDecode("Corrupt model file");
+            throw env.ExceptDecode(ResourceStrings.CorruptModelFile);
         env.AssertValue(result);
     }
 
@@ -132,7 +133,7 @@ internal sealed partial class ModelLoadContext : IDisposable
         where TRes : class
     {
         _ectx.CheckValue(env, nameof(env));
-        _ectx.Check(InRepository, "Can't load a sub-model when reading from a single stream");
+        _ectx.Check(InRepository, ResourceStrings.CannotLoadSubModelFromSingleStream);
         return LoadModelOrNull<TRes, TSig>(env, out result, Repository, Path.Combine(Directory ?? "", name), extra);
     }
 
@@ -144,7 +145,7 @@ internal sealed partial class ModelLoadContext : IDisposable
     {
         _ectx.CheckValue(env, nameof(env));
         if (!LoadModelOrNull<TRes, TSig>(env, out result, name, extra))
-            throw _ectx.ExceptDecode("Corrupt model file");
+            throw _ectx.ExceptDecode(ResourceStrings.CorruptModelFile);
         _ectx.AssertValue(result);
     }
 
@@ -180,7 +181,7 @@ internal sealed partial class ModelLoadContext : IDisposable
         Contracts.CheckValue(env, nameof(env));
         env.CheckValue(rep, nameof(rep));
         if (!TryLoadModel<TRes, TSig>(env, out result, rep, ent, dir, extra))
-            throw env.ExceptDecode("Couldn't load model: '{0}'", dir);
+            throw env.ExceptDecode(ResourceStrings.CouldntLoadModelVariant2, dir);
     }
 
     /// <summary>
@@ -203,7 +204,7 @@ internal sealed partial class ModelLoadContext : IDisposable
     {
         Contracts.CheckValue(env, nameof(env));
         if (!TryLoadModel<TRes, TSig>(env, out result, stream, extra))
-            throw Contracts.ExceptDecode("Couldn't load model");
+            throw Contracts.ExceptDecode(ResourceStrings.CouldntLoadModel);
     }
 
     /// <summary>
@@ -230,7 +231,7 @@ internal sealed partial class ModelLoadContext : IDisposable
     {
         Contracts.CheckValue(env, nameof(env));
         if (!TryLoadModel<TRes, TSig>(env, out result, reader, extra))
-            throw Contracts.ExceptDecode("Couldn't load model");
+            throw Contracts.ExceptDecode(ResourceStrings.CouldntLoadModel);
     }
 
     /// <summary>
@@ -301,7 +302,7 @@ internal sealed partial class ModelLoadContext : IDisposable
     /// </summary>
     public bool TryProcessSubModel(string dir, Action<ModelLoadContext> action)
     {
-        _ectx.Check(InRepository, "Can't Load a sub-model when reading from a single stream");
+        _ectx.Check(InRepository, ResourceStrings.CannotProcessSubModelFromSingleStream);
         _ectx.CheckNonEmpty(dir, nameof(dir));
         _ectx.CheckValue(action, nameof(action));
 
@@ -325,7 +326,7 @@ internal sealed partial class ModelLoadContext : IDisposable
     /// </summary>
     public bool TryLoadBinaryStream(string name, Action<BinaryReader> action)
     {
-        _ectx.Check(InRepository, "Can't Load a sub-model when reading from a single stream");
+        _ectx.Check(InRepository, ResourceStrings.CannotProcessSubModelFromSingleStream);
         _ectx.CheckNonEmpty(name, nameof(name));
         _ectx.CheckValue(action, nameof(action));
 
@@ -346,7 +347,7 @@ internal sealed partial class ModelLoadContext : IDisposable
     /// </summary>
     public bool TryLoadTextStream(string name, Action<TextReader> action)
     {
-        _ectx.Check(InRepository, "Can't Load a sub-model when reading from a single stream");
+        _ectx.Check(InRepository, ResourceStrings.CannotProcessSubModelFromSingleStream);
         _ectx.CheckNonEmpty(name, nameof(name));
         _ectx.CheckValue(action, nameof(action));
 

@@ -92,7 +92,7 @@ namespace Microsoft.ML.Data
                     sources = selectedColumnIndexes;
 
                 // Make sure the output of this transform is meaningful.
-                Contracts.Check(sources.Length > 0, "Choose columns by index has no output column.");
+                Contracts.Check(sources.Length > 0, Strings.ChooseColumnsByIndexHasNoOutputColumn);
             }
 
             /// <summary>

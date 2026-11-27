@@ -72,7 +72,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
         public PValueTransform(IHostEnvironment env, Arguments args, IDataView input)
             : base(args.WindowSize, args.InitialWindowSize, args.Name, args.Source, LoaderSignature, env, input)
         {
-            Host.CheckUserArg(args.WindowSize >= 1, nameof(args.WindowSize), "The size of the sliding window should be at least 1.");
+            Host.CheckUserArg(args.WindowSize >= 1, nameof(args.WindowSize), Strings.SlidingWindowSizeMustBePositive);
             _seed = args.Seed;
             _isPositiveSide = args.PositiveSide;
         }

@@ -80,10 +80,10 @@ namespace Microsoft.ML.Data
         public AnomalyDetectionEvaluator(IHostEnvironment env, Arguments args)
             : base(env, LoadName)
         {
-            Host.CheckUserArg(args.K > 0, nameof(args.K), "Must be positive");
-            Host.CheckUserArg(0 <= args.P && args.P <= 1, nameof(args.P), "Must be in [0,1]");
-            Host.CheckUserArg(args.NumTopResults >= 0, nameof(args.NumTopResults), "Must be non-negative");
-            Host.CheckUserArg(args.MaxAucExamples >= -1, nameof(args.MaxAucExamples), "Must be at least -1");
+            Host.CheckUserArg(args.K > 0, nameof(args.K), Strings.MustBePositive);
+            Host.CheckUserArg(0 <= args.P && args.P <= 1, nameof(args.P), Strings.MustBeBetweenZeroAndOneInclusive);
+            Host.CheckUserArg(args.NumTopResults >= 0, nameof(args.NumTopResults), Strings.MustBeNonNegative);
+            Host.CheckUserArg(args.MaxAucExamples >= -1, nameof(args.MaxAucExamples), Strings.MustBeAtLeastNegativeOne);
 
             _k = args.K;
             _p = args.P;
@@ -98,7 +98,7 @@ namespace Microsoft.ML.Data
             var t = score.Type;
             if (t != NumberDataViewType.Single)
                 throw Host.ExceptSchemaMismatch(nameof(schema), "score", score.Name, "Single", t.ToString());
-            Host.Check(schema.Label.HasValue, "Could not find the label column");
+            Host.Check(schema.Label.HasValue, Strings.CouldNotFindTheLabelColumn);
             t = schema.Label.Value.Type;
             if (t != NumberDataViewType.Single && t.GetKeyCount() != 2)
                 throw Host.ExceptSchemaMismatch(nameof(schema), "label", schema.Label.Value.Name, "Single or a Key with cardinality 2", t.ToString());
@@ -665,7 +665,7 @@ namespace Microsoft.ML.Data
         {
             IDataView top;
             if (!metrics.TryGetValue(AnomalyDetectionEvaluator.TopKResults, out top))
-                throw Host.Except("Did not find the top-k results data view");
+                throw Host.Except(Strings.DidNotFindTheTopKResultsDataView);
             var sb = new StringBuilder();
             using (var cursor = top.GetRowCursorForAllColumns())
             {
@@ -710,7 +710,7 @@ namespace Microsoft.ML.Data
 
             IDataView overall;
             if (!metrics.TryGetValue(MetricKinds.OverallMetrics, out overall))
-                throw Host.Except("No overall metrics found");
+                throw Host.Except(Strings.NoOverallMetricsFound);
 
             // Find the number of anomalies, and the thresholds.
             DataViewSchema.Column? numAnom = overall.Schema.GetColumnOrNull(AnomalyDetectionEvaluator.OverallMetrics.NumAnomalies);
@@ -742,7 +742,7 @@ namespace Microsoft.ML.Data
                     if (strat > 0)
                         continue;
                     if (foundRow)
-                        throw Host.Except("Found multiple non-stratified rows in overall results data view");
+                        throw Host.Except(Strings.FoundMultipleNonStratifiedRowsInOverallResultsDataView);
                     foundRow = true;
                     numAnomGetter(ref numAnomalies);
                 }
@@ -789,7 +789,7 @@ namespace Microsoft.ML.Data
         private protected override IEnumerable<string> GetPerInstanceColumnsToSave(RoleMappedSchema schema)
         {
             Host.CheckValue(schema, nameof(schema));
-            Host.CheckParam(schema.Label.HasValue, nameof(schema), "Data must contain a label column");
+            Host.CheckParam(schema.Label.HasValue, nameof(schema), Strings.DataMustContainALabelColumn);
 
             // The anomaly detection evaluator outputs the label and the score.
             yield return schema.Label.Value.Name;

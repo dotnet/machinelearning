@@ -1,0 +1,544 @@
+﻿<?xml version='1.0' encoding='utf-8'?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="ActualValueCanOnlyBeZeroWhenSetToOne" xml:space="preserve">
+    <value>{0} (actual value: {1}) can only be zero when {2} set to one.</value>
+    <comment>Exception or validation message. Placeholders: {0}=nameof(skipLength), {1}=skipLength, {2}=nameof(ngramLength). Source: src/Microsoft.ML.Transforms/Text/NgramHashingTransformer.cs:964. Exception or validation message. Placeholders: {0}=nameof(skipLength), {1}=skipLength, {2}=nameof(ngramLength). Source: src/Microsoft.ML.Transforms/Text/NgramTransform.cs:1041.</comment>
+  </data>
+  <data name="ArgumentRequiresNgramExtractorInsteadOfNgramHashExtractor" xml:space="preserve">
+    <value>Argument cannot be used with NgramHashExtractor, use NgramExtractor instead</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Transforms/Text/WordHashBagProducingTransform.cs:421.</comment>
+  </data>
+  <data name="BindingFailed" xml:space="preserve">
+    <value>binding failed: {0}</value>
+    <comment>Exception or validation message. Placeholders: {0}=errors[0].GetMessage(). Source: src/Microsoft.ML.Transforms/ExpressionTransformer.cs:110.</comment>
+  </data>
+  <data name="CanHaveAtMostOneVectorValuedSourceColumn" xml:space="preserve">
+    <value>Can have at most one vector-valued source column</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Transforms/ExpressionTransformer.cs:125. Exception or validation message. Source: src/Microsoft.ML.Transforms/ExpressionTransformer.cs:146.</comment>
+  </data>
+  <data name="SharedCountTablesMustUseDefaults" xml:space="preserve">
+    <value>Can't have non-default count tables if the tables are shared</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Transforms/Dracula/CountTableTransformer.cs:501.</comment>
+  </data>
+  <data name="ModelKindFileMappingMissing" xml:space="preserve">
+    <value>Can't map model kind = {0} to specific file, please refer to https://aka.ms/MLNetIssue for assistance</value>
+    <comment>Exception or validation message. Placeholders: {0}=kind. Source: src/Microsoft.ML.Transforms/Text/WordEmbeddingsExtractor.cs:647.</comment>
+  </data>
+  <data name="CannotAccessIlAfterMethodCreation" xml:space="preserve">
+    <value>Cannot access IL for a method that has already been created</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Transforms/Expression/MethodGenerator.cs:145.</comment>
+  </data>
+  <data name="CannotCallGetterWithCursorInItsCurrentState" xml:space="preserve">
+    <value>cannot call getter with cursor in its current state</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Transforms/SvmLight/SvmLightLoader.cs:473.</comment>
+  </data>
+  <data name="CannotCallIDGetterInCurrentState" xml:space="preserve">
+    <value>Cannot call ID getter in current state</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Transforms/SvmLight/SvmLightLoader.cs:495.</comment>
+  </data>
+  <data name="IndicatorAndInputColumnTypeMismatch" xml:space="preserve">
+    <value>Cannot concatenate indicator column of type '{0}' to input column of type '{1}'</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Transforms/MissingValueHandlingTransformer.cs:168.</comment>
+  </data>
+  <data name="CannotGetADataKindForType" xml:space="preserve">
+    <value>Cannot get a DataKind for type '{0}'</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Transforms/MissingValueHandlingTransformer.cs:184.</comment>
+  </data>
+  <data name="CannotPerformMeanImputationsOnNonNumeric" xml:space="preserve">
+    <value>Cannot perform mean imputations on non-numeric '{0}'</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Transforms/MissingValueReplacing.cs:312.</comment>
+  </data>
+  <data name="HashInvertLimitUnsupportedForBitCount" xml:space="preserve">
+    <value>Cannot support maximumNumberOfInverts for a {0} bit hash. 30 is the maximum possible.</value>
+    <comment>Exception or validation message. Placeholders: {0}=0. Source: src/Microsoft.ML.Transforms/Text/NgramHashingTransformer.cs:961.</comment>
+  </data>
+  <data name="ColumnDoesNotExistInTheInputSchema" xml:space="preserve">
+    <value>Column {0} does not exist in the input schema</value>
+    <comment>Exception or validation message. Placeholders: {0}=inputColumnNames[j]. Source: src/Microsoft.ML.Transforms/ExpressionTransformer.cs:941.</comment>
+  </data>
+  <data name="ColumnDoesNotExist" xml:space="preserve">
+    <value>Column '{0}' does not exist</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Transforms/MissingValueHandlingTransformer.cs:163.</comment>
+  </data>
+  <data name="ColumnTypeMustBeFloatDoubleOrString" xml:space="preserve">
+    <value>Column '{0}' does not have compatible type. Expected types are float, double or string.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Transforms/CountFeatureSelection.cs:173.</comment>
+  </data>
+  <data name="ColumnTypeMustBeFloatDoubleIntBoolOrKey" xml:space="preserve">
+    <value>Column '{0}' does not have compatible type. Expected types are float, double, int, bool and key.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Transforms/MutualInformationFeatureSelection.cs:239.</comment>
+  </data>
+  <data name="ColumnDoesNotHaveTheExpectedDimensionality" xml:space="preserve">
+    <value>column does not have the expected dimensionality.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Transforms/RandomFourierFeaturizing.cs:551.</comment>
+  </data>
+  <data name="ColumnIsNotAVectorColumn" xml:space="preserve">
+    <value>Column '{0}' is not a vector column</value>
+    <comment>Exception or validation message. Placeholders: {0}=srcCol.Name. Source: src/Microsoft.ML.Transforms/MissingValueDroppingTransformer.cs:197.</comment>
+  </data>
+  <data name="ColumnIsNotActive" xml:space="preserve">
+    <value>Column #{0} is not active</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Transforms/GroupTransform.cs:652.</comment>
+  </data>
+  <data name="ColumnIsOfTypeWhichDoesNotSupportMissingValues" xml:space="preserve">
+    <value>Column '{0}' is of type {1}, which does not support missing values</value>
+    <comment>Exception or validation message. Placeholders: {0}=srcCol.Name, {1}=srcCol.Type.GetItemType(). Source: src/Microsoft.ML.Transforms/MissingValueDroppingTransformer.cs:199.</comment>
+  </data>
+  <data name="UnknownSizeVectorMustBeScalar" xml:space="preserve">
+    <value>Column '{0}' is unknown size vector '{1}' must be a scalar instead of type '{2}'</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Transforms/MissingValueReplacing.cs:583.</comment>
+  </data>
+  <data name="ScalarColumnCannotHaveVectorItemType" xml:space="preserve">
+    <value>Column '{0}' item type '{1}' cannot be a vector when Columntype is a scalar of type '{2}'</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Transforms/MissingValueReplacing.cs:580.</comment>
+  </data>
+  <data name="ColumnItemTypeDoesNotMatchExpectedColumnTypeOf" xml:space="preserve">
+    <value>Column '{0}' item type '{1}' does not match expected ColumnType of '{2}'</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Transforms/MissingValueReplacing.cs:574.</comment>
+  </data>
+  <data name="ColumnItemShapeMismatch" xml:space="preserve">
+    <value>Column '{0}' item type '{1}' must be a scalar or a vector of the same size as Columntype '{2}'</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Transforms/MissingValueReplacing.cs:585.</comment>
+  </data>
+  <data name="ColumnNameCannotBeEmpty" xml:space="preserve">
+    <value>Column name cannot be empty</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Transforms/UngroupTransform.cs:332.</comment>
+  </data>
+  <data name="ColumnNotFoundInData" xml:space="preserve">
+    <value>Column {0} not found in data</value>
+    <comment>Exception or validation message. Placeholders: {0}=_featureCol. Source: src/Microsoft.ML.Transforms/SvmLight/SvmLightSaver.cs:104. Exception or validation message. Placeholders: {0}=_groupCol. Source: src/Microsoft.ML.Transforms/SvmLight/SvmLightSaver.cs:108. Exception or validation message. Placeholders: {0}=_labelCol. Source: src/Microsoft.ML.Transforms/SvmLight/SvmLightSaver.cs:100. Exception or validation message. Placeholders: {0}=_weightCol. Source: src/Microsoft.ML.Transforms/SvmLight/SvmLightSaver.cs:112.</comment>
+  </data>
+  <data name="ColumnOfTypeDoesNotHaveCompatibleType" xml:space="preserve">
+    <value>Column '{0}' of type '{1}' does not have compatible type.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Transforms/MutualInformationFeatureSelection.cs:476.</comment>
+  </data>
+  <data name="AggregatedColumnsMustBePrimitive" xml:space="preserve">
+    <value>Columns being aggregated must be primitive types such as string, float, or integer</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Transforms/GroupTransform.cs:297.</comment>
+  </data>
+  <data name="ColumnsMustBeSpecified" xml:space="preserve">
+    <value>Columns must be specified</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Transforms/Dracula/CountTargetEncodingTransformer.cs:170. Exception or validation message. Source: src/Microsoft.ML.Transforms/Text/WordBagTransform.cs:115. Exception or validation message. Source: src/Microsoft.ML.Transforms/Text/WordBagTransform.cs:462. Exception or validation message. Source: src/Microsoft.ML.Transforms/Text/WordHashBagProducingTransform.cs:328. Exception or validation message. Source: src/Microsoft.ML.Transforms/Text/WordHashBagProducingTransform.cs:92.</comment>
+  </data>
+  <data name="ContainedSomeNullOrEmptyItems" xml:space="preserve">
+    <value>Contained some null or empty items</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Transforms/Text/NgramHashingTransformer.cs:1023. Exception or validation message. Source: src/Microsoft.ML.Transforms/Text/NgramHashingTransformer.cs:955.</comment>
+  </data>
+  <data name="CouldNotFindColumnInInputSchema" xml:space="preserve">
+    <value>Could not find column {0} in input schema</value>
+    <comment>Exception or validation message. Placeholders: {0}=_columns[i].InputColumnName. Source: src/Microsoft.ML.Transforms/Dracula/CountTableTransformer.cs:147.</comment>
+  </data>
+  <data name="CountDictionariesMustAllExist" xml:space="preserve">
+    <value>Count dictionaries must all exist</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Transforms/Dracula/DictCountTable.cs:52.</comment>
+  </data>
+  <data name="CountsMustBeParallelToLabelCardinality" xml:space="preserve">
+    <value>Counts must be parallel to label cardinality</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Transforms/Dracula/DictCountTable.cs:51.</comment>
+  </data>
+  <data name="CustomWordEmbeddingModelFileMissing" xml:space="preserve">
+    <value>Custom word embedding model file '{0}' could not be found for Word Embeddings transform.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Transforms/Text/WordEmbeddingsExtractor.cs:654.</comment>
+  </data>
+  <data name="DataFileIsEmpty" xml:space="preserve">
+    <value>dataFile is empty</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Transforms/Text/StopWordsRemovingTransformer.cs:894.</comment>
+  </data>
+  <data name="DepthMustBePositive" xml:space="preserve">
+    <value>depth must be positive</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Transforms/Dracula/CMCountTable.cs:57.</comment>
+  </data>
+  <data name="DepthMustBeTheSameForAllLabels" xml:space="preserve">
+    <value>Depth must be the same for all labels</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Transforms/Dracula/CMCountTable.cs:58.</comment>
+  </data>
+  <data name="DepthOutOfRange" xml:space="preserve">
+    <value>Depth out of range</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Transforms/Dracula/CMCountTable.cs:199.</comment>
+  </data>
+  <data name="DuplicateKeysFoundInDataset" xml:space="preserve">
+    <value>Duplicate keys found in dataset</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Transforms/SvmLight/SvmLightLoader.cs:382.</comment>
+  </data>
+  <data name="DuplicatePivotColumnsAreNotAllowed" xml:space="preserve">
+    <value>Duplicate pivot columns are not allowed</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Transforms/UngroupTransform.cs:115.</comment>
+  </data>
+  <data name="ThresholdAndNumSlotsToKeepMutuallyExclusive" xml:space="preserve">
+    <value>Either Threshold or NumSlotsToKeep to keep must be specified (but not both).</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Transforms/LearnerFeatureSelection.cs:76.</comment>
+  </data>
+  <data name="UnsavableTransformHasEmptyContractName" xml:space="preserve">
+    <value>Empty contract name for a transform: the transform cannot be saved</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Transforms/CustomMappingTransformer.cs:71. Exception or validation message. Source: src/Microsoft.ML.Transforms/StatefulCustomMappingTransformer.cs:69.</comment>
+  </data>
+  <data name="Encountered0IndexWhileParsingA1BasedDataset" xml:space="preserve">
+    <value>Encountered 0 index while parsing a 1-based dataset</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Transforms/SvmLight/SvmLightLoader.cs:312.</comment>
+  </data>
+  <data name="EncounteredNonParsableIndexWhileParsingDataset" xml:space="preserve">
+    <value>Encountered non-parsable index '{0}' while parsing dataset</value>
+    <comment>Exception or validation message. Placeholders: {0}=inputValues[i]. Source: src/Microsoft.ML.Transforms/SvmLight/SvmLightLoader.cs:317.</comment>
+  </data>
+  <data name="ExpectedValuesToContainAtLeastOneNull" xml:space="preserve">
+    <value>Expected values to contain at least one null</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Transforms/Expression/BuiltinFunctions.cs:373.</comment>
+  </data>
+  <data name="ExpectedValuesToHavePositiveLength" xml:space="preserve">
+    <value>Expected values to have positive length</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Transforms/Expression/BuiltinFunctions.cs:372.</comment>
+  </data>
+  <data name="FileDoesNotExistAtPath" xml:space="preserve">
+    <value>File does not exist at path: {0}</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Transforms/SvmLight/SvmLightLoaderSaverCatalog.cs:74. Exception or validation message. Source: src/Microsoft.ML.Transforms/SvmLight/SvmLightLoaderSaverCatalog.cs:96.</comment>
+  </data>
+  <data name="FileDoesNotExist" xml:space="preserve">
+    <value>File does not exist</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Transforms/LoadTransform.cs:71.</comment>
+  </data>
+  <data name="NgramHashMaximumNumberOfInvertsRequiresEstimator" xml:space="preserve">
+    <value>Found colunm with MaximumNumberOfInverts set to non zero value, please use NgramHashingEstimator instead</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Transforms/Text/NgramHashingTransformer.cs:187.</comment>
+  </data>
+  <data name="GarbageBinNotSupportedForSharedTable" xml:space="preserve">
+    <value>Garbage bin not supported for shared table</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Transforms/Dracula/MultiCountTable.cs:381.</comment>
+  </data>
+  <data name="GarbageThresholdMustBeNonNegative" xml:space="preserve">
+    <value>Garbage threshold must be non-negative</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Transforms/Dracula/CountTable.cs:53. Exception or validation message. Source: src/Microsoft.ML.Transforms/Dracula/DictCountTable.cs:160.</comment>
+  </data>
+  <data name="GeneratingCodeFailed" xml:space="preserve">
+    <value>generating code failed: {0}</value>
+    <comment>Exception or validation message. Placeholders: {0}=errors[0].GetMessage(). Source: src/Microsoft.ML.Transforms/ExpressionTransformer.cs:280.</comment>
+  </data>
+  <data name="GroupHasDuplicateSlotIndices" xml:space="preserve">
+    <value>Group '{0}' has duplicate slot indices</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Transforms/HashJoiningTransform.cs:364.</comment>
+  </data>
+  <data name="DatasetRequiredToInferFeatureCount" xml:space="preserve">
+    <value>If the number of features is not specified, a dataset must be provided to infer it.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Transforms/SvmLight/SvmLightLoader.cs:567.</comment>
+  </data>
+  <data name="SlotImputationRequiresKnownVectorSize" xml:space="preserve">
+    <value>Imputation by slot is not allowed for vectors of unknown size.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Transforms/MissingValueReplacingUtils.cs:50.</comment>
+  </data>
+  <data name="InconsistentNumberOfColumns" xml:space="preserve">
+    <value>Inconsistent number of columns</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Transforms/Dracula/MultiCountTable.cs:264. Exception or validation message. Source: src/Microsoft.ML.Transforms/Dracula/MultiCountTable.cs:95.</comment>
+  </data>
+  <data name="InconsistentNumberOfSlots" xml:space="preserve">
+    <value>Inconsistent number of slots</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Transforms/Dracula/MultiCountTable.cs:102. Exception or validation message. Source: src/Microsoft.ML.Transforms/Dracula/MultiCountTable.cs:266.</comment>
+  </data>
+  <data name="IncorrectClassNames" xml:space="preserve">
+    <value>incorrect class names</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Transforms/Dracula/Featurizer.cs:127.</comment>
+  </data>
+  <data name="InternalErrorInLambdaCompilerMaximumNumberOfInputsExceeded" xml:space="preserve">
+    <value>Internal error in LambdaCompiler: Maximum number of inputs exceeded.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Transforms/Expression/CodeGen.cs:60.</comment>
+  </data>
+  <data name="UndefinedReplacementKindInNAReplaceTransform" xml:space="preserve">
+    <value>Internal error, undefined ReplacementKind '{0}' assigned in NAReplaceTransform.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Transforms/MissingValueReplacing.cs:319.</comment>
+  </data>
+  <data name="UnrecognizedImputationMethodOrTypeInNAReplaceTransform" xml:space="preserve">
+    <value>Internal error, unrecognized imputation method ReplacementKind '{0}' or unrecognized type '{1}' assigned in NAReplaceTransform.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Transforms/MissingValueReplacingUtils.cs:100.</comment>
+  </data>
+  <data name="InvalidTValueExpectedType" xml:space="preserve">
+    <value>Invalid TValue: '{0}', expected type: '{1}'.</value>
+    <comment>Exception or validation message. Placeholders: {0}=typeof(TValue), {1}=_getter.GetType().GetGenericArguments().First(). Source: src/Microsoft.ML.Transforms/SvmLight/SvmLightLoader.cs:485.</comment>
+  </data>
+  <data name="InvalidTValueInGetGetterExpectedType" xml:space="preserve">
+    <value>Invalid TValue in GetGetter: '{0}', expected type: '{1}'.</value>
+    <comment>Exception or validation message. Placeholders: {0}=typeof(TValue), {1}=idGetter.GetType().GetGenericArguments().First(). Source: src/Microsoft.ML.Transforms/ProduceIdTransform.cs:222. Exception or validation message. Placeholders: {0}=typeof(TValue), {1}=originFn.GetType().GetGenericArguments().First(). Source: src/Microsoft.ML.Transforms/OptionalColumnTransform.cs:492. Exception or validation message. Placeholders: {0}=typeof(TValue), {1}=originFn.GetType().GetGenericArguments().First(). Source: src/Microsoft.ML.Transforms/StatefulCustomMappingTransformer.cs:325.</comment>
+  </data>
+  <data name="InvalidType" xml:space="preserve">
+    <value>Invalid type.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Transforms/GroupTransform.cs:417.</comment>
+  </data>
+  <data name="KeysMustBeBetween0AndWidth1" xml:space="preserve">
+    <value>Keys must be between 0 and Width - 1</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Transforms/Dracula/CMCountTable.cs:62.</comment>
+  </data>
+  <data name="LabelCardinalityMustBeLessThanIntMaxValue" xml:space="preserve">
+    <value>Label cardinality must be less than int.MaxValue</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Transforms/Dracula/CountTableBuilder.cs:53.</comment>
+  </data>
+  <data name="LabelCardinalityOutOfBounds" xml:space="preserve">
+    <value>Label cardinality out of bounds</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Transforms/Dracula/CountTable.cs:49.</comment>
+  </data>
+  <data name="LabelTypeMustBeFloatDoubleIntBoolOrKey" xml:space="preserve">
+    <value>Label column '{0}' does not have compatible type. Expected types are float, double, int, bool and key.</value>
+    <comment>Exception or validation message. Placeholders: {0}=_labelColumnName. Source: src/Microsoft.ML.Transforms/MutualInformationFeatureSelection.cs:228.</comment>
+  </data>
+  <data name="LabelColumnDoesNotHaveCompatibleType" xml:space="preserve">
+    <value>Label column '{0}' does not have compatible type</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Transforms/MutualInformationFeatureSelection.cs:452.</comment>
+  </data>
+  <data name="LabelColumnNotFound" xml:space="preserve">
+    <value>Label column '{0}' not found</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Transforms/Dracula/CountTableTransformer.cs:133. Exception or validation message. Source: src/Microsoft.ML.Transforms/MutualInformationFeatureSelection.cs:445.</comment>
+  </data>
+  <data name="LabelColumnTypeMustHaveKnownCardinalityMoreThan1" xml:space="preserve">
+    <value>Label column type must have known cardinality more than 1</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Transforms/Dracula/CountTableTransformer.cs:305.</comment>
+  </data>
+  <data name="MaximumFeatureIndexMustBePositiveOrZero" xml:space="preserve">
+    <value>Maximum feature index must be positive, or 0 to infer it from the dataset</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Transforms/SvmLight/SvmLightLoader.cs:557.</comment>
+  </data>
+  <data name="MaximumNumberOfInputsExceeded" xml:space="preserve">
+    <value>maximum number of inputs exceeded</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Transforms/ExpressionTransformer.cs:82.</comment>
+  </data>
+  <data name="MissingTxtResource" xml:space="preserve">
+    <value>Missing '{0}.txt' resource.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Transforms/Text/StopWordsRemovingTransformer.cs:301.</comment>
+  </data>
+  <data name="WordEmbeddingModelDownloadRequired" xml:space="preserve">
+    <value>{0}
+Model file for Word Embedding transform could not be found! Please copy the model file '{1}' from '{2}' to '{3}'.</value>
+    <comment>Exception or validation message. Placeholders: {0}=errorMessage, {1}=name, {2}=url, {3}=directory. Source: src/Microsoft.ML.Transforms/Text/WordEmbeddingsExtractor.cs:641.</comment>
+  </data>
+  <data name="MustBeAScalarTextColumn" xml:space="preserve">
+    <value>Must be a scalar text column</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Transforms/Text/StopWordsRemovingTransformer.cs:871.</comment>
+  </data>
+  <data name="MustBeGreaterThan1" xml:space="preserve">
+    <value>Must be greater than 1</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Transforms/Dracula/Featurizer.cs:49.</comment>
+  </data>
+  <data name="MustBeGreaterThanOrEqualToZero" xml:space="preserve">
+    <value>Must be greater than or equal to zero.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Transforms/Dracula/CountTableTransformer.cs:123.</comment>
+  </data>
+  <data name="MustBeGreaterThanZero" xml:space="preserve">
+    <value>Must be greater than zero</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Transforms/Dracula/CountTableTransformer.cs:122.</comment>
+  </data>
+  <data name="MustBeNonNegative" xml:space="preserve">
+    <value>Must be non-negative.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Transforms/CountFeatureSelection.cs:119. Exception or validation message. Source: src/Microsoft.ML.Transforms/Text/LdaTransform.cs:1200. Exception or validation message. Source: src/Microsoft.ML.Transforms/LearnerFeatureSelection.cs:78.</comment>
+  </data>
+  <data name="MustBePositiveOrZero" xml:space="preserve">
+    <value>Must be positive or zero.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Transforms/Text/LdaTransform.cs:1197.</comment>
+  </data>
+  <data name="MustBePositive" xml:space="preserve">
+    <value>must be positive.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Transforms/RandomFourierFeaturizing.cs:680. Exception or validation message. Source: src/Microsoft.ML.Transforms/Text/LdaTransform.cs:1193. Exception or validation message. Source: src/Microsoft.ML.Transforms/Text/LdaTransform.cs:1194. Exception or validation message. Source: src/Microsoft.ML.Transforms/Text/LdaTransform.cs:1195. Exception or validation message. Source: src/Microsoft.ML.Transforms/Text/LdaTransform.cs:1196. Exception or validation message. Source: src/Microsoft.ML.Transforms/Text/LdaTransform.cs:1198. Exception or validation message. Source: src/Microsoft.ML.Transforms/LearnerFeatureSelection.cs:79. Exception or validation message. Source: src/Microsoft.ML.Transforms/Text/LdaTransform.cs:1199.</comment>
+  </data>
+  <data name="MustBeSpecified" xml:space="preserve">
+    <value>Must be specified</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Transforms/Text/WordHashBagProducingTransform.cs:386.</comment>
+  </data>
+  <data name="MustSpecifyTheLabelColumnName" xml:space="preserve">
+    <value>Must specify the label column name</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Transforms/Dracula/CountTargetEncodingTransformer.cs:171.</comment>
+  </data>
+  <data name="NewEstimatorAppliedColumnsButOldTransformerAppliedToColumns" xml:space="preserve">
+    <value>New estimator applied {0} columns, but old transformer applied to {1} columns</value>
+    <comment>Exception or validation message. Placeholders: {0}=columns.Length, {1}=initial.Featurizer.PriorCoef.Length. Source: src/Microsoft.ML.Transforms/Dracula/CountTableTransformer.cs:106.</comment>
+  </data>
+  <data name="NoConversionOfTo" xml:space="preserve">
+    <value>No conversion of '{0}' to '{1}'</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Transforms/MissingValueReplacing.cs:422.</comment>
+  </data>
+  <data name="NoIntParsableKeysFoundDuringKeyTransformInference" xml:space="preserve">
+    <value>No int parsable keys found during key transform inference</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Transforms/SvmLight/SvmLightLoader.cs:706.</comment>
+  </data>
+  <data name="NoTransformsWereFoundThatMatchTheSearchCriteria" xml:space="preserve">
+    <value>No transforms were found that match the search criteria ({0})</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Transforms/LoadTransform.cs:118.</comment>
+  </data>
+  <data name="NumBinsMustBeGreaterThan1" xml:space="preserve">
+    <value>numBins must be greater than 1.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Transforms/MutualInformationFeatureSelection.cs:138. Exception or validation message. Source: src/Microsoft.ML.Transforms/MutualInformationFeatureSelection.cs:267.</comment>
+  </data>
+  <data name="NumberOfBitsShouldBeBetweenAndInclusive" xml:space="preserve">
+    <value>numberOfBits should be between {0} and {1} inclusive</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Transforms/HashJoiningTransform.cs:205.</comment>
+  </data>
+  <data name="NumberOfKeysDoesNotMatchNumberOfValues" xml:space="preserve">
+    <value>number of keys does not match number of values.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Transforms/SvmLight/SvmLightLoader.cs:365.</comment>
+  </data>
+  <data name="ParsingFailed" xml:space="preserve">
+    <value>parsing failed: {0}</value>
+    <comment>Exception or validation message. Placeholders: {0}=errors[0].GetMessage(). Source: src/Microsoft.ML.Transforms/ExpressionTransformer.cs:104.</comment>
+  </data>
+  <data name="PivotColumnMustBePrimitiveVector" xml:space="preserve">
+    <value>Pivot column '{0}' has type '{1}', but must be a vector of primitive types</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Transforms/UngroupTransform.cs:338.</comment>
+  </data>
+  <data name="PivotColumnIsNotFound" xml:space="preserve">
+    <value>Pivot column '{0}' is not found</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Transforms/UngroupTransform.cs:335.</comment>
+  </data>
+  <data name="ExampleCountMustBePositiveOrNull" xml:space="preserve">
+    <value>Provide how many examples to use (positive number) or set to null to use whole dataset.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Transforms/PermutationFeatureImportance.cs:40.</comment>
+  </data>
+  <data name="RequestedColumnNotActive" xml:space="preserve">
+    <value>requested column not active</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Transforms/SvmLight/SvmLightLoader.cs:481.</comment>
+  </data>
+  <data name="ResourcePath" xml:space="preserve">
+    <value>resourcePath</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Transforms/Text/SentimentAnalyzingTransform.cs:66.</comment>
+  </data>
+  <data name="ScaleMustBeAPositiveFiniteValue" xml:space="preserve">
+    <value>scale must be a positive finite value</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Transforms/GcnTransform.cs:827.</comment>
+  </data>
+  <data name="ShouldBeLessThanNgramLength" xml:space="preserve">
+    <value>Should be less than NgramLength</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Transforms/Text/WordHashBagProducingTransform.cs:385.</comment>
+  </data>
+  <data name="SourceColumnNotFound" xml:space="preserve">
+    <value>Source column '{0}' not found</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Transforms/CountFeatureSelection.cs:310. Exception or validation message. Source: src/Microsoft.ML.Transforms/MutualInformationFeatureSelection.cs:463.</comment>
+  </data>
+  <data name="StopwordsColumnShouldBeSpecified" xml:space="preserve">
+    <value>stopwordsColumn should be specified</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Transforms/Text/StopWordsRemovingTransformer.cs:797.</comment>
+  </data>
+  <data name="StopwordsIsEmpty" xml:space="preserve">
+    <value>stopwords is empty</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Transforms/Text/StopWordsRemovingTransformer.cs:861.</comment>
+  </data>
+  <data name="String" xml:space="preserve">
+    <value>String</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Transforms/Text/TokenizingByCharacters.cs:124.</comment>
+  </data>
+  <data name="TheClassWithContractMustDeriveFromOrFrom" xml:space="preserve">
+    <value>The class with contract '{0}' must derive from '{1}' or from '{2}'.</value>
+    <comment>Exception or validation message. Placeholders: {0}=contractName, {1}=typeof(CustomMappingFactory&lt;,&gt;).FullName, {2}=typeof(StatefulCustomMappingFactory&lt;,,&gt;).FullName. Source: src/Microsoft.ML.Transforms/LambdaTransform.cs:73.</comment>
+  </data>
+  <data name="TheFileDoesNotContainACountTableTransformer" xml:space="preserve">
+    <value>The file {0} does not contain a CountTableTransformer</value>
+    <comment>Exception or validation message. Placeholders: {0}=options.InitialCountsModel. Source: src/Microsoft.ML.Transforms/Dracula/CountTableTransformer.cs:475. Exception or validation message. Placeholders: {0}=options.InitialCountsModel. Source: src/Microsoft.ML.Transforms/Dracula/CountTargetEncodingTransformer.cs:178.</comment>
+  </data>
+  <data name="TheModelProvidedDoesNotHaveACompatiblePredictor" xml:space="preserve">
+    <value>The model provided does not have a compatible predictor</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Transforms/PermutationFeatureImportanceExtensions.cs:681.</comment>
+  </data>
+  <data name="TheSpecifiedDocumentsAreAllEmptyInColumn" xml:space="preserve">
+    <value>The specified documents are all empty in column '{0}'.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Transforms/Text/LdaTransform.cs:934.</comment>
+  </data>
+  <data name="SkipLengthAndNgramLengthExceedLimit" xml:space="preserve">
+    <value>The sum of skipLength and ngramLength must be less than or equal to {0}</value>
+    <comment>Exception or validation message. Placeholders: {0}=NgramBufferBuilder.MaxSkipNgramLength. Source: src/Microsoft.ML.Transforms/Text/NgramHashingTransformer.cs:969. Exception or validation message. Placeholders: {0}=NgramBufferBuilder.MaxSkipNgramLength. Source: src/Microsoft.ML.Transforms/Text/NgramTransform.cs:1045.</comment>
+  </data>
+  <data name="ThereMustBeAtLeastOneGroupKey" xml:space="preserve">
+    <value>There must be at least one group key</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Transforms/GroupTransform.cs:114.</comment>
+  </data>
+  <data name="ThereMustBeAtLeastOnePivotColumn" xml:space="preserve">
+    <value>There must be at least one pivot column</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Transforms/UngroupTransform.cs:113.</comment>
+  </data>
+  <data name="DatasetRequiredForTextFeatureNames" xml:space="preserve">
+    <value>To use the text feature names option, a dataset must be provided</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Transforms/SvmLight/SvmLightLoader.cs:577.</comment>
+  </data>
+  <data name="TooLargeOutputSize" xml:space="preserve">
+    <value>Too large output size</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Transforms/Dracula/CountTableTransformer.cs:616.</comment>
+  </data>
+  <data name="TooManySourceColumns" xml:space="preserve">
+    <value>too many source columns</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Transforms/Text/WordBagTransform.cs:554.</comment>
+  </data>
+  <data name="TypeIPredictionTransformerNotImplementedByProvidedType" xml:space="preserve">
+    <value>Type IPredictionTransformer not implemented by provided type, {0}</value>
+    <comment>Exception or validation message. Placeholders: {0}=type. Source: src/Microsoft.ML.Transforms/PermutationFeatureImportanceExtensions.cs:734.</comment>
+  </data>
+  <data name="UndefinedSortingCriteriaDetectedForColumn" xml:space="preserve">
+    <value>Undefined sorting criteria '{0}' detected for column '{1}'</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Transforms/MissingValueReplacing.cs:442.</comment>
+  </data>
+  <data name="UnexpectedGetterTypeRequested" xml:space="preserve">
+    <value>Unexpected getter type requested</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Transforms/UngroupTransform.cs:623.</comment>
+  </data>
+  <data name="UnexpectedSlotIndexInGroupExpected0To" xml:space="preserve">
+    <value>Unexpected slot index '{1}' in group {0}. Expected 0 to {2}</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Transforms/HashJoiningTransform.cs:359.</comment>
+  </data>
+  <data name="UnexpectedSlotNameVectorSize" xml:space="preserve">
+    <value>Unexpected slot name vector size</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Transforms/MissingValueIndicatorTransform.cs:209.</comment>
+  </data>
+  <data name="UnknownColumn" xml:space="preserve">
+    <value>Unknown column '{0}'</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Transforms/Text/StopWordsRemovingTransformer.cs:869.</comment>
+  </data>
+  <data name="UnsupportedWeightingCriteria" xml:space="preserve">
+    <value>Unsupported weighting criteria</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Transforms/Text/NgramTransform.cs:737.</comment>
+  </data>
+  <data name="ValueCountMismatch" xml:space="preserve">
+    <value>value count mismatch</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Transforms/Dracula/CountTableTransformer.cs:209.</comment>
+  </data>
+  <data name="ValueTooSmallMustBeNegativeOneOrLarger" xml:space="preserve">
+    <value>Value too small, must be -1 or larger</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Transforms/Text/NgramHashingTransformer.cs:957.</comment>
+  </data>
+  <data name="ValuesUnavailableOutsideCursorPosition" xml:space="preserve">
+    <value>Values cannot be fetched at this time. This method was called either before the first call to MoveNext, or at any point after that method returned false.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Transforms/UngroupTransform.cs:641.</comment>
+  </data>
+  <data name="VariableLengthColumnIsNotAllowed" xml:space="preserve">
+    <value>Variable length column '{0}' is not allowed</value>
+    <comment>Exception or validation message. Placeholders: {0}=col.Name. Source: src/Microsoft.ML.Transforms/CountFeatureSelection.cs:175. Exception or validation message. Placeholders: {0}=col.Name. Source: src/Microsoft.ML.Transforms/MutualInformationFeatureSelection.cs:242. Exception or validation message. Source: src/Microsoft.ML.Transforms/CountFeatureSelection.cs:314. Exception or validation message. Source: src/Microsoft.ML.Transforms/MutualInformationFeatureSelection.cs:470.</comment>
+  </data>
+  <data name="VectorsOfUnknownLengthAreNotSupported" xml:space="preserve">
+    <value>vectors of unknown length are not supported</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Transforms/Dracula/MultiCountTable.cs:80.</comment>
+  </data>
+  <data name="UnknownTermSerializationType" xml:space="preserve">
+    <value>We do not know how to serialize terms of type '{0}'</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Transforms/MissingValueReplacing.cs:492.</comment>
+  </data>
+  <data name="WidthMustBePositive" xml:space="preserve">
+    <value>width must be positive</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Transforms/Dracula/CMCountTable.cs:61.</comment>
+  </data>
+  <data name="WidthOutOfRange" xml:space="preserve">
+    <value>Width out of range</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Transforms/Dracula/CMCountTable.cs:200.</comment>
+  </data>
+  <data name="ColumnIndexMustBeWithinTheCountTableRange" xml:space="preserve">
+    <value>Column index must be within the count table range.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Transforms/Dracula/MultiCountTable.cs:145. Exception or validation message. Source: src/Microsoft.ML.Transforms/Dracula/MultiCountTable.cs:298.</comment>
+  </data>
+  <data name="InitialCountColumnsMustMatchTheRequestedColumns" xml:space="preserve">
+    <value>Initial count columns must match the requested columns.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Transforms/Dracula/CountTargetEncodingTransformer.cs:147.</comment>
+  </data>
+  <data name="SlotIndexMustBeWithinTheSelectedColumnRange" xml:space="preserve">
+    <value>Slot index must be within the selected column range.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Transforms/Dracula/MultiCountTable.cs:146. Exception or validation message. Source: src/Microsoft.ML.Transforms/Dracula/MultiCountTable.cs:299.</comment>
+  </data>
+</root>

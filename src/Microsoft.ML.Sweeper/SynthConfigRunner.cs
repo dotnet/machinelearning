@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -33,7 +33,7 @@ namespace Microsoft.ML.Sweeper
         public SynthConfigRunner(IHostEnvironment env, Options options)
             : base(options, env, "SynthSweepEvaluator")
         {
-            Host.CheckUserArg(options.NumThreads == null || options.NumThreads.Value > 0, nameof(options.NumThreads), "Must be positive");
+            Host.CheckUserArg(options.NumThreads == null || options.NumThreads.Value > 0, nameof(options.NumThreads), Strings.MustBePositive);
             _parallelOptions = new ParallelOptions { MaxDegreeOfParallelism = options.NumThreads ?? -1 };
             Host.AssertNonEmpty(options.OutputFolderName);
             ProcessFullExePath(options.Exe);

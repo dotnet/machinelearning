@@ -1,0 +1,688 @@
+﻿<?xml version='1.0' encoding='utf-8'?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="AllRangeAttributeValuesMustBeOfTheSameType" xml:space="preserve">
+    <value>All Range attribute values must be of the same type</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/EntryPoints/ModuleArgs.cs:241.</comment>
+  </data>
+  <data name="WaitCalledAfterAllWaitersRetired" xml:space="preserve">
+    <value>All waiters have been retired, Wait should not be called at this point</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/MinWaiter.cs:78.</comment>
+  </data>
+  <data name="AlphaMustBePositive" xml:space="preserve">
+    <value>alpha must be positive</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/Stats.cs:79.</comment>
+  </data>
+  <data name="DuplicateComponentCatalogExtension" xml:space="preserve">
+    <value>An extension for '{0}' with contract '{1}' has already been registered in the ComponentCatalog.</value>
+    <comment>Exception or validation message. Placeholders: {0}=key.AttributeType.Name, {1}=key.ContractName. Source: src/Microsoft.ML.Core/ComponentModel/ComponentCatalog.cs:1092.</comment>
+  </data>
+  <data name="AttemptToPerformOperationOnClosedStream" xml:space="preserve">
+    <value>attempt to perform operation on closed stream</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/HybridMemoryStream.cs:163.</comment>
+  </data>
+  <data name="AttemptToRetireMoreWaitersThanWereInitiallyDeclared" xml:space="preserve">
+    <value>Attempt to retire more waiters than were initially declared</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/MinWaiter.cs:102.</comment>
+  </data>
+  <data name="BadDataKindIn" xml:space="preserve">
+    <value>Bad data kind in {0}.{1}: {2}</value>
+    <comment>Exception or validation message. Placeholders: {0}=nameof(ColumnTypeExtensions), {1}=nameof(NumberTypeFromKind), {2}=kind. Source: src/Microsoft.ML.Core/Data/ColumnTypeExtensions.cs:166.</comment>
+  </data>
+  <data name="BadTypeIn" xml:space="preserve">
+    <value>Bad type in {0}.{1}: {2}</value>
+    <comment>Exception or validation message. Placeholders: {0}=nameof(ColumnTypeExtensions), {1}=nameof(NumberTypeFromType), {2}=type. Source: src/Microsoft.ML.Core/Data/ColumnTypeExtensions.cs:136.</comment>
+  </data>
+  <data name="BufferSizeMustBePositive" xml:space="preserve">
+    <value>buffer size must be positive</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/Stream.cs:797.</comment>
+  </data>
+  <data name="CannotBeNullOrEmpty" xml:space="preserve">
+    <value>{0} cannot be null or empty</value>
+    <comment>Exception or validation message. Placeholders: {0}=paramName. Source: src/Microsoft.ML.Core/Utilities/Contracts.cs:340. Exception or validation message. Placeholders: {0}=paramName. Source: src/Microsoft.ML.Core/Utilities/Contracts.cs:342.</comment>
+  </data>
+  <data name="CannotBeNullOrWhiteSpace" xml:space="preserve">
+    <value>{0} cannot be null or white space</value>
+    <comment>Exception or validation message. Placeholders: {0}=paramName. Source: src/Microsoft.ML.Core/Utilities/Contracts.cs:356. Exception or validation message. Placeholders: {0}=paramName. Source: src/Microsoft.ML.Core/Utilities/Contracts.cs:358.</comment>
+  </data>
+  <data name="ColumnIndexMustBeNonNegative" xml:space="preserve">
+    <value>Column index must be non-negative.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/Data/AnnotationUtils.cs:381.</comment>
+  </data>
+  <data name="CallLockBeforeTheCallToGetSample" xml:space="preserve">
+    <value>Call Lock() before the call to GetSample()</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/ReservoirSampler.cs:110. Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/ReservoirSampler.cs:248.</comment>
+  </data>
+  <data name="CantInstantiateArgumentsObjectFor" xml:space="preserve">
+    <value>Can't instantiate arguments object '{0}' for '{1}'</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/ComponentModel/ComponentCatalog.cs:1034.</comment>
+  </data>
+  <data name="CantInstantiateClass" xml:space="preserve">
+    <value>Can't instantiate class '{0}'</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/ComponentModel/ComponentCatalog.cs:256.</comment>
+  </data>
+  <data name="CantInstantiateLoadableClassWithName" xml:space="preserve">
+    <value>Can't instantiate loadable class '{0}' with name '{1}'</value>
+    <comment>Exception or validation message. Placeholders: {0}=attr.InstanceType.Name, {1}=attr.LoadNames[0]. Source: src/Microsoft.ML.Core/ComponentModel/ComponentCatalog.cs:702.</comment>
+  </data>
+  <data name="CannotProcessSubModelFromSingleStream" xml:space="preserve">
+    <value>Can't Load a sub-model when reading from a single stream</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/Data/ModelLoading.cs:304. Exception or validation message. Source: src/Microsoft.ML.Core/Data/ModelLoading.cs:328. Exception or validation message. Source: src/Microsoft.ML.Core/Data/ModelLoading.cs:349.</comment>
+  </data>
+  <data name="CannotLoadSubModelFromSingleStream" xml:space="preserve">
+    <value>Can't load a sub-model when reading from a single stream</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/Data/ModelLoading.cs:135.</comment>
+  </data>
+  <data name="AmbiguousTypeLoaderFactoryMethod" xml:space="preserve">
+    <value>Can't load type {0}, because it has both create and constructor methods with the same visibility. Please indicate which one should be used by changing either the signature or the visibility of one of them.</value>
+    <comment>Exception or validation message. Placeholders: {0}=instType. Source: src/Microsoft.ML.Core/ComponentModel/ComponentCatalog.cs:496.</comment>
+  </data>
+  <data name="CantReportCheckpointsAfterDisposing" xml:space="preserve">
+    <value>Can't report checkpoints after disposing</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/Data/ProgressReporter.cs:74.</comment>
+  </data>
+  <data name="CannotSaveSubModelToSingleStream" xml:space="preserve">
+    <value>Can't save a sub-model when writing to a single stream</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/Data/ModelSaving.cs:21. Exception or validation message. Source: src/Microsoft.ML.Core/Data/ModelSaving.cs:80.</comment>
+  </data>
+  <data name="CannotSaveTextStreamToSingleStream" xml:space="preserve">
+    <value>Can't save a text stream when writing to a single stream</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/Data/ModelSaveContext.cs:157. Exception or validation message. Source: src/Microsoft.ML.Core/Data/ModelSaveContext.cs:173.</comment>
+  </data>
+  <data name="CannotBeGenericOnReturnType" xml:space="preserve">
+    <value>Cannot be generic on return type</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/FuncMethodInfo`1.cs:20. Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/FuncMethodInfo`2.cs:21. Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/FuncMethodInfo`3.cs:21. Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/Utils.cs:965.</comment>
+  </data>
+  <data name="CannotBeNegative" xml:space="preserve">
+    <value>cannot be negative</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/HybridMemoryStream.cs:187.</comment>
+  </data>
+  <data name="CannotContinueToSampleAfterLockHasBeenCalled" xml:space="preserve">
+    <value>Cannot continue to sample after Lock() has been called</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/ReservoirSampler.cs:164. Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/ReservoirSampler.cs:84.</comment>
+  </data>
+  <data name="CannotCopyAStreamWeCannotRead" xml:space="preserve">
+    <value>Cannot copy a stream we cannot read</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/HybridMemoryStream.cs:71.</comment>
+  </data>
+  <data name="CannotDetermineProductVersionFromAssembly" xml:space="preserve">
+    <value>Cannot determine product version from assembly {0}.</value>
+    <comment>Exception or validation message. Placeholders: {0}=assembly.FullName. Source: src/Microsoft.ML.Core/Data/Repository.cs:435.</comment>
+  </data>
+  <data name="CannotExposeInterfacesAfterServerChannelPublished" xml:space="preserve">
+    <value>Cannot expose more interfaces once a server channel has been published</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/Data/ServerChannel.cs:84.</comment>
+  </data>
+  <data name="CannotFindDirectory" xml:space="preserve">
+    <value>Cannot find directory '{0}'.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/Stream.cs:866.</comment>
+  </data>
+  <data name="CannotRepublishOnceAServerChannelHasBeenPublished" xml:space="preserve">
+    <value>Cannot republish once a server channel has been published</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/Data/ServerChannel.cs:124.</comment>
+  </data>
+  <data name="CannotWriteBytesToStreamBoundedAtBytes" xml:space="preserve">
+    <value>cannot write {0} bytes to stream bounded at {1} bytes</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/SubsetStream.cs:123.</comment>
+  </data>
+  <data name="ModelComponentTooNew" xml:space="preserve">
+    <value>Cause: ML.NET {0} cannont read component '{1}' of the model, because the model is too new.
+Suggestion: Make sure the model is trained with ML.NET {0} or older.
+Debug details: Maximum expected version {2}, got {3}.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/Data/ModelHeader.cs:354.</comment>
+  </data>
+  <data name="ModelComponentTooOld" xml:space="preserve">
+    <value>Cause: ML.NET {0} cannot read component '{1}' of the model, because the model is too old.
+Suggestion: Make sure the model is trained with ML.NET {0}.
+Debug details: Minimum expected version {2}, got {3}.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/Data/ModelHeader.cs:362.</comment>
+  </data>
+  <data name="CollectionArgumentsMustAllowMultiple" xml:space="preserve">
+    <value>Collection arguments must allow multiple</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/CommandLine/CmdParser.cs:1488.</comment>
+  </data>
+  <data name="ColumnNotFound" xml:space="preserve">
+    <value>Column '{0}' not found</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/EntryPoints/EntryPointUtils.cs:117.</comment>
+  </data>
+  <data name="ColumnNotFoundVariant2" xml:space="preserve">
+    <value>{0} column '{1}' not found</value>
+    <comment>Exception or validation message. Placeholders: {0}=kvp.Value, {1}=kvp.Key.Value. Source: src/Microsoft.ML.Core/Data/RoleMappedSchema.cs:229.</comment>
+  </data>
+  <data name="ComponentCatalogCannotMapNameAndSignatureTypeToAlreadyMappedTo" xml:space="preserve">
+    <value>ComponentCatalog cannot map name '{0}' and SignatureType '{1}' to {2}, already mapped to {3}.</value>
+    <comment>Exception or validation message. Placeholders: {0}=name, {1}=sigType, {2}=info.Type.Name, {3}=infoCur.Type.Name. Source: src/Microsoft.ML.Core/ComponentModel/ComponentCatalog.cs:541.</comment>
+  </data>
+  <data name="ComponentFactoryArgumentsNeedASignatureTypeSet" xml:space="preserve">
+    <value>ComponentFactory Arguments need a SignatureType set.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/CommandLine/CmdParser.cs:1545.</comment>
+  </data>
+  <data name="ComponentFactorySupportsAtMostFourTypeArguments" xml:space="preserve">
+    <value>ComponentFactoryFactory can only create IComponentFactory&lt;&gt; types with 4 or less type args.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/CommandLine/CmdParser.cs:2292.</comment>
+  </data>
+  <data name="ComponentHasAnInvalidAlias" xml:space="preserve">
+    <value>Component '{0}' has an invalid alias '{1}'</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/ComponentModel/ComponentCatalog.cs:428.</comment>
+  </data>
+  <data name="ComponentMustInheritFromIComponentFactory" xml:space="preserve">
+    <value>Component '{0}' must inherit from IComponentFactory</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/ComponentModel/ComponentCatalog.cs:431.</comment>
+  </data>
+  <data name="ComponentNameIsNotValid" xml:space="preserve">
+    <value>Component name '{0}' is not valid.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/ComponentModel/ComponentCatalog.cs:425.</comment>
+  </data>
+  <data name="ComponentSignatureDoesntInheritFrom" xml:space="preserve">
+    <value>Component signature '{0}' doesn't inherit from '{1}'</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/ComponentModel/ComponentCatalog.cs:610.</comment>
+  </data>
+  <data name="ComponentTypeDoesntHaveADefaultConstructor" xml:space="preserve">
+    <value>Component type '{0}' doesn't have a default constructor</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/ComponentModel/ComponentCatalog.cs:619.</comment>
+  </data>
+  <data name="CorruptFileHeader" xml:space="preserve">
+    <value>Corrupt file header</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/Data/ModelHeader.cs:352. Exception or validation message. Source: src/Microsoft.ML.Core/Data/ModelHeader.cs:393.</comment>
+  </data>
+  <data name="CorruptModelFileTail" xml:space="preserve">
+    <value>Corrupt model file tail</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/Data/ModelHeader.cs:554.</comment>
+  </data>
+  <data name="CorruptModelFile" xml:space="preserve">
+    <value>Corrupt model file</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/Data/ModelLoading.cs:122. Exception or validation message. Source: src/Microsoft.ML.Core/Data/ModelLoading.cs:147.</comment>
+  </data>
+  <data name="CouldntLoadModel" xml:space="preserve">
+    <value>Couldn't load model</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/Data/ModelLoading.cs:206. Exception or validation message. Source: src/Microsoft.ML.Core/Data/ModelLoading.cs:233.</comment>
+  </data>
+  <data name="CouldntLoadModelVariant2" xml:space="preserve">
+    <value>Couldn't load model: '{0}'</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/Data/ModelLoading.cs:183.</comment>
+  </data>
+  <data name="CreateWriteStreamCalledMultipleTimesOnSimpleFileHandle" xml:space="preserve">
+    <value>CreateWriteStream called multiple times on SimpleFileHandle</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/Data/IFileHandle.cs:164.</comment>
+  </data>
+  <data name="CreatingTempDirectoryForExtraAssemblyZipExtractionFailed" xml:space="preserve">
+    <value>Creating temp directory for extra assembly zip extraction failed: '{0}'</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/ComponentModel/AssemblyLoadingUtils.cs:68.</comment>
+  </data>
+  <data name="DegreesOfFreedomMustBePositive" xml:space="preserve">
+    <value>Degrees of freedom must be positive</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/MathUtils.cs:379.</comment>
+  </data>
+  <data name="DidNotFindAccessModifier" xml:space="preserve">
+    <value>Did not find access modifier</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/ComponentModel/ComponentCatalog.cs:33. Exception or validation message. Source: src/Microsoft.ML.Core/ComponentModel/ComponentCatalog.cs:50.</comment>
+  </data>
+  <data name="DirichletParametersMustHaveTheSameDimensionalityAsSampleSpace" xml:space="preserve">
+    <value>Dirichlet parameters must have the same dimensionality as sample space.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/Stats.cs:129.</comment>
+  </data>
+  <data name="DownloadTimedOut" xml:space="preserve">
+    <value>Download timed out</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/ResourceManagerUtils.cs:287.</comment>
+  </data>
+  <data name="DuplicateDefaultArgumentVs" xml:space="preserve">
+    <value>Duplicate default argument '{0}' vs '{1}'</value>
+    <comment>Exception or validation message. Placeholders: {0}=def.LongName, {1}=field.Name. Source: src/Microsoft.ML.Core/CommandLine/CmdParser.cs:479.</comment>
+  </data>
+  <data name="DuplicateEntry" xml:space="preserve">
+    <value>Duplicate entry: '{0}'</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/Data/Repository.cs:329. Exception or validation message. Source: src/Microsoft.ML.Core/Data/Repository.cs:537.</comment>
+  </data>
+  <data name="DuplicateNameInArgumentType" xml:space="preserve">
+    <value>Duplicate name '{0}' in argument type '{1}'</value>
+    <comment>Exception or validation message. Placeholders: {0}=name, {1}=type.Name. Source: src/Microsoft.ML.Core/CommandLine/CmdParser.cs:500. Exception or validation message. Placeholders: {0}=nick, {1}=type.Name. Source: src/Microsoft.ML.Core/CommandLine/CmdParser.cs:506.</comment>
+  </data>
+  <data name="ErrorDuringClassInstantiation" xml:space="preserve">
+    <value>Error during class instantiation</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/ComponentModel/ComponentCatalog.cs:252.</comment>
+  </data>
+  <data name="EventSentAfterTheCalculationLifetimeExpired" xml:space="preserve">
+    <value>Event sent after the calculation lifetime expired.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/Data/ProgressReporter.cs:406.</comment>
+  </data>
+  <data name="EventWeWereWaitingOnWasSubjectToAnException" xml:space="preserve">
+    <value>Event we were waiting on was subject to an exception</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/OrderedWaiter.cs:79. Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/OrderedWaiter.cs:87. Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/OrderedWaiter.cs:95.</comment>
+  </data>
+  <data name="ExceptionThrownIn" xml:space="preserve">
+    <value>Exception thrown in {0}</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/ThreadUtils.cs:240.</comment>
+  </data>
+  <data name="ExpectedExactlyOneColumnWithRoleButFound" xml:space="preserve">
+    <value>Expected exactly one column with role '{0}', but found {1}.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/Data/RoleMappedSchema.cs:307.</comment>
+  </data>
+  <data name="ExtractingExtraAssemblyZipFailed" xml:space="preserve">
+    <value>Extracting extra assembly zip failed: '{0}'</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/ComponentModel/AssemblyLoadingUtils.cs:77.</comment>
+  </data>
+  <data name="FailedToCreateFolderForTheProvidedPathException" xml:space="preserve">
+    <value>Failed to create folder for the provided path: {0}. 
+Exception: {1}</value>
+    <comment>Exception or validation message. Placeholders: {0}=folder, {1}=exc.Message. Source: src/Microsoft.ML.Core/Utilities/PathUtils.cs:143.</comment>
+  </data>
+  <data name="FailedToOpenAZipArchive" xml:space="preserve">
+    <value>Failed to open a zip archive</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/Data/Repository.cs:470.</comment>
+  </data>
+  <data name="OptionalFieldCannotBeNull" xml:space="preserve">
+    <value>Field '{0}' is Optional&lt;&gt; and set to null instead of an explicit value.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/EntryPoints/EntryPointUtils.cs:70.</comment>
+  </data>
+  <data name="FieldIsRequiredButIsNotSet" xml:space="preserve">
+    <value>Field '{0}' is required but is not set.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/EntryPoints/EntryPointUtils.cs:81.</comment>
+  </data>
+  <data name="FieldValueOutsideRange" xml:space="preserve">
+    <value>Field '{0}' is set to a value that falls outside the range bounds.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/EntryPoints/EntryPointUtils.cs:87.</comment>
+  </data>
+  <data name="FileDoesNotExistAtPath" xml:space="preserve">
+    <value>File does not exist at path: {0}</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/ComponentModel/AssemblyLoadingUtils.cs:36.</comment>
+  </data>
+  <data name="FileIsTooNew" xml:space="preserve">
+    <value>File is too new</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/Data/ModelHeader.cs:394.</comment>
+  </data>
+  <data name="FileIsTooOld" xml:space="preserve">
+    <value>File is too old</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/Data/ModelHeader.cs:395.</comment>
+  </data>
+  <data name="IndexOutOfRange" xml:space="preserve">
+    <value>Index out of range.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/BigArray.cs:125. Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/BigArray.cs:73. Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/BigArray.cs:80.</comment>
+  </data>
+  <data name="InputAndOutputMustBeSameLength" xml:space="preserve">
+    <value>Input and output must be same length.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/MathUtils.cs:61.</comment>
+  </data>
+  <data name="InvalidArgumentType" xml:space="preserve">
+    <value>Invalid argument type: '{0}'</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/CommandLine/CmdParser.cs:1485.</comment>
+  </data>
+  <data name="InvalidCallToGetAnnotation" xml:space="preserve">
+    <value>Invalid call to GetAnnotation</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/Data/AnnotationUtils.cs:118. Exception or validation message. Source: src/Microsoft.ML.Core/Data/AnnotationUtils.cs:123.</comment>
+  </data>
+  <data name="InvalidComponentKind" xml:space="preserve">
+    <value>Invalid component kind: '{0}'</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/ComponentModel/ComponentCatalog.cs:421.</comment>
+  </data>
+  <data name="InvalidComponentKindVariant2" xml:space="preserve">
+    <value>Invalid component kind</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/ComponentModel/ComponentCatalog.cs:919.</comment>
+  </data>
+  <data name="InvalidComponentStringMismatchedBracesOrEmptyComponentName" xml:space="preserve">
+    <value>Invalid Component string: mismatched braces, or empty component name.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/CommandLine/CmdParser.cs:1166.</comment>
+  </data>
+  <data name="InvalidForThisSizedArray" xml:space="preserve">
+    <value>invalid for this sized array</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/TextReaderStream.cs:151. Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/TextReaderStream.cs:152.</comment>
+  </data>
+  <data name="InvalidSignatureParameterAttributes" xml:space="preserve">
+    <value>Invalid signature parameter attributes</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/ComponentModel/LoadableClassAttribute.cs:200. Exception or validation message. Source: src/Microsoft.ML.Core/ComponentModel/LoadableClassAttribute.cs:220.</comment>
+  </data>
+  <data name="ItemTypeCannotBeAKey" xml:space="preserve">
+    <value>Item type cannot be a key</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/Data/IEstimator.cs:66.</comment>
+  </data>
+  <data name="ItemTypeCannotBeAVector" xml:space="preserve">
+    <value>Item type cannot be a vector</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/Data/IEstimator.cs:67.</comment>
+  </data>
+  <data name="KeyDataViewTypeCountExceedsIntMaxValue" xml:space="preserve">
+    <value>KeyDataViewType.Count exceeds int.MaxValue.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/Data/ColumnTypeExtensions.cs:37. Exception or validation message. Source: src/Microsoft.ML.Core/Data/KeyTypeExtensions.cs:20.</comment>
+  </data>
+  <data name="LEB128EncodedIntegerExceededExpectedLength" xml:space="preserve">
+    <value>LEB128 encoded integer exceeded expected length</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/Stream.cs:781.</comment>
+  </data>
+  <data name="LoadableClassDoesNotDeriveFrom" xml:space="preserve">
+    <value>Loadable class '{0}' does not derive from '{1}'</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/ComponentModel/ComponentCatalog.cs:1013. Exception or validation message. Source: src/Microsoft.ML.Core/ComponentModel/ComponentCatalog.cs:289. Exception or validation message. Source: src/Microsoft.ML.Core/ComponentModel/ComponentCatalog.cs:299.</comment>
+  </data>
+  <data name="LoadableClassDoesntSupportSettings" xml:space="preserve">
+    <value>Loadable class '{0}' doesn't support settings</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/ComponentModel/ComponentCatalog.cs:1027.</comment>
+  </data>
+  <data name="LoadableClassHasArgTypeWhichHasNoSuitableConstructor" xml:space="preserve">
+    <value>Loadable class '{0}' has ArgType '{1}', which has no suitable constructor</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/ComponentModel/ComponentCatalog.cs:315.</comment>
+  </data>
+  <data name="LoadableClassLoadNameParameterCantBeEmpty" xml:space="preserve">
+    <value>LoadableClass loadName parameter can't be empty</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/ComponentModel/LoadableClassAttribute.cs:172.</comment>
+  </data>
+  <data name="LoadableClassSignatureMustReturnVoid" xml:space="preserve">
+    <value>LoadableClass signature type must be a delegate type with void return</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/ComponentModel/LoadableClassAttribute.cs:181. Exception or validation message. Source: src/Microsoft.ML.Core/ComponentModel/LoadableClassAttribute.cs:213.</comment>
+  </data>
+  <data name="LoadableClassSignatureTypeMustBeADelegateType" xml:space="preserve">
+    <value>LoadableClass signature type must be a delegate type</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/ComponentModel/LoadableClassAttribute.cs:177. Exception or validation message. Source: src/Microsoft.ML.Core/ComponentModel/LoadableClassAttribute.cs:180. Exception or validation message. Source: src/Microsoft.ML.Core/ComponentModel/LoadableClassAttribute.cs:209. Exception or validation message. Source: src/Microsoft.ML.Core/ComponentModel/LoadableClassAttribute.cs:212.</comment>
+  </data>
+  <data name="LoadableClassSignaturesMustHaveTheSameNumberOfParameters" xml:space="preserve">
+    <value>LoadableClass signatures must have the same number of parameters</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/ComponentModel/LoadableClassAttribute.cs:215.</comment>
+  </data>
+  <data name="LoadableClassSignaturesMustHaveTheSameSetOfParameters" xml:space="preserve">
+    <value>LoadableClass signatures must have the same set of parameters</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/ComponentModel/LoadableClassAttribute.cs:222.</comment>
+  </data>
+  <data name="LogFactorialRequiresNonNegativeN" xml:space="preserve">
+    <value>LogFactorial is invalid for n &lt; 0.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/MathUtils.cs:350.</comment>
+  </data>
+  <data name="LogGammaRequiresPositiveX" xml:space="preserve">
+    <value>LogGamma invalid for x &lt;= 0</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/MathUtils.cs:307.</comment>
+  </data>
+  <data name="MaxValueMustBeNonNegative" xml:space="preserve">
+    <value>maxValue must be non-negative</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/Random.cs:188.</comment>
+  </data>
+  <data name="Method1stParameterIsButMustBeIHostEnvironment" xml:space="preserve">
+    <value>Method '{0}', 1st parameter is {1}, but must be IHostEnvironment</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/ComponentModel/ComponentCatalog.cs:359.</comment>
+  </data>
+  <data name="MethodHasParametersButMustHave2Or3" xml:space="preserve">
+    <value>Method '{0}' has {1} parameters, but must have 2 or 3</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/ComponentModel/ComponentCatalog.cs:357.</comment>
+  </data>
+  <data name="MethodReturnsButMustReturnAClass" xml:space="preserve">
+    <value>Method '{0}' returns {1}, but must return a class</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/ComponentModel/ComponentCatalog.cs:363.</comment>
+  </data>
+  <data name="MinMustNotExceedMax" xml:space="preserve">
+    <value>min must not exceed max</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/ArrayUtils.cs:79.</comment>
+  </data>
+  <data name="MinValueMustBeLessThanOrEqualToMaxValue" xml:space="preserve">
+    <value>minValue must be less than or equal to maxValue.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/Random.cs:199.</comment>
+  </data>
+  <data name="ModelSignatureMustBeEightCharacters" xml:space="preserve">
+    <value>Model signature must be eight characters</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/Data/ModelHeader.cs:643.</comment>
+  </data>
+  <data name="ModelSignatureNotSpecified" xml:space="preserve">
+    <value>ModelSignature not specified!</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/Data/ModelSaveContext.cs:240.</comment>
+  </data>
+  <data name="MustBeADelegateType" xml:space="preserve">
+    <value>Must be a delegate type</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/ComponentModel/ComponentCatalog.cs:762.</comment>
+  </data>
+  <data name="MustBeBetweenZeroAndUpperBoundInclusive" xml:space="preserve">
+    <value>must be in range [0,{0}]</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/HybridMemoryStream.cs:53. Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/HybridMemoryStream.cs:73.</comment>
+  </data>
+  <data name="MustBeInterface" xml:space="preserve">
+    <value>Must be interface</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/ComponentModel/ComponentCatalog.cs:862. Exception or validation message. Source: src/Microsoft.ML.Core/ComponentModel/ComponentCatalog.cs:873. Exception or validation message. Source: src/Microsoft.ML.Core/ComponentModel/ComponentCatalog.cs:887.</comment>
+  </data>
+  <data name="MustBeKnownSize" xml:space="preserve">
+    <value>must be known size</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/Data/AnnotationUtils.cs:144. Exception or validation message. Source: src/Microsoft.ML.Core/Data/AnnotationUtils.cs:156.</comment>
+  </data>
+  <data name="MustBeNonNegative" xml:space="preserve">
+    <value>Must be non-negative.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/BigArray.cs:95.</comment>
+  </data>
+  <data name="MustBePositive" xml:space="preserve">
+    <value>Must be positive</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/LruCache.cs:33.</comment>
+  </data>
+  <data name="OperationWasCanceled" xml:space="preserve">
+    <value>Operation was canceled.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/Contracts.cs:753.</comment>
+  </data>
+  <data name="MustHaveAtLeastOneWaiter" xml:space="preserve">
+    <value>Must have at least one waiter</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/MinWaiter.cs:58.</comment>
+  </data>
+  <data name="RangeSizeMustBeNoMoreThanIntMaxValue2" xml:space="preserve">
+    <value>rangeSize must be no more than int.MaxValue^2</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/Stats.cs:30.</comment>
+  </data>
+  <data name="RangeSizeMustBePositive" xml:space="preserve">
+    <value>rangeSize must be positive.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/Stats.cs:24.</comment>
+  </data>
+  <data name="RepositoryDoesntContainEntry" xml:space="preserve">
+    <value>Repository doesn't contain entry {0}</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/Data/Repository.cs:495.</comment>
+  </data>
+  <data name="RepositoryStreamTooLargeToReadIntoMemory" xml:space="preserve">
+    <value>Repository stream too large to read into memory</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/Data/Repository.cs:544.</comment>
+  </data>
+  <data name="ReservoirSizeMustBePositive" xml:space="preserve">
+    <value>Reservoir size must be positive</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/ReservoirSampler.cs:152. Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/ReservoirSampler.cs:73.</comment>
+  </data>
+  <data name="SchemaMustContainAtLeastOneColumn" xml:space="preserve">
+    <value>Schema must contain at least one column.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/Utils.cs:770.</comment>
+  </data>
+  <data name="SourceColumnMustBeValid" xml:space="preserve">
+    <value>Source column must be valid.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/Data/IEstimator.cs:89.</comment>
+  </data>
+  <data name="ShouldBeAStaticMethod" xml:space="preserve">
+    <value>Should be a static method</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/FuncStaticMethodInfo1`1.cs:29. Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/FuncStaticMethodInfo1`2.cs:30. Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/FuncStaticMethodInfo1`3.cs:31. Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/FuncStaticMethodInfo2`3.cs:31. Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/FuncStaticMethodInfo3`2.cs:30. Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/FuncStaticMethodInfo3`3.cs:31.</comment>
+  </data>
+  <data name="ShouldBeAnInstanceMethod" xml:space="preserve">
+    <value>Should be an instance method</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/FuncInstanceMethodInfo1`2.cs:39. Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/FuncInstanceMethodInfo1`3.cs:40. Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/FuncInstanceMethodInfo1`4.cs:41. Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/FuncInstanceMethodInfo2`4.cs:41. Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/FuncInstanceMethodInfo3`3.cs:40. Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/FuncInstanceMethodInfo3`4.cs:41.</comment>
+  </data>
+  <data name="ShouldBeAtTheHeadOfTheStream" xml:space="preserve">
+    <value>Should be at the head of the stream</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/HybridMemoryStream.cs:79.</comment>
+  </data>
+  <data name="ShouldBeGenericButIsNot" xml:space="preserve">
+    <value>Should be generic but is not</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/FuncMethodInfo`1.cs:17. Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/FuncMethodInfo`2.cs:18. Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/FuncMethodInfo`3.cs:18. Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/Utils.cs:1189.</comment>
+  </data>
+  <data name="ShouldHaveExactlyOneGenericTypeParameterButDoesNot" xml:space="preserve">
+    <value>Should have exactly one generic type parameter but does not</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/FuncMethodInfo1`1.cs:34. Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/FuncMethodInfo1`2.cs:35. Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/FuncMethodInfo1`3.cs:36. Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/Utils.cs:1191.</comment>
+  </data>
+  <data name="ShouldHaveExactlyThreeGenericTypeParametersButDoesNot" xml:space="preserve">
+    <value>Should have exactly three generic type parameters but does not</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/FuncMethodInfo3`2.cs:35. Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/FuncMethodInfo3`3.cs:36.</comment>
+  </data>
+  <data name="ShouldHaveExactlyTwoGenericTypeParametersButDoesNot" xml:space="preserve">
+    <value>Should have exactly two generic type parameters but does not</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/FuncMethodInfo2`3.cs:36.</comment>
+  </data>
+  <data name="SignatureTypeMustBeADelegateType" xml:space="preserve">
+    <value>signatureType must be a delegate type</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/ComponentModel/ComponentCatalog.cs:816.</comment>
+  </data>
+  <data name="SimpleFileHandleHasAlreadyBeenDisposed" xml:space="preserve">
+    <value>SimpleFileHandle has already been disposed</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/Data/IFileHandle.cs:154.</comment>
+  </data>
+  <data name="SimpleFileHandleHasntBeenWrittenYet" xml:space="preserve">
+    <value>SimpleFileHandle hasn't been written yet</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/Data/IFileHandle.cs:180.</comment>
+  </data>
+  <data name="SizeOfBigArrayIsTooLarge" xml:space="preserve">
+    <value>Size of BigArray is too large.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/BigArray.cs:102.</comment>
+  </data>
+  <data name="SomeItemsAreNotInitializedProperly" xml:space="preserve">
+    <value>Some items are not initialized properly.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/Data/IEstimator.cs:133.</comment>
+  </data>
+  <data name="LimitIndexExceedsArrayLength" xml:space="preserve">
+    <value>Specified limit index must be no more than length of the array.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/BigArray.cs:139. Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/BigArray.cs:166.</comment>
+  </data>
+  <data name="SpecifiedMinimumIndexMustBeNonNegative" xml:space="preserve">
+    <value>Specified minimum index must be non-negative.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/BigArray.cs:138. Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/BigArray.cs:165.</comment>
+  </data>
+  <data name="SpecifiedNewSizeIsTooLarge" xml:space="preserve">
+    <value>Specified new size is too large.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/BigArray.cs:212.</comment>
+  </data>
+  <data name="SpecifiedNewSizeMustBeNonNegative" xml:space="preserve">
+    <value>Specified new size must be non-negative.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/BigArray.cs:211.</comment>
+  </data>
+  <data name="StreamAlreadyDisposed" xml:space="preserve">
+    <value>Stream already disposed</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/HybridMemoryStream.cs:156. Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/HybridMemoryStream.cs:189. Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/HybridMemoryStream.cs:199. Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/HybridMemoryStream.cs:206. Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/HybridMemoryStream.cs:213. Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/HybridMemoryStream.cs:226. Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/HybridMemoryStream.cs:233.</comment>
+  </data>
+  <data name="StreamCannotDetermineLength" xml:space="preserve">
+    <value>Stream cannot determine length.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/TextReaderStream.cs:43.</comment>
+  </data>
+  <data name="StreamCannotSeek" xml:space="preserve">
+    <value>Stream cannot seek.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/TextReaderStream.cs:179. Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/TextReaderStream.cs:52.</comment>
+  </data>
+  <data name="StreamIsNotWritable" xml:space="preserve">
+    <value>Stream is not writable.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/TextReaderStream.cs:182. Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/TextReaderStream.cs:185.</comment>
+  </data>
+  <data name="StructNotInitializedProperly" xml:space="preserve">
+    <value>struct not initialized properly</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/Data/AnnotationUtils.cs:326. Exception or validation message. Source: src/Microsoft.ML.Core/Data/AnnotationUtils.cs:341.</comment>
+  </data>
+  <data name="EnsureResourceAsyncOnlySupportsAkaMsUrls" xml:space="preserve">
+    <value>The function ResourceManagerUtils.EnsureResourceAsync only supports downloading from URLs of the host "aka.ms"</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/ResourceManagerUtils.cs:120.</comment>
+  </data>
+  <data name="InfimumAndMinimumMutuallyExclusive" xml:space="preserve">
+    <value>The infimum and minimum cannot be both set in a range attribute</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/EntryPoints/ModuleArgs.cs:204.</comment>
+  </data>
+  <data name="TheInfimumMustBeLessThanTheMaximum" xml:space="preserve">
+    <value>The infimum must be less than the maximum</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/EntryPoints/ModuleArgs.cs:206.</comment>
+  </data>
+  <data name="TheInfimumMustBeLessThanTheSupremum" xml:space="preserve">
+    <value>The infimum must be less than the supremum</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/EntryPoints/ModuleArgs.cs:208.</comment>
+  </data>
+  <data name="TheItemTypeMustBeValidForAKey" xml:space="preserve">
+    <value>The item type must be valid for a key</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/Data/IEstimator.cs:68.</comment>
+  </data>
+  <data name="MaximumAndSupremumMutuallyExclusive" xml:space="preserve">
+    <value>The maximum and supremum cannot be both set in a range attribute</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/EntryPoints/ModuleArgs.cs:185.</comment>
+  </data>
+  <data name="MaximumMustNotBeLessThanMinimum" xml:space="preserve">
+    <value>The maximum must be greater than or equal to the minimum</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/EntryPoints/ModuleArgs.cs:187.</comment>
+  </data>
+  <data name="TheMaximumMustBeGreaterThanTheInfimum" xml:space="preserve">
+    <value>The maximum must be greater than the infimum</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/EntryPoints/ModuleArgs.cs:189.</comment>
+  </data>
+  <data name="MinimumAndInfimumMutuallyExclusive" xml:space="preserve">
+    <value>The minimum and infimum cannot be both set in a range attribute</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/EntryPoints/ModuleArgs.cs:166.</comment>
+  </data>
+  <data name="MinimumMustNotExceedMaximum" xml:space="preserve">
+    <value>The minimum must be less than or equal to the maximum</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/EntryPoints/ModuleArgs.cs:168.</comment>
+  </data>
+  <data name="TheMinimumMustBeLessThanTheSupremum" xml:space="preserve">
+    <value>The minimum must be less than the supremum</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/EntryPoints/ModuleArgs.cs:170.</comment>
+  </data>
+  <data name="TheProvidedUrlRedirectsToTheDefaultUrl" xml:space="preserve">
+    <value>The provided url ({0}) redirects to the default url ({1})</value>
+    <comment>Exception or validation message. Placeholders: {0}=uri, {1}=DefaultUrl. Source: src/Microsoft.ML.Core/Utilities/ResourceManagerUtils.cs:276.</comment>
+  </data>
+  <data name="SupremumAndMaximumMutuallyExclusive" xml:space="preserve">
+    <value>The supremum and maximum cannot be both set in a range attribute</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/EntryPoints/ModuleArgs.cs:223.</comment>
+  </data>
+  <data name="TheSupremumMustBeGreaterThanTheInfimum" xml:space="preserve">
+    <value>The supremum must be greater than the infimum</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/EntryPoints/ModuleArgs.cs:227.</comment>
+  </data>
+  <data name="TheSupremumMustBeGreaterThanTheMinimum" xml:space="preserve">
+    <value>The supremum must be greater than the minimum</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/EntryPoints/ModuleArgs.cs:225.</comment>
+  </data>
+  <data name="TooManyValuesProvidedInCheckpoint" xml:space="preserve">
+    <value>Too many values provided in Checkpoint</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/Data/ProgressReporter.cs:94.</comment>
+  </data>
+  <data name="TypeForRangeAttributeMustSupportIComparable" xml:space="preserve">
+    <value>Type for range attribute must support IComparable</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/EntryPoints/ModuleArgs.cs:237.</comment>
+  </data>
+  <data name="ExtensionContractNotFound" xml:space="preserve">
+    <value>Unable to locate an extension for the contract '{0}'. Ensure you have called {1}.{2} with the Assembly that contains a class decorated with a '{3}'.</value>
+    <comment>Exception or validation message. Placeholders: {0}=contractName, {1}=nameof(ComponentCatalog), {2}=nameof(ComponentCatalog.RegisterAssembly), {3}=attributeType.FullName. Source: src/Microsoft.ML.Core/ComponentModel/ComponentCatalog.cs:1139.</comment>
+  </data>
+  <data name="UnexpectedExceptionThrownWhileParsing" xml:space="preserve">
+    <value>Unexpected exception thrown while parsing: {0}</value>
+    <comment>Exception or validation message. Placeholders: {0}=e.Message. Source: src/Microsoft.ML.Core/ComponentModel/ComponentCatalog.cs:1068.</comment>
+  </data>
+  <data name="UnexpectedExpressionForm" xml:space="preserve">
+    <value>Unexpected expression form</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/FuncInstanceMethodInfo1`2.cs:60. Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/FuncInstanceMethodInfo1`2.cs:64. Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/FuncInstanceMethodInfo1`2.cs:65. Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/FuncInstanceMethodInfo1`2.cs:66. Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/FuncInstanceMethodInfo1`2.cs:67. Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/FuncInstanceMethodInfo1`2.cs:68. Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/FuncInstanceMethodInfo1`2.cs:71. Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/FuncInstanceMethodInfo1`2.cs:72. Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/FuncInstanceMethodInfo1`2.cs:73. Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/FuncInstanceMethodInfo1`2.cs:74. Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/FuncInstanceMethodInfo1`2.cs:75. Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/FuncInstanceMethodInfo1`2.cs:76. Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/FuncInstanceMethodInfo1`2.cs:79. Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/FuncInstanceMethodInfo1`2.cs:80. Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/FuncInstanceMethodInfo1`2.cs:83. Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/FuncInstanceMethodInfo1`2.cs:84. Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/FuncInstanceMethodInfo1`3.cs:61. Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/FuncInstanceMethodInfo1`3.cs:65. Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/FuncInstanceMethodInfo1`3.cs:66. Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/FuncInstanceMethodInfo1`3.cs:67. Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/FuncInstanceMethodInfo1`3.cs:68. Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/FuncInstanceMethodInfo1`3.cs:69. Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/FuncInstanceMethodInfo1`3.cs:72. Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/FuncInstanceMethodInfo1`3.cs:73. Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/FuncInstanceMethodInfo1`3.cs:74. Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/FuncInstanceMethodInfo1`3.cs:75. Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/FuncInstanceMethodInfo1`3.cs:76. Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/FuncInstanceMethodInfo1`3.cs:77. Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/FuncInstanceMethodInfo1`3.cs:80. Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/FuncInstanceMethodInfo1`3.cs:81. Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/FuncInstanceMethodInfo1`3.cs:84. Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/FuncInstanceMethodInfo1`3.cs:85. Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/FuncInstanceMethodInfo1`4.cs:62. Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/FuncInstanceMethodInfo1`4.cs:66. Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/FuncInstanceMethodInfo1`4.cs:67. Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/FuncInstanceMethodInfo1`4.cs:68. Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/FuncInstanceMethodInfo1`4.cs:69. Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/FuncInstanceMethodInfo1`4.cs:70. Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/FuncInstanceMethodInfo1`4.cs:73. Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/FuncInstanceMethodInfo1`4.cs:74. Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/FuncInstanceMethodInfo1`4.cs:75. Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/FuncInstanceMethodInfo1`4.cs:76. Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/FuncInstanceMethodInfo1`4.cs:77. Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/FuncInstanceMethodInfo1`4.cs:78. Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/FuncInstanceMethodInfo1`4.cs:81. Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/FuncInstanceMethodInfo1`4.cs:82. Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/FuncInstanceMethodInfo1`4.cs:85. Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/FuncInstanceMethodInfo1`4.cs:86. Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/FuncInstanceMethodInfo2`4.cs:62. Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/FuncInstanceMethodInfo2`4.cs:66. Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/FuncInstanceMethodInfo2`4.cs:67. Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/FuncInstanceMethodInfo2`4.cs:68. Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/FuncInstanceMethodInfo2`4.cs:69. Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/FuncInstanceMethodInfo2`4.cs:70. Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/FuncInstanceMethodInfo2`4.cs:73. Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/FuncInstanceMethodInfo2`4.cs:74. Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/FuncInstanceMethodInfo2`4.cs:75. Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/FuncInstanceMethodInfo2`4.cs:76. Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/FuncInstanceMethodInfo2`4.cs:77. Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/FuncInstanceMethodInfo2`4.cs:78. Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/FuncInstanceMethodInfo2`4.cs:81. Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/FuncInstanceMethodInfo2`4.cs:82. Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/FuncInstanceMethodInfo2`4.cs:85. Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/FuncInstanceMethodInfo2`4.cs:86. Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/FuncInstanceMethodInfo3`3.cs:61. Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/FuncInstanceMethodInfo3`3.cs:65. Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/FuncInstanceMethodInfo3`3.cs:66. Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/FuncInstanceMethodInfo3`3.cs:67. Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/FuncInstanceMethodInfo3`3.cs:68. Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/FuncInstanceMethodInfo3`3.cs:69. Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/FuncInstanceMethodInfo3`3.cs:72. Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/FuncInstanceMethodInfo3`3.cs:73. Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/FuncInstanceMethodInfo3`3.cs:74. Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/FuncInstanceMethodInfo3`3.cs:75. Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/FuncInstanceMethodInfo3`3.cs:76. Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/FuncInstanceMethodInfo3`3.cs:77. Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/FuncInstanceMethodInfo3`3.cs:80. Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/FuncInstanceMethodInfo3`3.cs:81. Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/FuncInstanceMethodInfo3`3.cs:84. Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/FuncInstanceMethodInfo3`3.cs:85. Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/FuncInstanceMethodInfo3`4.cs:62. Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/FuncInstanceMethodInfo3`4.cs:66. Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/FuncInstanceMethodInfo3`4.cs:67. Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/FuncInstanceMethodInfo3`4.cs:68. Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/FuncInstanceMethodInfo3`4.cs:69. Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/FuncInstanceMethodInfo3`4.cs:70. Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/FuncInstanceMethodInfo3`4.cs:73. Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/FuncInstanceMethodInfo3`4.cs:74. Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/FuncInstanceMethodInfo3`4.cs:75. Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/FuncInstanceMethodInfo3`4.cs:76. Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/FuncInstanceMethodInfo3`4.cs:77. Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/FuncInstanceMethodInfo3`4.cs:78. Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/FuncInstanceMethodInfo3`4.cs:81. Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/FuncInstanceMethodInfo3`4.cs:82. Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/FuncInstanceMethodInfo3`4.cs:85. Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/FuncInstanceMethodInfo3`4.cs:86.</comment>
+  </data>
+  <data name="UnexpectedFailureToRead" xml:space="preserve">
+    <value>Unexpected failure to read</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/Stream.cs:742.</comment>
+  </data>
+  <data name="UniqueOnlyApplicableToCollectionArguments" xml:space="preserve">
+    <value>Unique only applicable to collection arguments</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/CommandLine/CmdParser.cs:1489.</comment>
+  </data>
+  <data name="UnknownFileType" xml:space="preserve">
+    <value>Unknown file type</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/Data/ModelHeader.cs:351.</comment>
+  </data>
+  <data name="UnknownLoadableClass" xml:space="preserve">
+    <value>Unknown loadable class: {0}</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/ComponentModel/ComponentCatalog.cs:982.</comment>
+  </data>
+  <data name="VectorsMustHaveTheSameDimensionality" xml:space="preserve">
+    <value>Vectors must have the same dimensionality.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/VBufferUtils.cs:115. Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/VBufferUtils.cs:1169. Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/VBufferUtils.cs:166. Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/VBufferUtils.cs:591. Exception or validation message. Source: src/Microsoft.ML.Core/Utilities/VBufferUtils.cs:878.</comment>
+  </data>
+  <data name="WriteStreamForSimpleFileHandleHasntBeenDisposed" xml:space="preserve">
+    <value>Write stream for SimpleFileHandle hasn't been disposed</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/Data/IFileHandle.cs:185.</comment>
+  </data>
+  <data name="WrongFileType" xml:space="preserve">
+    <value>Wrong file type</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/Data/ModelHeader.cs:392.</comment>
+  </data>
+  <data name="WrongNumberOfExtraParametersForLoadableClassNeedGiven" xml:space="preserve">
+    <value>Wrong number of extra parameters for loadable class '{0}', need '{1}', given '{2}'</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Core/ComponentModel/ComponentCatalog.cs:1020.</comment>
+  </data>
+</root>

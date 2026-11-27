@@ -46,12 +46,12 @@ namespace Microsoft.ML.Trainers.LightGbm
         };
         public BoosterParameterBase(OptionsBase options)
         {
-            Contracts.CheckUserArg(options.MinimumSplitGain >= 0, nameof(OptionsBase.MinimumSplitGain), "must be >= 0.");
-            Contracts.CheckUserArg(options.MinimumChildWeight >= 0, nameof(OptionsBase.MinimumChildWeight), "must be >= 0.");
-            Contracts.CheckUserArg(options.SubsampleFraction > 0 && options.SubsampleFraction <= 1, nameof(OptionsBase.SubsampleFraction), "must be in (0,1].");
-            Contracts.CheckUserArg(options.FeatureFraction > 0 && options.FeatureFraction <= 1, nameof(OptionsBase.FeatureFraction), "must be in (0,1].");
-            Contracts.CheckUserArg(options.L2Regularization >= 0, nameof(OptionsBase.L2Regularization), "must be >= 0.");
-            Contracts.CheckUserArg(options.L1Regularization >= 0, nameof(OptionsBase.L1Regularization), "must be >= 0.");
+            Contracts.CheckUserArg(options.MinimumSplitGain >= 0, nameof(OptionsBase.MinimumSplitGain), Strings.MustBeNonNegative);
+            Contracts.CheckUserArg(options.MinimumChildWeight >= 0, nameof(OptionsBase.MinimumChildWeight), Strings.MustBeNonNegative);
+            Contracts.CheckUserArg(options.SubsampleFraction > 0 && options.SubsampleFraction <= 1, nameof(OptionsBase.SubsampleFraction), Strings.MustBeGreaterThanZeroAndAtMostOne);
+            Contracts.CheckUserArg(options.FeatureFraction > 0 && options.FeatureFraction <= 1, nameof(OptionsBase.FeatureFraction), Strings.MustBeGreaterThanZeroAndAtMostOne);
+            Contracts.CheckUserArg(options.L2Regularization >= 0, nameof(OptionsBase.L2Regularization), Strings.MustBeNonNegative);
+            Contracts.CheckUserArg(options.L1Regularization >= 0, nameof(OptionsBase.L1Regularization), Strings.MustBeNonNegative);
             BoosterOptions = options;
         }
 
@@ -295,8 +295,8 @@ namespace Microsoft.ML.Trainers.LightGbm
         internal DartBooster(Options options)
             : base(options)
         {
-            Contracts.CheckUserArg(options.TreeDropFraction > 0 && options.TreeDropFraction < 1, nameof(options.TreeDropFraction), "must be in (0,1).");
-            Contracts.CheckUserArg(options.SkipDropFraction >= 0 && options.SkipDropFraction < 1, nameof(options.SkipDropFraction), "must be in [0,1).");
+            Contracts.CheckUserArg(options.TreeDropFraction > 0 && options.TreeDropFraction < 1, nameof(options.TreeDropFraction), Strings.MustBeGreaterThanZeroAndLessThanOne);
+            Contracts.CheckUserArg(options.SkipDropFraction >= 0 && options.SkipDropFraction < 1, nameof(options.SkipDropFraction), Strings.MustBeAtLeastZeroAndLessThanOne);
             BoosterOptions = options;
         }
 
@@ -341,9 +341,9 @@ namespace Microsoft.ML.Trainers.LightGbm
         internal GossBooster(Options options)
             : base(options)
         {
-            Contracts.CheckUserArg(options.TopRate > 0 && options.TopRate < 1, nameof(Options.TopRate), "must be in (0,1).");
-            Contracts.CheckUserArg(options.OtherRate >= 0 && options.OtherRate < 1, nameof(Options.OtherRate), "must be in [0,1).");
-            Contracts.Check(options.TopRate + options.OtherRate <= 1, "Sum of topRate and otherRate cannot be larger than 1.");
+            Contracts.CheckUserArg(options.TopRate > 0 && options.TopRate < 1, nameof(Options.TopRate), Strings.MustBeGreaterThanZeroAndLessThanOne);
+            Contracts.CheckUserArg(options.OtherRate >= 0 && options.OtherRate < 1, nameof(Options.OtherRate), Strings.MustBeAtLeastZeroAndLessThanOne);
+            Contracts.Check(options.TopRate + options.OtherRate <= 1, Strings.SumOfTopRateAndOtherRateCannotBeLargerThan1);
             BoosterOptions = options;
         }
 

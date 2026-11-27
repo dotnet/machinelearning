@@ -120,7 +120,7 @@ namespace Microsoft.ML.Trainers
                },
                LoadNameValue, labelColumnName, binaryEstimator, calibrator)
         {
-            Host.CheckValue(labelColumnName, nameof(labelColumnName), "Label column should not be null.");
+            Host.CheckValue(labelColumnName, nameof(labelColumnName), Strings.LabelColumnShouldNotBeNull);
         }
 
         private protected override PairwiseCouplingModelParameters TrainCore(IChannel ch, RoleMappedData data, int count)
@@ -175,7 +175,7 @@ namespace Microsoft.ML.Trainers
                 return MapLabelsCore(NumberDataViewType.UInt32, (in uint val) => val == key1 || val == key2, data);
             }
 
-            throw Host.ExceptNotSupp($"Label column type is not supported by nameof(PairwiseCouplingTrainer): {label.Type.RawType}");
+            throw Host.ExceptNotSupp(string.Format(Strings.PairwiseCouplingLabelTypeUnsupported, label.Type.RawType));
         }
 
         /// <summary>
@@ -318,7 +318,7 @@ namespace Microsoft.ML.Trainers
             for (int i = 0; i < _predictors.Length; i++)
             {
                 var vmd = _predictors[i] as IValueMapperDist;
-                Host.Check(IsValid(vmd, ref inputType), "Predictor doesn't implement the expected interface");
+                Host.Check(IsValid(vmd, ref inputType), Strings.PredictorDoesntImplementTheExpectedInterface);
                 mappers[i] = vmd;
             }
             return inputType;

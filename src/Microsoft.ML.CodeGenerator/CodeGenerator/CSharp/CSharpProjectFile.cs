@@ -34,7 +34,7 @@ namespace Microsoft.ML.CodeGenerator.CodeGenerator.CSharp
             var extension = Path.GetExtension(Name);
             if (extension != ".csproj")
             {
-                throw new Exception("CSharp project file extesion must be .csproj");
+                throw new Exception(Strings.CSharpProjectFileExtesionMustBeCsproj);
             }
 
             Utilities.Utils.WriteOutputToFiles(File, Name, location);

@@ -240,7 +240,7 @@ namespace Microsoft.ML.Trainers.LightGbm
             {
                 var charPtr = WrappedLightGbmInterface.GetLastError();
                 string mes = Marshal.PtrToStringAnsi(charPtr);
-                throw Contracts.Except("LightGBM Error, code is {0}, error message is '{1}'.", res, mes);
+                throw Contracts.Except(Strings.LightGBMErrorCodeIsErrorMessageIs, res, mes);
             }
         }
 

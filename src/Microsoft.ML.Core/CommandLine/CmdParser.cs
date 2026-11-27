@@ -476,7 +476,7 @@ namespace Microsoft.ML.CommandLine
                     Contracts.Check(!field.IsStatic && !field.IsInitOnly && !field.IsLiteral);
                     bool isDefault = attr is DefaultArgumentAttribute;
                     if (isDefault && def != null)
-                        throw Contracts.Except($"Duplicate default argument '{def.LongName}' vs '{field.Name}'");
+                        throw Contracts.Except(string.Format(Strings.DuplicateDefaultArgumentVs, def.LongName, field.Name));
 
                     string name = ArgCase(attr.Name ?? field.Name);
 
@@ -497,13 +497,13 @@ namespace Microsoft.ML.CommandLine
                     Contracts.Assert(!isDefault || nicks == null);
 
                     if (map.ContainsKey(name.ToLowerInvariant()))
-                        throw Contracts.Except($"Duplicate name '{name}' in argument type '{type.Name}'");
+                        throw Contracts.Except(string.Format(Strings.DuplicateNameInArgumentType, name, type.Name));
                     if (nicks != null)
                     {
                         foreach (var nick in nicks)
                         {
                             if (map.ContainsKey(nick.ToLowerInvariant()))
-                                throw Contracts.Except($"Duplicate name '{nick}' in argument type '{type.Name}'");
+                                throw Contracts.Except(string.Format(Strings.DuplicateNameInArgumentType, nick, type.Name));
                         }
                     }
 
@@ -1163,7 +1163,7 @@ namespace Microsoft.ML.CommandLine
                 return;
             }
             if (ich == 0 || str[str.Length - 1] != '}')
-                throw Contracts.Except("Invalid Component string: mismatched braces, or empty component name.");
+                throw Contracts.Except(Strings.InvalidComponentStringMismatchedBracesOrEmptyComponentName);
 
             kind = str.Substring(0, ich);
             args = CmdLexer.UnquoteValue(str.Substring(ich));
@@ -1482,11 +1482,11 @@ namespace Microsoft.ML.CommandLine
                     }
 
                     if (_infoCustom == null)
-                        throw Contracts.Except("Invalid argument type: '{0}'", ItemValueType.Name);
+                        throw Contracts.Except(Strings.InvalidArgumentType, ItemValueType.Name);
                 }
 
-                Contracts.Check(!IsCollection || AllowMultiple, "Collection arguments must allow multiple");
-                Contracts.Check(!Unique || IsCollection, "Unique only applicable to collection arguments");
+                Contracts.Check(!IsCollection || AllowMultiple, Strings.CollectionArgumentsMustAllowMultiple);
+                Contracts.Check(!Unique || IsCollection, Strings.UniqueOnlyApplicableToCollectionArguments);
             }
 
             private bool IsKeyValuePair(Type type)
@@ -1542,7 +1542,7 @@ namespace Microsoft.ML.CommandLine
                     if (Utils.Size(values) > 0)
                         settings = values.Select(x => (string)x.Value).ToArray();
 
-                    Contracts.Check(_signatureType != null, "ComponentFactory Arguments need a SignatureType set.");
+                    Contracts.Check(_signatureType != null, Strings.ComponentFactoryArgumentsNeedASignatureTypeSet);
                     if (ComponentFactoryFactory.TryCreateComponentFactory(
                         ItemType,
                         _signatureType,
@@ -2289,7 +2289,7 @@ namespace Microsoft.ML.CommandLine
             {
                 if (!TryCreateComponentFactory(factoryType, signatureType, name, settings, out ICommandLineComponentFactory factory))
                 {
-                    throw Contracts.ExceptNotImpl("ComponentFactoryFactory can only create IComponentFactory<> types with 4 or less type args.");
+                    throw Contracts.ExceptNotImpl(Strings.ComponentFactorySupportsAtMostFourTypeArguments);
                 }
 
                 return factory;

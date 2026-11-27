@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -203,7 +203,7 @@ namespace Microsoft.ML.Sweeper.Algorithms
                     result.Add(fvg.NormalizeValue(new FloatParameterValue(pset.Name, float.Parse(pset.ValueText))));
                 }
                 else
-                    throw host.Except("Smart sweeper can only sweep over discrete and numeric parameters");
+                    throw host.Except(Strings.SmartSweeperCanOnlySweepOverDiscreteAndNumericParameters);
             }
 
             return result.ToArray();

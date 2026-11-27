@@ -470,11 +470,11 @@ namespace Microsoft.ML.Trainers
         {
             ectx.AssertValue(options);
 
-            ectx.CheckUserArg(options.TreeDepth >= 0, nameof(options.TreeDepth), "Tree depth can not be negative.");
-            ectx.CheckUserArg(options.TreeDepth <= 24, nameof(options.TreeDepth), "Try running with a tree of smaller depth first and cross validate over other parameters.");
-            ectx.CheckUserArg(options.LambdaW > 0, nameof(options.LambdaW), "Regularizer for W must be positive and non-zero.");
-            ectx.CheckUserArg(options.LambdaTheta > 0, nameof(options.LambdaTheta), "Regularizer for Theta must be positive and non-zero.");
-            ectx.CheckUserArg(options.LambdaThetaprime > 0, nameof(options.LambdaThetaprime), "Regularizer for Thetaprime must be positive and non-zero.");
+            ectx.CheckUserArg(options.TreeDepth >= 0, nameof(options.TreeDepth), Strings.TreeDepthCanNotBeNegative);
+            ectx.CheckUserArg(options.TreeDepth <= 24, nameof(options.TreeDepth), Strings.UseShallowerTreeBeforeCrossValidation);
+            ectx.CheckUserArg(options.LambdaW > 0, nameof(options.LambdaW), Strings.RegularizerForWMustBePositiveAndNonZero);
+            ectx.CheckUserArg(options.LambdaTheta > 0, nameof(options.LambdaTheta), Strings.RegularizerForThetaMustBePositiveAndNonZero);
+            ectx.CheckUserArg(options.LambdaThetaprime > 0, nameof(options.LambdaThetaprime), Strings.RegularizerForThetaprimeMustBePositiveAndNonZero);
         }
 
         internal struct LabelFeatures
@@ -518,7 +518,7 @@ namespace Microsoft.ML.Trainers
                         example.Label = cursor.Label > 0 ? 1 : -1;
                         examples.Add(example);
                     }
-                    Ch.Check(cursor.KeptRowCount > 0, NoTrainingInstancesMessage);
+                    Ch.Check(cursor.KeptRowCount > 0, Strings.NoValidTrainingInstancesFoundAllInstancesHaveMissingFeatures);
                     if (cursor.SkippedRowCount > 0)
                         Ch.Warning("Skipped {0} rows with missing feature/label values", cursor.SkippedRowCount);
                 }

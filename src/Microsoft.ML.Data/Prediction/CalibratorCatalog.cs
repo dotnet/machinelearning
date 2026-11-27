@@ -68,7 +68,7 @@ namespace Microsoft.ML.Calibrators
             if (!string.IsNullOrWhiteSpace(labelColumn))
                 LabelColumn = TrainerUtils.MakeBoolScalarLabel(labelColumn);
             else
-                env.CheckParam(!calibratorTrainer.NeedsTraining, nameof(labelColumn), "For trained calibrators, " + nameof(labelColumn) + " must be specified.");
+                env.CheckParam(!calibratorTrainer.NeedsTraining, nameof(labelColumn), Strings.ForTrainedCalibratorsLabelColumnMustBeSpecified);
             ScoreColumn = TrainerUtils.MakeR4ScalarColumn(scoreColumn); // Do we fathom this being named anything else (renaming column)? Complete metadata?
 
             if (weightColumn != null)
@@ -255,7 +255,7 @@ namespace Microsoft.ML.Calibrators
                 _scoreColumnName = scoreColumnName;
                 _scoreColIndex = inputSchema.GetColumnOrNull(_scoreColumnName)?.Index ?? -1;
 
-                parent.Host.Check(_scoreColIndex >= 0, "The data to calibrate contains no \'" + scoreColumnName + "\' column.");
+                parent.Host.Check(_scoreColIndex >= 0, string.Format(Strings.TheDataToCalibrateContainsNoColumn, scoreColumnName));
             }
 
             private protected override Func<int, bool> GetDependenciesCore(Func<int, bool> activeOutput)
@@ -270,7 +270,7 @@ namespace Microsoft.ML.Calibrators
                 Host.CheckValue(ctx, nameof(ctx));
                 if (_calibrator is ISingleCanSaveOnnx onnx)
                 {
-                    Host.Check(onnx.CanSaveOnnx(ctx), "Cannot be saved as ONNX.");
+                    Host.Check(onnx.CanSaveOnnx(ctx), Strings.CannotBeSavedAsONNX);
                     scoreName = ctx.GetVariableName(scoreName);
                     probabilityName = ctx.AddIntermediateVariable(NumberDataViewType.Single, probabilityName);
                     onnx.SaveAsOnnx(ctx, new[] { scoreName, probabilityName }, ""); // No need for featureColumn

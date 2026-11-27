@@ -45,7 +45,7 @@ namespace Microsoft.ML.EntryPoints
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register(ModuleName);
             host.CheckValue(input, nameof(input));
-            host.Check(0 < input.Fraction && input.Fraction < 1, "The fraction must be in the interval (0,1).");
+            host.Check(0 < input.Fraction && input.Fraction < 1, Strings.FractionMustBeGreaterThanZeroAndLessThanOne);
 
             EntryPointUtils.CheckInputArgs(host, input);
 

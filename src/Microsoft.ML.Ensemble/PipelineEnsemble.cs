@@ -71,12 +71,12 @@ namespace Microsoft.ML.Trainers.Ensemble
                     var bindable = ScoreUtils.GetSchemaBindableMapper(Parent.Host, Parent.PredictorModels[i].Predictor);
                     Mappers[i] = bindable.Bind(Parent.Host, rmd.Schema) as ISchemaBoundRowMapper;
                     if (Mappers[i] == null)
-                        throw Parent.Host.Except("Predictor {0} is not a row to row mapper", i);
+                        throw Parent.Host.Except(Strings.PredictorIsNotARowToRowMapper, i);
 
                     // Make sure there is a score column, and remember its index.
                     var scoreCol = Mappers[i].OutputSchema.GetColumnOrNull(AnnotationUtils.Const.ScoreValueKind.Score);
                     if (!scoreCol.HasValue)
-                        throw Parent.Host.Except("Predictor {0} does not contain a score column", i);
+                        throw Parent.Host.Except(Strings.PredictorDoesNotContainAScoreColumn, i);
                     ScoreCols[i] = scoreCol.Value.Index;
 
                     // Get the pipeline.
@@ -85,7 +85,7 @@ namespace Microsoft.ML.Trainers.Ensemble
                     var pipeline = Parent.PredictorModels[i].TransformModel.Apply(Parent.Host, tm);
                     BoundPipelines[i] = pipeline.AsRowToRowMapper(Parent.Host);
                     if (BoundPipelines[i] == null)
-                        throw Parent.Host.Except("Transform pipeline {0} contains transforms that do not implement IRowToRowMapper", i);
+                        throw Parent.Host.Except(Strings.TransformPipelineContainsNonRowToRowMapperTransforms, i);
                 }
             }
 
@@ -162,7 +162,7 @@ namespace Microsoft.ML.Trainers.Ensemble
                 public ValueGetter<Single> GetLabelGetter(DataViewRow input, int i, out Action disposer)
                 {
                     Parent.Host.Assert(0 <= i && i < Mappers.Length);
-                    Parent.Host.Check(Mappers[i].InputRoleMappedSchema.Label.HasValue, "Mapper was not trained using a label column");
+                    Parent.Host.Check(Mappers[i].InputRoleMappedSchema.Label.HasValue, Strings.MapperWasNotTrainedUsingALabelColumn);
                     var labelCol = Mappers[i].InputRoleMappedSchema.Label.Value;
 
                     // The label should be in the output row of the i'th pipeline
@@ -241,7 +241,7 @@ namespace Microsoft.ML.Trainers.Ensemble
                         return PredictionKind.Regression;
                     if (_scoreColumnKind == AnnotationUtils.Const.ScoreColumnKind.AnomalyDetection)
                         return PredictionKind.AnomalyDetection;
-                    throw Host.Except("Unknown prediction kind");
+                    throw Host.Except(Strings.UnknownPredictionKind);
                 }
             }
 
@@ -267,7 +267,7 @@ namespace Microsoft.ML.Trainers.Ensemble
                 {
                     if (_scoreColumnKind == AnnotationUtils.Const.ScoreColumnKind.MulticlassClassification)
                         return PredictionKind.MulticlassClassification;
-                    throw Host.Except("Unknown prediction kind");
+                    throw Host.Except(Strings.UnknownPredictionKind);
                 }
             }
 
@@ -437,11 +437,11 @@ namespace Microsoft.ML.Trainers.Ensemble
                             continue;
                         var name = inputSchema[j].Name;
                         if (!inputCols.Contains(name))
-                            throw Host.Except("Inconsistent schemas: Some schemas do not contain the column '{0}'", name);
+                            throw Host.Except(Strings.InconsistentSchemasSomeSchemasDoNotContainTheColumn, name);
                         nonHiddenCols++;
                     }
                     Host.Check(nonHiddenCols == _inputCols.Length,
-                        "Inconsistent schemas: not all schemas have the same number of columns");
+                        Strings.InconsistentSchemaColumnCounts);
                 }
             }
         }
@@ -523,21 +523,21 @@ namespace Microsoft.ML.Trainers.Ensemble
                 case AnnotationUtils.Const.ScoreColumnKind.BinaryClassification:
                     var binaryCombiner = combiner as IBinaryOutputCombiner;
                     if (binaryCombiner == null)
-                        throw env.Except("Combiner type incompatible with score column kind");
+                        throw env.Except(Strings.CombinerTypeIncompatibleWithScoreColumnKind);
                     return new ImplOneWithCalibrator(env, predictors, binaryCombiner);
                 case AnnotationUtils.Const.ScoreColumnKind.Regression:
                 case AnnotationUtils.Const.ScoreColumnKind.AnomalyDetection:
                     var regressionCombiner = combiner as IRegressionOutputCombiner;
                     if (regressionCombiner == null)
-                        throw env.Except("Combiner type incompatible with score column kind");
+                        throw env.Except(Strings.CombinerTypeIncompatibleWithScoreColumnKind);
                     return new ImplOne(env, predictors, regressionCombiner, scoreColumnKind);
                 case AnnotationUtils.Const.ScoreColumnKind.MulticlassClassification:
                     var vectorCombiner = combiner as IMulticlassOutputCombiner;
                     if (vectorCombiner == null)
-                        throw env.Except("Combiner type incompatible with score column kind");
+                        throw env.Except(Strings.CombinerTypeIncompatibleWithScoreColumnKind);
                     return new ImplVec(env, predictors, vectorCombiner);
                 default:
-                    throw env.Except("Unknown score kind");
+                    throw env.Except(Strings.UnknownScoreKind);
             }
         }
 
@@ -558,7 +558,7 @@ namespace Microsoft.ML.Trainers.Ensemble
                 case AnnotationUtils.Const.ScoreColumnKind.MulticlassClassification:
                     return new ImplVec(env, ctx, scoreColumnKind);
                 default:
-                    throw env.Except("Unknown score kind");
+                    throw env.Except(Strings.UnknownScoreKind);
             }
         }
 
@@ -595,7 +595,7 @@ namespace Microsoft.ML.Trainers.Ensemble
             var edv = new EmptyDataView(env, model.TransformModel.InputSchema);
             model.PrepareData(env, edv, out RoleMappedData rmd, out IPredictor pred);
             if (!rmd.Schema.Label.HasValue)
-                throw env.Except("Training schema for model 0 does not have a label column");
+                throw env.Except(Strings.TrainingSchemaForModel0DoesNotHaveALabel);
             var labelCol = rmd.Schema.Label.Value;
 
             var labelType = labelCol.Type;
@@ -603,11 +603,11 @@ namespace Microsoft.ML.Trainers.Ensemble
                 return CheckNonKeyLabelColumnCore(env, pred, models, isBinary, labelType);
 
             if (isBinary && labelKeyType.Count != 2)
-                throw env.Except("Label is not binary");
+                throw env.Except(Strings.LabelIsNotBinary);
             var schema = rmd.Schema.Schema;
             var mdType = labelCol.Annotations.Schema.GetColumnOrNull(AnnotationUtils.Kinds.KeyValues)?.Type as VectorDataViewType;
             if (mdType == null || !mdType.IsKnownSize)
-                throw env.Except("Label column of type key must have a vector of key values metadata");
+                throw env.Except(Strings.KeyLabelColumnRequiresKeyValuesMetadata);
 
             return Utils.MarshalInvoke(CheckKeyLabelColumnCore<int>, mdType.ItemType.RawType, env, models, (KeyDataViewType)labelType, schema, labelCol.Index, mdType);
         }
@@ -625,7 +625,7 @@ namespace Microsoft.ML.Trainers.Ensemble
 
             // The label is numeric, we just have to check that the number of classes is the same.
             if (!(pred is IValueMapper vm))
-                throw env.Except("Cannot determine the number of classes the predictor outputs");
+                throw env.Except(Strings.CannotDetermineTheNumberOfClassesThePredictorOutputs);
             var classCount = vm.OutputType.GetVectorSize();
 
             for (int i = 1; i < models.Length; i++)
@@ -635,7 +635,7 @@ namespace Microsoft.ML.Trainers.Ensemble
                 model.PrepareData(env, edv, out RoleMappedData rmd, out pred);
                 vm = pred as IValueMapper;
                 if (vm.OutputType.GetVectorSize() != classCount)
-                    throw env.Except("Label of model {0} has different number of classes than model 0", i);
+                    throw env.Except(Strings.ModelClassCountMismatch, i);
             }
             return classCount;
         }
@@ -659,19 +659,19 @@ namespace Microsoft.ML.Trainers.Ensemble
                 model.PrepareData(env, edv, out RoleMappedData rmd, out IPredictor pred);
                 var labelInfo = rmd.Schema.Label.HasValue;
                 if (!rmd.Schema.Label.HasValue)
-                    throw env.Except("Training schema for model {0} does not have a label column", i);
+                    throw env.Except(Strings.TrainingSchemaForModelDoesNotHaveALabelColumn, i);
                 var labelCol = rmd.Schema.Label.Value;
 
                 var curLabelType = labelCol.Type as KeyDataViewType;
                 if (!labelType.Equals(curLabelType))
-                    throw env.Except("Label column of model {0} has different type than model 0", i);
+                    throw env.Except(Strings.LabelColumnOfModelHasDifferentTypeThanModel0, i);
 
                 var mdType = labelCol.Annotations.Schema.GetColumnOrNull(AnnotationUtils.Kinds.KeyValues)?.Type;
                 if (!keyValuesType.Equals(mdType))
-                    throw env.Except("Label column of model {0} has different key value type than model 0", i);
+                    throw env.Except(Strings.ModelKeyLabelTypeMismatch, i);
                 labelCol.GetKeyValues(ref curLabelNames);
                 if (!AreEqual(in labelNames, in curLabelNames))
-                    throw env.Except("Label of model {0} has different values than model 0", i);
+                    throw env.Except(Strings.LabelOfModelHasDifferentValuesThanModel0, i);
             }
             return classCount;
         }

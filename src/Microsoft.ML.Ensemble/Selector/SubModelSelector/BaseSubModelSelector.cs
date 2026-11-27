@@ -44,7 +44,7 @@ namespace Microsoft.ML.Trainers.Ensemble
                     }
                 }
                 if (!found)
-                    throw ch.Except("Metrics did not contain the requested metric '{0}'", metricName);
+                    throw ch.Except(Strings.MetricsDidNotContainTheRequestedMetric, metricName);
                 ch.Info("| {0} |{1}", metric, model.Predictor.GetType().Name);
             }
         }
@@ -65,7 +65,7 @@ namespace Microsoft.ML.Trainers.Ensemble
                 case PredictionKind.MulticlassClassification:
                     return new MulticlassClassificationEvaluator(env, new MulticlassClassificationEvaluator.Arguments());
                 default:
-                    throw Host.Except("Unrecognized prediction kind '{0}'", PredictionKind);
+                    throw Host.Except(Strings.UnrecognizedPredictionKind, PredictionKind);
             }
         }
 
@@ -92,7 +92,7 @@ namespace Microsoft.ML.Trainers.Ensemble
                 // containing all the results of the individual models.
                 var metricsDict = evaluator.Evaluate(scoredTestData);
                 if (!metricsDict.TryGetValue(MetricKinds.OverallMetrics, out IDataView metricsView))
-                    throw Host.Except("Evaluator did not produce any overall metrics");
+                    throw Host.Except(Strings.EvaluatorDidNotProduceAnyOverallMetrics);
                 // REVIEW: We're assuming that the metrics of interest are always doubles here.
                 var metrics = EvaluateUtils.GetMetrics(metricsView, getVectorMetrics: false);
                 model.Metrics = metrics.ToArray();
@@ -128,7 +128,7 @@ namespace Microsoft.ML.Trainers.Ensemble
                     yield return RoleMappedSchema.CreatePair(AnnotationUtils.Const.ScoreValueKind.Score, scoreCol.Name);
                     yield break;
                 default:
-                    throw Host.Except("Unrecognized prediction kind '{0}'", PredictionKind);
+                    throw Host.Except(Strings.UnrecognizedPredictionKind, PredictionKind);
             }
         }
     }

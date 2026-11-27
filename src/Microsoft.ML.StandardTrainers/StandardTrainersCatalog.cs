@@ -721,7 +721,7 @@ namespace Microsoft.ML
             if (calibratorEstimator is IHaveCalibratorTrainer haveCalibratorTrainer)
                 return haveCalibratorTrainer.CalibratorTrainer;
             throw ectx.ExceptParam(nameof(calibratorEstimator),
-                "Calibrator estimator was not of a type usable in this context.");
+                Strings.CalibratorEstimatorTypeUnsupported);
         }
 
         /// <summary>
@@ -761,7 +761,7 @@ namespace Microsoft.ML
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);
             if (!(binaryEstimator is ITrainerEstimator<ISingleFeaturePredictionTransformer<IPredictorProducing<float>>, IPredictorProducing<float>> est))
-                throw env.ExceptParam(nameof(binaryEstimator), "Trainer estimator does not appear to produce the right kind of model.");
+                throw env.ExceptParam(nameof(binaryEstimator), Strings.TrainerProducesUnexpectedModelKind);
             return new OneVersusAllTrainer(env, est, labelColumnName, imputeMissingLabelsAsNegative, GetCalibratorTrainerOrThrow(env, calibrator), maximumCalibrationExampleCount, useProbabilities);
         }
 
@@ -800,7 +800,7 @@ namespace Microsoft.ML
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);
             if (!(binaryEstimator is ITrainerEstimator<ISingleFeaturePredictionTransformer<IPredictorProducing<float>>, IPredictorProducing<float>> est))
-                throw env.ExceptParam(nameof(binaryEstimator), "Trainer estimator does not appear to produce the right kind of model.");
+                throw env.ExceptParam(nameof(binaryEstimator), Strings.TrainerProducesUnexpectedModelKind);
             return new PairwiseCouplingTrainer(env, est, labelColumnName, imputeMissingLabelsAsNegative,
                                                 GetCalibratorTrainerOrThrow(env, calibrator), maximumCalibrationExampleCount);
         }

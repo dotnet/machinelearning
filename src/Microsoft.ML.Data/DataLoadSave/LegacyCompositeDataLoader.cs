@@ -236,7 +236,7 @@ namespace Microsoft.ML.Data
                         {
                             // We reached all the way back to the pipe start. The exes accumulated so far are irrelevant.
                             ch.Check(curDataView == pipeStart,
-                                "The transform has corrupted the chain (chain no longer starts with the same loader).");
+                                Strings.TransformCorruptedLoaderChain);
                             exes.Clear();
                             break;
                         }
@@ -605,7 +605,7 @@ namespace Microsoft.ML.Data
             _host.CheckParam(0 <= col && col < Schema.Count, nameof(col));
             if (_tview?.GetSlotType(col) == null)
             {
-                throw _host.ExceptParam(nameof(col), "Bad call to GetSlotCursor on untransposable column '{0}'",
+                throw _host.ExceptParam(nameof(col), Strings.BadCallToGetSlotCursorOnUntransposableColumn,
                     Schema[col].Name);
             }
             _host.AssertValue(_tview);

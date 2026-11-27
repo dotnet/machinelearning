@@ -31,7 +31,7 @@ namespace Microsoft.ML.Trainers.FastTree
         {
             // REVIEW: This is not implemented because no code actually ever calls split, but this
             // may change in the future. If it does we'll need to be a little less stupid here of course.
-            throw Contracts.ExceptNotImpl("Lazy Tom");
+            throw Contracts.ExceptNotImpl(Strings.LazyTom);
         }
 
         public override FlockForwardIndexerBase GetFlockIndexer()

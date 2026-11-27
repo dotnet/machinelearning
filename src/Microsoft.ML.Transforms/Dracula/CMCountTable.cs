@@ -54,12 +54,12 @@ namespace Microsoft.ML.Transforms
             Contracts.Assert(Utils.Size(tables[0]) == depth);
 
             Depth = depth;
-            Contracts.Check(Depth > 0, "depth must be positive");
-            Contracts.Check(tables.All(x => Utils.Size(x) == Depth), "Depth must be the same for all labels");
+            Contracts.Check(Depth > 0, Strings.DepthMustBePositive);
+            Contracts.Check(tables.All(x => Utils.Size(x) == Depth), Strings.DepthMustBeTheSameForAllLabels);
 
             Width = width;
-            Contracts.Check(Width > 0, "width must be positive");
-            Contracts.Check(tables.All(t => t.All(t2 => t2.Max(kvp => kvp.Key) < Width)), "Keys must be between 0 and Width - 1");
+            Contracts.Check(Width > 0, Strings.WidthMustBePositive);
+            Contracts.Check(tables.All(t => t.All(t2 => t2.Max(kvp => kvp.Key) < Width)), Strings.KeysMustBeBetween0AndWidth1);
 
             Tables = tables;
         }
@@ -196,8 +196,8 @@ namespace Microsoft.ML.Transforms
 
         public CMCountTableBuilder(int depth = 4, int width = 1 << 23)
         {
-            Contracts.Check(0 < depth && depth < DepthLim, "Depth out of range");
-            Contracts.Check(0 < width, "Width out of range");
+            Contracts.Check(0 < depth && depth < DepthLim, Strings.DepthOutOfRange);
+            Contracts.Check(0 < width, Strings.WidthOutOfRange);
             _depth = depth;
             _width = width;
         }

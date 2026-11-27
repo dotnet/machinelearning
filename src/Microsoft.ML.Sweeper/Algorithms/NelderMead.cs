@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -87,13 +87,13 @@ namespace Microsoft.ML.Sweeper
         public NelderMeadSweeper(IHostEnvironment env, Options options)
         {
             Contracts.CheckValue(env, nameof(env));
-            env.CheckUserArg(-1 < options.DeltaInsideContraction, nameof(options.DeltaInsideContraction), "Must be greater than -1");
-            env.CheckUserArg(options.DeltaInsideContraction < 0, nameof(options.DeltaInsideContraction), "Must be less than 0");
-            env.CheckUserArg(0 < options.DeltaOutsideContraction, nameof(options.DeltaOutsideContraction), "Must be greater than 0");
-            env.CheckUserArg(options.DeltaReflection > options.DeltaOutsideContraction, nameof(options.DeltaReflection), "Must be greater than " + nameof(options.DeltaOutsideContraction));
-            env.CheckUserArg(options.DeltaExpansion > options.DeltaReflection, nameof(options.DeltaExpansion), "Must be greater than " + nameof(options.DeltaReflection));
-            env.CheckUserArg(0 < options.GammaShrink && options.GammaShrink < 1, nameof(options.GammaShrink), "Must be between 0 and 1");
-            env.CheckValue(options.FirstBatchSweeper, nameof(options.FirstBatchSweeper), "First Batch Sweeper Contains Null Value");
+            env.CheckUserArg(-1 < options.DeltaInsideContraction, nameof(options.DeltaInsideContraction), Strings.MustBeGreaterThanNegativeOne);
+            env.CheckUserArg(options.DeltaInsideContraction < 0, nameof(options.DeltaInsideContraction), Strings.MustBeLessThan0);
+            env.CheckUserArg(0 < options.DeltaOutsideContraction, nameof(options.DeltaOutsideContraction), Strings.MustBeGreaterThan0);
+            env.CheckUserArg(options.DeltaReflection > options.DeltaOutsideContraction, nameof(options.DeltaReflection), Strings.MustBeGreaterThanDeltaOutsideContraction);
+            env.CheckUserArg(options.DeltaExpansion > options.DeltaReflection, nameof(options.DeltaExpansion), Strings.MustBeGreaterThanDeltaReflection);
+            env.CheckUserArg(0 < options.GammaShrink && options.GammaShrink < 1, nameof(options.GammaShrink), Strings.MustBeBetween0And1);
+            env.CheckValue(options.FirstBatchSweeper, nameof(options.FirstBatchSweeper), Strings.FirstBatchSweeperContainsNullValue);
 
             _args = options;
 
@@ -108,13 +108,13 @@ namespace Microsoft.ML.Sweeper
                 // the metric values that we get when using them. (For example, if, for a given discrete value, we get a bad result,
                 // we lower its weight, but if we get a good result we increase its weight).
                 var parameterNumeric = parameter as INumericValueGenerator;
-                env.CheckUserArg(parameterNumeric != null, nameof(options.SweptParameters), "Nelder-Mead sweeper can only sweep over numeric parameters");
+                env.CheckUserArg(parameterNumeric != null, nameof(options.SweptParameters), Strings.NelderMeadSweeperCanOnlySweepOverNumericParameters);
                 _sweepParameters.Add(parameterNumeric);
             }
 
             _initSweeper = options.FirstBatchSweeper.CreateComponent(env, _sweepParameters.ToArray());
             _dim = _sweepParameters.Count;
-            env.CheckUserArg(_dim > 1, nameof(options.SweptParameters), "Nelder-Mead sweeper needs at least two parameters to sweep over.");
+            env.CheckUserArg(_dim > 1, nameof(options.SweptParameters), Strings.NelderMeadRequiresAtLeastTwoParameters);
 
             _simplexVertices = new SortedList<IRunResult, float[]>(new SimplexVertexComparer());
             _stage = OptimizationStage.NeedReflectionPoint;
@@ -373,7 +373,7 @@ namespace Microsoft.ML.Sweeper
                 }
             }
             if (result.Count != _pendingSweeps.Count)
-                throw Contracts.Except("previous runs do not contain results for expected runs");
+                throw Contracts.Except(Strings.PreviousRunsDoNotContainResultsForExpectedRuns);
 
             return result;
         }

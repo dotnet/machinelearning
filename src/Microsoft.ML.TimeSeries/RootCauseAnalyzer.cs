@@ -785,7 +785,7 @@ namespace Microsoft.ML.TimeSeries
             if (other != null)
                 return DimensionKey.CompareTo(other.DimensionKey);
             else
-                throw new ArgumentException("Object is not a BestDimension");
+                throw new ArgumentException(Strings.ObjectIsNotABestDimension);
         }
     }
 

@@ -128,7 +128,7 @@ namespace Microsoft.ML.EntryPoints
                 transformModelVarName = node.GetInputVariable(nameof(input.TransformModel));
 
             if (!subGraphRunContext.TryGetVariable(varName, out var dataVariable))
-                throw env.Except($"Invalid variable name '{varName}'.");
+                throw env.Except(string.Format(Strings.InvalidVariableName, varName));
             var trainingVar = node.GetInputVariable(nameof(input.TrainingData));
             foreach (var subGraphNode in subGraphNodes)
                 subGraphNode.RenameInputVariable(dataVariable.Name, trainingVar);
@@ -137,7 +137,7 @@ namespace Microsoft.ML.EntryPoints
             // Change the subgraph to use the model variable as output.
             varName = input.Outputs.PredictorModel.VarName;
             if (!subGraphRunContext.TryGetVariable(varName, out dataVariable))
-                throw env.Except($"Invalid variable name '{varName}'.");
+                throw env.Except(string.Format(Strings.InvalidVariableName, varName));
 
             string predictorModelVarName = node.GetOutputVariableName(nameof(Output.PredictorModel));
 

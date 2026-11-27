@@ -43,7 +43,7 @@ namespace Microsoft.ML.Data
             // Use column index as the principle address of the specified input column and check if that address in data contains
             // the column indicated.
             if (data.Schema[colIndex].Name != colName || data.Schema[colIndex].Type != colType)
-                throw Contracts.ExceptParam(nameof(column), string.Format("column with name {0}, type {1}, and index {2} cannot be found in {3}",
+                throw Contracts.ExceptParam(nameof(column), string.Format(Strings.ColumnWithNameTypeAndIndexCannotBeFoundIn,
                     colName, colType, colIndex, nameof(data)));
 
             // There are two decisions that we make here:
@@ -71,7 +71,7 @@ namespace Microsoft.ML.Data
             {
                 // Output is an array type.
                 if (!(colType is VectorDataViewType colVectorType))
-                    throw Contracts.ExceptParam(nameof(column), string.Format("Cannot load vector type, {0}, specified in {1} to the user-defined type, {2}.", column.Type, nameof(column), typeof(T)));
+                    throw Contracts.ExceptParam(nameof(column), string.Format(Strings.VectorTypeCannotBeLoadedToUserType, column.Type, nameof(column), typeof(T)));
                 var elementType = typeof(T).GetElementType();
                 if (elementType == colVectorType.ItemType.RawType)
                 {
@@ -91,7 +91,7 @@ namespace Microsoft.ML.Data
                 // Fall through to the failure.
             }
 
-            throw Contracts.ExceptParam(nameof(column), string.Format("Cannot map column (name: {0}, type: {1}) in {2} to the user-defined type, {3}.",
+            throw Contracts.ExceptParam(nameof(column), string.Format(Strings.CannotMapColumnInToTheUserDefinedType,
                 column.Name, column.Type, nameof(data), typeof(T)));
         }
 

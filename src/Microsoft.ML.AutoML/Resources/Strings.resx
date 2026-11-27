@@ -1,0 +1,211 @@
+﻿<?xml version='1.0' encoding='utf-8'?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="AllCrossValidationFoldsHaveEmptyTrainOrTestData" xml:space="preserve">
+    <value>All cross validation folds have empty train or test data. Try increasing the number of rows provided in training data, or lowering specified number of cross validation folds.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.AutoML/Utils/SplitUtil.cs:38.</comment>
+  </data>
+  <data name="TrialResultAlreadySavedToCsv" xml:space="preserve">
+    <value>can't add or update result that already save to csv</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.AutoML/AutoMLExperiment/ITrialResultManager.cs:63.</comment>
+  </data>
+  <data name="CannotSetParameterFor" xml:space="preserve">
+    <value>Cannot set parameter {0} for {1}</value>
+    <comment>Exception or validation message. Placeholders: {0}=param.Name, {1}=obj.GetType(). Source: src/Microsoft.ML.AutoML/TrainerExtensions/TrainerExtensionUtil.cs:296.</comment>
+  </data>
+  <data name="ColumnExistsInTrainDataButNotInValidationData" xml:space="preserve">
+    <value>{0} Column '{1}' exists in train data, but not in validation data.</value>
+    <comment>Exception or validation message. Placeholders: {0}=schemaMismatchError, {1}=trainCol.Name. Source: src/Microsoft.ML.AutoML/Utils/UserInputValidationUtil.cs:217.</comment>
+  </data>
+  <data name="TrainValidationColumnTypeMismatch" xml:space="preserve">
+    <value>{0} Column '{1}' is of type {2} in train data, and type {3} in validation data.</value>
+    <comment>Exception or validation message. Placeholders: {0}=schemaMismatchError, {1}=trainCol.Name, {2}=trainCol.Type, {3}=validCol.Value.Type. Source: src/Microsoft.ML.AutoML/Utils/UserInputValidationUtil.cs:222.</comment>
+  </data>
+  <data name="ColumnMustBeOfDataType" xml:space="preserve">
+    <value>{0} column must be of data type {1}</value>
+    <comment>Exception or validation message. Placeholders: {0}=DefaultColumnNames.Features, {1}=NumberDataViewType.Single. Source: src/Microsoft.ML.AutoML/Utils/UserInputValidationUtil.cs:85.</comment>
+  </data>
+  <data name="CouldntIdentifyLineBreaksProvidedFileIsNotText" xml:space="preserve">
+    <value>Couldn't identify line breaks. Provided file is not text?</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.AutoML/ColumnInference/TextFileSample.cs:117.</comment>
+  </data>
+  <data name="DCGTruncationLevelMustBeGreaterThan0" xml:space="preserve">
+    <value>DCG Truncation Level must be greater than 0</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.AutoML/Experiment/MetricsAgents/RankingMetricsAgent.cs:23.</comment>
+  </data>
+  <data name="DuplicateColumnNameInColumnInformation" xml:space="preserve">
+    <value>Duplicate column name {0} is present in two or more distinct properties of provided column information</value>
+    <comment>Exception or validation message. Placeholders: {0}=duplicateColName. Source: src/Microsoft.ML.AutoML/Utils/UserInputValidationUtil.cs:144.</comment>
+  </data>
+  <data name="FailToFindAvailableConfigsForGivenTrainers" xml:space="preserve">
+    <value>Fail to find available configs for given trainers: {0}</value>
+    <comment>Exception or validation message. Placeholders: {0}=string.Join(",", trainerEstimators). Source: src/Microsoft.ML.AutoML/Tuner/AutoZeroTuner.cs:57.</comment>
+  </data>
+  <data name="FileAtPathCannotBeEmpty" xml:space="preserve">
+    <value>File at path '{0}' cannot be empty</value>
+    <comment>Exception or validation message. Placeholders: {0}=path. Source: src/Microsoft.ML.AutoML/Utils/UserInputValidationUtil.cs:180.</comment>
+  </data>
+  <data name="FileDoesNotExist" xml:space="preserve">
+    <value>File '{0}' does not exist</value>
+    <comment>Exception or validation message. Placeholders: {0}=path. Source: src/Microsoft.ML.AutoML/Utils/UserInputValidationUtil.cs:175.</comment>
+  </data>
+  <data name="FileIsNotTextOrCouldntDetectLineBreaks" xml:space="preserve">
+    <value>File is not text, or couldn't detect line breaks</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.AutoML/ColumnInference/TextFileSample.cs:206.</comment>
+  </data>
+  <data name="ForecastBySsaParamCheckError" xml:space="preserve">
+    <value>ForecastBySsa param check error</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.AutoML/SweepableEstimator/Estimators/ForecastBySsa.cs:15.</comment>
+  </data>
+  <data name="DatasetManagerMustSupportTrainTestOrCrossValidation" xml:space="preserve">
+    <value>IDatasetManager must be either ITrainTestDatasetManager or ICrossValidationDatasetManager</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.AutoML/AutoMLExperiment/Runner/SweepablePipelineRunner.cs:91.</comment>
+  </data>
+  <data name="RankingSamplingKeyColumnMustMatchGroupIdColumn" xml:space="preserve">
+    <value>If provided, samplingKeyColumnName must be the same as groupIdColumnName for Ranking Experiments</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.AutoML/Utils/UserInputValidationUtil.cs:65.</comment>
+  </data>
+  <data name="InputsAndOutputsCountMustMatch" xml:space="preserve">
+    <value>inputs and outputs count must match</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.AutoML/AutoMlUtils.cs:36.</comment>
+  </data>
+  <data name="IsNotASupportedSweepMetric" xml:space="preserve">
+    <value>{0} is not a supported sweep metric</value>
+    <comment>Exception or validation message. Placeholders: {0}=optimizingMetric. Source: src/Microsoft.ML.AutoML/Experiment/MetricsAgents/MetricsAgentUtil.cs:13.</comment>
+  </data>
+  <data name="IsNotSupported" xml:space="preserve">
+    <value>{0} is not supported!</value>
+    <comment>Exception or validation message. Placeholders: {0}=metric. Source: src/Microsoft.ML.AutoML/API/BinaryClassificationExperiment.cs:482. Exception or validation message. Placeholders: {0}=metric. Source: src/Microsoft.ML.AutoML/API/MulticlassClassificationExperiment.cs:457. Exception or validation message. Placeholders: {0}=metric. Source: src/Microsoft.ML.AutoML/API/RegressionExperiment.cs:477.</comment>
+  </data>
+  <data name="IsNotYetImplemented" xml:space="preserve">
+    <value>{0}.{1} is not yet implemented.</value>
+    <comment>Exception or validation message. Placeholders: {0}=nameof(ChannelMessageKind), {1}=e.Kind. Source: src/Microsoft.ML.AutoML/Experiment/Experiment.cs:111.</comment>
+  </data>
+  <data name="LabelColumnIndexMustBeLessThanInferredColumnCount" xml:space="preserve">
+    <value>Label column index ({0}) must be less than the number of inferred columns ({1}).</value>
+    <comment>Exception or validation message. Placeholders: {0}=args.LabelColumnIndex, {1}=cols.Count(). Source: src/Microsoft.ML.AutoML/ColumnInference/ColumnTypeInference.cs:387.</comment>
+  </data>
+  <data name="LengthDoesntMatch" xml:space="preserve">
+    <value>length doesn't match, {0} != {1}</value>
+    <comment>Exception or validation message. Placeholders: {0}=truth.Length, {1}=pred.Length. Source: src/Microsoft.ML.AutoML/Utils/ArrayMath.cs:130. Exception or validation message. Placeholders: {0}=truth.Length, {1}=pred.Length. Source: src/Microsoft.ML.AutoML/Utils/ArrayMath.cs:145. Exception or validation message. Placeholders: {0}=truth.Length, {1}=pred.Length. Source: src/Microsoft.ML.AutoML/Utils/ArrayMath.cs:159.</comment>
+  </data>
+  <data name="MetricNotImplemented" xml:space="preserve">
+    <value>Metric {0} not implemented</value>
+    <comment>Exception or validation message. Placeholders: {0}=typeof(TMetrics). Source: src/Microsoft.ML.AutoML/Experiment/Runners/CrossValSummaryRunner.cs:157.</comment>
+  </data>
+  <data name="NotImplemented" xml:space="preserve">
+    <value>Not Implemented</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.AutoML/Utils/Entity.cs:57.</comment>
+  </data>
+  <data name="NotSupported" xml:space="preserve">
+    <value>{0} not supported</value>
+    <comment>Exception or validation message. Placeholders: {0}=binaryTrainer. Source: src/Microsoft.ML.AutoML/TrainerExtensions/TrainerExtensionUtil.cs:318. Exception or validation message. Placeholders: {0}=multiTrainer. Source: src/Microsoft.ML.AutoML/TrainerExtensions/TrainerExtensionUtil.cs:340. Exception or validation message. Placeholders: {0}=rankingTrainer. Source: src/Microsoft.ML.AutoML/TrainerExtensions/TrainerExtensionUtil.cs:376. Exception or validation message. Placeholders: {0}=recommendationTrainer. Source: src/Microsoft.ML.AutoML/TrainerExtensions/TrainerExtensionUtil.cs:388. Exception or validation message. Placeholders: {0}=regressionTrainer. Source: src/Microsoft.ML.AutoML/TrainerExtensions/TrainerExtensionUtil.cs:362.</comment>
+  </data>
+  <data name="NullColumnStringWasSpecifiedAsInColumnInformation" xml:space="preserve">
+    <value>Null column string was specified as {0} in column information</value>
+    <comment>Exception or validation message. Placeholders: {0}=columnPurpose. Source: src/Microsoft.ML.AutoML/Utils/UserInputValidationUtil.cs:152.</comment>
+  </data>
+  <data name="NumberOfCVFoldsMustBeAtLeast2" xml:space="preserve">
+    <value>numberOfCVFolds must be at least 2</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.AutoML/Utils/UserInputValidationUtil.cs:57.</comment>
+  </data>
+  <data name="UnsupportedFeatureColumnType" xml:space="preserve">
+    <value>Only supported feature column types are {0}, {1}, and {2}. Please change the feature column {3} of type {4} to one of the supported types.</value>
+    <comment>Exception or validation message. Placeholders: {0}=BooleanDataViewType.Instance, {1}=NumberDataViewType.Single, {2}=TextDataViewType.Instance, {3}=column.Name, {4}=column.Type. Source: src/Microsoft.ML.AutoML/Utils/UserInputValidationUtil.cs:97.</comment>
+  </data>
+  <data name="InputAndOutputColumnNamesMustHaveEqualNonzeroLength" xml:space="preserve">
+    <value>outputColumnNames and inputColumnNames must have the same length and greater than 0</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.AutoML/API/AutoCatalog.cs:646. Exception or validation message. Source: src/Microsoft.ML.AutoML/API/AutoCatalog.cs:667. Exception or validation message. Source: src/Microsoft.ML.AutoML/API/AutoCatalog.cs:686.</comment>
+  </data>
+  <data name="ProvidedColumnWasOfTypeButOnlyTypeIsAllowed" xml:space="preserve">
+    <value>Provided {0} column '{1}' was of type {2}, but only type {3} is allowed.</value>
+    <comment>Exception or validation message. Placeholders: {0}=columnPurpose, {1}=columnName, {2}=itemType, {3}=allowedTypes.First(). Source: src/Microsoft.ML.AutoML/Utils/UserInputValidationUtil.cs:273.</comment>
+  </data>
+  <data name="ProvidedColumnWasOfTypeButOnlyTypesAreAllowed" xml:space="preserve">
+    <value>Provided {0} column '{1}' was of type {2}, but only types {3} are allowed.</value>
+    <comment>Exception or validation message. Placeholders: {0}=columnPurpose, {1}=columnName, {2}=itemType, {3}=string.Join(", ", allowedTypes). Source: src/Microsoft.ML.AutoML/Utils/UserInputValidationUtil.cs:278.</comment>
+  </data>
+  <data name="ProvidedLabelColumnCannotBeNull" xml:space="preserve">
+    <value>Provided label column cannot be null</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.AutoML/Utils/UserInputValidationUtil.cs:160.</comment>
+  </data>
+  <data name="ProvidedPathCannotBeNull" xml:space="preserve">
+    <value>Provided path cannot be null</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.AutoML/Utils/UserInputValidationUtil.cs:168.</comment>
+  </data>
+  <data name="ResultMustBeOfType" xml:space="preserve">
+    <value>result must be of type {0}</value>
+    <comment>Exception or validation message. Placeholders: {0}=typeof(TrialResult&lt;TMetrics&gt;). Source: src/Microsoft.ML.AutoML/AutoMLExperiment/IMonitor.cs:109. Exception or validation message. Placeholders: {0}=typeof(TrialResult&lt;TMetrics&gt;). Source: src/Microsoft.ML.AutoML/AutoMLExperiment/IMonitor.cs:95.</comment>
+  </data>
+  <data name="SMACSweeperLocalSearchThrewException" xml:space="preserve">
+    <value>SMAC sweeper localSearch threw exception</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.AutoML/Sweepers/SmacSweeper.cs:249. Exception or validation message. Source: src/Microsoft.ML.AutoML/Tuner/SmacTuner.cs:254.</comment>
+  </data>
+  <data name="SmartSweeperCanOnlySweepOverDiscreteAndNumericParameters" xml:space="preserve">
+    <value>Smart sweeper can only sweep over discrete and numeric parameters</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.AutoML/Sweepers/SweeperProbabilityUtils.cs:114.</comment>
+  </data>
+  <data name="SpecifiedColumnIsNotFoundInTheDataset" xml:space="preserve">
+    <value>Specified column {0} is not found in the dataset.</value>
+    <comment>Exception or validation message. Placeholders: {0}=columnName. Source: src/Microsoft.ML.AutoML/ColumnInference/ColumnInferenceValidationUtil.cs:22.</comment>
+  </data>
+  <data name="SpecifiedLabelColumnWasNotFound" xml:space="preserve">
+    <value>Specified label column '{0}' was not found.</value>
+    <comment>Exception or validation message. Placeholders: {0}=args.Label. Source: src/Microsoft.ML.AutoML/ColumnInference/ColumnTypeInference.cs:397.</comment>
+  </data>
+  <data name="RunnerMetricManagerTypeMismatch" xml:space="preserve">
+    <value>The runner metric manager is of type {0} which expected to be of type {1} or {2}</value>
+    <comment>Exception or validation message. Placeholders: {0}=_metricManager.GetType(), {1}=typeof(ITrainValidateDatasetManager), {2}=typeof(ICrossValidateDatasetManager). Source: src/Microsoft.ML.AutoML/API/BinaryClassificationExperiment.cs:445. Exception or validation message. Placeholders: {0}=_metricManager.GetType(), {1}=typeof(ITrainValidateDatasetManager), {2}=typeof(ICrossValidateDatasetManager). Source: src/Microsoft.ML.AutoML/API/MulticlassClassificationExperiment.cs:423. Exception or validation message. Placeholders: {0}=_metricManager.GetType(), {1}=typeof(ITrainValidateDatasetManager), {2}=typeof(ICrossValidateDatasetManager). Source: src/Microsoft.ML.AutoML/API/RegressionExperiment.cs:450.</comment>
+  </data>
+  <data name="TrainDataHasColumnsAndValidationDataHasColumns" xml:space="preserve">
+    <value>{0} Train data has '{1}' columns,and validation data has '{2}' columns.</value>
+    <comment>Exception or validation message. Placeholders: {0}=schemaMismatchError, {1}=trainData.Schema.Count, {2}=validationData.Schema.Count. Source: src/Microsoft.ML.AutoML/Utils/UserInputValidationUtil.cs:200.</comment>
+  </data>
+  <data name="TrainingDataCannotBeNull" xml:space="preserve">
+    <value>Training data cannot be null</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.AutoML/Utils/UserInputValidationUtil.cs:73.</comment>
+  </data>
+  <data name="TrainingDataHas0Rows" xml:space="preserve">
+    <value>Training data has 0 rows</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.AutoML/Utils/UserInputValidationUtil.cs:78.</comment>
+  </data>
+  <data name="TrainingFailedWithTheException" xml:space="preserve">
+    <value>Training failed with the exception: {0}</value>
+    <comment>Exception or validation message. Placeholders: {0}=_history.Last().Exception. Source: src/Microsoft.ML.AutoML/Experiment/Experiment.cs:191.</comment>
+  </data>
+  <data name="NoSuccessfulTrialCompleted" xml:space="preserve">
+    <value>Training time finished without completing a successful trial. Either no trial completed or the metric for all completed trials are NaN or Infinity</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.AutoML/AutoMLExperiment/AutoMLExperiment.cs:345.</comment>
+  </data>
+  <data name="UnableToInferColumnTypesOfTheFileProvided" xml:space="preserve">
+    <value>Unable to infer column types of the file provided.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.AutoML/ColumnInference/ColumnInferenceApi.cs:152.</comment>
+  </data>
+  <data name="UnableToSplitTheFileProvidedIntoMultipleConsistentColumns" xml:space="preserve">
+    <value>Unable to split the file provided into multiple, consistent columns. Readable formats include delimited files such as CSV/TSV. Check for a consistent number of columns and proper escaping and quoting.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.AutoML/ColumnInference/ColumnInferenceApi.cs:125.</comment>
+  </data>
+  <data name="UnsupportedMachineLearningTaskType" xml:space="preserve">
+    <value>unsupported machine learning task type {0}</value>
+    <comment>Exception or validation message. Placeholders: {0}=task. Source: src/Microsoft.ML.AutoML/TrainerExtensions/TrainerExtensionCatalog.cs:101.</comment>
+  </data>
+  <data name="UnsupportedTaskType" xml:space="preserve">
+    <value>Unsupported task type: {0}</value>
+    <comment>Exception or validation message. Placeholders: {0}=task. Source: src/Microsoft.ML.AutoML/Utils/UserInputValidationUtil.cs:323.</comment>
+  </data>
+  <data name="ValidationDataHas0Rows" xml:space="preserve">
+    <value>Validation data has 0 rows</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.AutoML/Utils/UserInputValidationUtil.cs:193.</comment>
+  </data>
+</root>

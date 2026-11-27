@@ -334,7 +334,7 @@ namespace Microsoft.ML.Trainers
         /// <param name="smoothingConstant">The smoothing constant.</param>
         public SmoothedHingeLoss(float smoothingConstant = Defaults.SmoothingConst)
         {
-            Contracts.CheckParam(smoothingConstant >= 0, nameof(smoothingConstant), "Must be non-negative.");
+            Contracts.CheckParam(smoothingConstant >= 0, nameof(smoothingConstant), Strings.MustBeNonNegative);
             _smoothConst = smoothingConstant;
             _halfSmoothConst = _smoothConst / 2;
             _doubleSmoothConst = _smoothConst * 2;
@@ -595,7 +595,7 @@ namespace Microsoft.ML.Trainers
 
         private TweedieLoss(Options options)
         {
-            Contracts.CheckUserArg(1 <= options.Index && options.Index <= 2, nameof(options.Index), "Must be in the range [1, 2]");
+            Contracts.CheckUserArg(1 <= options.Index && options.Index <= 2, nameof(options.Index), Strings.MustBeBetweenOneAndTwoInclusive);
             _index = options.Index;
             _index1 = 1 - _index;
             _index2 = 2 - _index;
@@ -608,7 +608,7 @@ namespace Microsoft.ML.Trainers
         /// 1 is Poisson loss, 2 is gamma loss, and intermediate values are compound Poisson loss.</param>
         public TweedieLoss(double index = 1.5)
         {
-            Contracts.CheckParam(1 <= index && index <= 2, nameof(index), "Must be in the range [1, 2]");
+            Contracts.CheckParam(1 <= index && index <= 2, nameof(index), Strings.MustBeBetweenOneAndTwoInclusive);
             _index = index;
             _index1 = 1 - _index;
             _index2 = 2 - _index;

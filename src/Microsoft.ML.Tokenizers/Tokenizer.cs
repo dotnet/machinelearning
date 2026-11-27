@@ -409,7 +409,7 @@ namespace Microsoft.ML.Tokenizers
                         break;
 
                     default:
-                        throw new InvalidOperationException("The provided token IDs could not be decoded.");
+                        throw new InvalidOperationException(Strings.TheProvidedTokenIDsCouldNotBeDecoded);
                 }
             }
         }

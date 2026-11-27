@@ -53,7 +53,7 @@ namespace Microsoft.ML.Data
             _host.CheckValue(name, nameof(name));
             _host.CheckValue(values, nameof(values));
             if (_columns.Count > 0 && values.Length != _columns[0].Length)
-                throw _host.Except("Previous inputs were of length {0}, but new input is of length {1}", _columns[0].Length, values.Length);
+                throw _host.Except(Strings.InputLengthChanged, _columns[0].Length, values.Length);
         }
 
         /// <summary>
@@ -185,10 +185,10 @@ namespace Microsoft.ML.Data
         {
             if (rowCount.HasValue)
             {
-                _host.Check(!RowCount.HasValue || RowCount.Value == rowCount.Value, "Specified row count incompatible with existing columns");
+                _host.Check(!RowCount.HasValue || RowCount.Value == rowCount.Value, Strings.SpecifiedRowCountIncompatibleWithExistingColumns);
                 return new DataView(_host, this, rowCount.Value);
             }
-            _host.Check(_columns.Count > 0, "Cannot construct data-view with neither any columns nor a specified row count");
+            _host.Check(_columns.Count > 0, Strings.DataViewRequiresColumnsOrRowCount);
             return new DataView(_host, this, RowCount.Value);
         }
 
@@ -289,7 +289,7 @@ namespace Microsoft.ML.Data
                         return
                             (ref DataViewRowId val) =>
                             {
-                                Ch.Check(IsGood, RowCursorUtils.FetchValueStateError);
+                                Ch.Check(IsGood, Strings.ValuesUnavailableOutsideCursorPosition);
                                 val = new DataViewRowId((ulong)Position, 0);
                             };
                     }
@@ -298,7 +298,7 @@ namespace Microsoft.ML.Data
                         return
                             (ref DataViewRowId val) =>
                             {
-                                Ch.Check(IsGood, RowCursorUtils.FetchValueStateError);
+                                Ch.Check(IsGood, Strings.ValuesUnavailableOutsideCursorPosition);
                                 val = new DataViewRowId((ulong)MappedIndex(), 0);
                             };
                     }
@@ -323,18 +323,17 @@ namespace Microsoft.ML.Data
                 public override ValueGetter<TValue> GetGetter<TValue>(DataViewSchema.Column column)
                 {
                     Ch.Check(column.Index < Schema.Count);
-                    Ch.Check(column.Index < _active.Length && _active[column.Index], "the requested column is not active");
+                    Ch.Check(column.Index < _active.Length && _active[column.Index], Strings.TheRequestedColumnIsNotActive);
 
                     var originColumnValue = _view._columns[column.Index];
                     var columnValue = originColumnValue as Column<TValue>;
                     if (columnValue == null)
-                        throw Ch.Except($"Invalid TValue: '{typeof(TValue)}', " +
-                            $"expected type: '{originColumnValue.Type.RawType}'.");
+                        throw Ch.Except(string.Format(Strings.InvalidTValueExpectedType, typeof(TValue), originColumnValue.Type.RawType));
 
                     return
                         (ref TValue value) =>
                         {
-                            Ch.Check(IsGood, RowCursorUtils.FetchValueStateError);
+                            Ch.Check(IsGood, Strings.ValuesUnavailableOutsideCursorPosition);
                             columnValue.CopyOut(MappedIndex(), ref value);
                         };
                 }

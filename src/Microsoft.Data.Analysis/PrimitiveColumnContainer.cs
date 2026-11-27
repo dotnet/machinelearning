@@ -65,7 +65,7 @@ namespace Microsoft.Data.Analysis
             {
                 if (nullCount != 0)
                 {
-                    throw new ArgumentNullException(Strings.InconsistentNullBitMapAndNullCount, nameof(nullBitMap));
+                    throw new ArgumentNullException(nameof(nullBitMap), Strings.InconsistentNullBitMapAndNullCount);
                 }
                 if (!buffer.IsEmpty)
                 {
@@ -351,7 +351,7 @@ namespace Microsoft.Data.Analysis
         {
             if (rowIndex >= Length)
             {
-                throw new ArgumentOutOfRangeException(Strings.IndexIsGreaterThanColumnLength, nameof(rowIndex));
+                throw new ArgumentOutOfRangeException(nameof(rowIndex), Strings.IndexIsGreaterThanColumnLength);
             }
             return (int)(rowIndex / ReadOnlyDataFrameBuffer<T>.MaxCapacity);
         }

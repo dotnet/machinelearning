@@ -245,7 +245,7 @@ namespace Microsoft.ML.Trainers.FastTree
                     // It might be best to handle this with a "bias" on the aggregator apart from the trees, or through some
                     // other means, if this scenario proves to be important. (It almost certainly won't. People don't invoke
                     // a tree learner because they're interested in getting a predictor that outputs a constant value.)
-                    ch.Check(AllowEmptyTrees, "Impossible to perform a leaf split, but the learner was configured to not allow empty trees");
+                    ch.Check(AllowEmptyTrees, Strings.LeafSplitImpossibleWithEmptyTreesDisabled);
                     return null; // We cannot split the root. Give up!
                 }
 

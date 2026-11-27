@@ -106,7 +106,7 @@ namespace Microsoft.ML.Trainers.FastTree
         public IReadOnlyList<int> GetCategoricalSplitFeaturesAt(int nodeIndex)
         {
             if (nodeIndex < 0 || nodeIndex >= NumberOfNodes)
-                throw Contracts.Except($"The input index, {nodeIndex}, is invalid. Its valid range is from 0 (inclusive) to {NumberOfNodes} (exclusive).");
+                throw Contracts.Except(string.Format(Strings.InputIndexOutOfRange, nodeIndex, NumberOfNodes));
 
             if (_tree.CategoricalSplitFeatures == null || _tree.CategoricalSplitFeatures[nodeIndex] == null)
                 return new List<int>(); // Zero-length vector.
@@ -123,7 +123,7 @@ namespace Microsoft.ML.Trainers.FastTree
         public IReadOnlyList<int> GetCategoricalCategoricalSplitFeatureRangeAt(int nodeIndex)
         {
             if (nodeIndex < 0 || nodeIndex >= NumberOfNodes)
-                throw Contracts.Except($"The input node index, {nodeIndex}, is invalid. Its valid range is from 0 (inclusive) to {NumberOfNodes} (exclusive).");
+                throw Contracts.Except(string.Format(Strings.NodeIndexOutOfRange, nodeIndex, NumberOfNodes));
 
             if (_tree.CategoricalSplitFeatureRanges == null || _tree.CategoricalSplitFeatureRanges[nodeIndex] == null)
                 return new List<int>(); // Zero-length vector.
@@ -211,7 +211,7 @@ namespace Microsoft.ML.Trainers.FastTree
         public IReadOnlyList<double> GetLeafSamplesAt(int leafIndex)
         {
             if (leafIndex < 0 || leafIndex >= NumberOfLeaves)
-                throw Contracts.Except($"The input leaf index, {leafIndex}, is invalid. Its valid range is from 0 (inclusive) to {NumberOfLeaves} (exclusive).");
+                throw Contracts.Except(string.Format(Strings.LeafIndexOutOfRange, leafIndex, NumberOfLeaves));
 
             // _leafSample always contains valid values assigned in constructor.
             return _leafSamples[leafIndex];
@@ -227,7 +227,7 @@ namespace Microsoft.ML.Trainers.FastTree
         public IReadOnlyList<double> GetLeafSampleWeightsAt(int leafIndex)
         {
             if (leafIndex < 0 || leafIndex >= NumberOfLeaves)
-                throw Contracts.Except($"The input leaf index, {leafIndex}, is invalid. Its valid range is from 0 (inclusive) to {NumberOfLeaves} (exclusive).");
+                throw Contracts.Except(string.Format(Strings.LeafIndexOutOfRange, leafIndex, NumberOfLeaves));
 
             // _leafSampleWeights always contains valid values assigned in constructor.
             return _leafSampleWeights[leafIndex];

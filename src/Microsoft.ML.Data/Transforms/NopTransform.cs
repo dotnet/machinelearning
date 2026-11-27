@@ -133,7 +133,7 @@ namespace Microsoft.ML.Data
         {
             Contracts.CheckValue(input, nameof(input));
             Contracts.CheckValue(activeColumns, nameof(activeColumns));
-            Contracts.CheckParam(input.Schema == Source.Schema, nameof(input), "Schema of input row must be the same as the schema the mapper is bound to");
+            Contracts.CheckParam(input.Schema == Source.Schema, nameof(input), Strings.InputSchemaDoesNotMatchMapperSchema);
             return input;
         }
 

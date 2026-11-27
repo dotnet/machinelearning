@@ -32,7 +32,7 @@ namespace Microsoft.ML.Data
         protected RegressionLossEvaluatorBase(ArgumentsBase args, IHostEnvironment env, string registrationName)
             : base(env, registrationName)
         {
-            Host.CheckUserArg(args.LossFunction != null, nameof(args.LossFunction), "Loss function must be specified.");
+            Host.CheckUserArg(args.LossFunction != null, nameof(args.LossFunction), Strings.LossFunctionMustBeSpecified);
             LossFunction = args.LossFunction.CreateComponent(env);
         }
     }
@@ -65,7 +65,7 @@ namespace Microsoft.ML.Data
             addAgg =
                 (stratColKey, stratColVal, agg) =>
                 {
-                    Host.Check(agg.Weighted == hasWeight, "All aggregators must either be weighted or unweighted");
+                    Host.Check(agg.Weighted == hasWeight, Strings.AllAggregatorsMustEitherBeWeightedOrUnweighted);
 
                     stratCol.Add(stratColKey);
                     stratVal.Add(stratColVal);

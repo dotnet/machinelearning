@@ -69,7 +69,7 @@ namespace Microsoft.ML.EntryPoints
                     entryPointName = "Models.ClusterEvaluator";
                     return new ClusteringMamlEvaluator.Arguments() { LabelColumn = settings.LabelColumn, WeightColumn = settings.WeightColumn, NameColumn = settings.NameColumn };
                 default:
-                    throw Contracts.Except("Trainer kind not supported");
+                    throw Contracts.Except(Strings.TrainerKindNotSupported);
             }
         }
 

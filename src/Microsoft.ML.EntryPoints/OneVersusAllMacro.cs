@@ -105,7 +105,7 @@ namespace Microsoft.ML.EntryPoints
 
             // Make sure we found the output variable for this model.
             if (!foundOutput)
-                throw new Exception("Invalid input graph. Does not output predictor model.");
+                throw new Exception(Strings.InvalidInputGraphDoesNotOutputPredictorModel);
 
             // Add training subgraph to our context.
             macroNodes.AddRange(subGraphNodes);

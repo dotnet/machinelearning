@@ -369,7 +369,7 @@ namespace Microsoft.ML.Data.Conversion
         {
             ValueMapper<TSrc, TDst> conv;
             if (!TryGetStandardConversion(typeSrc, typeDst, out conv, out identity))
-                throw Contracts.Except("No standard conversion from '{0}' to '{1}'", typeSrc, typeDst);
+                throw Contracts.Except(Strings.NoStandardConversionFromTo, typeSrc, typeDst);
             return conv;
         }
 
@@ -405,7 +405,7 @@ namespace Microsoft.ML.Data.Conversion
             bool identity;
             Delegate conv;
             if (!TryGetStandardConversion(typeSrc, typeDst, out conv, out identity))
-                throw Contracts.Except("No standard conversion from '{0}' to '{1}'", typeSrc, typeDst);
+                throw Contracts.Except(Strings.NoStandardConversionFromTo, typeSrc, typeDst);
             return conv;
         }
 
@@ -472,7 +472,7 @@ namespace Microsoft.ML.Data.Conversion
             ValueMapper<TSrc, SB> conv;
             if (TryGetStringConversion(type, out conv))
                 return conv;
-            throw Contracts.Except($"No conversion from '{type}' to {nameof(StringBuilder)}");
+            throw Contracts.Except(string.Format(Strings.NoConversionFromTo, type, nameof(StringBuilder)));
         }
 
         public ValueMapper<TSrc, SB> GetStringConversion<TSrc>()
@@ -480,13 +480,13 @@ namespace Microsoft.ML.Data.Conversion
             ValueMapper<TSrc, SB> conv;
             if (TryGetStringConversion(out conv))
                 return conv;
-            throw Contracts.Except($"No conversion from '{typeof(TSrc)}' to {nameof(StringBuilder)}");
+            throw Contracts.Except(string.Format(Strings.NoConversionFromTo, typeof(TSrc), nameof(StringBuilder)));
         }
 
         public bool TryGetStringConversion<TSrc>(DataViewType type, out ValueMapper<TSrc, SB> conv)
         {
             Contracts.CheckValue(type, nameof(type));
-            Contracts.Check(type.RawType == typeof(TSrc), "Wrong TSrc type argument");
+            Contracts.Check(type.RawType == typeof(TSrc), Strings.WrongTSrcTypeArgument);
 
             if (type is KeyDataViewType keyType)
             {
@@ -539,8 +539,8 @@ namespace Microsoft.ML.Data.Conversion
         {
             Contracts.CheckValue(typeDst, nameof(typeDst));
             Contracts.CheckParam(typeDst.IsStandardScalar() || typeDst is KeyDataViewType, nameof(typeDst),
-                "Parse conversion only supported for standard types");
-            Contracts.Check(typeDst.RawType == typeof(TDst), "Wrong TDst type parameter");
+                Strings.ParseConversionOnlySupportedForStandardTypes);
+            Contracts.Check(typeDst.RawType == typeof(TDst), Strings.WrongTDstTypeParameter);
 
             if (typeDst is KeyDataViewType keyType)
                 return GetKeyTryParse<TDst>(keyType);
@@ -604,7 +604,7 @@ namespace Microsoft.ML.Data.Conversion
         {
             var delegatesKey = (typeof(U8), typeof(TDst));
             if (!_delegatesStd.TryGetValue(delegatesKey, out Delegate del))
-                throw Contracts.Except("No standard conversion from '{0}' to '{1}'", typeof(U8), typeof(TDst));
+                throw Contracts.Except(Strings.NoStandardConversionFromTo, typeof(U8), typeof(TDst));
             return (ValueMapper<U8, TDst>)del;
         }
 
@@ -626,7 +626,7 @@ namespace Microsoft.ML.Data.Conversion
             var t = type;
             Delegate del;
             if (!t.IsStandardScalar() && !(t is KeyDataViewType) || !_isDefaultDelegates.TryGetValue(t.RawType, out del))
-                throw Contracts.Except("No IsDefault predicate for '{0}'", type);
+                throw Contracts.Except(Strings.NoIsDefaultPredicateFor, type);
 
             return (InPredicate<T>)del;
         }
@@ -636,7 +636,7 @@ namespace Microsoft.ML.Data.Conversion
             InPredicate<T> pred;
             if (TryGetIsNAPredicate(type, out pred))
                 return pred;
-            throw Contracts.Except("No IsNA predicate for '{0}'", type);
+            throw Contracts.Except(Strings.NoIsNAPredicateFor, type);
         }
 
         public bool TryGetIsNAPredicate<T>(DataViewType type, out InPredicate<T> pred)
@@ -692,7 +692,7 @@ namespace Microsoft.ML.Data.Conversion
                 del = _hasZeroDelegates[t.RawType];
             }
             else if (!t.IsStandardScalar() || !_hasNADelegates.TryGetValue(t.RawType, out del))
-                throw Contracts.Except("No HasMissing predicate for '{0}'", type);
+                throw Contracts.Except(Strings.NoHasMissingPredicateFor, type);
 
             return (InPredicate<VBuffer<T>>)del;
         }
@@ -1224,7 +1224,7 @@ LFail:
                 return false;
             }
             Contracts.Assert(res.HasValue);
-            Contracts.Check((I1)res == res, "Overflow or underflow occurred while converting value in text to sbyte.");
+            Contracts.Check((I1)res == res, Strings.TextValueOverflowsSByte);
             dst = (I1)res;
             return true;
         }
@@ -1243,7 +1243,7 @@ LFail:
                 return false;
             }
             Contracts.Assert(res.HasValue);
-            Contracts.Check((I2)res == res, "Overflow or underflow occurred while converting value in text to short.");
+            Contracts.Check((I2)res == res, Strings.TextValueOverflowsInt16);
             dst = (I2)res;
             return true;
         }
@@ -1262,7 +1262,7 @@ LFail:
                 return false;
             }
             Contracts.Assert(res.HasValue);
-            Contracts.Check((I4)res == res, "Overflow or underflow occurred while converting value in text to int.");
+            Contracts.Check((I4)res == res, Strings.TextValueOverflowsInt32);
             dst = (I4)res;
             return true;
         }
@@ -1451,31 +1451,31 @@ LFail:
         private I1 ParseI1(in TX src)
         {
             TryParseSigned(I1.MaxValue, in src, out long? res);
-            Contracts.Check(res.HasValue, "Value could not be parsed from text to sbyte.");
-            Contracts.Check((I1)res == res, "Overflow or underflow occurred while converting value in text to sbyte.");
+            Contracts.Check(res.HasValue, Strings.ValueCouldNotBeParsedFromTextToSbyte);
+            Contracts.Check((I1)res == res, Strings.TextValueOverflowsSByte);
             return (I1)res;
         }
 
         private I2 ParseI2(in TX src)
         {
             TryParseSigned(I2.MaxValue, in src, out long? res);
-            Contracts.Check(res.HasValue, "Value could not be parsed from text to short.");
-            Contracts.Check((I2)res == res, "Overflow or underflow occurred while converting value in text to short.");
+            Contracts.Check(res.HasValue, Strings.ValueCouldNotBeParsedFromTextToShort);
+            Contracts.Check((I2)res == res, Strings.TextValueOverflowsInt16);
             return (I2)res;
         }
 
         private I4 ParseI4(in TX src)
         {
             TryParseSigned(I4.MaxValue, in src, out long? res);
-            Contracts.Check(res.HasValue, "Value could not be parsed from text to int.");
-            Contracts.Check((I4)res == res, "Overflow or underflow occurred while converting value in text to int.");
+            Contracts.Check(res.HasValue, Strings.ValueCouldNotBeParsedFromTextToInt);
+            Contracts.Check((I4)res == res, Strings.TextValueOverflowsInt32);
             return (I4)res;
         }
 
         private I8 ParseI8(in TX src)
         {
             TryParseSigned(I8.MaxValue, in src, out long? res);
-            Contracts.Check(res.HasValue, "Value could not be parsed from text to long.");
+            Contracts.Check(res.HasValue, Strings.ValueCouldNotBeParsedFromTextToLong);
             return res.Value;
         }
 

@@ -71,7 +71,7 @@ namespace Microsoft.ML.Data
             Contracts.CheckNonEmpty(path, nameof(path));
             if (!File.Exists(path))
             {
-                throw Contracts.ExceptParam(nameof(path), "File does not exist at path: {0}", path);
+                throw Contracts.ExceptParam(nameof(path), Strings.FileDoesNotExistAtPath, path);
             }
 
             var file = new MultiFileSource(path);
@@ -93,7 +93,7 @@ namespace Microsoft.ML.Data
             Contracts.CheckNonEmpty(path, nameof(path));
             if (!File.Exists(path))
             {
-                throw Contracts.ExceptParam(nameof(path), "File does not exist at path: {0}", path);
+                throw Contracts.ExceptParam(nameof(path), Strings.FileDoesNotExistAtPath, path);
             }
 
             var file = new MultiFileSource(path);

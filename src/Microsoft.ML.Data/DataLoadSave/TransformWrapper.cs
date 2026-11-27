@@ -40,7 +40,7 @@ namespace Microsoft.ML.Data
             return output.Schema;
         }
 
-        void ICanSaveModel.Save(ModelSaveContext ctx) => throw _host.Except("Saving is not permitted.");
+        void ICanSaveModel.Save(ModelSaveContext ctx) => throw _host.Except(Strings.SavingIsNotPermitted);
 
         public IDataView Transform(IDataView input) => ApplyTransformUtils.ApplyTransformToData(_host, (IDataTransform)_xf, input);
 

@@ -347,14 +347,13 @@ namespace Microsoft.ML.Trainers
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(LoadNameValue);
 
-            const string posError = "Parameter must be positive";
             _host.CheckValue(options, nameof(options));
-            _host.CheckUserArg(options.ApproximationRank > 0, nameof(options.ApproximationRank), posError);
-            _host.CheckUserArg(!options.NumberOfThreads.HasValue || options.NumberOfThreads > 0, nameof(options.NumberOfThreads), posError);
-            _host.CheckUserArg(options.NumberOfIterations > 0, nameof(options.NumberOfIterations), posError);
-            _host.CheckUserArg(options.Lambda > 0, nameof(options.Lambda), posError);
-            _host.CheckUserArg(options.LearningRate > 0, nameof(options.LearningRate), posError);
-            _host.CheckUserArg(options.Alpha > 0, nameof(options.Alpha), posError);
+            _host.CheckUserArg(options.ApproximationRank > 0, nameof(options.ApproximationRank), Strings.ParameterMustBePositive);
+            _host.CheckUserArg(!options.NumberOfThreads.HasValue || options.NumberOfThreads > 0, nameof(options.NumberOfThreads), Strings.ParameterMustBePositive);
+            _host.CheckUserArg(options.NumberOfIterations > 0, nameof(options.NumberOfIterations), Strings.ParameterMustBePositive);
+            _host.CheckUserArg(options.Lambda > 0, nameof(options.Lambda), Strings.ParameterMustBePositive);
+            _host.CheckUserArg(options.LearningRate > 0, nameof(options.LearningRate), Strings.ParameterMustBePositive);
+            _host.CheckUserArg(options.Alpha > 0, nameof(options.Alpha), Strings.ParameterMustBePositive);
 
             _fun = (int)options.LossFunction;
             _lambda = options.Lambda;
@@ -438,29 +437,29 @@ namespace Microsoft.ML.Trainers
             ch.AssertValue(data);
             ch.AssertValueOrNull(validData);
 
-            ch.CheckParam(data.Schema.Label.HasValue, nameof(data), "Input data did not have a unique label");
+            ch.CheckParam(data.Schema.Label.HasValue, nameof(data), Strings.InputDataDidNotHaveAUniqueLabel);
             RecommenderUtils.CheckAndGetMatrixIndexColumns(data, out var matrixColumnIndexColInfo, out var matrixRowIndexColInfo, isDecode: false);
             var labelCol = data.Schema.Label.Value;
             if (labelCol.Type != NumberDataViewType.Single && labelCol.Type != NumberDataViewType.Double)
-                throw ch.Except("Column '{0}' for label should be floating point, but is instead {1}", labelCol.Name, labelCol.Type);
+                throw ch.Except(Strings.ColumnForLabelShouldBeFloatingPointButIsInstead, labelCol.Name, labelCol.Type);
             MatrixFactorizationModelParameters predictor;
             if (validData != null)
             {
                 ch.CheckValue(validData, nameof(validData));
-                ch.CheckParam(validData.Schema.Label.HasValue, nameof(validData), "Input validation data did not have a unique label");
+                ch.CheckParam(validData.Schema.Label.HasValue, nameof(validData), Strings.InputValidationDataDidNotHaveAUniqueLabel);
                 RecommenderUtils.CheckAndGetMatrixIndexColumns(validData, out var validMatrixColumnIndexColInfo, out var validMatrixRowIndexColInfo, isDecode: false);
                 var validLabelCol = validData.Schema.Label.Value;
                 if (validLabelCol.Type != NumberDataViewType.Single && validLabelCol.Type != NumberDataViewType.Double)
-                    throw ch.Except("Column '{0}' for validation label should be floating point, but is instead {1}", validLabelCol.Name, validLabelCol.Type);
+                    throw ch.Except(Strings.ValidationLabelMustBeFloatingPoint, validLabelCol.Name, validLabelCol.Type);
 
                 if (!matrixColumnIndexColInfo.Type.Equals(validMatrixColumnIndexColInfo.Type))
                 {
-                    throw ch.ExceptParam(nameof(validData), "Train and validation sets' matrix-column types differed, {0} vs. {1}",
+                    throw ch.ExceptParam(nameof(validData), Strings.TrainAndValidationSetsMatrixColumnTypesDifferedVs,
                         matrixColumnIndexColInfo.Type, validMatrixColumnIndexColInfo.Type);
                 }
                 if (!matrixRowIndexColInfo.Type.Equals(validMatrixRowIndexColInfo.Type))
                 {
-                    throw ch.ExceptParam(nameof(validData), "Train and validation sets' matrix-row types differed, {0} vs. {1}",
+                    throw ch.ExceptParam(nameof(validData), Strings.TrainAndValidationSetsMatrixRowTypesDifferedVs,
                         matrixRowIndexColInfo.Type, validMatrixRowIndexColInfo.Type);
                 }
             }

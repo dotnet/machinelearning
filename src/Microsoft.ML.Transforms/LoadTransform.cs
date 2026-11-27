@@ -68,7 +68,7 @@ namespace Microsoft.ML.Transforms
             var h = env.Register("LoadTransform");
             h.CheckValue(args, nameof(args));
             h.CheckValue(input, nameof(input));
-            h.CheckUserArg(File.Exists(args.ModelFile), nameof(args.ModelFile), "File does not exist");
+            h.CheckUserArg(File.Exists(args.ModelFile), nameof(args.ModelFile), Strings.FileDoesNotExist);
 
             IDataView currentView;
 
@@ -115,7 +115,7 @@ namespace Microsoft.ML.Transforms
                                 ? "transforms that don't have tags from the list: '{0}'"
                                 : "transforms that have tags from the list: '{0}'",
                             string.Join(",", allTags));
-                    throw h.ExceptUserArg(nameof(args.Tags), "No transforms were found that match the search criteria ({0})", criteria);
+                    throw h.ExceptUserArg(nameof(args.Tags), Strings.NoTransformsWereFoundThatMatchTheSearchCriteria, criteria);
                 }
             }
 

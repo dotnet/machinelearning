@@ -20,7 +20,7 @@ namespace Microsoft.ML.AutoML
             _optimizingMetric = metric;
 
             if (optimizationMetricTruncationLevel <= 0)
-                throw _mlContext.ExceptUserArg(nameof(optimizationMetricTruncationLevel), "DCG Truncation Level must be greater than 0");
+                throw _mlContext.ExceptUserArg(nameof(optimizationMetricTruncationLevel), Strings.DCGTruncationLevelMustBeGreaterThan0);
 
             // We want to make sure we always report metrics for at least 10 results (e.g. NDCG@10) to the user.
             // Producing extra results adds no measurable performance impact, so we report at least 2x of the

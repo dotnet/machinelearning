@@ -112,7 +112,7 @@ namespace Microsoft.ML.Transforms.Text
             Contracts.CheckValue(env, nameof(env));
             var h = env.Register(RegistrationName);
             h.CheckValue(options, nameof(options));
-            h.CheckUserArg(Utils.Size(options.Columns) > 0, nameof(options.Columns), "Columns must be specified");
+            h.CheckUserArg(Utils.Size(options.Columns) > 0, nameof(options.Columns), Strings.ColumnsMustBeSpecified);
 
             // Compose the WordBagTransform from a tokenize transform,
             // followed by a NgramExtractionTransform.
@@ -459,7 +459,7 @@ namespace Microsoft.ML.Transforms.Text
             Contracts.CheckValue(env, nameof(env));
             var h = env.Register(LoaderSignature);
             h.CheckValue(options, nameof(options));
-            h.CheckUserArg(Utils.Size(options.Columns) > 0, nameof(options.Columns), "Columns must be specified");
+            h.CheckUserArg(Utils.Size(options.Columns) > 0, nameof(options.Columns), Strings.ColumnsMustBeSpecified);
 
             var chain = new EstimatorChain<ITransformer>();
 
@@ -551,7 +551,7 @@ namespace Microsoft.ML.Transforms.Text
             var extractorCols = new Column[cols.Length];
             for (int i = 0; i < cols.Length; i++)
             {
-                Contracts.Check(Utils.Size(cols[i].Source) == 1, "too many source columns");
+                Contracts.Check(Utils.Size(cols[i].Source) == 1, Strings.TooManySourceColumns);
                 extractorCols[i] = new Column { Name = cols[i].Name, Source = cols[i].Source[0] };
             }
 

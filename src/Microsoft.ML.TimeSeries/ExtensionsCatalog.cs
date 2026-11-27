@@ -370,8 +370,8 @@ namespace Microsoft.ML
             CheckRootCauseInput(host, src);
 
             //check parameters
-            host.CheckUserArg(beta >= 0 && beta <= 1, nameof(beta), "Must be in [0,1]");
-            host.CheckUserArg(rootCauseThreshold >= 0 && rootCauseThreshold <= 1, nameof(rootCauseThreshold), "Must be in [0,1]");
+            host.CheckUserArg(beta >= 0 && beta <= 1, nameof(beta), Strings.MustBeBetweenZeroAndOneInclusive);
+            host.CheckUserArg(rootCauseThreshold >= 0 && rootCauseThreshold <= 1, nameof(rootCauseThreshold), Strings.MustBeBetweenZeroAndOneInclusive);
 
             //find out the possible causes
             RootCauseAnalyzer analyzer = new RootCauseAnalyzer(src, beta, rootCauseThreshold);
@@ -426,7 +426,7 @@ namespace Microsoft.ML
 
         private static void CheckRootCauseInput(IHostEnvironment host, RootCauseLocalizationInput src)
         {
-            host.CheckUserArg(src.Slices.Count >= 1, nameof(src.Slices), "Must has more than one item");
+            host.CheckUserArg(src.Slices.Count >= 1, nameof(src.Slices), Strings.MustHasMoreThanOneItem);
 
             bool containsAnomalyTimestamp = false;
             foreach (MetricSlice slice in src.Slices)
@@ -436,7 +436,7 @@ namespace Microsoft.ML
                     containsAnomalyTimestamp = true;
                 }
             }
-            host.CheckUserArg(containsAnomalyTimestamp, nameof(src.Slices), "Has no points in the given anomaly timestamp");
+            host.CheckUserArg(containsAnomalyTimestamp, nameof(src.Slices), Strings.HasNoPointsInTheGivenAnomalyTimestamp);
         }
 
         /// <summary>

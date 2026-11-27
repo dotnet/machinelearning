@@ -70,11 +70,11 @@ namespace Microsoft.ML.Transforms.TimeSeries
             int backAddWindowSize, int lookaheadWindowSize, int averagingWindowSize, int judgementWindowSize, Double alertThreshold)
             : base(Contracts.CheckRef(env, nameof(env)).Register(name), windowSize, initialWindowSize, outputColumnName, inputColumnName, new VectorDataViewType(NumberDataViewType.Double, 3))
         {
-            Host.CheckUserArg(backAddWindowSize > 0, nameof(SrCnnArgumentBase.BackAddWindowSize), "Must be non-negative");
-            Host.CheckUserArg(lookaheadWindowSize > 0 && lookaheadWindowSize <= windowSize, nameof(SrCnnArgumentBase.LookaheadWindowSize), "Must be non-negative and not larger than window size");
-            Host.CheckUserArg(averagingWindowSize > 0 && averagingWindowSize <= windowSize, nameof(SrCnnArgumentBase.AvergingWindowSize), "Must be non-negative and not larger than window size");
-            Host.CheckUserArg(judgementWindowSize > 0 && judgementWindowSize <= windowSize, nameof(SrCnnArgumentBase.JudgementWindowSize), "Must be non-negative and not larger than window size");
-            Host.CheckUserArg(alertThreshold > 0 && alertThreshold < 1, nameof(SrCnnArgumentBase.Threshold), "Must be in (0,1)");
+            Host.CheckUserArg(backAddWindowSize > 0, nameof(SrCnnArgumentBase.BackAddWindowSize), Strings.MustBeNonNegative);
+            Host.CheckUserArg(lookaheadWindowSize > 0 && lookaheadWindowSize <= windowSize, nameof(SrCnnArgumentBase.LookaheadWindowSize), Strings.MustBeNonNegativeAndNotLargerThanWindowSize);
+            Host.CheckUserArg(averagingWindowSize > 0 && averagingWindowSize <= windowSize, nameof(SrCnnArgumentBase.AvergingWindowSize), Strings.MustBeNonNegativeAndNotLargerThanWindowSize);
+            Host.CheckUserArg(judgementWindowSize > 0 && judgementWindowSize <= windowSize, nameof(SrCnnArgumentBase.JudgementWindowSize), Strings.MustBeNonNegativeAndNotLargerThanWindowSize);
+            Host.CheckUserArg(alertThreshold > 0 && alertThreshold < 1, nameof(SrCnnArgumentBase.Threshold), Strings.MustBeGreaterThanZeroAndLessThanOne);
 
             BackAddWindowSize = backAddWindowSize;
             LookaheadWindowSize = lookaheadWindowSize;

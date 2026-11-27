@@ -298,7 +298,7 @@ namespace Microsoft.ML.Transforms.Text
                         if (requiredResources[(int)lang])
                         {
                             throw ch.Except(
-                                "Missing '{0}.txt' resource.");
+                                Strings.MissingTxtResource);
                         }
 
                         if (missings.Length > 0)
@@ -794,7 +794,7 @@ namespace Microsoft.ML.Transforms.Text
                 {
                     ch.Assert(isBinary != isTranspose);
                     ch.CheckUserArg(!string.IsNullOrWhiteSpace(stopwordsCol), nameof(Options.StopwordsColumn),
-                        "stopwordsColumn should be specified");
+                        Strings.StopwordsColumnShouldBeSpecified);
                     if (isBinary)
                         dataLoader = new BinaryLoader(Host, new BinaryLoader.Arguments(), fileSource);
                     else
@@ -858,7 +858,7 @@ namespace Microsoft.ML.Transforms.Text
                         warnEmpty = false;
                     }
                 }
-                ch.CheckUserArg(stopWordsMap.Count > 0, nameof(Options.Stopword), "stopwords is empty");
+                ch.CheckUserArg(stopWordsMap.Count > 0, nameof(Options.Stopword), Strings.StopwordsIsEmpty);
             }
             else
             {
@@ -866,9 +866,9 @@ namespace Microsoft.ML.Transforms.Text
                 var loader = GetLoaderForStopwords(ch, dataFile, loaderFactory, ref srcCol);
 
                 if (!loader.Schema.TryGetColumnIndex(srcCol, out int colSrcIndex))
-                    throw ch.ExceptUserArg(nameof(Options.StopwordsColumn), "Unknown column '{0}'", srcCol);
+                    throw ch.ExceptUserArg(nameof(Options.StopwordsColumn), Strings.UnknownColumn, srcCol);
                 var typeSrc = loader.Schema[colSrcIndex].Type;
-                ch.CheckUserArg(typeSrc is TextDataViewType, nameof(Options.StopwordsColumn), "Must be a scalar text column");
+                ch.CheckUserArg(typeSrc is TextDataViewType, nameof(Options.StopwordsColumn), Strings.MustBeAScalarTextColumn);
 
                 // Accumulate the stopwords.
                 using (var cursor = loader.GetRowCursor(loader.Schema[srcCol]))
@@ -891,7 +891,7 @@ namespace Microsoft.ML.Transforms.Text
                         }
                     }
                 }
-                ch.CheckUserArg(stopWordsMap.Count > 0, nameof(Options.DataFile), "dataFile is empty");
+                ch.CheckUserArg(stopWordsMap.Count > 0, nameof(Options.DataFile), Strings.DataFileIsEmpty);
             }
         }
 

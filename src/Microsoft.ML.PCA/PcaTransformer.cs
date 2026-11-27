@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -109,7 +109,7 @@ namespace Microsoft.ML.Transforms
             {
                 Dimension = dim;
                 Rank = rank;
-                Contracts.CheckParam(0 < Rank && Rank <= Dimension, nameof(Rank), "Rank must be positive, and at most the dimension of untransformed data");
+                Contracts.CheckParam(0 < Rank && Rank <= Dimension, nameof(Rank), Strings.PcaRankOutOfRange);
             }
 
             public TransformInfo(ModelLoadContext ctx)
@@ -452,7 +452,7 @@ namespace Microsoft.ML.Transforms
                 for (int iinfo = 0; iinfo < _numColumns; iinfo++)
                 {
                     if (totalColWeight[iinfo] <= 0)
-                        throw Host.Except("Empty data in column '{0}'", ColumnPairs[iinfo].inputColumnName);
+                        throw Host.Except(Strings.EmptyDataInColumn, ColumnPairs[iinfo].inputColumnName);
                 }
 
                 for (int iinfo = 0; iinfo < _numColumns; iinfo++)
@@ -530,7 +530,7 @@ namespace Microsoft.ML.Transforms
                     if (weightColumn != null)
                     {
                         if (!schema.TryGetColumnIndex(weightColumn, out weightIndex))
-                            throw Contracts.Except("Weight column '{0}' does not exist.", weightColumn);
+                            throw Contracts.Except(Strings.WeightColumnDoesNotExist, weightColumn);
                         Contracts.CheckParam(schema[weightIndex].Type == NumberDataViewType.Single, nameof(weightColumn));
                     }
                     WeightColumnIndex = weightIndex;
@@ -765,8 +765,8 @@ namespace Microsoft.ML.Transforms
                 Oversampling = overSampling;
                 EnsureZeroMean = ensureZeroMean;
                 Seed = seed;
-                Contracts.CheckParam(Oversampling >= 0, nameof(Oversampling), "Oversampling must be non-negative.");
-                Contracts.CheckParam(Rank > 0, nameof(Rank), "Rank must be positive.");
+                Contracts.CheckParam(Oversampling >= 0, nameof(Oversampling), Strings.OversamplingMustBeNonNegative);
+                Contracts.CheckParam(Rank > 0, nameof(Rank), Strings.RankMustBePositive);
             }
         }
 

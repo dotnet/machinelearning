@@ -1,0 +1,91 @@
+﻿<?xml version='1.0' encoding='utf-8'?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="AttemptedToGetPredictorBeforeTraining" xml:space="preserve">
+    <value>Attempted to get predictor before training</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Recommender/SafeTrainingAndModelBuffer.cs:385.</comment>
+  </data>
+  <data name="ColumnForLabelShouldBeFloatingPointButIsInstead" xml:space="preserve">
+    <value>Column '{0}' for label should be floating point, but is instead {1}</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Recommender/MatrixFactorizationTrainer.cs:445.</comment>
+  </data>
+  <data name="ValidationLabelMustBeFloatingPoint" xml:space="preserve">
+    <value>Column '{0}' for validation label should be floating point, but is instead {1}</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Recommender/MatrixFactorizationTrainer.cs:454.</comment>
+  </data>
+  <data name="RoleColumnMustBeKnownCardinalityKey" xml:space="preserve">
+    <value>Column '{0}' with role {1} should be a known cardinality U4 key, but is instead '{2}'</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Recommender/RecommenderUtils.cs:70. Exception or validation message. Source: src/Microsoft.ML.Recommender/RecommenderUtils.cs:71.</comment>
+  </data>
+  <data name="InputDataDidNotHaveAUniqueLabel" xml:space="preserve">
+    <value>Input data did not have a unique label</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Recommender/MatrixFactorizationTrainer.cs:441.</comment>
+  </data>
+  <data name="InputValidationDataDidNotHaveAUniqueLabel" xml:space="preserve">
+    <value>Input validation data did not have a unique label</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Recommender/MatrixFactorizationTrainer.cs:450.</comment>
+  </data>
+  <data name="InternalDimensionShouldHaveBeenPositiveButWasNot" xml:space="preserve">
+    <value>Internal dimension should have been positive but was not</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Recommender/SafeTrainingAndModelBuffer.cs:391.</comment>
+  </data>
+  <data name="NoValidInstancesEncounteredDuringDataLoading" xml:space="preserve">
+    <value>No valid instances encountered during data loading</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Recommender/SafeTrainingAndModelBuffer.cs:309.</comment>
+  </data>
+  <data name="NumberOfColumnsMustBePositive" xml:space="preserve">
+    <value>Number of columns must be positive</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Recommender/MatrixFactorizationPredictor.cs:179.</comment>
+  </data>
+  <data name="NumberOfColumnsShouldHaveBeenPositiveButWasNot" xml:space="preserve">
+    <value>Number of columns should have been positive but was not</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Recommender/SafeTrainingAndModelBuffer.cs:389.</comment>
+  </data>
+  <data name="NumberOfLatentFactorsMustBePositive" xml:space="preserve">
+    <value>Number of latent factors must be positive</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Recommender/MatrixFactorizationPredictor.cs:180.</comment>
+  </data>
+  <data name="NumberOfRowsMustBePositive" xml:space="preserve">
+    <value>Number of rows must be positive</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Recommender/MatrixFactorizationPredictor.cs:178.</comment>
+  </data>
+  <data name="NumberOfRowsShouldHaveBeenPositiveButWasNot" xml:space="preserve">
+    <value>Number of rows should have been positive but was not</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Recommender/SafeTrainingAndModelBuffer.cs:387.</comment>
+  </data>
+  <data name="ParameterMustBePositive" xml:space="preserve">
+    <value>Parameter must be positive</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Recommender/MatrixFactorizationTrainer.cs:352. Exception or validation message. Source: src/Microsoft.ML.Recommender/MatrixFactorizationTrainer.cs:353. Exception or validation message. Source: src/Microsoft.ML.Recommender/MatrixFactorizationTrainer.cs:354. Exception or validation message. Source: src/Microsoft.ML.Recommender/MatrixFactorizationTrainer.cs:355. Exception or validation message. Source: src/Microsoft.ML.Recommender/MatrixFactorizationTrainer.cs:356. Exception or validation message. Source: src/Microsoft.ML.Recommender/MatrixFactorizationTrainer.cs:357.</comment>
+  </data>
+  <data name="RoleMustHaveExactlyOneColumn" xml:space="preserve">
+    <value>There should be exactly one column with role {0}, but {1} were found instead</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Recommender/RecommenderUtils.cs:58. Exception or validation message. Source: src/Microsoft.ML.Recommender/RecommenderUtils.cs:59.</comment>
+  </data>
+  <data name="TrainAndValidationSetsMatrixColumnTypesDifferedVs" xml:space="preserve">
+    <value>Train and validation sets' matrix-column types differed, {0} vs. {1}</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Recommender/MatrixFactorizationTrainer.cs:458.</comment>
+  </data>
+  <data name="TrainAndValidationSetsMatrixRowTypesDifferedVs" xml:space="preserve">
+    <value>Train and validation sets' matrix-row types differed, {0} vs. {1}</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Recommender/MatrixFactorizationTrainer.cs:463.</comment>
+  </data>
+  <data name="FactorMatrixPSizeMismatch" xml:space="preserve">
+    <value>Unexpected matrix size of a factor matrix (matrix P in LIBMF paper)</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Recommender/MatrixFactorizationPredictor.cs:184.</comment>
+  </data>
+  <data name="FactorMatrixQSizeMismatch" xml:space="preserve">
+    <value>Unexpected matrix size of a factor matrix (matrix Q in LIBMF paper)</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Recommender/MatrixFactorizationPredictor.cs:185.</comment>
+  </data>
+</root>

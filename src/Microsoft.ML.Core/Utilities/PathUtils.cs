@@ -140,7 +140,7 @@ namespace Microsoft.ML.Internal.Utilities
                 }
                 catch (Exception exc)
                 {
-                    throw Contracts.ExceptParam(nameof(folder), $"Failed to create folder for the provided path: {folder}. \nException: {exc.Message}");
+                    throw Contracts.ExceptParam(nameof(folder), string.Format(Strings.FailedToCreateFolderForTheProvidedPathException, folder, exc.Message));
                 }
             }
 

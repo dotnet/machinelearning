@@ -116,7 +116,7 @@ namespace Microsoft.ML.Transforms
 
                 InputColumnName = inputColumnName ?? name;
                 Contracts.CheckValue(InputColumnName, nameof(InputColumnName));
-                Contracts.CheckParam(count >= 0, nameof(count), "Must be non-negative.");
+                Contracts.CheckParam(count >= 0, nameof(count), Strings.MustBeNonNegative);
                 Count = count;
             }
         }
@@ -170,9 +170,9 @@ namespace Microsoft.ML.Transforms
                 if (!inputSchema.TryFindColumn(colPair.InputColumnName, out var col))
                     throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colPair.InputColumnName);
                 if (!CountFeatureSelectionUtils.IsValidColumnType(col.ItemType))
-                    throw _host.ExceptUserArg(nameof(inputSchema), "Column '{0}' does not have compatible type. Expected types are float, double or string.", colPair.InputColumnName);
+                    throw _host.ExceptUserArg(nameof(inputSchema), Strings.ColumnTypeMustBeFloatDoubleOrString, colPair.InputColumnName);
                 if (col.Kind == SchemaShape.Column.VectorKind.VariableVector)
-                    throw _host.ExceptUserArg(nameof(inputSchema), $"Variable length column '{col.Name}' is not allowed");
+                    throw _host.ExceptUserArg(nameof(inputSchema), string.Format(Strings.VariableLengthColumnIsNotAllowed, col.Name));
                 var metadata = new List<SchemaShape.Column>();
                 if (col.Annotations.TryFindColumn(AnnotationUtils.Kinds.SlotNames, out var slotMeta))
                     metadata.Add(slotMeta);
@@ -307,11 +307,11 @@ namespace Microsoft.ML.Transforms
                 int colSrc;
                 var colName = columns[i];
                 if (!schema.TryGetColumnIndex(colName, out colSrc))
-                    throw env.ExceptUserArg(nameof(CountFeatureSelectingEstimator.Options.Columns), "Source column '{0}' not found", colName);
+                    throw env.ExceptUserArg(nameof(CountFeatureSelectingEstimator.Options.Columns), Strings.SourceColumnNotFound, colName);
 
                 var colType = schema[colSrc].Type;
                 if (colType is VectorDataViewType vectorType && !vectorType.IsKnownSize)
-                    throw env.ExceptUserArg(nameof(CountFeatureSelectingEstimator.Options.Columns), "Variable length column '{0}' is not allowed", colName);
+                    throw env.ExceptUserArg(nameof(CountFeatureSelectingEstimator.Options.Columns), Strings.VariableLengthColumnIsNotAllowed, colName);
 
                 activeCols.Add(schema[colSrc]);
                 colSrcs[i] = colSrc;

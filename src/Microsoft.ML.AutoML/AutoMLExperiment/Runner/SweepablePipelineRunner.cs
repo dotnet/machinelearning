@@ -88,7 +88,7 @@ namespace Microsoft.ML.AutoML
                 };
             }
 
-            throw new ArgumentException("IDatasetManager must be either ITrainTestDatasetManager or ICrossValidationDatasetManager");
+            throw new ArgumentException(Strings.DatasetManagerMustSupportTrainTestOrCrossValidation);
         }
 
         public Task<TrialResult> RunAsync(TrialSettings settings, CancellationToken ct)

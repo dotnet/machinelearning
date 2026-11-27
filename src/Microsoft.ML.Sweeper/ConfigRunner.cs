@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -67,8 +67,8 @@ namespace Microsoft.ML.Sweeper
         {
             Contracts.AssertValue(env);
             Host = env.Register(registrationName);
-            Host.CheckUserArg(!string.IsNullOrEmpty(options.OptionsPattern), nameof(options.OptionsPattern), "The command pattern is missing");
-            Host.CheckUserArg(!string.IsNullOrEmpty(options.OutputFolderName), nameof(options.OutputFolderName), "Please specify an output folder");
+            Host.CheckUserArg(!string.IsNullOrEmpty(options.OptionsPattern), nameof(options.OptionsPattern), Strings.TheCommandPatternIsMissing);
+            Host.CheckUserArg(!string.IsNullOrEmpty(options.OutputFolderName), nameof(options.OutputFolderName), Strings.PleaseSpecifyAnOutputFolder);
             OptionsPattern = options.OptionsPattern;
             OutputFolder = GetOutputFolderPath(options.OutputFolderName);
             Prefix = string.IsNullOrEmpty(options.Prefix) ? "" : options.Prefix;
@@ -82,7 +82,7 @@ namespace Microsoft.ML.Sweeper
             Exe = GetFullExePath(exe);
 
             if (!File.Exists(Exe) && !File.Exists(Exe + ".exe"))
-                throw Host.ExceptUserArg(nameof(OptionsBase.Exe), "Executable {0} not found", Exe);
+                throw Host.ExceptUserArg(nameof(OptionsBase.Exe), Strings.ExecutableNotFound, Exe);
         }
 
         protected virtual string GetFullExePath(string exe)
@@ -191,7 +191,7 @@ namespace Microsoft.ML.Sweeper
         public LocalExeConfigRunner(IHostEnvironment env, Options options)
             : base(options, env, "LocalExeSweepEvaluator")
         {
-            Contracts.CheckParam(options.NumThreads == null || options.NumThreads.Value > 0, nameof(options.NumThreads), "Cannot be 0 or negative");
+            Contracts.CheckParam(options.NumThreads == null || options.NumThreads.Value > 0, nameof(options.NumThreads), Strings.CannotBe0OrNegative);
             _parallelOptions = new ParallelOptions { MaxDegreeOfParallelism = options.NumThreads ?? -1 };
             Contracts.AssertNonEmpty(options.OutputFolderName);
             ProcessFullExePath(options.Exe);

@@ -180,7 +180,7 @@ namespace Microsoft.ML.Data
             _host.CheckValue(files, nameof(files));
 
             _pathParser = args.PathParserFactory.CreateComponent(_host);
-            _host.CheckUserArg(_pathParser != null, nameof(args.PathParserFactory), "Failed to create the FilePathSpec.");
+            _host.CheckUserArg(_pathParser != null, nameof(args.PathParserFactory), Strings.FailedToCreateTheFilePathSpec);
 
             _files = files;
 
@@ -424,8 +424,7 @@ namespace Microsoft.ML.Data
                 var originGetter = _getters[column.Index];
                 var getter = originGetter as ValueGetter<TValue>;
                 if (getter == null)
-                    throw Ch.Except($"Invalid TValue: '{typeof(TValue)}', " +
-                            $"expected type: '{originGetter.GetType().GetGenericArguments().First()}'.");
+                    throw Ch.Except(string.Format(Strings.InvalidTValueExpectedType, typeof(TValue), originGetter.GetType().GetGenericArguments().First()));
 
                 return getter;
             }
@@ -435,7 +434,7 @@ namespace Microsoft.ML.Data
                 return
                     (ref DataViewRowId val) =>
                     {
-                        Ch.Check(IsGood, RowCursorUtils.FetchValueStateError);
+                        Ch.Check(IsGood, Strings.ValuesUnavailableOutsideCursorPosition);
 
                         val = new DataViewRowId(0, (ulong)Position);
                     };
@@ -629,7 +628,7 @@ namespace Microsoft.ML.Data
                 var conv = Conversions.DefaultInstance.GetStandardConversion(TextDataViewType.Instance, type) as ValueMapper<ReadOnlyMemory<char>, TValue>;
                 if (conv == null)
                 {
-                    throw Ch.Except("Invalid TValue: '{0}' of the conversion.", typeof(TValue));
+                    throw Ch.Except(Strings.InvalidTValueOfTheConversion, typeof(TValue));
                 }
 
                 return (ref TValue value) =>

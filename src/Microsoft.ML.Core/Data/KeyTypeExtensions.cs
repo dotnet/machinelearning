@@ -17,7 +17,7 @@ internal static class KeyTypeExtensions
     /// </summary>
     public static int GetCountAsInt32(this KeyDataViewType key, IExceptionContext ectx = null)
     {
-        ectx.Check(key.Count <= int.MaxValue, nameof(KeyDataViewType) + "." + nameof(KeyDataViewType.Count) + " exceeds int.MaxValue.");
+        ectx.Check(key.Count <= int.MaxValue, Strings.KeyDataViewTypeCountExceedsIntMaxValue);
         return (int)key.Count;
     }
 }

@@ -200,7 +200,7 @@ namespace Microsoft.ML.Data
                 BinarySaver saver = new BinarySaver(_host, new BinarySaver.Arguments());
                 int bytesWritten;
                 if (!saver.TryWriteTypeAndValue<VBuffer<T>>(ctx.Writer.BaseStream, _type, ref val, out bytesWritten))
-                    throw _host.Except("We do not know how to serialize label names of type '{0}'", _type.ItemType);
+                    throw _host.Except(Strings.UnknownLabelNameSerializationType, _type.ItemType);
             }
 
             internal ISchemaBindableMapper Clone(ISchemaBindableMapper inner)
@@ -212,7 +212,7 @@ namespace Microsoft.ML.Data
             {
                 Contracts.CheckValue(ctx, nameof(ctx));
                 Contracts.CheckValue(schema, nameof(schema));
-                Contracts.Check(((ICanSavePfa)this).CanSavePfa, "Cannot be saved as PFA");
+                Contracts.Check(((ICanSavePfa)this).CanSavePfa, Strings.CannotBeSavedAsPFA);
                 Contracts.Assert(_bindable is IBindableCanSavePfa);
                 ((IBindableCanSavePfa)_bindable).SaveAsPfa(ctx, schema, outputNames);
             }
@@ -221,7 +221,7 @@ namespace Microsoft.ML.Data
             {
                 Contracts.CheckValue(ctx, nameof(ctx));
                 Contracts.CheckValue(schema, nameof(schema));
-                Contracts.Check(((ICanSaveOnnx)this).CanSaveOnnx(ctx), "Cannot be saved as ONNX.");
+                Contracts.Check(((ICanSaveOnnx)this).CanSaveOnnx(ctx), Strings.CannotBeSavedAsONNX);
                 Contracts.Assert(_bindable is IBindableCanSaveOnnx);
                 return ((IBindableCanSaveOnnx)_bindable).SaveAsOnnx(ctx, schema, outputNames);
             }
@@ -295,7 +295,7 @@ namespace Microsoft.ML.Data
                     int scoreIdx;
                     bool result = mapper.OutputSchema.TryGetColumnIndex(AnnotationUtils.Const.ScoreValueKind.Score, out scoreIdx);
                     if (!result)
-                        throw env.ExceptParam(nameof(mapper), "Mapper did not have a '{0}' column", AnnotationUtils.Const.ScoreValueKind.Score);
+                        throw env.ExceptParam(nameof(mapper), Strings.MapperDidNotHaveAColumn, AnnotationUtils.Const.ScoreValueKind.Score);
 
                     _labelNameType = type;
                     _labelNameGetter = getter;

@@ -277,11 +277,11 @@ namespace Microsoft.ML.Trainers
         /// <param name="options"></param>
         private void Initialize(IHostEnvironment env, Options options)
         {
-            _host.CheckUserArg(options.LatentDimension > 0, nameof(options.LatentDimension), "Must be positive");
-            _host.CheckUserArg(options.LambdaLinear >= 0, nameof(options.LambdaLinear), "Must be non-negative");
-            _host.CheckUserArg(options.LambdaLatent >= 0, nameof(options.LambdaLatent), "Must be non-negative");
-            _host.CheckUserArg(options.LearningRate > 0, nameof(options.LearningRate), "Must be positive");
-            _host.CheckUserArg(options.NumberOfIterations >= 0, nameof(options.NumberOfIterations), "Must be non-negative");
+            _host.CheckUserArg(options.LatentDimension > 0, nameof(options.LatentDimension), Strings.MustBePositive);
+            _host.CheckUserArg(options.LambdaLinear >= 0, nameof(options.LambdaLinear), Strings.MustBeNonNegative);
+            _host.CheckUserArg(options.LambdaLatent >= 0, nameof(options.LambdaLatent), Strings.MustBeNonNegative);
+            _host.CheckUserArg(options.LearningRate > 0, nameof(options.LearningRate), Strings.MustBePositive);
+            _host.CheckUserArg(options.NumberOfIterations >= 0, nameof(options.NumberOfIterations), Strings.MustBeNonNegative);
             _latentDim = options.LatentDimension;
             _latentDimAligned = FieldAwareFactorizationMachineUtils.GetAlignedVectorLength(_latentDim);
             _lambdaLinear = options.LambdaLinear;
@@ -423,16 +423,16 @@ namespace Microsoft.ML.Trainers
                 if (!(col.Type is VectorDataViewType vectorType) ||
                     !vectorType.IsKnownSize ||
                     vectorType.ItemType != NumberDataViewType.Single)
-                    throw ch.ExceptParam(nameof(data), "Training feature column '{0}' must be a known-size vector of Single, but has type: {1}.", col.Name, col.Type);
+                    throw ch.ExceptParam(nameof(data), Strings.TrainingFeatureVectorTypeInvalid, col.Name, col.Type);
                 _host.Assert(vectorType.Size > 0);
                 fieldColumnIndexes[f] = col.Index;
                 totalFeatureCount += vectorType.Size;
             }
-            ch.Check(checked(totalFeatureCount * fieldCount * _latentDimAligned) <= Utils.ArrayMaxSize, "Latent dimension or the number of fields too large");
+            ch.Check(checked(totalFeatureCount * fieldCount * _latentDimAligned) <= Utils.ArrayMaxSize, Strings.LatentDimensionOrTheNumberOfFieldsTooLarge);
             if (predictor != null)
             {
-                ch.Check(predictor.FeatureCount == totalFeatureCount, "Input model's feature count mismatches training feature count");
-                ch.Check(predictor.LatentDimension == _latentDim, "Input model's latent dimension mismatches trainer's");
+                ch.Check(predictor.FeatureCount == totalFeatureCount, Strings.InputModelSFeatureCountMismatchesTrainingFeatureCount);
+                ch.Check(predictor.LatentDimension == _latentDim, Strings.InputModelSLatentDimensionMismatchesTrainerS);
             }
             if (validData != null)
             {
@@ -555,7 +555,7 @@ namespace Microsoft.ML.Trainers
             _host.CheckValue(context, nameof(context));
             var initPredictor = context.InitialPredictor as FieldAwareFactorizationMachineModelParameters;
             _host.CheckParam(context.InitialPredictor == null || initPredictor != null, nameof(context),
-                "Initial predictor should have been " + nameof(FieldAwareFactorizationMachineModelParameters));
+                Strings.InitialPredictorMustBeFieldAwareFactorizationMachineModel);
 
             using (var ch = _host.Start("Training"))
             using (var pch = _host.StartProgressChannel("Training"))

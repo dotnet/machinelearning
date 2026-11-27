@@ -160,7 +160,7 @@ namespace Microsoft.ML.Data
             {
                 Contracts.CheckNonEmpty(name, nameof(name));
                 Contracts.CheckValue(inputColumnNames, nameof(inputColumnNames));
-                Contracts.CheckParam(inputColumnNames.Any(), nameof(inputColumnNames), "Can not be empty");
+                Contracts.CheckParam(inputColumnNames.Any(), nameof(inputColumnNames), Strings.CannotBeEmpty);
 
                 foreach (var (output, alias) in inputColumnNames)
                 {
@@ -715,7 +715,7 @@ namespace Microsoft.ML.Data
                                 srcGetterVecs[i](ref tmpBufs[i]);
                                 if (vectorType.Size != 0 && vectorType.Size != tmpBufs[i].Length)
                                 {
-                                    throw Contracts.Except("Column '{0}': expected {1} slots, but got {2}",
+                                    throw Contracts.Except(Strings.ColumnExpectedSlotsButGot,
                                         input.Schema[SrcIndices[i]].Name, vectorType.Size, tmpBufs[i].Length)
                                         .MarkSensitive(MessageSensitivity.Schema);
                                 }

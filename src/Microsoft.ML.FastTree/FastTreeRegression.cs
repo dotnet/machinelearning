@@ -135,7 +135,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
             if (doEarlyStop)
                 ch.CheckUserArg(FastTreeTrainerOptions.EarlyStoppingMetrics >= 1 && FastTreeTrainerOptions.EarlyStoppingMetrics <= 2,
-                    nameof(FastTreeTrainerOptions.EarlyStoppingMetrics), "earlyStoppingMetrics should be 1 or 2. (1: L1, 2: L2)");
+                    nameof(FastTreeTrainerOptions.EarlyStoppingMetrics), Strings.EarlyStoppingMetricsShouldBe1Or21L12L2);
         }
 
         private static SchemaShape.Column MakeLabelColumn(string labelColumn)

@@ -900,7 +900,7 @@ namespace Microsoft.ML.Tests
             var dataView = ML.Data.LoadFromEnumerable(dataPoints);
 
             var pipeline = new OnnxScoringEstimator[3];
-            var onnxTransformer = new OnnxTransformer[3];
+            var onnxTransformer = new global::Microsoft.ML.Transforms.Onnx.OnnxTransformer[3];
             var transformedDataViews = new IDataView[3];
 
             // Test three public ONNX APIs with the custom shape.

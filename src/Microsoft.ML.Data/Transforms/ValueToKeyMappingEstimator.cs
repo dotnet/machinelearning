@@ -157,8 +157,7 @@ namespace Microsoft.ML.Transforms
             _host.CheckValueOrNull(keyData);
             if (keyData != null && keyData.Schema.Count != 1)
             {
-                throw _host.ExceptParam(nameof(keyData), "If specified, this data view should contain only a single column " +
-                    $"containing the terms to map, but this had {keyData.Schema.Count} columns.");
+                throw _host.ExceptParam(nameof(keyData), string.Format(Strings.TermsDataViewMustContainSingleColumn, keyData.Schema.Count));
 
             }
 

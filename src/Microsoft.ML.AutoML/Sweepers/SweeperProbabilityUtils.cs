@@ -111,7 +111,7 @@ namespace Microsoft.ML.AutoML
                 }
                 else
                 {
-                    throw new InvalidOperationException("Smart sweeper can only sweep over discrete and numeric parameters");
+                    throw new InvalidOperationException(Strings.SmartSweeperCanOnlySweepOverDiscreteAndNumericParameters);
                 }
             }
 

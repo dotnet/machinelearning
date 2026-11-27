@@ -246,7 +246,7 @@ namespace Microsoft.ML.Data
             MetricWriter.PrintWarnings(ch, metrics);
             evaluator.PrintFoldResults(ch, metrics);
             if (!metrics.TryGetValue(MetricKinds.OverallMetrics, out var overall))
-                throw ch.Except("No overall metrics found");
+                throw ch.Except(Strings.NoOverallMetricsFound);
             overall = evaluator.GetOverallResults(overall);
             MetricWriter.PrintOverallMetrics(Host, ch, ImplOptions.SummaryFilename, overall, 1);
             evaluator.PrintAdditionalMetrics(ch, metrics);

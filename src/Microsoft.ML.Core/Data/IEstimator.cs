@@ -63,9 +63,9 @@ public sealed class SchemaShape : IReadOnlyList<SchemaShape.Column>
         {
             Contracts.CheckNonEmpty(name, nameof(name));
             Contracts.CheckValueOrNull(annotations);
-            Contracts.CheckParam(!(itemType is KeyDataViewType), nameof(itemType), "Item type cannot be a key");
-            Contracts.CheckParam(!(itemType is VectorDataViewType), nameof(itemType), "Item type cannot be a vector");
-            Contracts.CheckParam(!isKey || KeyDataViewType.IsValidDataType(itemType.RawType), nameof(itemType), "The item type must be valid for a key");
+            Contracts.CheckParam(!(itemType is KeyDataViewType), nameof(itemType), Strings.ItemTypeCannotBeAKey);
+            Contracts.CheckParam(!(itemType is VectorDataViewType), nameof(itemType), Strings.ItemTypeCannotBeAVector);
+            Contracts.CheckParam(!isKey || KeyDataViewType.IsValidDataType(itemType.RawType), nameof(itemType), Strings.TheItemTypeMustBeValidForAKey);
 
             Name = name;
             Kind = vecKind;
@@ -86,7 +86,7 @@ public sealed class SchemaShape : IReadOnlyList<SchemaShape.Column>
         [BestFriend]
         internal bool IsCompatibleWith(Column source)
         {
-            Contracts.Check(source.IsValid, nameof(source));
+            Contracts.Check(source.IsValid, Strings.SourceColumnMustBeValid);
             if (Name != source.Name)
                 return false;
             if (Kind != source.Kind)
@@ -130,7 +130,7 @@ public sealed class SchemaShape : IReadOnlyList<SchemaShape.Column>
     {
         Contracts.CheckValue(columns, nameof(columns));
         _columns = columns.ToArray();
-        Contracts.CheckParam(columns.All(c => c.IsValid), nameof(columns), "Some items are not initialized properly.");
+        Contracts.CheckParam(columns.All(c => c.IsValid), nameof(columns), Strings.SomeItemsAreNotInitializedProperly);
     }
 
     /// <summary>

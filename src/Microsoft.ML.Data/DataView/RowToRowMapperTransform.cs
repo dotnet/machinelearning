@@ -219,7 +219,7 @@ namespace Microsoft.ML.Data
             Host.CheckValue(ctx, nameof(ctx));
             if (_mapper is ISaveAsOnnx onnx)
             {
-                Host.Check(onnx.CanSaveOnnx(ctx), "Cannot be saved as ONNX.");
+                Host.Check(onnx.CanSaveOnnx(ctx), Strings.CannotBeSavedAsONNX);
                 onnx.SaveAsOnnx(ctx);
             }
         }
@@ -229,7 +229,7 @@ namespace Microsoft.ML.Data
             Host.CheckValue(ctx, nameof(ctx));
             if (_mapper is ISaveAsPfa pfa)
             {
-                Host.Check(pfa.CanSavePfa, "Cannot be saved as PFA.");
+                Host.Check(pfa.CanSavePfa, Strings.CannotBeSavedAsPFA);
                 pfa.SaveAsPfa(ctx);
             }
         }
@@ -250,14 +250,14 @@ namespace Microsoft.ML.Data
         {
             Host.CheckValue(input, nameof(input));
             Host.CheckValue(activeColumns, nameof(activeColumns));
-            Host.Check(input.Schema == Source.Schema, "Schema of input row must be the same as the schema the mapper is bound to");
+            Host.Check(input.Schema == Source.Schema, Strings.InputSchemaDoesNotMatchMapperSchema);
 
             using (var ch = Host.Start("GetEntireRow"))
             {
                 var activeArr = new bool[OutputSchema.Count];
                 foreach (var column in activeColumns)
                 {
-                    Host.Assert(column.Index < activeArr.Length, $"The columns {activeColumns.Select(c => c.Name)} are not suitable for the OutputSchema.");
+                    Host.Assert(column.Index < activeArr.Length, string.Format("The columns {0} are not suitable for the OutputSchema.", activeColumns.Select(c => c.Name)));
                     activeArr[column.Index] = true;
                 }
                 var pred = GetActiveOutputColumns(activeArr);
@@ -337,8 +337,7 @@ namespace Microsoft.ML.Data
                 Contracts.Assert(originFn != null);
                 var fn = originFn as ValueGetter<TValue>;
                 if (fn == null)
-                    throw Contracts.Except($"Invalid TValue in GetGetter: '{typeof(TValue)}', " +
-                        $"expected type: '{originFn.GetType().GetGenericArguments().First()}'.");
+                    throw Contracts.Except(string.Format(Strings.InvalidTValueInGetGetterExpectedType, typeof(TValue), originFn.GetType().GetGenericArguments().First()));
                 return fn;
             }
 
@@ -404,8 +403,7 @@ namespace Microsoft.ML.Data
                 Ch.Assert(getter != null);
                 var fn = getter as ValueGetter<TValue>;
                 if (fn == null)
-                    throw Contracts.Except($"Invalid TValue in GetGetter: '{typeof(TValue)}', " +
-                        $"expected type: '{getter.GetType().GetGenericArguments().First()}'.");
+                    throw Contracts.Except(string.Format(Strings.InvalidTValueInGetGetterExpectedType, typeof(TValue), getter.GetType().GetGenericArguments().First()));
                 return fn;
             }
 

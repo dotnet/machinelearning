@@ -27,7 +27,7 @@ namespace Microsoft.ML.Tokenizers
             {
                 TrainerSpec.Types.ModelType.Bpe => new SentencePieceBpeModel(modelProto, addBos, addEos, specialTokens),
                 TrainerSpec.Types.ModelType.Unigram => new SentencePieceUnigramModel(modelProto, addBos, addEos, specialTokens),
-                _ => throw new ArgumentException($"The model type '{modelProto.TrainerSpec.ModelType}' is not supported.", nameof(modelProto))
+                _ => throw new ArgumentException(string.Format(Strings.TheModelTypeIsNotSupported, modelProto.TrainerSpec.ModelType), nameof(modelProto))
             };
         }
 
@@ -576,12 +576,12 @@ namespace Microsoft.ML.Tokenizers
             // Validate model type
             if (!root.TryGetProperty("model", out JsonElement modelElement))
             {
-                throw new InvalidDataException("The tokenizer.json does not contain a 'model' property.");
+                throw new InvalidDataException(Strings.TheTokenizerJsonDoesNotContainAModelProperty);
             }
 
             if (modelElement.ValueKind != JsonValueKind.Object)
             {
-                throw new InvalidDataException("The tokenizer.json 'model' property must be a JSON object.");
+                throw new InvalidDataException(Strings.TheTokenizerJsonModelPropertyMustBeAJSONObject);
             }
 
             // Validate the model is Unigram. Older tokenizer.json files (e.g. xlm-roberta-base, albert) omit the
@@ -592,17 +592,17 @@ namespace Microsoft.ML.Tokenizers
             {
                 if (!string.Equals(modelTypeElement.GetString(), "Unigram", StringComparison.OrdinalIgnoreCase))
                 {
-                    throw new InvalidDataException($"Expected model type 'Unigram' but found '{modelTypeElement.GetString()}'.");
+                    throw new InvalidDataException(string.Format(Strings.ExpectedModelTypeUnigramButFound, modelTypeElement.GetString()));
                 }
             }
             else if (modelElement.TryGetProperty("merges", out _))
             {
-                throw new InvalidDataException("The tokenizer.json 'model' has no 'type' and contains 'merges'; this factory only supports 'Unigram' models.");
+                throw new InvalidDataException(Strings.TokenizerModelTypeMissingWithMerges);
             }
 
             if (!modelElement.TryGetProperty("unk_id", out JsonElement unkIdElement))
             {
-                throw new InvalidDataException("The tokenizer.json model does not contain an 'unk_id' property.");
+                throw new InvalidDataException(Strings.TheTokenizerJsonModelDoesNotContainAnUnkId);
             }
 
             // HF permits a null unk_id, meaning the model has no unknown token; represent that as -1 and validate the
@@ -610,7 +610,7 @@ namespace Microsoft.ML.Tokenizers
             bool unkIsNull = unkIdElement.ValueKind == JsonValueKind.Null;
             if (!unkIsNull && unkIdElement.ValueKind != JsonValueKind.Number)
             {
-                throw new InvalidDataException("The tokenizer.json model 'unk_id' property must be a number or null.");
+                throw new InvalidDataException(Strings.UnknownTokenIdMustBeNumberOrNull);
             }
 
             int unkId = unkIsNull ? -1 : unkIdElement.GetInt32();
@@ -621,7 +621,7 @@ namespace Microsoft.ML.Tokenizers
             if (!modelElement.TryGetProperty("vocab", out JsonElement vocabElement) ||
                 vocabElement.ValueKind != JsonValueKind.Array)
             {
-                throw new InvalidDataException("The tokenizer.json model does not contain a valid 'vocab' array.");
+                throw new InvalidDataException(Strings.TheTokenizerJsonModelDoesNotContainAValidVocab);
             }
 
             List<(string Piece, float Score)> vocab = new List<(string Piece, float Score)>(vocabElement.GetArrayLength());
@@ -629,18 +629,18 @@ namespace Microsoft.ML.Tokenizers
             {
                 if (entry.ValueKind != JsonValueKind.Array || entry.GetArrayLength() < 2)
                 {
-                    throw new InvalidDataException("Each entry in 'model.vocab' must be a [piece, score] array.");
+                    throw new InvalidDataException(Strings.ModelVocabEntryMustBePieceScoreArray);
                 }
 
                 if (entry[0].ValueKind != JsonValueKind.String || entry[1].ValueKind != JsonValueKind.Number)
                 {
-                    throw new InvalidDataException("Each entry in 'model.vocab' must be a [string piece, number score] pair.");
+                    throw new InvalidDataException(Strings.ModelVocabEntryMustBeStringNumberPair);
                 }
 
                 string? piece = entry[0].GetString();
                 if (piece is null)
                 {
-                    throw new InvalidDataException("A piece string in 'model.vocab' is null.");
+                    throw new InvalidDataException(Strings.APieceStringInModelVocabIsNull);
                 }
 
                 vocab.Add((piece, entry[1].GetSingle()));
@@ -653,12 +653,12 @@ namespace Microsoft.ML.Tokenizers
                 // invalid token id at encode time.
                 if (!byteFallback)
                 {
-                    throw new NotSupportedException("The tokenizer.json model has a null 'unk_id' but does not enable 'byte_fallback'; a Unigram model without an unknown token is only supported when byte_fallback is enabled.");
+                    throw new NotSupportedException(Strings.NullUnknownTokenRequiresByteFallback);
                 }
             }
             else if (unkId < 0 || unkId >= vocab.Count)
             {
-                throw new InvalidDataException($"The tokenizer.json model 'unk_id' ({unkId}) is out of range for a vocabulary of {vocab.Count} pieces.");
+                throw new InvalidDataException(string.Format(Strings.UnknownTokenIdOutOfRange, unkId, vocab.Count));
             }
 
             // Extract normalizer settings
@@ -783,7 +783,7 @@ namespace Microsoft.ML.Tokenizers
                 {
                     if (contentElement.ValueKind != JsonValueKind.String || idElement.ValueKind != JsonValueKind.Number)
                     {
-                        throw new InvalidDataException("An 'added_tokens' entry must have a string 'content' and a numeric 'id'.");
+                        throw new InvalidDataException(Strings.AddedTokenEntryRequiresContentAndId);
                     }
 
                     result[contentElement.GetString()!] = idElement.GetInt32();
@@ -888,7 +888,7 @@ namespace Microsoft.ML.Tokenizers
                 {
                     if (seenSequence)
                     {
-                        throw new NotSupportedException("tokenizer.json post_processor templates with more than one sequence are not supported.");
+                        throw new NotSupportedException(Strings.MultiplePostProcessorSequencesUnsupported);
                     }
 
                     seenSequence = true;
@@ -898,7 +898,7 @@ namespace Microsoft.ML.Tokenizers
                 {
                     if (idElement.ValueKind != JsonValueKind.String)
                     {
-                        throw new InvalidDataException("A post_processor template 'SpecialToken.id' must be a string.");
+                        throw new InvalidDataException(Strings.APostProcessorTemplateSpecialTokenIdMustBeAString);
                     }
 
                     string tokenName = idElement.GetString()!;
@@ -909,7 +909,7 @@ namespace Microsoft.ML.Tokenizers
 
             if (!seenSequence)
             {
-                throw new NotSupportedException("tokenizer.json post_processor template does not contain a sequence placeholder.");
+                throw new NotSupportedException(Strings.PostProcessorTemplateMissingSequencePlaceholder);
             }
         }
 
@@ -927,7 +927,7 @@ namespace Microsoft.ML.Tokenizers
             {
                 if (ids[0].ValueKind != JsonValueKind.Number)
                 {
-                    throw new InvalidDataException($"The tokenizer.json post_processor special token '{tokenName}' has a non-numeric id.");
+                    throw new InvalidDataException(string.Format(Strings.PostProcessorSpecialTokenIdNotNumeric, tokenName));
                 }
 
                 int id = ids[0].GetInt32();
@@ -938,7 +938,7 @@ namespace Microsoft.ML.Tokenizers
                     || (id >= 0 && id < vocab.Count && vocab[id].Piece == tokenName);
                 if (!consistent)
                 {
-                    throw new InvalidDataException($"The tokenizer.json post_processor special token '{tokenName}' maps to id {id}, which does not match the vocabulary or added tokens.");
+                    throw new InvalidDataException(string.Format(Strings.PostProcessorSpecialTokenIdMismatch, tokenName, id));
                 }
 
                 return id;
@@ -952,7 +952,7 @@ namespace Microsoft.ML.Tokenizers
             int vocabId = FindPieceId(vocab, tokenName);
             if (vocabId < 0)
             {
-                throw new InvalidDataException($"The tokenizer.json post_processor references special token '{tokenName}' that is not present in the vocabulary.");
+                throw new InvalidDataException(string.Format(Strings.PostProcessorSpecialTokenMissing, tokenName));
             }
 
             return vocabId;
@@ -978,7 +978,7 @@ namespace Microsoft.ML.Tokenizers
                     || (id >= 0 && id < vocab.Count && vocab[id].Piece == token);
                 if (!consistent)
                 {
-                    throw new InvalidDataException($"The post-processor '{property}' token '{token}' with id {id} does not match the vocabulary or added tokens.");
+                    throw new InvalidDataException(string.Format(Strings.PostProcessorTokenIdMismatch, property, token, id));
                 }
 
                 target.Add((id, token));
@@ -999,7 +999,7 @@ namespace Microsoft.ML.Tokenizers
             }
             else if (required)
             {
-                throw new InvalidDataException($"The tokenizer.json does not contain the required special token '{tokenName}'.");
+                throw new InvalidDataException(string.Format(Strings.TheTokenizerJsonDoesNotContainTheRequiredSpecialToken, tokenName));
             }
         }
 
@@ -1207,7 +1207,7 @@ namespace Microsoft.ML.Tokenizers
             }
 
             throw new NotSupportedException(
-                $"The tokenizer.json pre_tokenizer type '{type ?? "<missing>"}' is not supported; only Metaspace, WhitespaceSplit, Whitespace, and Sequence are handled.");
+                string.Format(Strings.UnsupportedPreTokenizerType, type ?? "<missing>"));
         }
 
         private static void ExtractMetaspaceSettings(JsonElement preTokenizer, ref bool addDummyPrefix, ref bool escapeWhiteSpaces)
@@ -1224,7 +1224,7 @@ namespace Microsoft.ML.Tokenizers
                 {
                     if (addPrefixElement.ValueKind != JsonValueKind.True && addPrefixElement.ValueKind != JsonValueKind.False)
                     {
-                        throw new InvalidDataException("The pre_tokenizer 'add_prefix_space' must be a boolean.");
+                        throw new InvalidDataException(Strings.ThePreTokenizerAddPrefixSpaceMustBeABoolean);
                     }
 
                     addDummyPrefix = addPrefixElement.GetBoolean();
@@ -1234,7 +1234,7 @@ namespace Microsoft.ML.Tokenizers
                 {
                     if (replacementElement.ValueKind != JsonValueKind.String && replacementElement.ValueKind != JsonValueKind.Null)
                     {
-                        throw new InvalidDataException("The pre_tokenizer 'replacement' must be a string.");
+                        throw new InvalidDataException(Strings.ThePreTokenizerReplacementMustBeAString);
                     }
 
                     // HF Metaspace's 'replacement' is the actual whitespace marker character. The SentencePiece model
@@ -1243,7 +1243,7 @@ namespace Microsoft.ML.Tokenizers
                     if (replacement is not null && replacement != "\u2581") // U+2581 LOWER ONE EIGHTH BLOCK (▁)
                     {
                         throw new NotSupportedException(
-                            $"The Metaspace 'replacement' '{replacement}' is not supported; only U+2581 ('\u2581') is supported.");
+                            string.Format(Strings.UnsupportedMetaspaceReplacement, replacement));
                     }
 
                     escapeWhiteSpaces = true;

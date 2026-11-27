@@ -6,6 +6,7 @@ using System;
 using System.IO;
 using System.Text;
 using Microsoft.ML.Runtime;
+using ResourceStrings = Microsoft.ML.Core.Resources.Strings;
 
 namespace Microsoft.ML;
 
@@ -18,7 +19,7 @@ public sealed partial class ModelSaveContext : IDisposable
     internal void SaveModel<T>(T value, string name)
         where T : class
     {
-        _ectx.Check(InRepository, "Can't save a sub-model when writing to a single stream");
+        _ectx.Check(InRepository, ResourceStrings.CannotSaveSubModelToSingleStream);
         SaveModel(Repository, value, Path.Combine(Directory ?? "", name));
     }
 
@@ -77,7 +78,7 @@ public sealed partial class ModelSaveContext : IDisposable
     [BestFriend]
     internal void SaveSubModel(string dir, Action<ModelSaveContext> fn)
     {
-        _ectx.Check(InRepository, "Can't save a sub-model when writing to a single stream");
+        _ectx.Check(InRepository, ResourceStrings.CannotSaveSubModelToSingleStream);
         _ectx.CheckNonEmpty(dir, nameof(dir));
         _ectx.CheckValue(fn, nameof(fn));
 

@@ -76,7 +76,7 @@ namespace Microsoft.ML.Internal.Utilities
         public static int EnsureSize<T>(ref T[] array, int min, int max, bool keepOld, out bool resized)
         {
             if (min > max)
-                throw new ArgumentOutOfRangeException(nameof(max), "min must not exceed max");
+                throw new ArgumentOutOfRangeException(nameof(max), Strings.MinMustNotExceedMax);
 
             // This code adapted from the private method EnsureCapacity code of List<T>.
             int size = ArrayUtils.Size(array);

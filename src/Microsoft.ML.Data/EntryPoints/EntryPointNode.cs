@@ -304,7 +304,7 @@ namespace Microsoft.ML.EntryPoints
                 _vars[binding.VariableName] = v;
             }
             else if (v.Type != type)
-                throw _ectx.Except($"Variable '{v.Name}' is used as {v.Type} and as {type}");
+                throw _ectx.Except(string.Format(Strings.VariableIsUsedAsAndAs, v.Name, v.Type, type));
             v.MarkUsage(true);
         }
 
@@ -331,7 +331,7 @@ namespace Microsoft.ML.EntryPoints
             else
             {
                 if (v.Type != type)
-                    throw _ectx.Except($"Variable '{v.Name}' is used as {v.Type} and as {type}");
+                    throw _ectx.Except(string.Format(Strings.VariableIsUsedAsAndAs, v.Name, v.Type, type));
                 return false;
             }
             v.MarkUsage(false);
@@ -358,16 +358,16 @@ namespace Microsoft.ML.EntryPoints
                 if (!_vars.TryGetValue(kvp.Key, out v))
                     _vars.Add(kvp.Key, kvp.Value);
                 else
-                    throw _ectx.Except($"Duplicate variable '{kvp.Key}' in subgraph.");
+                    throw _ectx.Except(string.Format(Strings.DuplicateVariableInSubgraph, kvp.Key));
             }
         }
 
         public void RenameContextVariable(string oldName, string newName)
         {
             if (_vars.ContainsKey(newName))
-                throw _ectx.Except($"Variable with name '{newName}' already exists in subgraph.");
+                throw _ectx.Except(string.Format(Strings.VariableWithNameAlreadyExistsInSubgraph, newName));
             if (!_vars.ContainsKey(oldName))
-                throw _ectx.Except($"Variable with name '{oldName}' not found in subgraph.");
+                throw _ectx.Except(string.Format(Strings.VariableWithNameNotFoundInSubgraph, oldName));
             var v = _vars[oldName].Clone(newName);
             _vars.Add(newName, v);
             _vars.Remove(oldName);
@@ -439,7 +439,7 @@ namespace Microsoft.ML.EntryPoints
             set
             {
                 if (!IsStageIdValid(value))
-                    throw _host.Except("Stage ID must be alphanumeric.");
+                    throw _host.Except(Strings.StageIDMustBeAlphanumeric);
                 _stageId = value;
             }
         }
@@ -459,7 +459,7 @@ namespace Microsoft.ML.EntryPoints
             set
             {
                 if (value < 0)
-                    throw _host.Except("Cost cannot be negative.");
+                    throw _host.Except(Strings.CostCannotBeNegative);
                 _cost = value;
             }
         }
@@ -481,7 +481,7 @@ namespace Microsoft.ML.EntryPoints
 
             Id = id;
             if (!env.ComponentCatalog.TryFindEntryPoint(entryPointName, out _entryPoint))
-                throw _host.Except($"Entry point '{entryPointName}' not found");
+                throw _host.Except(string.Format(Strings.EntryPointNotFound, entryPointName));
 
             // Validate inputs.
             _inputMap = new Dictionary<ParameterBinding, VariableBinding>();
@@ -497,7 +497,7 @@ namespace Microsoft.ML.EntryPoints
             }
             var missing = _inputBuilder.GetMissingValues().Except(_inputBindingMap.Keys).ToArray();
             if (missing.Length > 0)
-                throw _host.Except($"The following required inputs were not provided: {String.Join(", ", missing)}");
+                throw _host.Except(string.Format(Strings.TheFollowingRequiredInputsWereNotProvided, String.Join(", ", missing)));
 
             var inputInstance = _inputBuilder.GetInstance();
             SetColumnArgument(ch, inputInstance, "LabelColumnName", label, "label", typeof(CommonInputs.ITrainerInputWithLabel));
@@ -626,9 +626,9 @@ namespace Microsoft.ML.EntryPoints
             {
                 Type valueType = _inputBuilder.GetFieldTypeOrNull(pair.Key);
                 if (valueType == null)
-                    throw _host.Except($"Unexpected input name: '{pair.Key}'");
+                    throw _host.Except(string.Format(Strings.UnexpectedInputName, pair.Key));
                 if (!EntryPointVariable.IsValidType(valueType))
-                    throw _host.Except($"Unexpected input variable type: {valueType}");
+                    throw _host.Except(string.Format(Strings.UnexpectedInputVariableType, valueType));
 
                 var varBinding = VariableBinding.Create(_host, pair.Value.Value<string>());
                 _context.AddInputVariable(varBinding, valueType);
@@ -644,11 +644,11 @@ namespace Microsoft.ML.EntryPoints
                 // REVIEW: EntryPoint arrays and dictionaries containing
                 // variables must ONLY contain variables right now.
                 if (!((JArray)pair.Value).All(tok => VariableBinding.IsBindingToken(tok)))
-                    throw _host.Except($"Input {pair.Key} may ONLY contain variables.");
+                    throw _host.Except(string.Format(Strings.InputMayONLYContainVariables, pair.Key));
 
                 Type valueType = _inputBuilder.GetFieldTypeOrNull(pair.Key);
                 if (valueType == null || !valueType.HasElementType)
-                    throw _host.Except($"Unexpected input name: '{pair.Key}'");
+                    throw _host.Except(string.Format(Strings.UnexpectedInputName, pair.Key));
                 valueType = valueType.GetElementType();
 
                 int i = 0;
@@ -670,7 +670,7 @@ namespace Microsoft.ML.EntryPoints
             {
                 // This is not a variable.
                 if (!_inputBuilder.TrySetValueJson(pair.Key, pair.Value))
-                    throw _host.Except($"Unexpected input: '{pair.Key}'");
+                    throw _host.Except(string.Format(Strings.UnexpectedInput, pair.Key));
             }
         }
 
@@ -682,19 +682,19 @@ namespace Microsoft.ML.EntryPoints
         private void CheckAndMarkOutputValue(KeyValuePair<string, JToken> pair)
         {
             if (!VariableBinding.IsBindingToken(pair.Value))
-                throw _host.Except("Only variables allowed as outputs");
+                throw _host.Except(Strings.OnlyVariablesAllowedAsOutputs);
 
             // Output variable.
             var varBinding = VariableBinding.Create(_host, pair.Value.Value<string>());
             if (!(varBinding is SimpleVariableBinding))
-                throw _host.Except($"Output '{pair.Key}' can only be bound to a variable");
+                throw _host.Except(string.Format(Strings.OutputCanOnlyBeBoundToAVariable, pair.Key));
 
             var valueType = _outputHelper.GetFieldType(pair.Key);
             if (valueType == null)
-                throw _host.Except($"Unexpected output name: '{pair.Key}");
+                throw _host.Except(string.Format(Strings.UnexpectedOutputName, pair.Key));
 
             if (!EntryPointVariable.IsValidType(valueType))
-                throw _host.Except($"Output '{pair.Key}' has invalid type");
+                throw _host.Except(string.Format(Strings.OutputHasInvalidType, pair.Key));
 
             _context.AddOutputVariable(varBinding.VariableName, valueType);
             _outputMap[pair.Key] = varBinding.VariableName;
@@ -871,11 +871,11 @@ namespace Microsoft.ML.EntryPoints
             if (firstBinding is DictionaryKeyParameterBinding)
             {
                 // REVIEW: Implement dictionary support when needed;
-                throw _host.ExceptNotImpl("Dictionary variable binding is not currently supported");
+                throw _host.ExceptNotImpl(Strings.DictionaryVariableBindingIsNotCurrentlySupported);
             }
 
             _host.Assert(false);
-            throw _host.ExceptNotImpl("Unsupported ParameterBinding");
+            throw _host.ExceptNotImpl(Strings.UnsupportedParameterBinding);
         }
 
         public static List<EntryPointNode> ValidateNodes(IHostEnvironment env, RunContext context, JArray nodes,
@@ -892,16 +892,16 @@ namespace Microsoft.ML.EntryPoints
                 {
                     var node = nodes[i] as JObject;
                     if (node == null)
-                        throw env.Except("Unexpected node token: '{0}'", nodes[i]);
+                        throw env.Except(Strings.UnexpectedNodeToken, nodes[i]);
 
                     string nodeName = node[FieldNames.Name].Value<string>();
                     var inputs = node[FieldNames.Inputs] as JObject;
                     if (inputs == null && node[FieldNames.Inputs] != null)
-                        throw env.Except("Unexpected {0} token: '{1}'", FieldNames.Inputs, node[FieldNames.Inputs]);
+                        throw env.Except(Strings.UnexpectedToken, FieldNames.Inputs, node[FieldNames.Inputs]);
 
                     var outputs = node[FieldNames.Outputs] as JObject;
                     if (outputs == null && node[FieldNames.Outputs] != null)
-                        throw env.Except("Unexpected {0} token: '{1}'", FieldNames.Outputs, node[FieldNames.Outputs]);
+                        throw env.Except(Strings.UnexpectedToken, FieldNames.Outputs, node[FieldNames.Outputs]);
 
                     var id = context.GenerateId(nodeName);
                     var unexpectedFields = node.Properties().Where(
@@ -935,9 +935,9 @@ namespace Microsoft.ML.EntryPoints
             List<ParameterBinding> parameterBindings;
             bool success = InputBindingMap.TryGetValue(paramName, out parameterBindings);
             if (!success)
-                throw _host.Except($"Invalid parameter '{paramName}': parameter does not exist.");
+                throw _host.Except(string.Format(Strings.InvalidParameterParameterDoesNotExist, paramName));
             if (parameterBindings == null || parameterBindings.Count > 1)
-                throw _host.Except($"Invalid parameter '{paramName}': only simple parameters are supported.");
+                throw _host.Except(string.Format(Strings.InvalidParameterOnlySimpleParametersAreSupported, paramName));
             VariableBinding variableBinding;
             success = InputMap.TryGetValue(parameterBindings[0], out variableBinding);
             _host.Assert(success && variableBinding != null);
@@ -949,7 +949,7 @@ namespace Microsoft.ML.EntryPoints
             string outputVarName;
             bool success = OutputMap.TryGetValue(paramName, out outputVarName);
             if (!success)
-                throw _host.Except($"Invalid parameter '{paramName}': parameter does not exist.");
+                throw _host.Except(string.Format(Strings.InvalidParameterParameterDoesNotExist, paramName));
             return outputVarName;
         }
 
@@ -957,7 +957,7 @@ namespace Microsoft.ML.EntryPoints
         {
             // Make sure name is really unique.
             if (InputBindingMap.ContainsKey(uniqueName))
-                throw _host.Except($"Key {uniqueName} already exists in binding map.");
+                throw _host.Except(string.Format(Strings.KeyAlreadyExistsInBindingMap, uniqueName));
 
             // Add parameter bindings
             var paramBinding = new SimpleParameterBinding(uniqueName);
@@ -1073,7 +1073,7 @@ namespace Microsoft.ML.EntryPoints
             var match = _variableRegex.Match(jsonString);
 
             if (!match.Success)
-                throw ectx.Except($"Unable to parse variable string '{jsonString}'");
+                throw ectx.Except(string.Format(Strings.UnableToParseVariableString, jsonString));
 
             if (match.Groups["NumericAccessor"].Success)
             {
@@ -1156,7 +1156,7 @@ namespace Microsoft.ML.EntryPoints
         {
             Contracts.AssertValue(variable);
             // REVIEW: Implement dictionary-based value retrieval.
-            throw Contracts.ExceptNotImpl("Diction-based value retrieval is not supported.");
+            throw Contracts.ExceptNotImpl(Strings.DictionBasedValueRetrievalIsNotSupported);
         }
 
         public override string ToJson()

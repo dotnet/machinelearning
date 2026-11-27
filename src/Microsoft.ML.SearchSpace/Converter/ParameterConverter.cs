@@ -47,7 +47,7 @@ namespace Microsoft.ML.SearchSpace.Converter
 
                     return Parameter.FromIEnumerable(list);
                 default:
-                    throw new ArgumentException($"Unsupported reader type {reader.TokenType}");
+                    throw new ArgumentException(string.Format(Strings.UnsupportedReaderType, reader.TokenType));
             }
         }
 

@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -81,7 +81,7 @@ namespace Microsoft.ML.Sweeper
         private SimpleAsyncSweeper(ISweeper baseSweeper)
         {
             Contracts.CheckValue(baseSweeper, nameof(baseSweeper));
-            Contracts.CheckParam(!(baseSweeper is NelderMeadSweeper), nameof(baseSweeper), "baseSweeper cannot be Nelder-Mead");
+            Contracts.CheckParam(!(baseSweeper is NelderMeadSweeper), nameof(baseSweeper), Strings.BaseSweeperCannotBeNelderMead);
 
             _baseSweeper = baseSweeper;
             _lock = new object();
@@ -100,7 +100,7 @@ namespace Microsoft.ML.Sweeper
 
         public void Update(int id, IRunResult result)
         {
-            Contracts.CheckParam(0 <= id && id < _numGenerated, nameof(id), "Invalid run id");
+            Contracts.CheckParam(0 <= id && id < _numGenerated, nameof(id), Strings.InvalidRunId);
             if (!_canceled && result != null)
             {
                 lock (_lock)
@@ -115,7 +115,7 @@ namespace Microsoft.ML.Sweeper
             lock (_lock)
             {
                 if (_disposed)
-                    throw Contracts.Except("Calling Propose after the sweeper is disposed");
+                    throw Contracts.Except(Strings.CallingProposeAfterTheSweeperIsDisposed);
                 var paramSets = _baseSweeper.ProposeSweeps(1, _results);
                 if (Utils.Size(paramSets) > 0)
                     return Task.FromResult(new ParameterSetWithId(_numGenerated++, paramSets[0]));
@@ -193,15 +193,15 @@ namespace Microsoft.ML.Sweeper
         public DeterministicSweeperAsync(IHostEnvironment env, Options options)
         {
             _host = env.Register("DeterministicSweeperAsync", options.RandomSeed);
-            _host.CheckValue(options.Sweeper, nameof(options.Sweeper), "Please specify a sweeper");
-            _host.CheckUserArg(options.BatchSize > 0, nameof(options.BatchSize), "Batch size must be positive");
-            _host.CheckUserArg(options.Relaxation >= 0, nameof(options.Relaxation), "Synchronization relaxation must be non-negative");
+            _host.CheckValue(options.Sweeper, nameof(options.Sweeper), Strings.PleaseSpecifyASweeper);
+            _host.CheckUserArg(options.BatchSize > 0, nameof(options.BatchSize), Strings.BatchSizeMustBePositive);
+            _host.CheckUserArg(options.Relaxation >= 0, nameof(options.Relaxation), Strings.SynchronizationRelaxationMustBeNonNegative);
             _host.CheckUserArg(options.Relaxation <= options.BatchSize, nameof(options.Relaxation),
-                "Synchronization relaxation cannot be larger than batch size");
+                Strings.SynchronizationRelaxationCannotBeLargerThanBatchSize);
             _batchSize = options.BatchSize;
             _baseSweeper = options.Sweeper.CreateComponent(_host);
             _host.CheckUserArg(!(_baseSweeper is NelderMeadSweeper) || options.Relaxation == 0, nameof(options.Relaxation),
-                "Nelder-Mead requires full synchronization (relaxation = 0)");
+                Strings.NelderMeadRequiresFullSynchronizationRelaxation0);
 
             _cts = new CancellationTokenSource();
             _relaxation = options.Relaxation;
@@ -216,7 +216,7 @@ namespace Microsoft.ML.Sweeper
 
         private void PrepareNextBatch(IEnumerable<IRunResult> results)
         {
-            _host.Check(!_disposed, "Creating parameters while sweeper is disposed");
+            _host.Check(!_disposed, Strings.CreatingParametersWhileSweeperIsDisposed);
             var paramSets = _baseSweeper.ProposeSweeps(_batchSize, results);
             if (Utils.Size(paramSets) == 0)
             {
@@ -241,7 +241,7 @@ namespace Microsoft.ML.Sweeper
         {
             if (_cts.IsCancellationRequested)
                 return;
-            _host.Check(0 <= id && id < _results.Count, "Invalid index");
+            _host.Check(0 <= id && id < _results.Count, Strings.InvalidIndex);
             lock (_lock)
             {
                 UpdateResult(id, result);

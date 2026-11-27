@@ -62,7 +62,7 @@ namespace Microsoft.ML.Trainers
         {
             Contracts.CheckValue(host, nameof(host));
             Host = host;
-            Host.CheckParam(feature.IsValid, nameof(feature), "not initialized properly");
+            Host.CheckParam(feature.IsValid, nameof(feature), Strings.NotInitializedProperly);
 
             FeatureColumn = feature;
             LabelColumn = label;
@@ -98,7 +98,7 @@ namespace Microsoft.ML.Trainers
         {
             Host.CheckValue(context, nameof(context));
             var pred = TrainModelCore(context) as IPredictor;
-            Host.Check(pred != null, "Training did not return a predictor.");
+            Host.Check(pred != null, Strings.TrainingDidNotReturnAPredictor);
             return pred;
         }
 
@@ -132,7 +132,7 @@ namespace Microsoft.ML.Trainers
 
         private protected virtual void CheckLabelCompatible(SchemaShape.Column labelCol)
         {
-            Contracts.CheckParam(labelCol.IsValid, nameof(labelCol), "not initialized properly");
+            Contracts.CheckParam(labelCol.IsValid, nameof(labelCol), Strings.NotInitializedProperly);
             Host.Assert(LabelColumn.IsValid);
 
             if (!LabelColumn.IsCompatibleWith(labelCol))

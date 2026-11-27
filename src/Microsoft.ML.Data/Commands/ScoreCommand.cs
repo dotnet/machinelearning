@@ -82,8 +82,8 @@ namespace Microsoft.ML.Data
         public ScoreCommand(IHostEnvironment env, Arguments args)
             : base(env, args, nameof(ScoreCommand))
         {
-            Host.CheckUserArg(!string.IsNullOrWhiteSpace(ImplOptions.InputModelFile), nameof(ImplOptions.InputModelFile), "The input model file is required.");
-            Host.CheckUserArg(!string.IsNullOrWhiteSpace(ImplOptions.OutputDataFile), nameof(ImplOptions.OutputDataFile), "The output data file is required.");
+            Host.CheckUserArg(!string.IsNullOrWhiteSpace(ImplOptions.InputModelFile), nameof(ImplOptions.InputModelFile), Strings.TheInputModelFileIsRequired);
+            Host.CheckUserArg(!string.IsNullOrWhiteSpace(ImplOptions.OutputDataFile), nameof(ImplOptions.OutputDataFile), Strings.TheOutputDataFileIsRequired);
             Utils.CheckOptionalUserDirectory(ImplOptions.OutputDataFile, nameof(ImplOptions.OutputDataFile));
         }
 
@@ -172,7 +172,7 @@ namespace Microsoft.ML.Data
                 foreach (var outCol in ImplOptions.OutputColumns)
                 {
                     if (!loader.Schema.TryGetColumnIndex(outCol, out int dummyColIndex))
-                        throw ch.ExceptUserArg(nameof(Arguments.OutputColumns), "Column '{0}' not found.", outCol);
+                        throw ch.ExceptUserArg(nameof(Arguments.OutputColumns), Strings.ColumnNotFound, outCol);
                 }
             }
 
@@ -197,7 +197,7 @@ namespace Microsoft.ML.Data
                 }
             }
 
-            ch.Check(cols.Count > 0, "No valid columns to save");
+            ch.Check(cols.Count > 0, Strings.NoValidColumnsToSave);
 
             ch.Trace("Scoring and saving data");
             using (var file = Host.CreateOutputFile(ImplOptions.OutputDataFile))

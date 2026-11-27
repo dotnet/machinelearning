@@ -54,7 +54,7 @@ namespace Microsoft.ML.AutoML
             }
             else
             {
-                throw new Exception("Not Implemented");
+                throw new Exception(Strings.NotImplemented);
             }
         }
 

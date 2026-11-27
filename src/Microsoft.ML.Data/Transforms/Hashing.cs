@@ -149,7 +149,7 @@ namespace Microsoft.ML.Transforms
         {
             var type = inputSchema[srcCol].Type;
             if (!HashingEstimator.IsColumnTypeValid(type))
-                throw Host.ExceptParam(nameof(inputSchema), HashingEstimator.ExpectedColumnType);
+                throw Host.ExceptParam(nameof(inputSchema), Strings.ExpectedTextKeyNumericBooleanOrDataViewRowIdItemType);
         }
 
         private static (string outputColumnName, string inputColumnName)[] GetColumnPairs(HashingEstimator.ColumnOptions[] columns)
@@ -182,10 +182,10 @@ namespace Microsoft.ML.Transforms
             foreach (var column in _columns)
             {
                 if (column.MaximumNumberOfInverts != 0)
-                    throw Host.ExceptParam(nameof(columns), $"Found column with {nameof(column.MaximumNumberOfInverts)} set to non zero value, please use {nameof(HashingEstimator)} instead");
+                    throw Host.ExceptParam(nameof(columns), Strings.HashMaximumNumberOfInvertsRequiresHashingEstimator);
 
                 if (column.Combine && column.UseOrderedHashing)
-                    throw Host.ExceptParam(nameof(HashingEstimator.ColumnOptions.Combine), "When the 'Combine' option is specified, ordered hashing is not supported.");
+                    throw Host.ExceptParam(nameof(HashingEstimator.ColumnOptions.Combine), Strings.CombineModeDoesNotSupportOrderedHashing);
             }
         }
 
@@ -1836,9 +1836,9 @@ namespace Microsoft.ML.Transforms
                 bool combine = Defaults.Combine)
             {
                 if (maximumNumberOfInverts < -1)
-                    throw Contracts.ExceptParam(nameof(maximumNumberOfInverts), "Value too small, must be -1 or larger");
+                    throw Contracts.ExceptParam(nameof(maximumNumberOfInverts), Strings.ValueTooSmallMustBeNegativeOneOrLarger);
                 if (maximumNumberOfInverts != 0 && numberOfBits >= 31)
-                    throw Contracts.ExceptParam(nameof(numberOfBits), $"Cannot support maximumNumberOfInverts for a {0} bit hash. 30 is the maximum possible.", numberOfBits);
+                    throw Contracts.ExceptParam(nameof(numberOfBits), string.Format(Strings.HashInvertLimitUnsupportedForBitCount, 0), numberOfBits);
                 Contracts.CheckNonWhiteSpace(name, nameof(name));
                 Name = name;
                 InputColumnName = inputColumnName ?? name;
@@ -1935,9 +1935,9 @@ namespace Microsoft.ML.Transforms
             foreach (var columnOptions in _columns)
             {
                 if (columnOptions.Combine && columnOptions.MaximumNumberOfInverts != 0)
-                    throw _host.ExceptParam(nameof(ColumnOptions.Combine), "When the 'Combine' option is specified, invert hashes are not supported.");
+                    throw _host.ExceptParam(nameof(ColumnOptions.Combine), Strings.CombineModeDoesNotSupportInvertHash);
                 if (columnOptions.Combine && columnOptions.UseOrderedHashing)
-                    throw _host.ExceptParam(nameof(ColumnOptions.Combine), "When the 'Combine' option is specified, ordered hashing is not supported.");
+                    throw _host.ExceptParam(nameof(ColumnOptions.Combine), Strings.CombineModeDoesNotSupportOrderedHashing);
             }
         }
 
@@ -1959,7 +1959,7 @@ namespace Microsoft.ML.Transforms
                 if (!inputSchema.TryFindColumn(colInfo.InputColumnName, out var col))
                     throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.InputColumnName);
                 if (!IsColumnTypeValid(col.ItemType))
-                    throw _host.ExceptParam(nameof(inputSchema), ExpectedColumnType);
+                    throw _host.ExceptParam(nameof(inputSchema), Strings.ExpectedTextKeyNumericBooleanOrDataViewRowIdItemType);
                 var metadata = new List<SchemaShape.Column>();
                 if (!colInfo.Combine && col.Annotations.TryFindColumn(AnnotationUtils.Kinds.SlotNames, out var slotMeta))
                     metadata.Add(slotMeta);

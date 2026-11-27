@@ -60,7 +60,7 @@ namespace Microsoft.ML.Tools
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register("SavePredictorCommand");
             _host.CheckValue(args, nameof(args));
-            _host.CheckUserArg(!string.IsNullOrWhiteSpace(args.InputModelFile), nameof(args.InputModelFile), "Must specify input model file");
+            _host.CheckUserArg(!string.IsNullOrWhiteSpace(args.InputModelFile), nameof(args.InputModelFile), Strings.MustSpecifyInputModelFile);
 
             _args = args;
             CheckOutputDirectories();

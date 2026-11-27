@@ -49,7 +49,7 @@ namespace Microsoft.ML.EntryPoints
             if (!schema.TryGetColumnIndex(value, out int col))
             {
                 if (value.IsExplicit)
-                    throw ectx.Except("Column '{0}' not found", value);
+                    throw ectx.Except(Strings.ColumnNotFound, value);
                 return null;
             }
             return value;
@@ -108,7 +108,7 @@ namespace Microsoft.ML.EntryPoints
                     case CachingOptions.None:
                         break;
                     default:
-                        throw ch.ExceptParam(nameof(input.Caching), "Unknown option for caching: '{0}'", input.Caching);
+                        throw ch.ExceptParam(nameof(input.Caching), Strings.UnknownOptionForCaching, input.Caching);
                 }
 
                 if (outputData != null)

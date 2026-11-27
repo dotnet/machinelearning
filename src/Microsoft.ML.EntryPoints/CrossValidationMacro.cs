@@ -438,7 +438,7 @@ namespace Microsoft.ML.EntryPoints
                 case MacroUtils.TrainerKinds.SignatureMultiOutputRegressorTrainer:
                     return new MultiOutputRegressionMamlEvaluator(env, new MultiOutputRegressionMamlEvaluator.Arguments());
                 default:
-                    throw env.ExceptParam(nameof(kind), $"Trainer kind {kind} does not have an evaluator");
+                    throw env.ExceptParam(nameof(kind), string.Format(Strings.TrainerKindDoesNotHaveAnEvaluator, kind));
             }
         }
     }

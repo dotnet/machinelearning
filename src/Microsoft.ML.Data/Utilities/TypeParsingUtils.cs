@@ -58,7 +58,7 @@ namespace Microsoft.ML.Data
 
             KeyDataViewType keyType;
             Type rawType = type.HasValue ? type.Value.ToType() : InternalDataKind.U8.ToType();
-            Contracts.CheckUserArg(KeyDataViewType.IsValidDataType(rawType), nameof(TextLoader.Column.Type), "Bad item type for Key");
+            Contracts.CheckUserArg(KeyDataViewType.IsValidDataType(rawType), nameof(TextLoader.Column.Type), Strings.BadItemTypeForKey);
 
             if (keyCount.Count == null)
                 keyType = new KeyDataViewType(rawType, rawType.ToMaxInt());
@@ -87,8 +87,7 @@ namespace Microsoft.ML.Data
         public KeyCount(ulong count)
         {
             if (count == 0)
-                throw Contracts.ExceptParam(nameof(count), "The cardinality of valid values of a "
-                    + nameof(KeyDataViewType) + " column has to be strictly positive.");
+                throw Contracts.ExceptParam(nameof(count), Strings.KeyTypeCardinalityMustBePositive);
             Count = count;
         }
 
@@ -125,7 +124,7 @@ namespace Microsoft.ML.Data
                 if (!ulong.TryParse(str.Substring(0, ich), out min))
                     return false;
                 if (min != 0)
-                    throw Contracts.ExceptDecode("The minimum logical value of a " + nameof(KeyDataViewType) + " is required to be zero.");
+                    throw Contracts.ExceptDecode(Strings.KeyTypeMinimumMustBeZero);
 
                 // The Max could be non defined or it could be an `*`.
                 str = str.Substring(ich + 1);

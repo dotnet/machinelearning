@@ -74,7 +74,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
                     return SquaredDifference;
 
                 default:
-                    throw Contracts.Except(ErrorFunctionHelpText);
+                    throw Contracts.Except(Strings.UnsupportedErrorFunction);
             }
         }
     }
@@ -191,9 +191,9 @@ namespace Microsoft.ML.Transforms.TimeSeries
             public SsaAnomalyDetectionBase(SsaOptions options, string name, IHostEnvironment env, SsaAnomalyDetectionBaseWrapper parent)
                 : base(options.WindowSize, 0, options.Source, options.Name, name, env, options.Side, options.Martingale, options.AlertOn, options.PowerMartingaleEpsilon, options.AlertThreshold)
             {
-                Host.CheckUserArg(2 <= options.SeasonalWindowSize, nameof(options.SeasonalWindowSize), "Must be at least 2.");
-                Host.CheckUserArg(0 <= options.DiscountFactor && options.DiscountFactor <= 1, nameof(options.DiscountFactor), "Must be in the range [0, 1].");
-                Host.CheckUserArg(Enum.IsDefined(typeof(ErrorFunction), options.ErrorFunction), nameof(options.ErrorFunction), ErrorFunctionUtils.ErrorFunctionHelpText);
+                Host.CheckUserArg(2 <= options.SeasonalWindowSize, nameof(options.SeasonalWindowSize), Strings.MustBeAtLeast2);
+                Host.CheckUserArg(0 <= options.DiscountFactor && options.DiscountFactor <= 1, nameof(options.DiscountFactor), Strings.MustBeBetweenZeroAndOneInclusive);
+                Host.CheckUserArg(Enum.IsDefined(typeof(ErrorFunction), options.ErrorFunction), nameof(options.ErrorFunction), Strings.UnsupportedErrorFunction);
 
                 SeasonalWindowSize = options.SeasonalWindowSize;
                 DiscountFactor = options.DiscountFactor;

@@ -64,12 +64,12 @@ namespace Microsoft.ML.Trainers.FastTree
             double[][] binUpperBounds, double[][] binEffects, double intercept, int numInputFeatures = -1, int[] shapeToInputMap = null)
             : base(env, name)
         {
-            Host.CheckValue(binEffects, nameof(binEffects), "May not be null.");
-            Host.CheckValue(binUpperBounds, nameof(binUpperBounds), "May not be null.");
-            Host.CheckParam(binUpperBounds.Length == binEffects.Length, nameof(binUpperBounds), "Must have same number of features as binEffects");
-            Host.CheckParam(binEffects.Length > 0, nameof(binEffects), "Must have at least one entry");
-            Host.CheckParam(numInputFeatures == -1 || numInputFeatures > 0, nameof(numInputFeatures), "Must be greater than zero");
-            Host.CheckParam(shapeToInputMap == null || shapeToInputMap.Length == binEffects.Length, nameof(shapeToInputMap), "Must have same number of features as binEffects");
+            Host.CheckValue(binEffects, nameof(binEffects), Strings.MayNotBeNull);
+            Host.CheckValue(binUpperBounds, nameof(binUpperBounds), Strings.MayNotBeNull);
+            Host.CheckParam(binUpperBounds.Length == binEffects.Length, nameof(binUpperBounds), Strings.MustHaveSameNumberOfFeaturesAsBinEffects);
+            Host.CheckParam(binEffects.Length > 0, nameof(binEffects), Strings.MustHaveAtLeastOneEntry);
+            Host.CheckParam(numInputFeatures == -1 || numInputFeatures > 0, nameof(numInputFeatures), Strings.MustBeGreaterThanZero);
+            Host.CheckParam(shapeToInputMap == null || shapeToInputMap.Length == binEffects.Length, nameof(shapeToInputMap), Strings.MustHaveSameNumberOfFeaturesAsBinEffects);
 
             // Define the model basics
             Bias = intercept;
@@ -85,9 +85,9 @@ namespace Microsoft.ML.Trainers.FastTree
             for (int i = 0; i < NumberOfShapeFunctions; i++)
             {
                 // Check data validity
-                Host.CheckValue(binEffects[i], nameof(binEffects), "Array contained null entries");
-                Host.CheckParam(binUpperBounds[i].Length == binEffects[i].Length, nameof(binEffects), "Array contained wrong number of effect values");
-                Host.CheckParam(Utils.IsMonotonicallyIncreasing(binUpperBounds[i]), nameof(binUpperBounds), "Array must be monotonically increasing");
+                Host.CheckValue(binEffects[i], nameof(binEffects), Strings.ArrayContainedNullEntries);
+                Host.CheckParam(binUpperBounds[i].Length == binEffects[i].Length, nameof(binEffects), Strings.ArrayContainedWrongNumberOfEffectValues);
+                Host.CheckParam(Utils.IsMonotonicallyIncreasing(binUpperBounds[i]), nameof(binUpperBounds), Strings.ArrayMustBeMonotonicallyIncreasing);
 
                 // Update the value at zero
                 _valueAtAllZero += GetBinEffect(i, 0, out _binsAtAllZero[i]);
@@ -104,8 +104,8 @@ namespace Microsoft.ML.Trainers.FastTree
             _inputFeatureToShapeFunctionMap = new Dictionary<int, int>(_shapeToInputMap.Length);
             for (int i = 0; i < _shapeToInputMap.Length; i++)
             {
-                Host.CheckParam(0 <= _shapeToInputMap[i] && _shapeToInputMap[i] < _numInputFeatures, nameof(_shapeToInputMap), "Contains out of range feature value");
-                Host.CheckParam(!_inputFeatureToShapeFunctionMap.ContainsValue(_shapeToInputMap[i]), nameof(_shapeToInputMap), "Contains duplicate mappings");
+                Host.CheckParam(0 <= _shapeToInputMap[i] && _shapeToInputMap[i] < _numInputFeatures, nameof(_shapeToInputMap), Strings.ContainsOutOfRangeFeatureValue);
+                Host.CheckParam(!_inputFeatureToShapeFunctionMap.ContainsValue(_shapeToInputMap[i]), nameof(_shapeToInputMap), Strings.ContainsDuplicateMappings);
                 _inputFeatureToShapeFunctionMap[_shapeToInputMap[i]] = i;
             }
 
@@ -192,8 +192,8 @@ namespace Microsoft.ML.Trainers.FastTree
 
         ValueMapper<TIn, TOut> IValueMapper.GetMapper<TIn, TOut>()
         {
-            Host.Check(typeof(TIn) == typeof(VBuffer<float>), "Input type does not match.");
-            Host.Check(typeof(TOut) == typeof(float), "Output type does not match.");
+            Host.Check(typeof(TIn) == typeof(VBuffer<float>), Strings.InputTypeDoesNotMatch);
+            Host.Check(typeof(TOut) == typeof(float), Strings.OutputTypeDoesNotMatch);
 
             ValueMapper<VBuffer<float>, float> del = Map;
             return (ValueMapper<TIn, TOut>)(Delegate)del;
@@ -201,7 +201,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
         private void Map(in VBuffer<float> features, ref float response)
         {
-            Host.CheckParam(features.Length == _numInputFeatures, nameof(features), "Bad length of input");
+            Host.CheckParam(features.Length == _numInputFeatures, nameof(features), Strings.BadLengthOfInput);
 
             double value = Bias;
             var featuresValues = features.GetValues();
@@ -272,7 +272,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
         private double GetBinEffect(int featureIndex, double featureValue, out int binIndex)
         {
-            Host.Check(0 <= featureIndex && featureIndex < NumberOfShapeFunctions, "Index out of range.");
+            Host.Check(0 <= featureIndex && featureIndex < NumberOfShapeFunctions, Strings.IndexOutOfRange);
             binIndex = Algorithms.FindFirstGE(_binUpperBounds[featureIndex], featureValue);
             return _binEffects[featureIndex][binIndex];
         }
@@ -284,7 +284,7 @@ namespace Microsoft.ML.Trainers.FastTree
         /// <returns>The bin upper bounds. May be zero length if this feature has no bins.</returns>
         public IReadOnlyList<double> GetBinUpperBounds(int featureIndex)
         {
-            Host.Check(0 <= featureIndex && featureIndex < NumberOfShapeFunctions, "Index out of range.");
+            Host.Check(0 <= featureIndex && featureIndex < NumberOfShapeFunctions, Strings.IndexOutOfRange);
             if (!_inputFeatureToShapeFunctionMap.TryGetValue(featureIndex, out int j))
                 return new double[0];
 
@@ -322,7 +322,7 @@ namespace Microsoft.ML.Trainers.FastTree
         /// <returns>The binned effects for each feature. May be zero length if this feature has no bins.</returns>
         public IReadOnlyList<double> GetBinEffects(int featureIndex)
         {
-            Host.Check(0 <= featureIndex && featureIndex < NumberOfShapeFunctions, "Index out of range.");
+            Host.Check(0 <= featureIndex && featureIndex < NumberOfShapeFunctions, Strings.IndexOutOfRange);
             if (!_inputFeatureToShapeFunctionMap.TryGetValue(featureIndex, out int j))
                 return new double[0];
 
@@ -355,7 +355,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
         void ICanSaveInTextFormat.SaveAsText(TextWriter writer, RoleMappedSchema schema)
         {
-            Host.CheckValue(writer, nameof(writer), "writer must not be null.");
+            Host.CheckValue(writer, nameof(writer), Strings.WriterMustNotBeNull);
             Host.CheckValueOrNull(schema);
 
             writer.WriteLine("\xfeffFeature index table"); // add BOM to tell excel this is UTF-8
@@ -402,8 +402,8 @@ namespace Microsoft.ML.Trainers.FastTree
         ValueMapper<TSrc, VBuffer<float>> IFeatureContributionMapper.GetFeatureContributionMapper<TSrc, TDstContributions>
             (int top, int bottom, bool normalize)
         {
-            Host.Check(typeof(TSrc) == typeof(VBuffer<float>), "Source type does not match.");
-            Host.Check(typeof(TDstContributions) == typeof(VBuffer<float>), "Destination type does not match.");
+            Host.Check(typeof(TSrc) == typeof(VBuffer<float>), Strings.SourceTypeDoesNotMatch);
+            Host.Check(typeof(TDstContributions) == typeof(VBuffer<float>), Strings.DestinationTypeDoesNotMatch);
 
             ValueMapper<VBuffer<float>, VBuffer<float>> del =
                 (in VBuffer<float> srcFeatures, ref VBuffer<float> dstContributions) =>
@@ -435,7 +435,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
         void ICanSaveInIniFormat.SaveAsIni(TextWriter writer, RoleMappedSchema schema, ICalibrator calibrator)
         {
-            Host.CheckValue(writer, nameof(writer), "writer must not be null");
+            Host.CheckValue(writer, nameof(writer), Strings.WriterMustNotBeNull);
             var ensemble = new InternalTreeEnsemble();
 
             for (int featureIndex = 0; featureIndex < NumberOfShapeFunctions; featureIndex++)
@@ -443,7 +443,7 @@ namespace Microsoft.ML.Trainers.FastTree
                 var effects = _binEffects[featureIndex];
                 var binThresholds = _binUpperBounds[featureIndex];
 
-                Host.Check(effects.Length == binThresholds.Length, "Effects array must be same length as binUpperBounds array.");
+                Host.Check(effects.Length == binThresholds.Length, Strings.EffectsArrayMustBeSameLengthAsBinUpperBoundsArray);
                 var numLeaves = effects.Length;
                 var numInternalNodes = numLeaves - 1;
 
@@ -887,7 +887,7 @@ namespace Microsoft.ML.Trainers.FastTree
                     calibrated = rawPred as CalibratedModelParametersBase<GamBinaryModelParameters, PlattCalibrator>;
                 }
                 var pred = rawPred as GamModelParametersBase;
-                ch.CheckUserArg(pred != null, nameof(ImplOptions.InputModelFile), "Predictor was not a " + nameof(GamModelParametersBase));
+                ch.CheckUserArg(pred != null, nameof(ImplOptions.InputModelFile), Strings.PredictorWasNotAGamModelParametersBase);
                 var data = new RoleMappedData(loader, schema.GetColumnRoleNames(), opt: true);
                 if (hadCalibrator && !string.IsNullOrWhiteSpace(ImplOptions.OutputModelFile))
                     ch.Warning("If you save the GAM model, only the GAM model, not the wrapping calibrator, will be saved.");

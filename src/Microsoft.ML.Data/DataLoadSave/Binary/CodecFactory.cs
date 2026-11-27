@@ -128,7 +128,7 @@ namespace Microsoft.ML.Data.IO
                 bytes = checked(bytes + Utils.Leb128IntLength((uint)bytes));
                 MemoryStream mem = _memPool.Get();
                 int output = codec.WriteParameterization(mem);
-                Contracts.Check(mem.Length == output, "codec description length did not match stream length");
+                Contracts.Check(mem.Length == output, Strings.CodecDescriptionLengthDidNotMatchStreamLength);
                 Contracts.Check(mem.Length <= int.MaxValue); // Is this even possible in the current implementation of MemoryStream?
                 writer.WriteLeb128Int((ulong)mem.Length);
                 bytes = checked(bytes + Utils.Leb128IntLength((uint)mem.Length) + output);
@@ -159,9 +159,9 @@ namespace Microsoft.ML.Data.IO
             using (BinaryReader reader = new BinaryReader(definitionStream, Encoding.UTF8, true))
             {
                 string signature = reader.ReadString();
-                Contracts.CheckDecode(!string.IsNullOrEmpty(signature), "Non-empty signature string expected");
+                Contracts.CheckDecode(!string.IsNullOrEmpty(signature), Strings.NonEmptySignatureStringExpected);
                 ulong ulen = reader.ReadLeb128Int();
-                Contracts.CheckDecode(ulen <= long.MaxValue, "Codec type definition read from stream too large");
+                Contracts.CheckDecode(ulen <= long.MaxValue, Strings.CodecTypeDefinitionReadFromStreamTooLarge);
                 long len = (long)ulen;
                 GetCodecFromStreamDelegate del;
                 if (!_loadNameToCodecCreator.TryGetValue(signature, out del))
@@ -174,7 +174,7 @@ namespace Microsoft.ML.Data.IO
                     {
                         long remaining = definitionStream.Length - definitionStream.Position;
                         if (remaining < len)
-                            throw ch.ExceptDecode("Codec type definition supposedly has {0} bytes, but end-of-stream reached after {1} bytes", len, remaining);
+                            throw ch.ExceptDecode(Strings.CodecTypeDefinitionTruncated, len, remaining);
                         definitionStream.Seek(len, SeekOrigin.Current);
                     }
                     else
@@ -182,7 +182,7 @@ namespace Microsoft.ML.Data.IO
                         for (long i = 0; i < len; ++i)
                         {
                             if (definitionStream.ReadByte() == -1)
-                                throw ch.ExceptDecode("Codec type definition supposedly has {0} bytes, but end-of-stream reached after {1} bytes", len, i);
+                                throw ch.ExceptDecode(Strings.CodecTypeDefinitionTruncated, len, i);
                         }
                     }
                     ch.Warning("Did not recognize value codec signature '{0}'", signature);
@@ -192,7 +192,7 @@ namespace Microsoft.ML.Data.IO
                 long pos = definitionStream.CanSeek ? definitionStream.Position : -1;
                 bool retval = del(definitionStream, out codec);
                 if (definitionStream.CanSeek && definitionStream.Position - pos != len)
-                    throw ch.ExceptDecode("Codec type definition supposedly has {0} bytes, but the handler consumed {1}", len, definitionStream.Position - pos);
+                    throw ch.ExceptDecode(Strings.CodecTypeDefinitionSupposedlyHasBytesButTheHandlerConsumed, len, definitionStream.Position - pos);
                 return retval;
             }
         }

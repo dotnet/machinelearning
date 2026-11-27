@@ -294,8 +294,8 @@ namespace Microsoft.ML.Trainers
         internal LinearSvmTrainer(IHostEnvironment env, Options options)
             : base(options, env, UserNameValue, TrainerUtils.MakeBoolScalarLabel(options.LabelColumnName))
         {
-            Contracts.CheckUserArg(options.Lambda > 0, nameof(options.Lambda), UserErrorPositive);
-            Contracts.CheckUserArg(options.BatchSize > 0, nameof(options.BatchSize), UserErrorPositive);
+            Contracts.CheckUserArg(options.Lambda > 0, nameof(options.Lambda), Strings.MustBePositive);
+            Contracts.CheckUserArg(options.BatchSize > 0, nameof(options.BatchSize), Strings.MustBePositive);
 
             Opts = options;
         }

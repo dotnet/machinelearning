@@ -79,7 +79,7 @@ namespace Microsoft.ML.Model.Pfa
             _inputsToDrop = CreateDropMap(args.InputsToDrop);
             _outputsToDrop = CreateDropMap(args.OutputsToDrop);
 
-            Host.CheckUserArg(Enum.IsDefined(typeof(Formatting), args.Formatting), nameof(args.Formatting), "Undefined value");
+            Host.CheckUserArg(Enum.IsDefined(typeof(Formatting), args.Formatting), nameof(args.Formatting), Strings.UndefinedValue);
             _formatting = args.Formatting;
         }
 
@@ -130,7 +130,7 @@ namespace Microsoft.ML.Model.Pfa
                 rawPred = null;
                 trainSchema = null;
                 Host.CheckUserArg(ImplOptions.LoadPredictor != true, nameof(ImplOptions.LoadPredictor),
-                    "Cannot be set to true unless " + nameof(ImplOptions.InputModelFile) + " is also specified.");
+                    Strings.CannotBeSetToTrueUnlessInputModelFileIsAlsoSpecified);
             }
             else
                 LoadModelObjects(ch, _loadPredictor, out rawPred, true, out trainSchema, out loader);
@@ -167,14 +167,14 @@ namespace Microsoft.ML.Model.Pfa
                 else
                 {
                     Contracts.CheckUserArg(_loadPredictor != true,
-                        nameof(Arguments.LoadPredictor), "We were explicitly told to load the predictor but we do not know how to save it as PFA.");
+                        nameof(Arguments.LoadPredictor), Strings.PredictorCannotBeSavedAsPfa);
                     ch.Warning("We do not know how to save the predictor as PFA. Ignoring.");
                 }
             }
             else
             {
                 Contracts.CheckUserArg(_loadPredictor != true,
-                    nameof(Arguments.LoadPredictor), "We were explicitly told to load the predictor but one was not present.");
+                    nameof(Arguments.LoadPredictor), Strings.PredictorRequiredButMissing);
             }
 
             var ctx = new BoundPfaContext(Host, source.Schema, _inputsToDrop, allowSet: _allowSet);

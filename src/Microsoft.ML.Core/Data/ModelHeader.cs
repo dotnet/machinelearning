@@ -348,20 +348,16 @@ internal struct ModelHeader
     /// </summary>
     public static void CheckVersionInfo(ref ModelHeader header, VersionInfo ver)
     {
-        Contracts.CheckDecode(header.ModelSignature == ver.ModelSignature, "Unknown file type");
-        Contracts.CheckDecode(header.ModelVerReadable <= header.ModelVerWritten, "Corrupt file header");
+        Contracts.CheckDecode(header.ModelSignature == ver.ModelSignature, Strings.UnknownFileType);
+        Contracts.CheckDecode(header.ModelVerReadable <= header.ModelVerWritten, Strings.CorruptFileHeader);
         if (header.ModelVerReadable > ver.VerWrittenCur)
-            throw Contracts.ExceptDecode("Cause: ML.NET {0} cannont read component '{1}' of the model, because the model is too new.\n" +
-                            "Suggestion: Make sure the model is trained with ML.NET {0} or older.\n" +
-                            "Debug details: Maximum expected version {2}, got {3}.",
+            throw Contracts.ExceptDecode(Strings.ModelComponentTooNew,
                             typeof(VersionInfo).Assembly.GetName().Version, ver.LoaderSignature, header.ModelVerReadable, ver.VerWrittenCur);
         if (header.ModelVerWritten < ver.VerWeCanReadBack)
         {
             // Breaking backwards compatibility is something we should avoid if at all possible. If
             // this message is observed, it may be a bug.
-            throw Contracts.ExceptDecode("Cause: ML.NET {0} cannot read component '{1}' of the model, because the model is too old.\n" +
-                              "Suggestion: Make sure the model is trained with ML.NET {0}.\n" +
-                              "Debug details: Minimum expected version {2}, got {3}.",
+            throw Contracts.ExceptDecode(Strings.ModelComponentTooOld,
                               typeof(VersionInfo).Assembly.GetName().Version, ver.LoaderSignature, header.ModelVerReadable, ver.VerWrittenCur);
         }
     }
@@ -389,10 +385,10 @@ internal struct ModelHeader
 
         try
         {
-            Contracts.CheckDecode(header.Signature == SignatureValue, "Wrong file type");
-            Contracts.CheckDecode(header.VerReadable <= header.VerWritten, "Corrupt file header");
-            Contracts.CheckDecode(header.VerReadable <= VerWrittenCur, "File is too new");
-            Contracts.CheckDecode(header.VerWritten >= VerWeCanReadBack, "File is too old");
+            Contracts.CheckDecode(header.Signature == SignatureValue, Strings.WrongFileType);
+            Contracts.CheckDecode(header.VerReadable <= header.VerWritten, Strings.CorruptFileHeader);
+            Contracts.CheckDecode(header.VerReadable <= VerWrittenCur, Strings.FileIsTooNew);
+            Contracts.CheckDecode(header.VerWritten >= VerWeCanReadBack, Strings.FileIsTooOld);
 
             // Currently the model always comes immediately after the header.
             Contracts.CheckDecode(header.FpModel == Size);
@@ -551,7 +547,7 @@ internal struct ModelHeader
             Contracts.CheckDecode(header.FpTail == reader.FpCur() - fpMin);
 
             ulong tail = reader.ReadUInt64();
-            Contracts.CheckDecode(tail == TailSignatureValue, "Corrupt model file tail");
+            Contracts.CheckDecode(tail == TailSignatureValue, Strings.CorruptModelFileTail);
 
             ex = null;
 
@@ -640,7 +636,7 @@ internal readonly struct VersionInfo
     public VersionInfo(string modelSignature, uint verWrittenCur, uint verReadableCur, uint verWeCanReadBack,
         string loaderAssemblyName, string loaderSignature = null, string loaderSignatureAlt = null)
     {
-        Contracts.Check(Utils.Size(modelSignature) == 8, "Model signature must be eight characters");
+        Contracts.Check(Utils.Size(modelSignature) == 8, Strings.ModelSignatureMustBeEightCharacters);
         ModelSignature = 0;
         for (int ich = 0; ich < modelSignature.Length; ich++)
         {

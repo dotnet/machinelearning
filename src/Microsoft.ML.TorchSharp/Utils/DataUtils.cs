@@ -54,13 +54,13 @@ namespace Microsoft.ML.TorchSharp.Utils
             if (src.numel() != dst.numel())
             {
                 throw new ArgumentException(
-                    $"Inconsistent capacity when copying tensor, got {src.numel()} and {dst.numel()}.");
+                    string.Format(Strings.InconsistentCapacityWhenCopyingTensorGotAnd, src.numel(), dst.numel()));
             }
 
             if (moveEosToBeginning && (eosIndex == null || eosIndex < 0))
             {
                 throw new ArgumentException(
-                    $"{nameof(eosIndex)} must not be null or negative when {nameof(moveEosToBeginning)} is true.");
+                    Strings.MoveEosToBeginningRequiresEosIndex);
             }
 
             if (moveEosToBeginning && src[-1][0].ToInt32() == eosIndex)

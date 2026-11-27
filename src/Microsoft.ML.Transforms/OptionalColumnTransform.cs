@@ -489,8 +489,7 @@ namespace Microsoft.ML.Transforms
                 Ch.Assert(originFn != null);
                 var fn = originFn as ValueGetter<TValue>;
                 if (fn == null)
-                    throw Ch.Except($"Invalid TValue in GetGetter: '{typeof(TValue)}', " +
-                            $"expected type: '{originFn.GetType().GetGenericArguments().First()}'.");
+                    throw Ch.Except(string.Format(Strings.InvalidTValueInGetGetterExpectedType, typeof(TValue), originFn.GetType().GetGenericArguments().First()));
                 return fn;
             }
 

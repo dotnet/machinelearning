@@ -198,12 +198,12 @@ namespace Microsoft.ML.Internal.Utilities
 
             if (offset < 0)
             {
-                throw new ArgumentOutOfRangeException(nameof(offset), "Offset must be non-negative.");
+                throw new ArgumentOutOfRangeException(nameof(offset), Strings.OffsetMustBeNonNegative);
             }
 
             if ((uint)count > buffer.Length - offset)
             {
-                throw new ArgumentOutOfRangeException(nameof(count), "Count must be non-negative and count must not exceed buffer.Length - offset.");
+                throw new ArgumentOutOfRangeException(nameof(count), Strings.CountExceedsAvailableBufferRange);
             }
         }
 
@@ -222,7 +222,7 @@ namespace Microsoft.ML.Internal.Utilities
                 {
                     if (throwOnEndOfStream)
                     {
-                        throw new EndOfStreamException("Unable to read beyond the end of the stream.");
+                        throw new EndOfStreamException(Strings.UnableToReadBeyondTheEndOfTheStream);
                     }
 
                     return totalRead;

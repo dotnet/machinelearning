@@ -23,7 +23,7 @@ namespace Microsoft.ML.Trainers.Ensemble
             if (!(predictor is IPredictorProducing<TOutput> predictorProducing))
             {
                 throw Contracts.ExceptParam(nameof(predictor),
-                    $"Input predictor did not have the expected output type {typeof(TOutput).Name}.");
+                    string.Format(Strings.InputPredictorDidNotHaveTheExpectedOutputType, typeof(TOutput).Name));
             }
             Predictor = predictorProducing;
             int card;

@@ -39,7 +39,7 @@ namespace Microsoft.ML.Trainers
                 // If the initial predictor is not calibrated, it should be a linear model.
                 linInitPred = linInitPred ?? initPred as LinearModelParameters;
                 Host.CheckParam(context.InitialPredictor == null || linInitPred != null, nameof(context),
-                    "Initial predictor was not a linear predictor.");
+                    Strings.InitialPredictorWasNotALinearPredictor);
                 return TrainCore(ch, preparedData, linInitPred, weightSetCount);
             }
         }
@@ -85,7 +85,7 @@ namespace Microsoft.ML.Trainers
             if (examples.Schema.Weight.HasValue)
                 ch.Assert(examplesToFeedTrain.Schema.Weight.HasValue);
 
-            ch.Check(examplesToFeedTrain.Schema.Feature.Value.Type is VectorDataViewType vecType && vecType.Size > 0, "Training set has no features, aborting training.");
+            ch.Check(examplesToFeedTrain.Schema.Feature.Value.Type is VectorDataViewType vecType && vecType.Size > 0, Strings.TrainingSetHasNoFeaturesAbortingTraining);
             return examplesToFeedTrain;
         }
 

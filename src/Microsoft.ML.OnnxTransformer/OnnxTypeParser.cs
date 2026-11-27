@@ -66,7 +66,7 @@ namespace Microsoft.ML.Transforms.Onnx
                     scalarType = typeof(string);
                     break;
                 default:
-                    throw Contracts.Except("Unsupported ONNX scalar type: " + dataType.ToString());
+                    throw Contracts.Except(string.Format(Strings.UnsupportedONNXScalarType, dataType.ToString()));
             }
             return scalarType;
         }
@@ -154,7 +154,7 @@ namespace Microsoft.ML.Transforms.Onnx
                     scalarType = TextDataViewType.Instance;
                     break;
                 default:
-                    throw Contracts.Except("Unsupported ONNX scalar type: " + dataType.ToString());
+                    throw Contracts.Except(string.Format(Strings.UnsupportedONNXScalarType, dataType.ToString()));
             }
             return scalarType;
         }
@@ -171,7 +171,7 @@ namespace Microsoft.ML.Transforms.Onnx
                 case OnnxCSharpToProtoWrapper.TensorShapeProto.Types.Dimension.ValueOneofCase.DimValue:
                     // The vector length in ML.NET is typed to 32-bit integer, so the check below is added for perverting overflowing.
                     if (dim.DimValue > int.MaxValue)
-                        throw Contracts.ExceptParamValue(dim.DimValue, nameof(dim), $"Dimension {dim} in ONNX tensor cannot exceed the maximum of 32-bit signed integer.");
+                        throw Contracts.ExceptParamValue(dim.DimValue, nameof(dim), string.Format(Strings.OnnxDimensionExceedsInt32, dim));
                     // Variable-length dimension is translated to 0.
                     value = dim.DimValue > 0 ? (int)dim.DimValue : 0;
                     break;
@@ -255,7 +255,7 @@ namespace Microsoft.ML.Transforms.Onnx
                 return new OnnxMapType(keyType, valueType);
             }
             else
-                throw Contracts.ExceptParamValue(typeProto, nameof(typeProto), $"Unsupported ONNX variable type {typeProto}");
+                throw Contracts.ExceptParamValue(typeProto, nameof(typeProto), string.Format(Strings.UnsupportedONNXVariableType, typeProto));
         }
 
         /// <summary>
@@ -379,7 +379,7 @@ namespace Microsoft.ML.Transforms.Onnx
                 return caster;
             }
             else
-                throw Contracts.ExceptParamValue(typeProto, nameof(typeProto), $"Unsupported ONNX variable type {typeProto}");
+                throw Contracts.ExceptParamValue(typeProto, nameof(typeProto), string.Format(Strings.UnsupportedONNXVariableType, typeProto));
         }
     }
 

@@ -229,7 +229,7 @@ namespace Microsoft.ML.TorchSharp.NasBert
             int bytesWritten;
             var labelColType = LabelColumn.Annotations.Schema[AnnotationUtils.Kinds.KeyValues].Type as VectorDataViewType;
             if (!saver.TryWriteTypeAndValue<VBuffer<T>>(ctx.Writer.BaseStream, labelColType, ref val, out bytesWritten))
-                throw Host.Except("We do not know how to serialize label names of type '{0}'", labelColType.ItemType);
+                throw Host.Except(Strings.UnknownLabelNameSerializationType, labelColType.ItemType);
         }
 
         //Factory method for SignatureLoadRowMapper.

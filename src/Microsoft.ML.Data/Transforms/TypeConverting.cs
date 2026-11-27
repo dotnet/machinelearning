@@ -403,7 +403,7 @@ namespace Microsoft.ML.Transforms
                         out PrimitiveDataViewType itemType, out _types[i]))
                     {
                         throw Host.ExceptParam(nameof(inputSchema),
-                        "source column '{0}' with item type '{1}' is not compatible with destination type '{2}'",
+                        Strings.SourceColumnDestinationTypeMismatch,
                         _parent._columns[i].InputColumnName, srcCol.Type, itemType);
                     }
                 }
@@ -587,7 +587,7 @@ namespace Microsoft.ML.Transforms
                 Name = name;
                 InputColumnName = inputColumnName ?? name;
                 if (!type.TryGetDataKind(out InternalDataKind OutputKind))
-                    throw Contracts.ExceptUserArg(nameof(type), $"Unsupported type {type}.");
+                    throw Contracts.ExceptUserArg(nameof(type), string.Format(Strings.UnsupportedType, type));
                 this.OutputKind = OutputKind.ToDataKind();
                 OutputKeyCount = outputKeyCount;
             }
@@ -628,9 +628,9 @@ namespace Microsoft.ML.Transforms
                 if (!inputSchema.TryFindColumn(colInfo.InputColumnName, out var col))
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.InputColumnName);
                 if (!TypeConvertingTransformer.GetNewType(Host, col.ItemType, colInfo.OutputKind.ToInternalDataKind(), colInfo.OutputKeyCount, out PrimitiveDataViewType newType))
-                    throw Host.ExceptParam(nameof(inputSchema), $"Can't convert {colInfo.InputColumnName} into {newType.ToString()}");
+                    throw Host.ExceptParam(nameof(inputSchema), string.Format(Strings.CantConvertInto, colInfo.InputColumnName, newType.ToString()));
                 if (!Data.Conversion.Conversions.DefaultInstance.TryGetStandardConversion(col.ItemType, newType, out Delegate del, out bool identity))
-                    throw Host.ExceptParam(nameof(inputSchema), $"Don't know how to convert {colInfo.InputColumnName} into {newType.ToString()}");
+                    throw Host.ExceptParam(nameof(inputSchema), string.Format(Strings.DontKnowHowToConvertInto, colInfo.InputColumnName, newType.ToString()));
                 var metadata = new List<SchemaShape.Column>();
                 if (col.ItemType is BooleanDataViewType && newType is NumberDataViewType)
                     metadata.Add(new SchemaShape.Column(AnnotationUtils.Kinds.IsNormalized, SchemaShape.Column.VectorKind.Scalar, BooleanDataViewType.Instance, false));

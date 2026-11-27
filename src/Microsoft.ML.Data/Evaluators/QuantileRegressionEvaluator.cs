@@ -41,11 +41,11 @@ namespace Microsoft.ML.Data
 
         private protected override IRowMapper CreatePerInstanceRowMapper(RoleMappedSchema schema)
         {
-            Host.CheckParam(schema.Label.HasValue, nameof(schema), "Must contain a label column");
+            Host.CheckParam(schema.Label.HasValue, nameof(schema), Strings.MustContainALabelColumn);
             var scoreInfo = schema.GetUniqueColumn(AnnotationUtils.Const.ScoreValueKind.Score);
             int scoreSize = scoreInfo.Type.GetVectorSize();
             var type = schema.Schema[scoreInfo.Index].Annotations.Schema.GetColumnOrNull(AnnotationUtils.Kinds.SlotNames)?.Type as VectorDataViewType;
-            Host.Check(type != null && type.IsKnownSize && type.ItemType is TextDataViewType, "Quantile regression score column must have slot names");
+            Host.Check(type != null && type.IsKnownSize && type.ItemType is TextDataViewType, Strings.QuantileRegressionScoreColumnMustHaveSlotNames);
             var quantiles = default(VBuffer<ReadOnlyMemory<char>>);
             schema.Schema[scoreInfo.Index].Annotations.GetValue(AnnotationUtils.Kinds.SlotNames, ref quantiles);
             Host.Assert(quantiles.IsDense && quantiles.Length == scoreSize);
@@ -59,7 +59,7 @@ namespace Microsoft.ML.Data
             var t = score.Type as VectorDataViewType;
             if (t == null || t.Size == 0 || (t.ItemType != NumberDataViewType.Single && t.ItemType != NumberDataViewType.Double))
                 throw Host.ExceptSchemaMismatch(nameof(schema), "score", score.Name, "Vector of Single or Double", score.Type.ToString());
-            Host.CheckParam(schema.Label.HasValue, nameof(schema), "Must contain a label column");
+            Host.CheckParam(schema.Label.HasValue, nameof(schema), Strings.MustContainALabelColumn);
             var labelType = schema.Label.Value.Type;
             if (labelType != NumberDataViewType.Single)
                 throw Host.ExceptSchemaMismatch(nameof(schema), "label", schema.Label.Value.Name, "Single", t.ToString());
@@ -137,7 +137,7 @@ namespace Microsoft.ML.Data
 
                 private void AddL1AndL2Loss(float label, in VBuffer<float> score, float weight)
                 {
-                    Contracts.Check(score.Length == TotalL1Loss.Length, "Vectors must have the same dimensionality.");
+                    Contracts.Check(score.Length == TotalL1Loss.Length, Strings.VectorsMustHaveTheSameDimensionality);
 
                     var totalL1LossEditor = VBufferEditor.CreateFromBuffer(ref TotalL1Loss);
                     var totalL2LossEditor = VBufferEditor.CreateFromBuffer(ref TotalL2Loss);
@@ -169,7 +169,7 @@ namespace Microsoft.ML.Data
 
                 private void AddCustomLoss(float weight, in VBuffer<Double> loss)
                 {
-                    Contracts.Check(loss.Length == TotalL1Loss.Length, "Vectors must have the same dimensionality.");
+                    Contracts.Check(loss.Length == TotalL1Loss.Length, Strings.VectorsMustHaveTheSameDimensionality);
 
                     var totalLossEditor = VBufferEditor.CreateFromBuffer(ref TotalLoss);
 
@@ -284,11 +284,11 @@ namespace Microsoft.ML.Data
         public QuantileRegressionPerInstanceEvaluator(IHostEnvironment env, DataViewSchema schema, string scoreCol, string labelCol, int scoreSize, VBuffer<ReadOnlyMemory<char>> quantiles)
             : base(env, schema, scoreCol, labelCol)
         {
-            Host.CheckParam(scoreSize > 0, nameof(scoreSize), "must be greater than 0");
+            Host.CheckParam(scoreSize > 0, nameof(scoreSize), Strings.MustBeGreaterThan0);
             if (!quantiles.IsDense)
-                throw Host.ExceptParam(nameof(quantiles), "buffer must be dense");
+                throw Host.ExceptParam(nameof(quantiles), Strings.BufferMustBeDense);
             if (quantiles.Length != scoreSize)
-                throw Host.ExceptParam(nameof(quantiles), "buffer must be of length '{0}'", scoreSize);
+                throw Host.ExceptParam(nameof(quantiles), Strings.BufferMustBeOfLength, scoreSize);
             CheckInputColumnTypes(schema);
             _scoreSize = scoreSize;
             _quantiles = quantiles;
@@ -478,7 +478,7 @@ namespace Microsoft.ML.Data
             : base(args, env, AnnotationUtils.Const.ScoreColumnKind.QuantileRegression, "QuantilsRegressionMamlEvaluator")
         {
             _index = args.Index;
-            Host.CheckUserArg(args.LossFunction != null, nameof(args.LossFunction), "Loss function must be specified.");
+            Host.CheckUserArg(args.LossFunction != null, nameof(args.LossFunction), Strings.LossFunctionMustBeSpecified);
 
             var evalArgs = new QuantileRegressionEvaluator.Arguments();
             evalArgs.LossFunction = args.LossFunction;
@@ -491,7 +491,7 @@ namespace Microsoft.ML.Data
 
             IDataView fold;
             if (!metrics.TryGetValue(MetricKinds.OverallMetrics, out fold))
-                throw ch.Except("No overall metrics found");
+                throw ch.Except(Strings.NoOverallMetricsFound);
 
             // Show only the metrics for the requested index.
             fold = ExtractRelevantIndex(fold);
@@ -539,7 +539,7 @@ namespace Microsoft.ML.Data
         private protected override IEnumerable<string> GetPerInstanceColumnsToSave(RoleMappedSchema schema)
         {
             Host.CheckValue(schema, nameof(schema));
-            Host.CheckParam(schema.Label.HasValue, nameof(schema), "Must contain a label column");
+            Host.CheckParam(schema.Label.HasValue, nameof(schema), Strings.MustContainALabelColumn);
 
             // The quantile regression evaluator outputs the label and score columns.
             yield return schema.Label.Value.Name;

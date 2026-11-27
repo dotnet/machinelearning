@@ -39,7 +39,7 @@ namespace Microsoft.ML.SearchSpace.Converter
             }
             catch (Exception)
             {
-                throw new ArgumentException("unknown option type");
+                throw new ArgumentException(Strings.UnknownOptionType);
             }
         }
 
@@ -59,7 +59,7 @@ namespace Microsoft.ML.SearchSpace.Converter
             }
             else
             {
-                throw new ArgumentException("unknown option type");
+                throw new ArgumentException(Strings.UnknownOptionType);
             }
         }
     }

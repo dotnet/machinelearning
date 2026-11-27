@@ -32,7 +32,7 @@ namespace Microsoft.ML.TorchSharp.NasBert.Modules
             var maxHidden = hiddenList.Max();
             if (!hiddenList.All(hidden => hidden == 0 || hidden == maxHidden))
             {
-                throw new ArgumentException("all non-zero hidden dimensions should be the same.");
+                throw new ArgumentException(Strings.AllNonZeroHiddenDimensionsShouldBeTheSame);
             }
             return maxHidden;
         }
@@ -219,7 +219,7 @@ namespace Microsoft.ML.TorchSharp.NasBert.Modules
                     activationDropoutRate: activationDropout,
                     activationFn: activationFn),
                 _ => throw new NotSupportedException(
-                    $"Unsupported layer index {layerIndex}. Expected to be within [0, {NumLayerChoices})."),
+                    string.Format(Strings.UnsupportedLayerIndexMustBeAtLeastZeroAndLessThanUpperBound, layerIndex, NumLayerChoices)),
             };
         }
     }

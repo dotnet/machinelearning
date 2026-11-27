@@ -1,0 +1,123 @@
+﻿<?xml version='1.0' encoding='utf-8'?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="AccelerationMemoryBudgetTooSmall" xml:space="preserve">
+    <value>Acceleration memory budget is too small! Need at least {0} MB for at least one of the instances</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Mkl.Components/SymSgdClassificationTrainer.cs:608.</comment>
+  </data>
+  <data name="CannotHoldCovarianceMatrixInMemoryWithFeatures" xml:space="preserve">
+    <value>Cannot hold covariance matrix in memory with {0} features</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Mkl.Components/OlsLinearRegression.cs:422.</comment>
+  </data>
+  <data name="FoundNaNOrInfinityInTheModel" xml:space="preserve">
+    <value>Found NaN or infinity in the model.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Mkl.Components/VectorWhitening.cs:240.</comment>
+  </data>
+  <data name="IncompatibleFeatureColumnTypeMustBeKnownSizedVectorOf" xml:space="preserve">
+    <value>Incompatible feature column type {0}, must be known sized vector of {1}</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Mkl.Components/OlsLinearRegression.cs:168.</comment>
+  </data>
+  <data name="IncompatibleFeatureColumnTypeMustBeVectorOf" xml:space="preserve">
+    <value>Incompatible feature column type {0}, must be vector of {1}</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Mkl.Components/OlsLinearRegression.cs:170.</comment>
+  </data>
+  <data name="IncompatibleLabelColumnColumnTypeMustBe" xml:space="preserve">
+    <value>Incompatible labelColumn column type {0}, must be {1}</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Mkl.Components/OlsLinearRegression.cs:163.</comment>
+  </data>
+  <data name="InitialPredictorWasNotALinearPredictor" xml:space="preserve">
+    <value>Initial predictor was not a linear predictor.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Mkl.Components/SymSgdClassificationTrainer.cs:228.</comment>
+  </data>
+  <data name="InputMatrixNotPositiveDefinite" xml:space="preserve">
+    <value>Input matrix was not positive-definite. Try using a larger L2 regularization weight.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Mkl.Components/OlsLinearRegression.cs:583.</comment>
+  </data>
+  <data name="InvalidArgumentsToLAPACKGesvdError" xml:space="preserve">
+    <value>Invalid arguments to LAPACK gesvd, error: {0}</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Mkl.Components/VectorWhitening.cs:409.</comment>
+  </data>
+  <data name="InvalidColumnSize" xml:space="preserve">
+    <value>Invalid column size.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Mkl.Components/VectorWhitening.cs:617.</comment>
+  </data>
+  <data name="InvalidModelSize" xml:space="preserve">
+    <value>Invalid model size.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Mkl.Components/VectorWhitening.cs:238.</comment>
+  </data>
+  <data name="L2RegularizationTermCannotBeNegative" xml:space="preserve">
+    <value>L2 regularization term cannot be negative</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Mkl.Components/OlsLinearRegression.cs:125.</comment>
+  </data>
+  <data name="MustBePositive" xml:space="preserve">
+    <value>Must be positive.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Mkl.Components/SymSgdClassificationTrainer.cs:153. Exception or validation message. Source: src/Microsoft.ML.Mkl.Components/SymSgdClassificationTrainer.cs:154. Exception or validation message. Source: src/Microsoft.ML.Mkl.Components/SymSgdClassificationTrainer.cs:155. Exception or validation message. Source: src/Microsoft.ML.Mkl.Components/SymSgdClassificationTrainer.cs:156.</comment>
+  </data>
+  <data name="NeedAFeatureColumn" xml:space="preserve">
+    <value>Need a feature column</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Mkl.Components/OlsLinearRegression.cs:157.</comment>
+  </data>
+  <data name="NeedALabelColumnColumn" xml:space="preserve">
+    <value>Need a labelColumn column</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Mkl.Components/OlsLinearRegression.cs:158.</comment>
+  </data>
+  <data name="NoTrainingExamplesInDataset" xml:space="preserve">
+    <value>No training examples in dataset.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Mkl.Components/OlsLinearRegression.cs:265. Exception or validation message. Source: src/Microsoft.ML.Mkl.Components/OlsLinearRegression.cs:357.</comment>
+  </data>
+  <data name="NonFiniteStandardErrorDetectedFromOLSSolution" xml:space="preserve">
+    <value>Non-finite standard error detected from OLS solution</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Mkl.Components/OlsLinearRegression.cs:527.</comment>
+  </data>
+  <data name="NonFiniteValuesDetectedInOLSSolution" xml:space="preserve">
+    <value>Non-finite values detected in OLS solution</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Mkl.Components/OlsLinearRegression.cs:301. Exception or validation message. Source: src/Microsoft.ML.Mkl.Components/OlsLinearRegression.cs:407.</comment>
+  </data>
+  <data name="OrdinaryLeastSquaresRequiresMoreExamplesThanParameters" xml:space="preserve">
+    <value>Ordinary least squares requires more examples than parameters. There are {0} parameters, but {1} examples. To enable training, use a positive L2 weight so this behaves as ridge regression.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Mkl.Components/OlsLinearRegression.cs:281. Exception or validation message. Source: src/Microsoft.ML.Mkl.Components/OlsLinearRegression.cs:384.</comment>
+  </data>
+  <data name="PValueOutsideExpectedZeroToOneInclusiveRange" xml:space="preserve">
+    <value>p-Value calculated outside expected [0,1] range</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Mkl.Components/OlsLinearRegression.cs:530.</comment>
+  </data>
+  <data name="RankMustBeAtMostTheDimensionOfUntransformedData" xml:space="preserve">
+    <value>Rank must be at most the dimension of untransformed data.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Mkl.Components/VectorWhitening.cs:655.</comment>
+  </data>
+  <data name="SVDDidNotConverge" xml:space="preserve">
+    <value>SVD did not converge.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Mkl.Components/VectorWhitening.cs:407.</comment>
+  </data>
+  <data name="MissingLibMklImportsDependency" xml:space="preserve">
+    <value>The MKL library (libMklImports) or one of its dependencies is missing.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Mkl.Components/OlsLinearRegression.cs:294. Exception or validation message. Source: src/Microsoft.ML.Mkl.Components/OlsLinearRegression.cs:397.</comment>
+  </data>
+  <data name="MissingMklImportsDependency" xml:space="preserve">
+    <value>The MKL library (MklImports.dll) or one of its dependencies is missing.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Mkl.Components/ComputeLRTrainingStdThroughHal.cs:53.</comment>
+  </data>
+  <data name="ThreadCountMustBeNullOrPositive" xml:space="preserve">
+    <value>The number of threads must be either null or a positive integer.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Mkl.Components/SymSgdClassificationTrainer.cs:708.</comment>
+  </data>
+  <data name="TrainingSetHasNoFeaturesAbortingTraining" xml:space="preserve">
+    <value>Training set has no features, aborting training.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Mkl.Components/SymSgdClassificationTrainer.cs:213.</comment>
+  </data>
+  <data name="VectorHadInsufficientLength" xml:space="preserve">
+    <value>vector had insufficient length</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Mkl.Components/OlsLinearRegression.cs:567. Exception or validation message. Source: src/Microsoft.ML.Mkl.Components/OlsLinearRegression.cs:606. Exception or validation message. Source: src/Microsoft.ML.Mkl.Components/OlsLinearRegression.cs:607. Exception or validation message. Source: src/Microsoft.ML.Mkl.Components/OlsLinearRegression.cs:649.</comment>
+  </data>
+</root>

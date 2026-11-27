@@ -66,7 +66,7 @@ namespace Microsoft.ML.Transforms
         internal void SaveModel(ModelSaveContext ctx)
         {
             if (_contractName == null)
-                throw _host.Except("Empty contract name for a transform: the transform cannot be saved");
+                throw _host.Except(Strings.UnsavableTransformHasEmptyContractName);
             LambdaTransform.SaveCustomTransformer(_host, ctx, _contractName, _contractAssembly);
         }
 
@@ -322,8 +322,7 @@ namespace Microsoft.ML.Transforms
                     Ch.Assert(originFn != null);
                     var fn = originFn as ValueGetter<TValue>;
                     if (fn == null)
-                        throw Ch.Except($"Invalid TValue in GetGetter: '{typeof(TValue)}', " +
-                            $"expected type: '{originFn.GetType().GetGenericArguments().First()}'.");
+                        throw Ch.Except(string.Format(Strings.InvalidTValueInGetGetterExpectedType, typeof(TValue), originFn.GetType().GetGenericArguments().First()));
                     return fn;
                 }
 

@@ -163,14 +163,14 @@ namespace Microsoft.Extensions.ML
 
         public override ITransformer GetModel()
         {
-            if (!_started) throw new InvalidOperationException("Start must be called on a ModelLoader before it can be used.");
+            if (!_started) throw new InvalidOperationException(Strings.ModelLoaderMustBeStarted);
 
             return _model;
         }
 
         public override IChangeToken GetReloadToken()
         {
-            if (!_started) throw new InvalidOperationException("Start must be called on a ModelLoader before it can be used.");
+            if (!_started) throw new InvalidOperationException(Strings.ModelLoaderMustBeStarted);
 
             return _reloadToken;
         }

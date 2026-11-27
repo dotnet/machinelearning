@@ -89,7 +89,7 @@ namespace Microsoft.ML.Transforms.Text
             var h = env.Register(RegistrationName);
             h.CheckValue(options, nameof(options));
             h.CheckValue(input, nameof(input));
-            h.CheckUserArg(Utils.Size(options.Columns) > 0, nameof(options.Columns), "Columns must be specified");
+            h.CheckUserArg(Utils.Size(options.Columns) > 0, nameof(options.Columns), Strings.ColumnsMustBeSpecified);
 
             // To each input column to the WordHashBagTransform, a tokenize transform is applied,
             // followed by applying WordHashVectorizeTransform.
@@ -325,7 +325,7 @@ namespace Microsoft.ML.Transforms.Text
             var h = env.Register(LoaderSignature);
             h.CheckValue(options, nameof(options));
             h.CheckValue(input, nameof(input));
-            h.CheckUserArg(Utils.Size(options.Columns) > 0, nameof(options.Columns), "Columns must be specified");
+            h.CheckUserArg(Utils.Size(options.Columns) > 0, nameof(options.Columns), Strings.ColumnsMustBeSpecified);
 
             var chain = new TransformerChain<ITransformer>();
 
@@ -382,8 +382,8 @@ namespace Microsoft.ML.Transforms.Text
             var h = env.Register(LoaderSignature);
             h.CheckValue(extractorArgs, nameof(extractorArgs));
             h.CheckValue(input, nameof(input));
-            h.CheckUserArg(extractorArgs.SkipLength < extractorArgs.NgramLength, nameof(extractorArgs.SkipLength), "Should be less than " + nameof(extractorArgs.NgramLength));
-            h.CheckUserArg(Utils.Size(cols) > 0, nameof(Options.Columns), "Must be specified");
+            h.CheckUserArg(extractorArgs.SkipLength < extractorArgs.NgramLength, nameof(extractorArgs.SkipLength), Strings.ShouldBeLessThanNgramLength);
+            h.CheckUserArg(Utils.Size(cols) > 0, nameof(Options.Columns), Strings.MustBeSpecified);
 
             var extractorCols = new Column[cols.Length];
             for (int i = 0; i < cols.Length; i++)
@@ -418,7 +418,7 @@ namespace Microsoft.ML.Transforms.Text
             Contracts.CheckValue(env, nameof(env));
             var h = env.Register(LoaderSignature);
             h.CheckValue(extractorArgs, nameof(extractorArgs));
-            h.CheckParam(termLoaderArgs == null, nameof(termLoaderArgs), "Argument cannot be used with NgramHashExtractor, use NgramExtractor instead");
+            h.CheckParam(termLoaderArgs == null, nameof(termLoaderArgs), Strings.ArgumentRequiresNgramExtractorInsteadOfNgramHashExtractor);
 
             return new NgramHashExtractorFactory(extractorArgs);
         }

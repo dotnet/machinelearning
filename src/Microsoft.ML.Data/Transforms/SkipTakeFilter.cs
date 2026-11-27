@@ -126,8 +126,8 @@ namespace Microsoft.ML.Transforms
             env.CheckValue(options, nameof(options));
             long skip = options.Skip ?? Options.DefaultSkip;
             long take = options.Take ?? Options.DefaultTake;
-            env.CheckUserArg(skip >= 0, nameof(options.Skip), "should be non-negative");
-            env.CheckUserArg(take >= 0, nameof(options.Take), "should be non-negative");
+            env.CheckUserArg(skip >= 0, nameof(options.Skip), Strings.ShouldBeNonNegative);
+            env.CheckUserArg(take >= 0, nameof(options.Take), Strings.ShouldBeNonNegative);
             return new SkipTakeFilter(skip, take, env, input);
         }
 
@@ -135,7 +135,7 @@ namespace Microsoft.ML.Transforms
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(options, nameof(options));
-            env.CheckUserArg(options.Count >= 0, nameof(options.Count), "should be non-negative");
+            env.CheckUserArg(options.Count >= 0, nameof(options.Count), Strings.ShouldBeNonNegative);
             return new SkipTakeFilter(options.Count, Options.DefaultTake, env, input);
         }
 
@@ -143,7 +143,7 @@ namespace Microsoft.ML.Transforms
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(options, nameof(options));
-            env.CheckUserArg(options.Count >= 0, nameof(options.Count), "should be non-negative");
+            env.CheckUserArg(options.Count >= 0, nameof(options.Count), Strings.ShouldBeNonNegative);
             return new SkipTakeFilter(Options.DefaultSkip, options.Count, env, input);
         }
 

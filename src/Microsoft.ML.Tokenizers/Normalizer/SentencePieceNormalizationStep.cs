@@ -128,7 +128,7 @@ namespace Microsoft.ML.Tokenizers
         {
             if (normalizer.ValueKind != JsonValueKind.Object)
             {
-                throw new InvalidDataException("A tokenizer.json normalizer entry must be a JSON object.");
+                throw new InvalidDataException(Strings.ATokenizerJsonNormalizerEntryMustBeAJSONObject);
             }
 
             string? type = normalizer.TryGetProperty("type", out JsonElement typeElement) && typeElement.ValueKind == JsonValueKind.String
@@ -153,7 +153,7 @@ namespace Microsoft.ML.Tokenizers
                         {
                             if (mapElement.ValueKind != JsonValueKind.String && mapElement.ValueKind != JsonValueKind.Null)
                             {
-                                throw new InvalidDataException("The Precompiled normalizer 'precompiled_charsmap' must be a string.");
+                                throw new InvalidDataException(Strings.ThePrecompiledNormalizerPrecompiledCharsmapMustBeAString);
                             }
 
                             charsMap = mapElement.GetString();
@@ -190,7 +190,7 @@ namespace Microsoft.ML.Tokenizers
                         if (normalizer.TryGetProperty("prepend", out JsonElement prependElement) &&
                             prependElement.ValueKind != JsonValueKind.String && prependElement.ValueKind != JsonValueKind.Null)
                         {
-                            throw new InvalidDataException("The Prepend normalizer 'prepend' must be a string.");
+                            throw new InvalidDataException(Strings.ThePrependNormalizerPrependMustBeAString);
                         }
 
                         string prepend = prependElement.ValueKind == JsonValueKind.String ? prependElement.GetString() ?? "" : "";
@@ -202,7 +202,7 @@ namespace Microsoft.ML.Tokenizers
 
                 default:
                     throw new NotSupportedException(
-                        $"Unigram normalizer type '{type ?? "<missing>"}' is not supported when loading a tokenizer.json with content-modifying normalizer steps.");
+                        string.Format(Strings.UnsupportedUnigramNormalizerType, type ?? "<missing>"));
             }
         }
 
@@ -216,7 +216,7 @@ namespace Microsoft.ML.Tokenizers
             }
             catch (FormatException ex)
             {
-                throw new InvalidDataException("The tokenizer.json normalizer 'precompiled_charsmap' is not valid base64.", ex);
+                throw new InvalidDataException(Strings.TheTokenizerJsonNormalizerPrecompiledCharsmapIsNotValidBase64, ex);
             }
         }
 
@@ -418,14 +418,14 @@ namespace Microsoft.ML.Tokenizers
                     ? contentElement.GetString() ?? "" : "";
                 if (!normalizer.TryGetProperty("pattern", out JsonElement pattern) || pattern.ValueKind != JsonValueKind.Object)
                 {
-                    throw new InvalidDataException("Replace normalizer is missing its pattern.");
+                    throw new InvalidDataException(Strings.ReplaceNormalizerIsMissingItsPattern);
                 }
 
                 if (pattern.TryGetProperty("String", out JsonElement literal))
                 {
                     if (literal.ValueKind != JsonValueKind.String)
                     {
-                        throw new InvalidDataException("Replace normalizer 'String' pattern must be a string.");
+                        throw new InvalidDataException(Strings.ReplaceNormalizerStringPatternMustBeAString);
                     }
 
                     return new ReplaceStep(literal.GetString() ?? "", regex: null, content);
@@ -435,7 +435,7 @@ namespace Microsoft.ML.Tokenizers
                 {
                     if (regex.ValueKind != JsonValueKind.String)
                     {
-                        throw new InvalidDataException("Replace normalizer 'Regex' pattern must be a string.");
+                        throw new InvalidDataException(Strings.ReplaceNormalizerRegexPatternMustBeAString);
                     }
 
                     string regexPattern = regex.GetString()!;
@@ -445,11 +445,11 @@ namespace Microsoft.ML.Tokenizers
                     }
                     catch (ArgumentException ex)
                     {
-                        throw new InvalidDataException($"Replace normalizer has an invalid Regex pattern '{regexPattern}'.", ex);
+                        throw new InvalidDataException(string.Format(Strings.ReplaceNormalizerHasAnInvalidRegexPattern, regexPattern), ex);
                     }
                 }
 
-                throw new NotSupportedException("Replace normalizer requires a String or Regex pattern.");
+                throw new NotSupportedException(Strings.ReplaceNormalizerRequiresAStringOrRegexPattern);
             }
 
             public override string Normalize(string text)

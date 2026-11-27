@@ -120,7 +120,7 @@ namespace Microsoft.ML.Internal.Utilities
         public override void Write(byte[] buffer, int offset, int count)
         {
             if (_remaining >= 0 && count > _remaining)
-                throw Contracts.Except("cannot write {0} bytes to stream bounded at {1} bytes", count, _remaining);
+                throw Contracts.Except(Strings.CannotWriteBytesToStreamBoundedAtBytes, count, _remaining);
             _stream.Write(buffer, offset, count);
             if (_remaining >= 0)
                 _remaining -= count;

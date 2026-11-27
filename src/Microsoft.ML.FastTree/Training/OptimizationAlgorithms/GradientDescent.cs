@@ -117,7 +117,7 @@ namespace Microsoft.ML.Trainers.FastTree
                 else if (ObjectiveFunction is IStepSearch)
                     (ObjectiveFunction as IStepSearch).AdjustTreeOutputs(ch, tree, TreeLearner.Partitioning, TrainingScores);
                 else
-                    throw ch.Except("No AdjustTreeOutputs defined. Objective function should define IStepSearch or AdjustTreeOutputsOverride should be set");
+                    throw ch.Except(Strings.ObjectiveMustDefineStepSearchOrAdjustTreeOutputs);
                 if (DropoutRate > 0)
                 {
                     // Returning the original scores.

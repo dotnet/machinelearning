@@ -42,7 +42,7 @@ namespace Microsoft.ML.Trainers.Ensemble
                 calibrated = predictor as IWeaklyTypedCalibratedModelParameters;
             }
             var ensemble = predictor as SchemaBindablePipelineEnsembleBase;
-            host.CheckUserArg(ensemble != null, nameof(input.PredictorModel.Predictor), "Predictor is not a pipeline ensemble predictor");
+            host.CheckUserArg(ensemble != null, nameof(input.PredictorModel.Predictor), Strings.PredictorIsNotAPipelineEnsemblePredictor);
 
             var summaries = new IDataView[ensemble.PredictorModels.Length];
             var stats = new IDataView[ensemble.PredictorModels.Length];

@@ -86,7 +86,7 @@ namespace Microsoft.ML.Trainers.FastTree
 #endif
                         return tf;
                     default:
-                        throw Contracts.Except("Impossible!");
+                        throw Contracts.Except(Strings.Impossible);
                 }
             }
         }

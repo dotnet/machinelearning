@@ -84,7 +84,7 @@ namespace Microsoft.ML.Model.Pfa
             _host.Assert(_nameToVarName.Count == fields.Count);
             _host.Assert(_nameToVarName.Count == fieldNames.Count);
             recordType["fields"] = fields;
-            _host.Check(fields.Count >= 1, "Schema produced no inputs for the PFA conversion.");
+            _host.Check(fields.Count >= 1, Strings.SchemaProducedNoInputsForThePFAConversion);
             if (fields.Count == 1)
             {
                 // If there's only one, don't bother forming a record.
@@ -120,9 +120,9 @@ namespace Microsoft.ML.Model.Pfa
 
             foreach (var name in toOutput)
             {
-                _host.CheckParam(name != null, nameof(toOutput), "Null values in array");
+                _host.CheckParam(name != null, nameof(toOutput), Strings.NullValuesInArray);
                 if (!schema.TryGetColumnIndex(name, out int col))
-                    throw _host.ExceptParam(nameof(toOutput), $"Requested column '{name}' not in schema");
+                    throw _host.ExceptParam(nameof(toOutput), string.Format(Strings.RequestedColumnNotInSchema, name));
                 JToken type = PfaTypeOrNullForColumn(schema, col);
                 if (type == null)
                     continue;
@@ -145,7 +145,7 @@ namespace Microsoft.ML.Model.Pfa
             }
             recordType["fields"] = fields;
 
-            _host.Check(fields.Count >= 1, "Pipeline produced no outputs for the PFA conversion");
+            _host.Check(fields.Count >= 1, Strings.PipelineProducedNoOutputsForThePFAConversion);
             if (fields.Count == 1)
             {
                 Pfa.OutputType = lastType;
@@ -259,7 +259,7 @@ namespace Microsoft.ML.Model.Pfa
             _host.CheckValue(names, nameof(names));
             foreach (var name in names)
             {
-                _host.CheckParam(name != null, nameof(names), "A value was null");
+                _host.CheckParam(name != null, nameof(names), Strings.AValueWasNull);
                 if (_nameToVarName.ContainsKey(name))
                     _unavailable.Add(name);
             }

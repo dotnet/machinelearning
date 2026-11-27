@@ -146,7 +146,7 @@ namespace Microsoft.ML.Trainers
             var latentDim = ctx.Reader.ReadInt32();
             Host.CheckDecode(latentDim > 0);
             LatentDimAligned = FieldAwareFactorizationMachineUtils.GetAlignedVectorLength(latentDim);
-            Host.Check(checked(featureCount * fieldCount * LatentDimAligned) <= Utils.ArrayMaxSize, "Latent dimension too large");
+            Host.Check(checked(featureCount * fieldCount * LatentDimAligned) <= Utils.ArrayMaxSize, Strings.LatentDimensionTooLarge);
             var linearWeights = ctx.Reader.ReadFloatArray();
             Host.CheckDecode(Utils.Size(linearWeights) == featureCount);
             var latentWeights = ctx.Reader.ReadFloatArray();

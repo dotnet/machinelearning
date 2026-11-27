@@ -176,15 +176,15 @@ namespace Microsoft.ML.Trainers.FastTree
             }
             else
             {
-                Contracts.CheckParam(numLeaves - 1 == Utils.Size(splitFeatures), nameof(splitFeatures), "Size error, should equal to numLeaves - 1.");
-                Contracts.CheckParam(numLeaves - 1 == Utils.Size(splitGain), nameof(splitGain), "Size error, should equal to numLeaves - 1.");
-                Contracts.CheckParam(numLeaves - 1 == Utils.Size(rawThresholds), nameof(rawThresholds), "Size error, should equal to numLeaves - 1.");
-                Contracts.CheckParam(numLeaves - 1 == Utils.Size(lteChild), nameof(lteChild), "Size error, should equal to numLeaves - 1.");
-                Contracts.CheckParam(numLeaves - 1 == Utils.Size(gtChild), nameof(gtChild), "Size error, should equal to numLeaves - 1.");
-                Contracts.CheckParam(numLeaves - 1 == Utils.Size(defaultValueForMissing), nameof(defaultValueForMissing), "Size error, should equal to numLeaves - 1.");
-                Contracts.CheckParam(numLeaves == Utils.Size(leafValues), nameof(leafValues), "Size error, should equal to numLeaves.");
-                Contracts.CheckParam(numLeaves - 1 == Utils.Size(categoricalSplitFeatures), nameof(categoricalSplitFeatures), "Size error, should equal to numLeaves - 1.");
-                Contracts.CheckParam(numLeaves - 1 == Utils.Size(categoricalSplit), nameof(categoricalSplit), "Size error, should equal to numLeaves - 1.");
+                Contracts.CheckParam(numLeaves - 1 == Utils.Size(splitFeatures), nameof(splitFeatures), Strings.SizeErrorShouldEqualToNumLeaves1);
+                Contracts.CheckParam(numLeaves - 1 == Utils.Size(splitGain), nameof(splitGain), Strings.SizeErrorShouldEqualToNumLeaves1);
+                Contracts.CheckParam(numLeaves - 1 == Utils.Size(rawThresholds), nameof(rawThresholds), Strings.SizeErrorShouldEqualToNumLeaves1);
+                Contracts.CheckParam(numLeaves - 1 == Utils.Size(lteChild), nameof(lteChild), Strings.SizeErrorShouldEqualToNumLeaves1);
+                Contracts.CheckParam(numLeaves - 1 == Utils.Size(gtChild), nameof(gtChild), Strings.SizeErrorShouldEqualToNumLeaves1);
+                Contracts.CheckParam(numLeaves - 1 == Utils.Size(defaultValueForMissing), nameof(defaultValueForMissing), Strings.SizeErrorShouldEqualToNumLeaves1);
+                Contracts.CheckParam(numLeaves == Utils.Size(leafValues), nameof(leafValues), Strings.SizeErrorShouldEqualToNumLeaves);
+                Contracts.CheckParam(numLeaves - 1 == Utils.Size(categoricalSplitFeatures), nameof(categoricalSplitFeatures), Strings.SizeErrorShouldEqualToNumLeaves1);
+                Contracts.CheckParam(numLeaves - 1 == Utils.Size(categoricalSplit), nameof(categoricalSplit), Strings.SizeErrorShouldEqualToNumLeaves1);
                 return new InternalRegressionTree(splitFeatures, splitGain, null, rawThresholds, defaultValueForMissing, lteChild, gtChild, leafValues, categoricalSplitFeatures, categoricalSplit);
             }
         }
@@ -194,7 +194,7 @@ float[] rawThresholds, float[] defaultValueForMissing, int[] lteChild, int[] gtC
 int[][] categoricalSplitFeatures, bool[] categoricalSplit)
 : this()
         {
-            Contracts.CheckParam(Utils.Size(splitFeatures) > 0, nameof(splitFeatures), "Number of split features must be positive");
+            Contracts.CheckParam(Utils.Size(splitFeatures) > 0, nameof(splitFeatures), Strings.NumberOfSplitFeaturesMustBePositive);
 
             NumLeaves = Utils.Size(splitFeatures) + 1;
             SplitFeatures = splitFeatures;
@@ -425,7 +425,7 @@ int[][] categoricalSplitFeatures, bool[] categoricalSplit)
                 case TreeType.Affine:
                     // Affine regression trees do not actually work, nor is it clear how they ever
                     // could have worked within TLC, so the chance of this happening seems remote.
-                    throw Contracts.ExceptNotSupp("Affine regression trees unsupported");
+                    throw Contracts.ExceptNotSupp(Strings.AffineRegressionTreesUnsupported);
                 case TreeType.FastForest:
                     return new InternalQuantileRegressionTree(ctx, usingDefaultValues, categoricalSplits);
                 default:
@@ -557,7 +557,7 @@ int[][] categoricalSplitFeatures, bool[] categoricalSplit)
         {
             if (LeafValues.Length != tree.LeafValues.Length)
             {
-                throw Contracts.Except("cannot sumup value with different lengths");
+                throw Contracts.Except(Strings.CannotSumupValueWithDifferentLengths);
             }
 
             for (int node = 0; node < LeafValues.Length; ++node)
@@ -583,7 +583,7 @@ int[][] categoricalSplitFeatures, bool[] categoricalSplit)
                         tree._splitGain[node],
                         node);
 
-                    throw Contracts.Except("trees from different workers do not match");
+                    throw Contracts.Except(Strings.TreesFromDifferentWorkersDoNotMatch);
                 }
 
                 LeafValues[node] += tree.LeafValues[node];
@@ -1465,7 +1465,7 @@ int[][] categoricalSplitFeatures, bool[] categoricalSplit)
             if (pos1 == pos2)
                 return;
             if (pos1 <= 0 || pos2 <= 0)
-                throw Contracts.Except("Cannot swap root or leaves");
+                throw Contracts.Except(Strings.CannotSwapRootOrLeaves);
 
             int parentOfLteChild1 = Array.IndexOf(LteChild, pos1);
             int parentOfGtChild1 = Array.IndexOf(GtChild, pos1);

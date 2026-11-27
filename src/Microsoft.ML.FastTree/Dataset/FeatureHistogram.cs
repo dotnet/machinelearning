@@ -71,7 +71,7 @@ namespace Microsoft.ML.Trainers.FastTree
         public unsafe void Subtract(FeatureHistogram child)
         {
             if (child.NumFeatureValues != NumFeatureValues)
-                throw Contracts.Except("cannot subtract FeatureHistograms of different lengths");
+                throw Contracts.Except(Strings.CannotSubtractFeatureHistogramsOfDifferentLengths);
 
             fixed (FloatType* pSumTargetsByBin = SumTargetsByBin)
             fixed (FloatType* pChildSumTargetsByBin = child.SumTargetsByBin)

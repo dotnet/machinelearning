@@ -60,7 +60,7 @@ namespace Microsoft.ML.AutoML
         {
             if (_trialResultsHistory.Contains(result))
             {
-                throw new ArgumentException("can't add or update result that already save to csv");
+                throw new ArgumentException(Strings.TrialResultAlreadySavedToCsv);
             }
             _newTrialResults.Remove(result);
             _newTrialResults.Add(result);

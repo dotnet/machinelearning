@@ -92,9 +92,9 @@ namespace Microsoft.ML.Transforms
             Host.CheckValue(modelParameters, nameof(modelParameters));
             Host.CheckNonEmpty(featureColumnName, nameof(featureColumnName));
             if (numberOfPositiveContributions < 0)
-                throw Host.Except($"Number of top contribution must be non negative");
+                throw Host.Except(Strings.NumberOfTopContributionMustBeNonNegative);
             if (numberOfNegativeContributions < 0)
-                throw Host.Except($"Number of bottom contribution must be non negative");
+                throw Host.Except(Strings.NumberOfBottomContributionMustBeNonNegative);
 
             // If a predictor implements ICalculateFeatureContribution, it also implements the internal interface IFeatureContributionMapper.
             // This is how we keep the implementation of feature contribution calculation internal.
@@ -374,7 +374,7 @@ namespace Microsoft.ML.Transforms
 
             var predictor = options.PredictorModel.Predictor as ICalculateFeatureContribution;
             if (predictor == null)
-                throw host.ExceptUserArg(nameof(predictor), "The provided model parameters do not support feature contribution calculation.");
+                throw host.ExceptUserArg(nameof(predictor), Strings.ModelParametersDoNotSupportFeatureContributionCalculation);
             var outData = new FeatureContributionCalculatingTransformer(host, predictor, options.FeatureColumn, options.Top, options.Bottom, options.Normalize).Transform(options.Data);
 
             return new CommonOutputs.TransformOutput { Model = new TransformModelImpl(env, outData, options.Data), OutputData = outData };

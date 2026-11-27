@@ -54,11 +54,11 @@ namespace Microsoft.ML.Data
 
         public override ValueGetter<TValue> GetGetter<TValue>(DataViewSchema.Column column)
         {
-            Contracts.CheckParam(column.Index < _getters.Length, nameof(column), "Invalid col value in GetGetter");
+            Contracts.CheckParam(column.Index < _getters.Length, nameof(column), Strings.InvalidColValueInGetGetter);
             Contracts.Check(IsColumnActive(column));
             if (_getters[column.Index] is ValueGetter<TValue> fn)
                 return fn;
-            throw Contracts.Except("Unexpected TValue in GetGetter");
+            throw Contracts.Except(Strings.UnexpectedTValueInGetGetter);
         }
 
         /// <summary>

@@ -29,7 +29,7 @@ namespace Microsoft.ML.Trainers.Ensemble
             : base(env, name)
         {
 
-            Host.Check(Utils.Size(models) > 0, "Ensemble was created with no models.");
+            Host.Check(Utils.Size(models) > 0, Strings.EnsembleWasCreatedWithNoModels);
             Host.Check(weights == null || weights.Length == models.Length);
 
             Models = models;
@@ -67,7 +67,7 @@ namespace Microsoft.ML.Trainers.Ensemble
             {
                 ctx.LoadModel<IPredictor, SignatureLoadModel>(Host, out IPredictor p, string.Format(SubPredictorFmt, i));
                 var predictor = p as IPredictorProducing<TOutput>;
-                Host.Check(predictor != null, "Inner predictor type not compatible with the ensemble type.");
+                Host.Check(predictor != null, Strings.InnerPredictorTypeNotCompatibleWithTheEnsembleType);
                 var features = ctx.Reader.ReadBitArray();
                 int numMetrics = ctx.Reader.ReadInt32();
                 Host.CheckDecode(numMetrics >= 0);

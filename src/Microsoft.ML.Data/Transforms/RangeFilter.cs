@@ -99,13 +99,13 @@ namespace Microsoft.ML.Transforms
 
             var schema = Source.Schema;
             if (!schema.TryGetColumnIndex(options.Column, out _index))
-                throw Host.ExceptUserArg(nameof(options.Column), "Source column '{0}' not found", options.Column);
+                throw Host.ExceptUserArg(nameof(options.Column), Strings.SourceColumnNotFound, options.Column);
 
             using (var ch = Host.Start("Checking parameters"))
             {
                 _type = schema[_index].Type;
                 if (!IsValidRangeFilterColumnType(ch, _type))
-                    throw ch.ExceptUserArg(nameof(options.Column), "Column '{0}' does not have compatible type", options.Column);
+                    throw ch.ExceptUserArg(nameof(options.Column), Strings.ColumnDoesNotHaveCompatibleType, options.Column);
                 if (_type is KeyDataViewType)
                 {
                     if (options.Min < 0)
@@ -120,11 +120,11 @@ namespace Microsoft.ML.Transforms
                     }
                 }
                 if (options.Min == null && options.Max == null)
-                    throw ch.ExceptUserArg(nameof(options.Min), "At least one of min and max must be specified.");
+                    throw ch.ExceptUserArg(nameof(options.Min), Strings.AtLeastOneOfMinAndMaxMustBeSpecified);
                 _min = options.Min ?? Double.NegativeInfinity;
                 _max = options.Max ?? Double.PositiveInfinity;
                 if (!(_min <= _max))
-                    throw ch.ExceptUserArg(nameof(options.Min), "min must be less than or equal to max");
+                    throw ch.ExceptUserArg(nameof(options.Min), Strings.MinMustBeLessThanOrEqualToMax);
                 _complement = options.Complement;
                 _includeMin = options.IncludeMin;
                 _includeMax = options.IncludeMax ?? (options.Max == null || (_type is KeyDataViewType && _max >= 1));
@@ -158,7 +158,7 @@ namespace Microsoft.ML.Transforms
             _min = ctx.Reader.ReadDouble();
             _max = ctx.Reader.ReadDouble();
             if (!(_min <= _max))
-                throw Host.Except("min", "min must be less than or equal to max");
+                throw Host.Except(Strings.Min, "min must be less than or equal to max");
             _complement = ctx.Reader.ReadBoolByte();
             _includeMin = ctx.Reader.ReadBoolByte();
             _includeMax = ctx.Reader.ReadBoolByte();
@@ -324,8 +324,7 @@ namespace Microsoft.ML.Transforms
                 var originFn = GetGetter();
                 var fn = originFn as ValueGetter<TValue>;
                 if (fn == null)
-                    throw Ch.Except($"Invalid TValue in GetGetter: '{typeof(TValue)}', " +
-                            $"expected type: '{originFn.GetType().GetGenericArguments().First()}'.");
+                    throw Ch.Except(string.Format(Strings.InvalidTValueInGetGetterExpectedType, typeof(TValue), originFn.GetType().GetGenericArguments().First()));
 
                 return fn;
             }
@@ -359,7 +358,7 @@ namespace Microsoft.ML.Transforms
                 _getter =
                     (ref Single value) =>
                     {
-                        Ch.Check(IsGood, RowCursorUtils.FetchValueStateError);
+                        Ch.Check(IsGood, Strings.ValuesUnavailableOutsideCursorPosition);
                         value = _value;
                     };
             }
@@ -392,7 +391,7 @@ namespace Microsoft.ML.Transforms
                 _getter =
                     (ref Double value) =>
                     {
-                        Ch.Check(IsGood, RowCursorUtils.FetchValueStateError);
+                        Ch.Check(IsGood, Strings.ValuesUnavailableOutsideCursorPosition);
                         value = _value;
                     };
             }
@@ -428,7 +427,7 @@ namespace Microsoft.ML.Transforms
                 _getter =
                     (ref T dst) =>
                     {
-                        Ch.Check(IsGood, RowCursorUtils.FetchValueStateError);
+                        Ch.Check(IsGood, Strings.ValuesUnavailableOutsideCursorPosition);
                         dst = _value;
                     };
                 bool identity;

@@ -22,7 +22,7 @@ namespace Microsoft.Extensions.ML
         /// <param name="services">The <see cref="IServiceCollection"/> to add services to.</param>
         public PredictionEnginePoolBuilder(IServiceCollection services)
         {
-            Services = services ?? throw new ArgumentException(nameof(services));
+            Services = services ?? throw new ArgumentNullException(nameof(services), Strings.ServicesCannotBeNull);
         }
 
         /// <summary>

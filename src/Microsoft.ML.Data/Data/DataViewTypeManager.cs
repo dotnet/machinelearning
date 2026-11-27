@@ -60,7 +60,7 @@ namespace Microsoft.ML.Data
                 typeAttributes = typeAttributes.Where(attr => attr.GetType().IsSubclassOf(typeof(DataViewTypeAttribute)));
                 if (typeAttributes.Count() > 1)
                 {
-                    throw Contracts.ExceptParam(nameof(type), "Type {0} cannot be marked with multiple attributes, {1}, derived from {2}.",
+                    throw Contracts.ExceptParam(nameof(type), Strings.TypeCannotBeMarkedWithMultipleAttributesDerivedFrom,
                         type.Name, typeAttributes, typeof(DataViewTypeAttribute));
                 }
                 else if (typeAttributes.Count() == 1)
@@ -75,7 +75,7 @@ namespace Microsoft.ML.Data
 
                 // Get the DataViewType's ID which typeID is mapped into.
                 if (!_rawTypeToDataViewTypeMap.TryGetValue(rawType, out DataViewType dataViewType))
-                    throw Contracts.ExceptParam(nameof(type), $"The raw type {type} with attributes {typeAttributes} is not registered with a DataView type.");
+                    throw Contracts.ExceptParam(nameof(type), string.Format(Strings.RawTypeNotRegistered, type, typeAttributes));
 
                 // Retrieve the actual DataViewType identified by dataViewType.
                 return dataViewType;
@@ -95,7 +95,7 @@ namespace Microsoft.ML.Data
                 typeAttributes = typeAttributes.Where(attr => attr.GetType().IsSubclassOf(typeof(DataViewTypeAttribute)));
                 if (typeAttributes.Count() > 1)
                 {
-                    throw Contracts.ExceptParam(nameof(type), "Type {0} cannot be marked with multiple attributes, {1}, derived from {2}.",
+                    throw Contracts.ExceptParam(nameof(type), Strings.TypeCannotBeMarkedWithMultipleAttributesDerivedFrom,
                         type.Name, typeAttributes, typeof(DataViewTypeAttribute));
                 }
                 else if (typeAttributes.Count() == 1)
@@ -149,14 +149,14 @@ namespace Microsoft.ML.Data
             {
                 if (typeAttributes.Count() > 1)
                 {
-                    throw Contracts.ExceptParam(nameof(type), $"Type {type} has too many attributes.");
+                    throw Contracts.ExceptParam(nameof(type), string.Format(Strings.TypeHasTooManyAttributes, type));
                 }
                 else if (typeAttributes.Count() == 1)
                 {
                     var attr = typeAttributes.First();
                     if (!attr.GetType().IsSubclassOf(typeof(DataViewTypeAttribute)))
                     {
-                        throw Contracts.ExceptParam(nameof(type), $"Type {type} has an attribute that is not of DataViewTypeAttribute.");
+                        throw Contracts.ExceptParam(nameof(type), string.Format(Strings.TypeHasAnAttributeThatIsNotOfDataViewTypeAttribute, type));
                     }
                     else
                     {
@@ -178,8 +178,7 @@ namespace Microsoft.ML.Data
             lock (_lock)
             {
                 if (_bannedRawTypes.Contains(type))
-                    throw Contracts.ExceptParam(nameof(type), $"Type {type} has been registered as ML.NET's default supported type, " +
-                        $"so it can't not be registered again.");
+                    throw Contracts.ExceptParam(nameof(type), string.Format(Strings.DefaultSupportedTypeAlreadyRegistered, type));
 
                 var rawType = new TypeWithAttributes(type, typeAttribute);
 
@@ -194,8 +193,7 @@ namespace Microsoft.ML.Data
                     // (rawType, dataViewType) again. The assumption here is that one rawType can only be associated
                     // with one dataViewType.
                     var associatedDataViewType = _rawTypeToDataViewTypeMap[rawType];
-                    throw Contracts.ExceptParam(nameof(type), $"Repeated type register. The raw type {type} " +
-                        $"has been associated with {associatedDataViewType} so it cannot be associated with {dataViewType}.");
+                    throw Contracts.ExceptParam(nameof(type), string.Format(Strings.RawTypeAlreadyRegistered, type, associatedDataViewType, dataViewType));
                 }
 
                 if (_dataViewTypeToRawTypeMap.ContainsKey(dataViewType) && !_dataViewTypeToRawTypeMap[dataViewType].Equals(rawType))
@@ -204,8 +202,7 @@ namespace Microsoft.ML.Data
                     // (dataViewType, rawType) again. The assumption here is that one dataViewType can only be associated
                     // with one rawType.
                     var associatedRawType = _dataViewTypeToRawTypeMap[dataViewType].TargetType;
-                    throw Contracts.ExceptParam(nameof(dataViewType), $"Repeated type register. The DataView type {dataViewType} " +
-                        $"has been associated with {associatedRawType} so it cannot be associated with {type}.");
+                    throw Contracts.ExceptParam(nameof(dataViewType), string.Format(Strings.DataViewTypeAlreadyRegistered, dataViewType, associatedRawType, type));
                 }
 
                 _rawTypeToDataViewTypeMap.Add(rawType, dataViewType);

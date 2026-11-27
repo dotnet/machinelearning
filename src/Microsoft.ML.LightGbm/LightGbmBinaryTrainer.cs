@@ -195,8 +195,8 @@ namespace Microsoft.ML.Trainers.LightGbm
         internal LightGbmBinaryTrainer(IHostEnvironment env, Options options)
              : base(env, LoadNameValue, options, TrainerUtils.MakeBoolScalarLabel(options.LabelColumnName))
         {
-            Contracts.CheckUserArg(options.Sigmoid > 0, nameof(Options.Sigmoid), "must be > 0.");
-            Contracts.CheckUserArg(options.WeightOfPositiveExamples > 0, nameof(Options.WeightOfPositiveExamples), "must be > 0.");
+            Contracts.CheckUserArg(options.Sigmoid > 0, nameof(Options.Sigmoid), Strings.MustBeGreaterThanZero);
+            Contracts.CheckUserArg(options.WeightOfPositiveExamples > 0, nameof(Options.WeightOfPositiveExamples), Strings.MustBeGreaterThanZero);
         }
 
         /// <summary>
@@ -254,7 +254,7 @@ namespace Microsoft.ML.Trainers.LightGbm
 
         private protected override CalibratedModelParametersBase<LightGbmBinaryModelParameters, PlattCalibrator> CreatePredictor()
         {
-            Host.Check(TrainedEnsemble != null, "The predictor cannot be created before training is complete");
+            Host.Check(TrainedEnsemble != null, Strings.ThePredictorCannotBeCreatedBeforeTrainingIsComplete);
             var innerArgs = LightGbmInterfaceUtils.JoinParameters(base.GbmOptions);
             var pred = new LightGbmBinaryModelParameters(Host, TrainedEnsemble, FeatureCount, innerArgs);
             var cali = new PlattCalibrator(Host, -LightGbmTrainerOptions.Sigmoid, 0);
@@ -273,7 +273,7 @@ namespace Microsoft.ML.Trainers.LightGbm
                 if (!(labelType is BooleanDataViewType || labelType is KeyDataViewType || labelType == NumberDataViewType.Single))
                 {
                     throw ch.ExceptParam(nameof(data),
-                        $"Label column '{data.Schema.Label.Value.Name}' is of type '{labelType.RawType}', but must be unsigned int, boolean or float.");
+                        string.Format(Strings.BinaryLabelTypeInvalid, data.Schema.Label.Value.Name, labelType.RawType));
                 }
             }
         }

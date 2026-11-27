@@ -54,7 +54,7 @@ namespace Microsoft.ML.AutoML.Tuner
 
             if (_configs.Count == 0)
             {
-                throw new ArgumentException($"Fail to find available configs for given trainers: {string.Join(",", trainerEstimators)}");
+                throw new ArgumentException(string.Format(Strings.FailToFindAvailableConfigsForGivenTrainers, string.Join(",", trainerEstimators)));
             }
 
             _configsEnumerator = _configs.GetEnumerator();

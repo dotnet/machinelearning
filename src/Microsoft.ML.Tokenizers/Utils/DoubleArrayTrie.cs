@@ -339,11 +339,11 @@ namespace Microsoft.ML.Tokenizers
         {
             if (value < 0)
             {
-                throw new ArgumentException("failed to insert key: negative value");
+                throw new ArgumentException(Strings.FailedToInsertKeyNegativeValue);
             }
             else if (length == 0)
             {
-                throw new ArgumentException("failed to insert key: zero-length key");
+                throw new ArgumentException(Strings.FailedToInsertKeyZeroLengthKey);
             }
 
             uint id = 0;
@@ -360,13 +360,13 @@ namespace Microsoft.ML.Tokenizers
                 byte keyLabel = key[keyPos];
                 if (keyPos < length && keyLabel == 0)
                 {
-                    throw new InvalidOperationException("failed to insert key: invalid null character");
+                    throw new InvalidOperationException(Strings.FailedToInsertKeyInvalidNullCharacter);
                 }
 
                 byte unitLabel = _nodes[(int)childId].Label;
                 if (keyLabel < unitLabel)
                 {
-                    throw new InvalidOperationException("failed to insert key: wrong key order");
+                    throw new InvalidOperationException(Strings.FailedToInsertKeyWrongKeyOrder);
                 }
                 else if (keyLabel > unitLabel)
                 {
@@ -653,7 +653,7 @@ namespace Microsoft.ML.Tokenizers
             {
                 if (value >= 1U << 29)
                 {
-                    throw new InvalidOperationException("failed to modify unit: too large offset");
+                    throw new InvalidOperationException(Strings.FailedToModifyUnitTooLargeOffset);
                 }
 
                 _unit &= (1U << 31) | (1U << 8) | 0xFF;

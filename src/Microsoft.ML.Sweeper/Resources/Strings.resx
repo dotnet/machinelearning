@@ -1,0 +1,224 @@
+﻿<?xml version='1.0' encoding='utf-8'?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="BaseSweeperCannotBeNelderMead" xml:space="preserve">
+    <value>baseSweeper cannot be Nelder-Mead</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Sweeper/AsyncSweeper.cs:84.</comment>
+  </data>
+  <data name="BatchSizeMustBePositive" xml:space="preserve">
+    <value>Batch size must be positive</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Sweeper/AsyncSweeper.cs:197.</comment>
+  </data>
+  <data name="CallingProposeAfterTheSweeperIsDisposed" xml:space="preserve">
+    <value>Calling Propose after the sweeper is disposed</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Sweeper/AsyncSweeper.cs:118.</comment>
+  </data>
+  <data name="CannotBe0OrNegative" xml:space="preserve">
+    <value>Cannot be 0 or negative</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Sweeper/ConfigRunner.cs:194.</comment>
+  </data>
+  <data name="CreatingParametersWhileSweeperIsDisposed" xml:space="preserve">
+    <value>Creating parameters while sweeper is disposed</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Sweeper/AsyncSweeper.cs:219.</comment>
+  </data>
+  <data name="ExecutableNotFound" xml:space="preserve">
+    <value>Executable {0} not found</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Sweeper/ConfigRunner.cs:85.</comment>
+  </data>
+  <data name="FirstBatchSweeperContainsNullValue" xml:space="preserve">
+    <value>First Batch Sweeper Contains Null Value</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Sweeper/Algorithms/NelderMead.cs:96.</comment>
+  </data>
+  <data name="FloatParameterHasIncorrectType" xml:space="preserve">
+    <value>FloatValueGenerator could not normalized parameter because it is not of the correct type</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Sweeper/Parameters.cs:440.</comment>
+  </data>
+  <data name="InternalSweepTrainingThrewException" xml:space="preserve">
+    <value>Internal sweep training threw exception</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Sweeper/SweepCommand.cs:106.</comment>
+  </data>
+  <data name="InvalidIndex" xml:space="preserve">
+    <value>Invalid index</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Sweeper/AsyncSweeper.cs:244.</comment>
+  </data>
+  <data name="InvalidRunId" xml:space="preserve">
+    <value>Invalid run id</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Sweeper/AsyncSweeper.cs:103.</comment>
+  </data>
+  <data name="KDOSweeperCanOnlySweepOverDiscreteAndNumericParameters" xml:space="preserve">
+    <value>KDO sweeper can only sweep over discrete and numeric parameters</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Sweeper/Algorithms/KdoSweeper.cs:235.</comment>
+  </data>
+  <data name="KDOSweeperNeedsAtLeastOneParameterToSweepOver" xml:space="preserve">
+    <value>KDO sweeper needs at least one parameter to sweep over</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Sweeper/Algorithms/KdoSweeper.cs:100.</comment>
+  </data>
+  <data name="LongParameterHasIncorrectType" xml:space="preserve">
+    <value>LongValueGenerator could not normalized parameter because it is not of the correct type</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Sweeper/Parameters.cs:316.</comment>
+  </data>
+  <data name="MinMustBeLessThanMax" xml:space="preserve">
+    <value>min must be less than max</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Sweeper/Parameters.cs:221. Exception or validation message. Source: src/Microsoft.ML.Sweeper/Parameters.cs:353.</comment>
+  </data>
+  <data name="MinMustBePositiveIfLogScaleIsUsed" xml:space="preserve">
+    <value>min must be positive if log scale is used</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Sweeper/Parameters.cs:223. Exception or validation message. Source: src/Microsoft.ML.Sweeper/Parameters.cs:355.</comment>
+  </data>
+  <data name="MustBeBetween0And1" xml:space="preserve">
+    <value>Must be between 0 and 1</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Sweeper/Algorithms/NelderMead.cs:95.</comment>
+  </data>
+  <data name="MustBeGreaterOrEqualTo1" xml:space="preserve">
+    <value>Must be greater or equal to 1</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Sweeper/Algorithms/KdoSweeper.cs:97.</comment>
+  </data>
+  <data name="MustBeGreaterThan0" xml:space="preserve">
+    <value>Must be greater than 0</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Sweeper/Algorithms/NelderMead.cs:92.</comment>
+  </data>
+  <data name="MustBeGreaterThan1" xml:space="preserve">
+    <value>Must be greater than 1</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Sweeper/Algorithms/KdoSweeper.cs:93. Exception or validation message. Source: src/Microsoft.ML.Sweeper/Algorithms/KdoSweeper.cs:94.</comment>
+  </data>
+  <data name="MustBeGreaterThanNegativeOne" xml:space="preserve">
+    <value>Must be greater than -1</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Sweeper/Algorithms/NelderMead.cs:90.</comment>
+  </data>
+  <data name="MustBeGreaterThanDeltaOutsideContraction" xml:space="preserve">
+    <value>Must be greater than DeltaOutsideContraction</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Sweeper/Algorithms/NelderMead.cs:93.</comment>
+  </data>
+  <data name="MustBeGreaterThanDeltaReflection" xml:space="preserve">
+    <value>Must be greater than DeltaReflection</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Sweeper/Algorithms/NelderMead.cs:94.</comment>
+  </data>
+  <data name="MustBeBetweenZeroAndOneInclusive" xml:space="preserve">
+    <value>Must be in [0, 1]</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Sweeper/Algorithms/KdoSweeper.cs:96.</comment>
+  </data>
+  <data name="MustBeLessThan0" xml:space="preserve">
+    <value>Must be less than 0</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Sweeper/Algorithms/NelderMead.cs:91.</comment>
+  </data>
+  <data name="MustBeNonnegative" xml:space="preserve">
+    <value>Must be nonnegative</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Sweeper/Algorithms/KdoSweeper.cs:95.</comment>
+  </data>
+  <data name="MustBePositiveIfSpecified" xml:space="preserve">
+    <value>Must be positive if specified</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Sweeper/SweepCommand.cs:70.</comment>
+  </data>
+  <data name="MustBePositive" xml:space="preserve">
+    <value>Must be positive</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Sweeper/SweepCommand.cs:69. Exception or validation message. Source: src/Microsoft.ML.Sweeper/SweepCommand.cs:71. Exception or validation message. Source: src/Microsoft.ML.Sweeper/SynthConfigRunner.cs:36.</comment>
+  </data>
+  <data name="NelderMeadRequiresFullSynchronizationRelaxation0" xml:space="preserve">
+    <value>Nelder-Mead requires full synchronization (relaxation = 0)</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Sweeper/AsyncSweeper.cs:204.</comment>
+  </data>
+  <data name="NelderMeadSweeperCanOnlySweepOverNumericParameters" xml:space="preserve">
+    <value>Nelder-Mead sweeper can only sweep over numeric parameters</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Sweeper/Algorithms/NelderMead.cs:111.</comment>
+  </data>
+  <data name="NelderMeadRequiresAtLeastTwoParameters" xml:space="preserve">
+    <value>Nelder-Mead sweeper needs at least two parameters to sweep over.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Sweeper/Algorithms/NelderMead.cs:117.</comment>
+  </data>
+  <data name="ParameterMustBeGreaterThan0" xml:space="preserve">
+    <value>parameter must be greater than 0</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Sweeper/Algorithms/SmacSweeper.cs:73. Exception or validation message. Source: src/Microsoft.ML.Sweeper/Algorithms/SmacSweeper.cs:77. Exception or validation message. Source: src/Microsoft.ML.Sweeper/Algorithms/SmacSweeper.cs:78. Exception or validation message. Source: src/Microsoft.ML.Sweeper/Algorithms/SmacSweeper.cs:79.</comment>
+  </data>
+  <data name="ParameterMustBeGreaterThan1" xml:space="preserve">
+    <value>parameter must be greater than 1</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Sweeper/Algorithms/SmacSweeper.cs:74. Exception or validation message. Source: src/Microsoft.ML.Sweeper/Algorithms/SmacSweeper.cs:76.</comment>
+  </data>
+  <data name="ParameterMustBeGreaterThanZeroAndAtMostOne" xml:space="preserve">
+    <value>parameter must be in range (0,1].</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Sweeper/Algorithms/SmacSweeper.cs:75.</comment>
+  </data>
+  <data name="ParameterShouldBeOfTypeFloatParameterValue" xml:space="preserve">
+    <value>Parameter should be of type FloatParameterValue</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Sweeper/Parameters.cs:455.</comment>
+  </data>
+  <data name="ParameterShouldBeOfTypeLongParameterValue" xml:space="preserve">
+    <value>Parameter should be of type LongParameterValue</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Sweeper/Parameters.cs:331.</comment>
+  </data>
+  <data name="PleaseSpecifyARunner" xml:space="preserve">
+    <value>Please specify a runner</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Sweeper/SweepCommand.cs:67.</comment>
+  </data>
+  <data name="PleaseSpecifyASweeper" xml:space="preserve">
+    <value>Please specify a sweeper</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Sweeper/AsyncSweeper.cs:196. Exception or validation message. Source: src/Microsoft.ML.Sweeper/SweepCommand.cs:68.</comment>
+  </data>
+  <data name="PleaseSpecifyAnOutputFolder" xml:space="preserve">
+    <value>Please specify an output folder</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Sweeper/ConfigRunner.cs:71.</comment>
+  </data>
+  <data name="PreviousRunsDoNotContainResultsForExpectedRuns" xml:space="preserve">
+    <value>previous runs do not contain results for expected runs</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Sweeper/Algorithms/NelderMead.cs:376.</comment>
+  </data>
+  <data name="RequestedMetricDoesNotExistOptionsAre" xml:space="preserve">
+    <value>Requested metric '{0}' does not exist. Options are:
+{1}</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Sweeper/SweepResultEvaluator.cs:71.</comment>
+  </data>
+  <data name="RunResultDoesNotContainAMetric" xml:space="preserve">
+    <value>Run result does not contain a metric</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Sweeper/ISweeper.cs:239.</comment>
+  </data>
+  <data name="SMACSweeperCanOnlySweepOverDiscreteAndNumericParameters" xml:space="preserve">
+    <value>SMAC sweeper can only sweep over discrete and numeric parameters</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Sweeper/Algorithms/SmacSweeper.cs:310. Exception or validation message. Source: src/Microsoft.ML.Sweeper/Algorithms/SmacSweeper.cs:465.</comment>
+  </data>
+  <data name="SMACSweeperLocalSearchThrewException" xml:space="preserve">
+    <value>SMAC sweeper localSearch threw exception</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Sweeper/Algorithms/SmacSweeper.cs:258.</comment>
+  </data>
+  <data name="SMACSweeperNeedsAtLeastOneParameterToSweepOver" xml:space="preserve">
+    <value>SMAC sweeper needs at least one parameter to sweep over</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Sweeper/Algorithms/SmacSweeper.cs:82.</comment>
+  </data>
+  <data name="SmartSweeperCanOnlySweepOverDiscreteAndNumericParameters" xml:space="preserve">
+    <value>Smart sweeper can only sweep over discrete and numeric parameters</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Sweeper/Algorithms/SweeperProbabilityUtils.cs:206.</comment>
+  </data>
+  <data name="LinearScaleStepSizeMustBePositive" xml:space="preserve">
+    <value>StepSize must be greater than 0 if linear scale is used</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Sweeper/Parameters.cs:225. Exception or validation message. Source: src/Microsoft.ML.Sweeper/Parameters.cs:357.</comment>
+  </data>
+  <data name="LogScaleStepSizeMustExceedOne" xml:space="preserve">
+    <value>StepSize must be greater than 1 if log scale is used</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Sweeper/Parameters.cs:224. Exception or validation message. Source: src/Microsoft.ML.Sweeper/Parameters.cs:356.</comment>
+  </data>
+  <data name="SynchronizationRelaxationCannotBeLargerThanBatchSize" xml:space="preserve">
+    <value>Synchronization relaxation cannot be larger than batch size</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Sweeper/AsyncSweeper.cs:200.</comment>
+  </data>
+  <data name="SynchronizationRelaxationMustBeNonNegative" xml:space="preserve">
+    <value>Synchronization relaxation must be non-negative</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Sweeper/AsyncSweeper.cs:198.</comment>
+  </data>
+  <data name="TheCommandPatternIsMissing" xml:space="preserve">
+    <value>The command pattern is missing</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Sweeper/ConfigRunner.cs:70.</comment>
+  </data>
+  <data name="ValueNotInCorrectRange" xml:space="preserve">
+    <value>Value not in correct range</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Sweeper/Parameters.cs:317. Exception or validation message. Source: src/Microsoft.ML.Sweeper/Parameters.cs:441.</comment>
+  </data>
+</root>

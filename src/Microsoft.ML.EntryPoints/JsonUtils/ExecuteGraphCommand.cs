@@ -42,7 +42,7 @@ namespace Microsoft.ML.EntryPoints
             _host = env.Register(LoadName, args.Seed);
             _host.CheckValue(args, nameof(args));
 
-            _host.CheckUserArg(args.GraphPath != null && File.Exists(args.GraphPath), nameof(args.GraphPath), "Graph path does not exist");
+            _host.CheckUserArg(args.GraphPath != null && File.Exists(args.GraphPath), nameof(args.GraphPath), Strings.GraphPathDoesNotExist);
             _path = args.GraphPath;
         }
 
@@ -55,7 +55,7 @@ namespace Microsoft.ML.EntryPoints
             }
             catch (JsonReaderException ex)
             {
-                throw _host.Except(ex, "Failed to parse experiment graph: {0}", ex.Message);
+                throw _host.Except(ex, Strings.FailedToParseExperimentGraph, ex.Message);
             }
 
             var runner = new GraphRunner(_host, graph[FieldNames.Nodes] as JArray);
@@ -63,14 +63,14 @@ namespace Microsoft.ML.EntryPoints
             // Setting inputs.
             var jInputs = graph[FieldNames.Inputs] as JObject;
             if (graph[FieldNames.Inputs] != null && jInputs == null)
-                throw _host.Except("Unexpected value for '{0}': {1}", FieldNames.Inputs, graph[FieldNames.Inputs]);
+                throw _host.Except(Strings.UnexpectedValueFor, FieldNames.Inputs, graph[FieldNames.Inputs]);
             if (jInputs != null)
             {
                 foreach (var kvp in jInputs)
                 {
                     var path = kvp.Value as JValue;
                     if (path == null)
-                        throw _host.Except("Invalid value for input: {0}", kvp.Value);
+                        throw _host.Except(Strings.InvalidValueForInput, kvp.Value);
                     var varName = kvp.Key;
                     var type = runner.GetPortDataKind(varName);
 
@@ -88,7 +88,7 @@ namespace Microsoft.ML.EntryPoints
                 {
                     var path = kvp.Value as JValue;
                     if (path == null)
-                        throw _host.Except("Invalid value for output: {0}", kvp.Value);
+                        throw _host.Except(Strings.InvalidValueForOutput, kvp.Value);
                     var varName = kvp.Key;
                     var type = runner.GetPortDataKind(varName);
 
@@ -99,9 +99,9 @@ namespace Microsoft.ML.EntryPoints
 
         public void SetInputFromPath(GraphRunner runner, string varName, string path, TlcModule.DataKind kind)
         {
-            _host.CheckUserArg(runner != null, nameof(runner), "Provide a GraphRunner instance.");
-            _host.CheckUserArg(!string.IsNullOrWhiteSpace(varName), nameof(varName), "Specify a graph variable name.");
-            _host.CheckUserArg(!string.IsNullOrWhiteSpace(path), nameof(path), "Specify a valid file path.");
+            _host.CheckUserArg(runner != null, nameof(runner), Strings.ProvideAGraphRunnerInstance);
+            _host.CheckUserArg(!string.IsNullOrWhiteSpace(varName), nameof(varName), Strings.SpecifyAGraphVariableName);
+            _host.CheckUserArg(!string.IsNullOrWhiteSpace(path), nameof(path), Strings.SpecifyAValidFilePath);
 
             switch (kind)
             {
@@ -126,22 +126,22 @@ namespace Microsoft.ML.EntryPoints
                     runner.SetInput(varName, tm);
                     break;
                 default:
-                    throw _host.Except("Port type {0} not supported", kind);
+                    throw _host.Except(Strings.PortTypeNotSupported, kind);
             }
         }
 
         public void GetOutputToPath(GraphRunner runner, string varName, string path, TlcModule.DataKind kind)
         {
-            _host.CheckUserArg(runner != null, nameof(runner), "Provide a GraphRunner instance.");
-            _host.CheckUserArg(!string.IsNullOrWhiteSpace(varName), nameof(varName), "Specify a graph variable name.");
-            _host.CheckUserArg(!string.IsNullOrWhiteSpace(path), nameof(path), "Specify a valid file path.");
+            _host.CheckUserArg(runner != null, nameof(runner), Strings.ProvideAGraphRunnerInstance);
+            _host.CheckUserArg(!string.IsNullOrWhiteSpace(varName), nameof(varName), Strings.SpecifyAGraphVariableName);
+            _host.CheckUserArg(!string.IsNullOrWhiteSpace(path), nameof(path), Strings.SpecifyAValidFilePath);
 
             string extension = Path.GetExtension(path);
             switch (kind)
             {
                 case TlcModule.DataKind.FileHandle:
                     var fh = runner.GetOutput<IFileHandle>(varName);
-                    throw _host.ExceptNotSupp("File handle outputs not yet supported.");
+                    throw _host.ExceptNotSupp(Strings.FileHandleOutputsNotYetSupported);
                 case TlcModule.DataKind.DataView:
                     var idv = runner.GetOutput<IDataView>(varName);
                     if (idv != null)
@@ -182,7 +182,7 @@ namespace Microsoft.ML.EntryPoints
                     }
                     goto default;
                 default:
-                    throw _host.Except("Port type {0} not supported", kind);
+                    throw _host.Except(Strings.PortTypeNotSupported, kind);
             }
 
         }

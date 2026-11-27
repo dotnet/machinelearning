@@ -66,7 +66,7 @@ namespace Microsoft.ML.Trainers.FastTree
             else
             {
                 if (initScores.Length != Dataset.NumDocs)
-                    throw Contracts.Except("The length of initScores do not match the length of training set");
+                    throw Contracts.Except(Strings.InitScoreCountMismatch);
                 Scores = (double[])initScores.Clone();
             }
             SendScoresUpdatedMessage();
@@ -132,7 +132,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
         public override void SetScores(double[] scores)
         {
-            throw Contracts.ExceptNotSupp("This code should not be reachable");
+            throw Contracts.ExceptNotSupp(Strings.ThisCodeShouldNotBeReachable);
         }
 
         //Computes AGD specific multiplier. Given that we have tree number t in ensemble (we count trees starting from 0)

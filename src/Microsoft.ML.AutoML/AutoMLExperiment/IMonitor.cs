@@ -92,7 +92,7 @@ namespace Microsoft.ML.AutoML
             }
             else
             {
-                throw new ArgumentException($"result must be of type {typeof(TrialResult<TMetrics>)}");
+                throw new ArgumentException(string.Format(Strings.ResultMustBeOfType, typeof(TrialResult<TMetrics>)));
             }
         }
 
@@ -106,7 +106,7 @@ namespace Microsoft.ML.AutoML
             }
             else
             {
-                throw new ArgumentException($"result must be of type {typeof(TrialResult<TMetrics>)}");
+                throw new ArgumentException(string.Format(Strings.ResultMustBeOfType, typeof(TrialResult<TMetrics>)));
             }
         }
 

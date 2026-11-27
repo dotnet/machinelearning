@@ -177,7 +177,7 @@ namespace Microsoft.ML.Data
         {
             Host.CheckValue(input, nameof(input));
             Host.CheckValue(activeColumns, nameof(activeColumns));
-            Host.Check(input.Schema == Source.Schema, "Schema of input row must be the same as the schema the mapper is bound to");
+            Host.Check(input.Schema == Source.Schema, Strings.InputSchemaDoesNotMatchMapperSchema);
 
             using (var ch = Host.Start("GetEntireRow"))
             {
@@ -233,8 +233,7 @@ namespace Microsoft.ML.Data
                 Contracts.Assert(originFn != null);
                 var fn = originFn as ValueGetter<TValue>;
                 if (fn == null)
-                    throw Contracts.Except($"Invalid TValue in GetGetter: '{typeof(TValue)}', " +
-                            $"expected type: '{originFn.GetType().GetGenericArguments().First()}'.");
+                    throw Contracts.Except(string.Format(Strings.InvalidTValueInGetGetterExpectedType, typeof(TValue), originFn.GetType().GetGenericArguments().First()));
                 return fn;
             }
 
@@ -339,19 +338,19 @@ namespace Microsoft.ML.Data
                 for (int i = 0; i < names.Length; i++)
                 {
                     var item = column[i];
-                    host.CheckUserArg(item.TrySanitize(), nameof(OneToOneColumn.Name), "Invalid new column name");
+                    host.CheckUserArg(item.TrySanitize(), nameof(OneToOneColumn.Name), Strings.InvalidNewColumnName);
                     names[i] = item.Name;
 
                     int colSrc;
                     if (!inputSchema.TryGetColumnIndex(item.Source, out colSrc))
-                        throw host.ExceptUserArg(nameof(OneToOneColumn.Source), "Source column '{0}' not found", item.Source);
+                        throw host.ExceptUserArg(nameof(OneToOneColumn.Source), Strings.SourceColumnNotFound, item.Source);
 
                     var type = inputSchema[colSrc].Type;
                     if (testType != null)
                     {
                         string reason = testType(type);
                         if (reason != null)
-                            throw host.ExceptUserArg(nameof(OneToOneColumn.Source), InvalidTypeErrorFormat, item.Source, type, reason);
+                            throw host.ExceptUserArg(nameof(OneToOneColumn.Source), Strings.SourceColumnHasInvalidType, item.Source, type, reason);
                     }
 
                     var slotType = transposedInput?.GetSlotType(i);
@@ -400,7 +399,7 @@ namespace Microsoft.ML.Data
                     {
                         string reason = testType(type);
                         if (reason != null)
-                            throw host.Except(InvalidTypeErrorFormat, src, type, reason);
+                            throw host.Except(Strings.SourceColumnHasInvalidType, src, type, reason);
                     }
                     var slotType = transposeInput?.GetSlotType(i);
                     infos[i] = new ColInfo(dst, colSrc, type, slotType as VectorDataViewType);
@@ -771,7 +770,7 @@ namespace Microsoft.ML.Data
         protected Exception ExceptGetSlotCursor(int col)
         {
             Host.Assert(0 <= col && col < _bindings.ColumnCount);
-            return Host.ExceptParam(nameof(col), "Bad call to GetSlotCursor on untransposable column '{0}'",
+            return Host.ExceptParam(nameof(col), Strings.BadCallToGetSlotCursorOnUntransposableColumn,
                 OutputSchema[col].Name);
         }
 
@@ -804,7 +803,7 @@ namespace Microsoft.ML.Data
         internal virtual SlotCursor GetSlotCursorCore(int iinfo)
         {
             Host.Assert(false);
-            throw Host.ExceptNotImpl("Data view indicated it could transpose a column, but apparently it could not");
+            throw Host.ExceptNotImpl(Strings.TransposableColumnCouldNotBeTransposed);
         }
 
         protected override int MapColumnIndex(out bool isSrc, int col)
@@ -907,8 +906,7 @@ namespace Microsoft.ML.Data
                 Ch.Assert(originFn != null);
                 var fn = originFn as ValueGetter<TValue>;
                 if (fn == null)
-                    throw Ch.Except($"Invalid TValue in GetGetter: '{typeof(TValue)}', " +
-                            $"expected type: '{originFn.GetType().GetGenericArguments().First()}'.");
+                    throw Ch.Except(string.Format(Strings.InvalidTValueInGetGetterExpectedType, typeof(TValue), originFn.GetType().GetGenericArguments().First()));
                 return fn;
             }
 

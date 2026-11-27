@@ -250,7 +250,7 @@ namespace Microsoft.ML.EntryPoints
                 _ectx.AssertValue(input);
                 _ectx.AssertValue(activeColumns);
 
-                _ectx.Check(input.Schema == InputSchema, "Schema of input row must be the same as the schema the mapper is bound to");
+                _ectx.Check(input.Schema == InputSchema, Strings.InputSchemaDoesNotMatchMapperSchema);
 
                 var mappers = new List<IRowToRowMapper>();
                 var actives = new List<IEnumerable<DataViewSchema.Column>>();

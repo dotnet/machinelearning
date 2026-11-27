@@ -68,13 +68,13 @@ namespace Microsoft.ML.Transforms.TimeSeries
         public MovingAverageTransform(IHostEnvironment env, Arguments args, IDataView input)
             : base(args.WindowSize + args.Lag - 1, args.WindowSize + args.Lag - 1, args.Name, args.Source, LoaderSignature, env, input)
         {
-            Host.CheckUserArg(args.WindowSize >= 1, nameof(args.WindowSize), "Should be at least 1.");
-            Host.CheckUserArg(args.Lag >= 0, nameof(args.Lag), "Should be positive.");
+            Host.CheckUserArg(args.WindowSize >= 1, nameof(args.WindowSize), Strings.ShouldBeAtLeast1);
+            Host.CheckUserArg(args.Lag >= 0, nameof(args.Lag), Strings.ShouldBePositive);
             Host.CheckUserArg(args.Lag != 0 || args.WindowSize > 1, nameof(args.Lag),
-                "If lag=0 and wnd=1, the transform just copies the column. Use CopyColumn instead.");
+                Strings.ZeroLagSingleWindowShouldUseCopyColumn);
             _weights = string.IsNullOrWhiteSpace(args.Weights) ? null : args.Weights.Split(',').Select(c => Convert.ToSingle(c)).ToArray();
             if (_weights != null && _weights.Length != args.WindowSize)
-                throw Host.ExceptUserArg(nameof(args.Weights), string.Format("{0} weights are provided, but {1} are expected (or none)'", Utils.Size(_weights), args.WindowSize));
+                throw Host.ExceptUserArg(nameof(args.Weights), string.Format(Strings.WeightsAreProvidedButAreExpectedOrNone, Utils.Size(_weights), args.WindowSize));
             _lag = args.Lag;
         }
 

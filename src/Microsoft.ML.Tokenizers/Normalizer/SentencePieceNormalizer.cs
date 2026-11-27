@@ -570,7 +570,7 @@ namespace Microsoft.ML.Tokenizers
 
             if (blob.Length <= sizeof(uint))
             {
-                throw new ArgumentException("Blob for normalization rule is broken.");
+                throw new ArgumentException(Strings.BlobForNormalizationRuleIsBroken);
             }
 
             fixed (byte* pBlob = blob)
@@ -585,7 +585,7 @@ namespace Microsoft.ML.Tokenizers
 
             if (trieBlobSize >= blob.Length)
             {
-                throw new ArgumentException("Trie data size exceeds the input blob size.");
+                throw new ArgumentException(Strings.TrieDataSizeExceedsTheInputBlobSize);
             }
 
             blob = blob.Slice(sizeof(uint));

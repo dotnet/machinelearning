@@ -95,7 +95,7 @@ namespace Microsoft.ML.Trainers.Ensemble
                     }
                 }
                 if (!found)
-                    throw Contracts.Except("Metrics did not contain the requested metric '{0}'", _metricName);
+                    throw Contracts.Except(Strings.MetricsDidNotContainTheRequestedMetric, _metricName);
                 double yValue = 0;
                 found = false;
                 foreach (var kvp in y.Metrics)
@@ -108,7 +108,7 @@ namespace Microsoft.ML.Trainers.Ensemble
                     }
                 }
                 if (!found)
-                    throw Contracts.Except("Metrics did not contain the requested metric '{0}'", _metricName);
+                    throw Contracts.Except(Strings.MetricsDidNotContainTheRequestedMetric, _metricName);
                 if (xValue > yValue)
                     return _isAscMetric ? -1 : 1;
                 if (yValue > xValue)

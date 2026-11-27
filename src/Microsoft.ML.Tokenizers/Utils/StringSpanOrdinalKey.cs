@@ -163,7 +163,7 @@ namespace Microsoft.ML.Tokenizers
                     dictionary.Add(new StringSpanOrdinalKey(key!), (value, key!));
                 }
             }
-            throw new JsonException("Invalid JSON.");
+            throw new JsonException(Strings.InvalidJSON);
         }
 
         public override void Write(Utf8JsonWriter writer, Vocabulary value, JsonSerializerOptions options) => throw new NotImplementedException();

@@ -638,20 +638,19 @@ namespace Microsoft.ML.Transforms.Text
                     {
                         var directory = Path.GetDirectoryName(errorResult.FileName);
                         var name = Path.GetFileName(errorResult.FileName);
-                        throw ch.Except($"{errorMessage}\nModel file for Word Embedding transform could not be found! " +
-                            $@"Please copy the model file '{name}' from '{url}' to '{directory}'.");
+                        throw ch.Except(string.Format(Strings.WordEmbeddingModelDownloadRequired, errorMessage, name, url, directory));
                     }
                     return ensureModel.Result.FileName;
                 }
             }
-            throw Host.Except($"Can't map model kind = {kind} to specific file, please refer to https://aka.ms/MLNetIssue for assistance");
+            throw Host.Except(string.Format(Strings.ModelKindFileMappingMissing, kind));
         }
 
         private Model GetVocabularyDictionary(IHostEnvironment hostEnvironment)
         {
             int dimension = 0;
             if (!File.Exists(_modelFileNameWithPath))
-                throw Host.Except("Custom word embedding model file '{0}' could not be found for Word Embeddings transform.", _modelFileNameWithPath);
+                throw Host.Except(Strings.CustomWordEmbeddingModelFileMissing, _modelFileNameWithPath);
 
             if (_vocab.ContainsKey(_modelFileNameWithPath) && _vocab[_modelFileNameWithPath] != null)
             {

@@ -113,8 +113,7 @@ namespace Microsoft.ML.Model.OnnxConverter
             _domain = args.Domain;
 
             if (args.Model != null && args.PredictiveModel != null)
-                throw env.Except(nameof(args.Model) + " and " + nameof(args.PredictiveModel) +
-                    " cannot be specified at the same time when calling ONNX converter. Please check the content of " + nameof(args) + ".");
+                throw env.Except(Strings.ModelAndPredictiveModelCannotBeSpecifiedAtTheSameTime);
 
             _model = args.Model;
             _predictiveModel = args.PredictiveModel;
@@ -203,9 +202,7 @@ namespace Microsoft.ML.Model.OnnxConverter
                 var variableName = ctx.TryGetVariableName(idataviewColumnName);
                 // Null variable name occurs when an unsupported transform produces an output and a downsteam step consumes that output.
                 // or user accidently removes a transform whose output is used by other transforms.
-                ch.Check(variableName != null, "The targeted pipeline can not be fully converted into a well-defined ONNX model. " +
-                    "Please check if all steps in that pipeline are convertible to ONNX " +
-                    "and all necessary variables are not dropped (via command line arguments).");
+                ch.Check(variableName != null, Strings.PipelineCannotBeFullyConvertedToOnnx);
                 var trueVariableName = ctx.AddIntermediateVariable(outputData.Schema[i].Type, idataviewColumnName + ".output");
                 ctx.CreateNode("Identity", variableName, trueVariableName, ctx.GetNodeName("Identity"), "");
                 ctx.AddOutputVariable(outputData.Schema[i].Type, trueVariableName);
@@ -303,7 +300,7 @@ namespace Microsoft.ML.Model.OnnxConverter
                     rawPred = null;
                     trainSchema = null;
                     Host.CheckUserArg(ImplOptions.LoadPredictor != true, nameof(ImplOptions.LoadPredictor),
-                        "Cannot be set to true unless " + nameof(ImplOptions.InputModelFile) + " is also specified.");
+                        Strings.CannotBeSetToTrueUnlessInputModelFileIsAlsoSpecified);
                 }
                 else
                     LoadModelObjects(ch, _loadPredictor, out rawPred, true, out trainSchema, out loader);
@@ -373,14 +370,14 @@ namespace Microsoft.ML.Model.OnnxConverter
                 else
                 {
                     Contracts.CheckUserArg(_loadPredictor != true,
-                        nameof(Arguments.LoadPredictor), "We were explicitly told to load the predictor but we do not know how to save it as ONNX.");
+                        nameof(Arguments.LoadPredictor), Strings.PredictorCannotBeSavedAsOnnx);
                     ch.Warning("We do not know how to save the predictor as ONNX. Ignoring.");
                 }
             }
             else
             {
                 Contracts.CheckUserArg(_loadPredictor != true,
-                    nameof(Arguments.LoadPredictor), "We were explicitly told to load the predictor but one was not present.");
+                    nameof(Arguments.LoadPredictor), Strings.PredictorRequiredButMissing);
             }
 
             // Convert back to values the KeyDataViewType "pass-through" columns

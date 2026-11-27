@@ -67,7 +67,7 @@ internal static class EntryPointUtils
             // a new Explicit optional is constructed. They should never be set
             // to null.
             if (fieldType.IsGenericType && fieldType.GetGenericTypeDefinition() == typeof(Optional<>) && fieldVal == null)
-                throw ectx.Except("Field '{0}' is Optional<> and set to null instead of an explicit value.", fieldInfo.Name);
+                throw ectx.Except(Strings.OptionalFieldCannotBeNull, fieldInfo.Name);
 
             if (attr.IsRequired)
             {
@@ -78,13 +78,13 @@ internal static class EntryPointUtils
                     equalToDefault = fieldType.IsValueType ? Activator.CreateInstance(fieldType).Equals(fieldVal) : fieldVal == null;
 
                 if (equalToDefault)
-                    throw ectx.Except("Field '{0}' is required but is not set.", fieldInfo.Name);
+                    throw ectx.Except(Strings.FieldIsRequiredButIsNotSet, fieldInfo.Name);
             }
 
             var rangeAttr = fieldInfo.GetCustomAttributes(typeof(TlcModule.RangeAttribute), false).FirstOrDefault()
                 as TlcModule.RangeAttribute;
             if (rangeAttr != null && fieldVal != null && !rangeAttr.IsValueWithinRange(fieldVal))
-                throw ectx.Except("Field '{0}' is set to a value that falls outside the range bounds.", fieldInfo.Name);
+                throw ectx.Except(Strings.FieldValueOutsideRange, fieldInfo.Name);
         }
     }
 
@@ -114,7 +114,7 @@ internal static class EntryPointUtils
         if (schema.GetColumnOrNull(value) == null)
         {
             if (value.IsExplicit)
-                throw ectx.Except("Column '{0}' not found", value);
+                throw ectx.Except(Strings.ColumnNotFound, value);
             return null;
         }
         return value;

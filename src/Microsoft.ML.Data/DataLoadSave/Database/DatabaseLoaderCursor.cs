@@ -107,7 +107,7 @@ namespace Microsoft.ML.Data
                 return
                     (ref DataViewRowId val) =>
                     {
-                        Ch.Check(IsGood, RowCursorUtils.FetchValueStateError);
+                        Ch.Check(IsGood, Strings.ValuesUnavailableOutsideCursorPosition);
                         val = new DataViewRowId((ulong)_total, 0);
                     };
             }
@@ -157,14 +157,13 @@ namespace Microsoft.ML.Data
             /// <param name="column"> is the output column whose getter should be returned.</param>
             public override ValueGetter<TValue> GetGetter<TValue>(DataViewSchema.Column column)
             {
-                Ch.CheckParam(column.Index < _getters.Length, nameof(column), "requested column not valid.");
+                Ch.CheckParam(column.Index < _getters.Length, nameof(column), Strings.RequestedColumnNotValid);
                 Ch.Check(IsColumnActive(column));
 
                 var originFn = _getters[column.Index];
                 var fn = originFn as ValueGetter<TValue>;
                 if (fn == null)
-                    throw Ch.Except($"Invalid TValue in GetGetter: '{typeof(TValue)}', " +
-                        $"expected type: '{originFn.GetType().GetGenericArguments().First()}'.");
+                    throw Ch.Except(string.Format(Strings.InvalidTValueInGetGetterExpectedType, typeof(TValue), originFn.GetType().GetGenericArguments().First()));
                 return fn;
             }
 

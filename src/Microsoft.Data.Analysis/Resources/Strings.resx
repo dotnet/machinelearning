@@ -217,7 +217,8 @@
     <value>Expected column to hold values of type {0}</value>
   </data>
   <data name="MismatchedRowCount" xml:space="preserve">
-    <value>rowCount differs from Column length for Column </value>
+    <value>rowCount differs from Column length for Column {0}</value>
+    <comment>Exception or validation message. Placeholders: {0}=Columns[i].Name. Source: src/Microsoft.Data.Analysis/DataFrame.cs:436.</comment>
   </data>
   <data name="MismatchedValueType" xml:space="preserve">
     <value>Expected value to be of type {0}</value>
@@ -276,5 +277,38 @@
   </data>
   <data name="VariableNameAndValueNameMustBeDifferent" xml:space="preserve">
     <value>{0} and {1} must be different</value>
+  </data>
+
+  <data name="BadComparer" xml:space="preserve">
+    <value>Bad comparer</value>
+    <comment>Exception or validation message. Source: src/Microsoft.Data.Analysis/DataFrameColumn.cs:662. Exception or validation message. Source: src/Microsoft.Data.Analysis/DataFrameColumn.cs:668.</comment>
+  </data>
+  <data name="CurrentBufferIsFull" xml:space="preserve">
+    <value>Current buffer is full</value>
+    <comment>Exception or validation message. Source: src/Microsoft.Data.Analysis/DataFrameBuffer.cs:77.</comment>
+  </data>
+  <data name="DecimalSeparatorCannotMatchTheColumnSeparator" xml:space="preserve">
+    <value>Decimal separator cannot match the column separator</value>
+    <comment>Exception or validation message. Source: src/Microsoft.Data.Analysis/DataFrame.IO.cs:672.</comment>
+  </data>
+  <data name="ExceedsBufferCapacity" xml:space="preserve">
+    <value>{0} exceeds buffer capacity</value>
+    <comment>Exception or validation message. Placeholders: {0}=capacity. Source: src/Microsoft.Data.Analysis/DataFrameBuffer.cs:45. Exception or validation message. Placeholders: {0}=length. Source: src/Microsoft.Data.Analysis/ReadOnlyDataFrameBuffer.cs:53.</comment>
+  </data>
+  <data name="JoinAlgorithmIsNotSupported" xml:space="preserve">
+    <value>Join algorithm '{0}' is not supported.</value>
+    <comment>Exception or validation message. Placeholders: {0}=joinAlgorithm. Source: src/Microsoft.Data.Analysis/DataFrame.Join.cs:408.</comment>
+  </data>
+  <data name="NullValuesAreNotSupportedByVBufferDataFrameColumn" xml:space="preserve">
+    <value>Null values are not supported by VBufferDataFrameColumn</value>
+    <comment>Exception or validation message. Source: src/Microsoft.Data.Analysis/DataFrameColumns/VBufferDataFrameColumn.cs:124.</comment>
+  </data>
+  <data name="OffsetsBufferLengthMustEqualTheColumnLengthPlusOne" xml:space="preserve">
+    <value>Offsets buffer length must equal the column length plus one.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.Data.Analysis/DataFrameColumns/ArrowStringDataFrameColumn.cs:54.</comment>
+  </data>
+  <data name="TypeIs" xml:space="preserve">
+    <value>Type is {0}</value>
+    <comment>Exception or validation message. Placeholders: {0}=typeof(T).Name. Source: src/Microsoft.Data.Analysis/PrimitiveDataFrameColumn.cs:894.</comment>
   </data>
 </root>

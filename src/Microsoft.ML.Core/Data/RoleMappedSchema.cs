@@ -226,7 +226,7 @@ internal sealed class RoleMappedSchema
             if (info.HasValue)
                 Add(map, kvp.Key.Value, info.Value);
             else if (!opt)
-                throw Contracts.ExceptParam(nameof(schema), $"{kvp.Value} column '{kvp.Key.Value}' not found");
+                throw Contracts.ExceptParam(nameof(schema), string.Format(Strings.ColumnNotFoundVariant2, kvp.Value, kvp.Key.Value));
         }
         return map;
     }
@@ -304,7 +304,7 @@ internal sealed class RoleMappedSchema
     {
         var infos = GetColumns(role);
         if (Utils.Size(infos) != 1)
-            throw Contracts.Except("Expected exactly one column with role '{0}', but found {1}.", role.Value, Utils.Size(infos));
+            throw Contracts.Except(Strings.ExpectedExactlyOneColumnWithRoleButFound, role.Value, Utils.Size(infos));
         return infos[0];
     }
 

@@ -171,25 +171,25 @@ namespace Microsoft.ML.Trainers
             : base(Contracts.CheckRef(env, nameof(env)).Register(LoadNameValue), TrainerUtils.MakeR4VecFeature(options.FeatureColumnName), default, TrainerUtils.MakeR4ScalarWeightColumn(options.ExampleWeightColumnName))
         {
             Host.CheckValue(options, nameof(options));
-            Host.CheckUserArg(options.NumberOfClusters > 0, nameof(options.NumberOfClusters), "Must be positive");
+            Host.CheckUserArg(options.NumberOfClusters > 0, nameof(options.NumberOfClusters), Strings.MustBePositive);
 
             _featureColumn = options.FeatureColumnName;
 
             _k = options.NumberOfClusters;
 
-            Host.CheckUserArg(options.MaximumNumberOfIterations > 0, nameof(options.MaximumNumberOfIterations), "Must be positive");
+            Host.CheckUserArg(options.MaximumNumberOfIterations > 0, nameof(options.MaximumNumberOfIterations), Strings.MustBePositive);
             _maxIterations = options.MaximumNumberOfIterations;
 
-            Host.CheckUserArg(options.OptimizationTolerance > 0, nameof(options.OptimizationTolerance), "Tolerance must be positive");
+            Host.CheckUserArg(options.OptimizationTolerance > 0, nameof(options.OptimizationTolerance), Strings.ToleranceMustBePositive);
             _convergenceThreshold = options.OptimizationTolerance;
 
-            Host.CheckUserArg(options.AccelerationMemoryBudgetMb > 0, nameof(options.AccelerationMemoryBudgetMb), "Must be positive");
+            Host.CheckUserArg(options.AccelerationMemoryBudgetMb > 0, nameof(options.AccelerationMemoryBudgetMb), Strings.MustBePositive);
             _accelMemBudgetMb = options.AccelerationMemoryBudgetMb;
 
             _initAlgorithm = options.InitializationAlgorithm;
 
             Host.CheckUserArg(!options.NumberOfThreads.HasValue || options.NumberOfThreads > 0, nameof(options.NumberOfThreads),
-                "Must be either null or a positive integer.");
+                Strings.MustBeEitherNullOrAPositiveInteger);
             _numThreads = ComputeNumThreads(options.NumberOfThreads);
             Info = new TrainerInfo();
         }
@@ -383,7 +383,7 @@ namespace Microsoft.ML.Trainers
                                 if (dimensionality != cursor.Features.Length)
                                 {
                                     throw ch.Except(
-                                        "Dimensionality doesn't match, expected {0}, got {1}",
+                                        Strings.DimensionalityDoesntMatchExpectedGot,
                                         dimensionality,
                                         cursor.Features.Length);
                                 }
@@ -434,7 +434,7 @@ namespace Microsoft.ML.Trainers
                     if (!haveCandidate)
                     {
                         throw ch.Except(
-                            "Not enough distinct instances to populate {0} clusters (only found {1} distinct instances)", k, i);
+                            Strings.InsufficientDistinctInstancesForClusters, k, i);
                     }
 
                     candidate.CopyToDense(ref centroids[i]);
@@ -790,10 +790,10 @@ namespace Microsoft.ML.Trainers
             host.CheckValue(ch, nameof(ch));
             ch.CheckValue(cursorFactory, nameof(cursorFactory));
             ch.CheckValue(centroids, nameof(centroids));
-            ch.CheckUserArg(numThreads > 0, nameof(KMeansTrainer.Options.NumberOfThreads), "Must be positive");
-            ch.CheckUserArg(k > 0, nameof(KMeansTrainer.Options.NumberOfClusters), "Must be positive");
-            ch.CheckParam(dimensionality > 0, nameof(dimensionality), "Must be positive");
-            ch.CheckUserArg(accelMemBudgetMb >= 0, nameof(KMeansTrainer.Options.AccelerationMemoryBudgetMb), "Must be non-negative");
+            ch.CheckUserArg(numThreads > 0, nameof(KMeansTrainer.Options.NumberOfThreads), Strings.MustBePositive);
+            ch.CheckUserArg(k > 0, nameof(KMeansTrainer.Options.NumberOfClusters), Strings.MustBePositive);
+            ch.CheckParam(dimensionality > 0, nameof(dimensionality), Strings.MustBePositive);
+            ch.CheckUserArg(accelMemBudgetMb >= 0, nameof(KMeansTrainer.Options.AccelerationMemoryBudgetMb), Strings.MustBeNonNegative);
 
             int numRounds;
             int numSamplesPerRound;
@@ -1671,7 +1671,7 @@ namespace Microsoft.ML.Trainers
                 }, ref buffer, ref outHeap);
 
             if (outHeap.Count != numSamples)
-                throw host.Except("Failed to initialize clusters: too few examples");
+                throw host.Except(Strings.FailedToInitializeClustersTooFewExamples);
 
             // Keep in mind that the distribution of samples in dst will not be random. It will
             // have the residual minHeap ordering.
@@ -1837,7 +1837,7 @@ namespace Microsoft.ML.Trainers
         public static void VerifyModelConsistency(VBuffer<float>[] centroids)
         {
             foreach (var centroid in centroids)
-                Contracts.Check(centroid.Items().Select(x => x.Value).All(FloatUtils.IsFinite), "Model training failed: non-finite coordinates are generated");
+                Contracts.Check(centroid.Items().Select(x => x.Value).All(FloatUtils.IsFinite), Strings.ModelTrainingFailedNonFiniteCoordinatesAreGenerated);
         }
     }
 }

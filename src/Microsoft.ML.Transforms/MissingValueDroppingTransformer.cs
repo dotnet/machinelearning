@@ -194,9 +194,9 @@ namespace Microsoft.ML.Transforms
                     inputSchema.TryGetColumnIndex(_parent.ColumnPairs[i].inputColumnName, out _srcCols[i]);
                     var srcCol = inputSchema[_srcCols[i]];
                     if (!(srcCol.Type is VectorDataViewType))
-                        throw _parent.Host.Except($"Column '{srcCol.Name}' is not a vector column");
+                        throw _parent.Host.Except(string.Format(Strings.ColumnIsNotAVectorColumn, srcCol.Name));
                     if (!Data.Conversion.Conversions.DefaultInstance.TryGetIsNAPredicate(srcCol.Type.GetItemType(), out _isNAs[i]))
-                        throw _parent.Host.Except($"Column '{srcCol.Name}' is of type {srcCol.Type.GetItemType()}, which does not support missing values");
+                        throw _parent.Host.Except(string.Format(Strings.ColumnIsOfTypeWhichDoesNotSupportMissingValues, srcCol.Name, srcCol.Type.GetItemType()));
                     _srcTypes[i] = srcCol.Type;
                     _types[i] = new VectorDataViewType((PrimitiveDataViewType)srcCol.Type.GetItemType());
                 }

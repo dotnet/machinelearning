@@ -178,7 +178,7 @@ namespace Microsoft.ML.Transforms
             CheckTrainingParameters(options);
 
             if (!IsSavedModel(env, options.ModelLocation))
-                throw env.ExceptNotSupp("TensorFlowTransform: Re-Training of TensorFlow model is only supported for un-frozen model.");
+                throw env.ExceptNotSupp(Strings.TensorFlowRetrainingRequiresUnfrozenModel);
 
             TrainCore(options, input, validationSet);
         }
@@ -188,46 +188,46 @@ namespace Microsoft.ML.Transforms
             Host.CheckNonWhiteSpace(options.LabelColumn, nameof(options.LabelColumn));
             Host.CheckNonWhiteSpace(options.OptimizationOperation, nameof(options.OptimizationOperation));
             if (_session.graph.OperationByName(options.OptimizationOperation) == null)
-                throw Host.ExceptParam(nameof(options.OptimizationOperation), $"Optimization operation '{options.OptimizationOperation}' does not exist in the model");
+                throw Host.ExceptParam(nameof(options.OptimizationOperation), string.Format(Strings.OptimizationOperationDoesNotExistInTheModel, options.OptimizationOperation));
 
             Host.CheckNonWhiteSpace(options.TensorFlowLabel, nameof(options.TensorFlowLabel));
             if (_session.graph.OperationByName(options.TensorFlowLabel) == null)
-                throw Host.ExceptParam(nameof(options.TensorFlowLabel), $"'{options.TensorFlowLabel}' does not exist in the model");
+                throw Host.ExceptParam(nameof(options.TensorFlowLabel), string.Format(Strings.DoesNotExistInTheModel, options.TensorFlowLabel));
 
             Host.CheckNonWhiteSpace(options.SaveLocationOperation, nameof(options.SaveLocationOperation));
             if (_session.graph.OperationByName(options.SaveLocationOperation) == null)
-                throw Host.ExceptParam(nameof(options.SaveLocationOperation), $"'{options.SaveLocationOperation}' does not exist in the model");
+                throw Host.ExceptParam(nameof(options.SaveLocationOperation), string.Format(Strings.DoesNotExistInTheModel, options.SaveLocationOperation));
 
             Host.CheckNonWhiteSpace(options.SaveOperation, nameof(options.SaveOperation));
             if (_session.graph.OperationByName(options.SaveOperation) == null)
-                throw Host.ExceptParam(nameof(options.SaveOperation), $"'{options.SaveOperation}' does not exist in the model");
+                throw Host.ExceptParam(nameof(options.SaveOperation), string.Format(Strings.DoesNotExistInTheModel, options.SaveOperation));
 
             if (options.LossOperation != null)
             {
                 Host.CheckNonWhiteSpace(options.LossOperation, nameof(options.LossOperation));
                 if (_session.graph.OperationByName(options.LossOperation) == null)
-                    throw Host.ExceptParam(nameof(options.LossOperation), $"'{options.LossOperation}' does not exist in the model");
+                    throw Host.ExceptParam(nameof(options.LossOperation), string.Format(Strings.DoesNotExistInTheModel, options.LossOperation));
             }
 
             if (options.MetricOperation != null)
             {
                 Host.CheckNonWhiteSpace(options.MetricOperation, nameof(options.MetricOperation));
                 if (_session.graph.OperationByName(options.MetricOperation) == null)
-                    throw Host.ExceptParam(nameof(options.MetricOperation), $"'{options.MetricOperation}' does not exist in the model");
+                    throw Host.ExceptParam(nameof(options.MetricOperation), string.Format(Strings.DoesNotExistInTheModel, options.MetricOperation));
             }
 
             if (options.LearningRateOperation != null)
             {
                 Host.CheckNonWhiteSpace(options.LearningRateOperation, nameof(options.LearningRateOperation));
                 if (_session.graph.OperationByName(options.LearningRateOperation) == null)
-                    throw Host.ExceptParam(nameof(options.LearningRateOperation), $"'{options.LearningRateOperation}' does not exist in the model");
+                    throw Host.ExceptParam(nameof(options.LearningRateOperation), string.Format(Strings.DoesNotExistInTheModel, options.LearningRateOperation));
             }
         }
 
         private (int, bool, TF_DataType, Shape) GetTrainingInputInfo(DataViewSchema inputSchema, string columnName, string tfNodeName, int batchSize)
         {
             if (!inputSchema.TryGetColumnIndex(columnName, out int inputColIndex))
-                throw Host.Except($"Column {columnName} doesn't exist");
+                throw Host.Except(string.Format(Strings.ColumnDoesntExist, columnName));
 
             var type = inputSchema[inputColIndex].Type;
             var isInputVector = type is VectorDataViewType;
@@ -455,7 +455,7 @@ namespace Microsoft.ML.Transforms
             }
             catch (Exception e)
             {
-                throw Host.ExceptIO(e, "Error serializing TensorFlow retrained model to disk.");
+                throw Host.ExceptIO(e, Strings.ErrorSerializingTensorFlowRetrainedModelToDisk);
             }
         }
 
@@ -586,11 +586,11 @@ namespace Microsoft.ML.Transforms
                 (Operation inputTensor, int inputTensorIndex) = GetOperationFromName(input, session);
 
                 if (inputTensor == null)
-                    throw host.ExceptParam(nameof(inputs), $"Input column '{input}' does not exist in the model");
+                    throw host.ExceptParam(nameof(inputs), string.Format(Strings.InputColumnDoesNotExistInTheModel, input));
 
                 TF_DataType tfInputType = string.Compare(inputTensor.OpType, "PlaceHolder", true) == 0 ? inputTensor.OutputType(inputTensorIndex) : inputTensor.InputType(index);
                 if (!IsTypeSupported(tfInputType))
-                    throw host.ExceptParam(nameof(session), $"Input type '{tfInputType}' of input column '{input}' is not supported in TensorFlow");
+                    throw host.ExceptParam(nameof(session), string.Format(Strings.InputTypeOfInputColumnIsNotSupportedInTensorFlow, tfInputType, input));
 
                 tfInputTypes[index] = tfInputType;
                 tfInputShapes[index] = ((Tensor)inputTensor).shape;
@@ -631,11 +631,11 @@ namespace Microsoft.ML.Transforms
             {
                 host.CheckNonWhiteSpace(outputs[i], nameof(outputs));
                 if (!newNames.Add(outputs[i]))
-                    throw host.ExceptParam(nameof(outputs), $"Output column '{outputs[i]}' specified multiple times");
+                    throw host.ExceptParam(nameof(outputs), string.Format(Strings.OutputColumnSpecifiedMultipleTimes, outputs[i]));
 
                 (Tensor outputTensor, int outputIndex) = GetOperationFromName(outputs[i], session);
                 if (outputTensor == null)
-                    throw host.ExceptParam(nameof(outputs), $"Output column '{outputs[i]}' does not exist in the model");
+                    throw host.ExceptParam(nameof(outputs), string.Format(Strings.OutputColumnDoesNotExistInTheModel, outputs[i]));
 
                 var tfOutputType = ((Operation)outputTensor).OutputType(outputIndex);
                 var shape = GetTensorShape(new TF_Output((Operation)outputTensor, outputIndex), session.graph);
@@ -777,11 +777,11 @@ namespace Microsoft.ML.Transforms
 
                     var type = inputSchema[_inputColIndices[i]].Type;
                     if (type is VectorDataViewType vecType && vecType.Size == 0)
-                        throw Host.Except("Variable length input columns not supported");
+                        throw Host.Except(Strings.VariableLengthInputColumnsNotSupported);
 
                     _isInputVector[i] = type is VectorDataViewType;
                     if (!_isInputVector[i])
-                        throw Host.Except("Non-vector columns are not supported and should be loaded as vector columns of size 1");
+                        throw Host.Except(Strings.NonVectorColumnsMustBeSizeOneVectors);
                     vecType = (VectorDataViewType)type;
                     var expectedType = Tf2MlNetType(_parent._tfInputTypes[i]);
                     if (type.GetItemType() != expectedType)
@@ -808,14 +808,14 @@ namespace Microsoft.ML.Transforms
                         // The column length should be divisible by this, so that the other dimensions can be integral.
                         int typeValueCount = type.GetValueCount();
                         if (typeValueCount % valCount != 0)
-                            throw Contracts.Except($"Input shape mismatch: Input '{_parent._inputs[i]}' has shape {originalShape.ToString()}, but input data is of length {typeValueCount}.");
+                            throw Contracts.Except(string.Format(Strings.VisionInputShapeMismatch, _parent._inputs[i], originalShape.ToString(), typeValueCount));
 
                         // If the shape is multi-dimensional, we should be able to create the length of the vector by plugging
                         // in a single value for the unknown shapes. For example, if the shape is [?,?,3], then there should exist a value
                         // d such that d*d*3 is equal to the length of the input column.
                         var d = numOfUnkDim > 0 ? Math.Pow(typeValueCount / valCount, 1.0 / numOfUnkDim) : 0;
                         if (d - (int)d != 0)
-                            throw Contracts.Except($"Input shape mismatch: Input '{_parent._inputs[i]}' has shape {originalShape.ToString()}, but input data is of length {typeValueCount}.");
+                            throw Contracts.Except(string.Format(Strings.VisionInputShapeMismatch, _parent._inputs[i], originalShape.ToString(), typeValueCount));
 
                         // Fill in the unknown dimensions.
                         var originalShapeDims = originalShape.dims;

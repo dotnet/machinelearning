@@ -111,7 +111,7 @@ namespace Microsoft.ML.Data
                 if (!IsCompatibleType(realColType, col.MemberInfo))
                 {
                     throw _host.Except(
-                        "Can't bind the IDataView column '{0}' of type '{1}' to field or property '{2}' of type '{3}'.",
+                        Strings.DataViewColumnMemberTypeMismatch,
                         col.ColumnName, realColType, col.MemberInfo.Name, col.FieldOrPropertyType.FullName);
                 }
 
@@ -242,7 +242,7 @@ namespace Microsoft.ML.Data
 
                 default:
                     Contracts.Assert(false);
-                    throw Contracts.ExceptNotSupp("Expected a FieldInfo or a PropertyInfo");
+                    throw Contracts.ExceptNotSupp(Strings.ExpectedAFieldInfoOrAPropertyInfo);
             }
 
             if (!actualType.TryGetDataKind(out _) && !DataViewTypeManager.Knows(actualType, customAttributes))
@@ -251,7 +251,7 @@ namespace Microsoft.ML.Data
                 data.Schema.TryGetColumnIndex(singleName, out colIndex);
                 DataViewType expectedType = data.Schema[colIndex].Type;
                 if (!actualType.Equals(expectedType.RawType))
-                    throw Contracts.ExceptParam(nameof(actualType), $"The expected type '{expectedType.RawType}' does not match the type of the '{singleName}' member: '{actualType}'. Please change the {singleName} member to '{expectedType.RawType}'");
+                    throw Contracts.ExceptParam(nameof(actualType), string.Format(Strings.MemberTypeMismatch, expectedType.RawType, singleName, actualType, singleName, expectedType.RawType));
             }
         }
 
@@ -275,7 +275,7 @@ namespace Microsoft.ML.Data
                 {
                     var col = schemaDefinition[i];
                     if (col.MemberName == null)
-                        throw Contracts.ExceptParam(nameof(schemaDefinition), "Null field name detected in schema definition");
+                        throw Contracts.ExceptParam(nameof(schemaDefinition), Strings.NullFieldNameDetectedInSchemaDefinition);
 
                     MemberInfo memberInfo = null;
                     // Infer the column name.
@@ -412,7 +412,7 @@ namespace Microsoft.ML.Data
                 else
                 {
                     // REVIEW: Is this even possible?
-                    throw Ch.ExceptNotImpl("Type '{0}' is not yet supported.", column.OutputType.FullName);
+                    throw Ch.ExceptNotImpl(Strings.TypeIsNotYetSupported, column.OutputType.FullName);
                 }
                 MethodInfo meth = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(genericType);
                 return (Action<TRow>)meth.Invoke(this, new object[] { input, index, poke, peek });
@@ -637,7 +637,7 @@ namespace Microsoft.ML.Data
 
             public override void FillValues(TRow row)
             {
-                Ch.Check(Position >= 0, "Cannot fill values. The cursor is not active.");
+                Ch.Check(Position >= 0, Strings.CannotFillValuesTheCursorIsNotActive);
                 base.FillValues(row);
             }
 

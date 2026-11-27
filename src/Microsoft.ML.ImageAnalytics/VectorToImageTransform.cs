@@ -338,7 +338,7 @@ namespace Microsoft.ML.Transforms.Image
                 else if (sourceItemType == NumberDataViewType.Byte)
                     return GetterFromType<byte>(NumberDataViewType.Byte, input, iinfo, ex, false);
                 else
-                    throw Contracts.Except("We only support float, double or byte arrays");
+                    throw Contracts.Except(Strings.WeOnlySupportFloatDoubleOrByteArrays);
             }
 
             private ValueGetter<MLImage> GetterFromType<TValue>(PrimitiveDataViewType srcType, DataViewRow input, int iinfo,
@@ -509,7 +509,7 @@ namespace Microsoft.ML.Transforms.Image
                 { Colors |= ImagePixelExtractingEstimator.ColorBits.Green; Planes++; }
                 if (item.ContainsBlue ?? args.ContainsBlue)
                 { Colors |= ImagePixelExtractingEstimator.ColorBits.Blue; Planes++; }
-                Contracts.CheckUserArg(Planes > 0, nameof(item.ContainsRed), "Need to use at least one color plane");
+                Contracts.CheckUserArg(Planes > 0, nameof(item.ContainsRed), Strings.NeedToUseAtLeastOneColorPlane);
 
                 Order = item.Order ?? args.Order;
                 InterleavedColors = item.Interleave ?? args.Interleave;
@@ -628,13 +628,13 @@ namespace Microsoft.ML.Transforms.Image
                     Planes++;
                 if ((byte)(Colors & ImagePixelExtractingEstimator.ColorBits.Blue) > 0)
                     Planes++;
-                Contracts.CheckParam(Planes > 0, nameof(colorsPresent), "Need to use at least one color plane");
+                Contracts.CheckParam(Planes > 0, nameof(colorsPresent), Strings.NeedToUseAtLeastOneColorPlane);
 
                 Order = orderOfColors;
                 InterleavedColors = interleavedColors;
 
-                Contracts.CheckParam(imageWidth > 0, nameof(imageWidth), "Image width must be greater than zero");
-                Contracts.CheckParam(imageHeight > 0, nameof(imageHeight), "Image height must be greater than zero");
+                Contracts.CheckParam(imageWidth > 0, nameof(imageWidth), Strings.ImageWidthMustBeGreaterThanZero);
+                Contracts.CheckParam(imageHeight > 0, nameof(imageHeight), Strings.ImageHeightMustBeGreaterThanZero);
                 Contracts.CheckParam(FloatUtils.IsFinite(offsetImage), nameof(offsetImage));
                 Contracts.CheckParam(FloatUtils.IsFiniteNonZero(scaleImage), nameof(scaleImage));
                 ImageWidth = imageWidth;

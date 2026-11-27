@@ -678,7 +678,7 @@ namespace Microsoft.ML
             }
             else lastTransformer = model as ISingleFeaturePredictionTransformer;
 
-            env.CheckValue(lastTransformer, nameof(lastTransformer), "The model provided does not have a compatible predictor");
+            env.CheckValue(lastTransformer, nameof(lastTransformer), Strings.TheModelProvidedDoesNotHaveACompatiblePredictor);
 
             string featureColumnName = lastTransformer.FeatureColumnName;
             var predictionTransformerGenericType = GetImplementedIPredictionTransformer(lastTransformer.GetType());
@@ -731,7 +731,7 @@ namespace Microsoft.ML
                 }
             }
 
-            throw new ArgumentException($"Type IPredictionTransformer not implemented by provided type, {type}", nameof(type));
+            throw new ArgumentException(string.Format(Strings.TypeIPredictionTransformerNotImplementedByProvidedType, type), nameof(type));
         }
 
         #endregion

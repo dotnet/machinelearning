@@ -59,7 +59,7 @@ namespace Microsoft.ML.Data
 
             public override ValueGetter<DataViewRowId> GetIdGetter()
             {
-                return (ref DataViewRowId val) => throw Ch.Except(RowCursorUtils.FetchValueStateError);
+                return (ref DataViewRowId val) => throw Ch.Except(Strings.ValuesUnavailableOutsideCursorPosition);
             }
 
             protected override bool MoveNextCore() => false;
@@ -78,8 +78,8 @@ namespace Microsoft.ML.Data
             /// <param name="column"> is the output column whose getter should be returned.</param>
             public override ValueGetter<TValue> GetGetter<TValue>(DataViewSchema.Column column)
             {
-                Ch.CheckParam(IsColumnActive(column), nameof(column), "requested column not active");
-                return (ref TValue value) => throw Ch.Except(RowCursorUtils.FetchValueStateError);
+                Ch.CheckParam(IsColumnActive(column), nameof(column), Strings.RequestedColumnNotActive);
+                return (ref TValue value) => throw Ch.Except(Strings.ValuesUnavailableOutsideCursorPosition);
             }
         }
     }

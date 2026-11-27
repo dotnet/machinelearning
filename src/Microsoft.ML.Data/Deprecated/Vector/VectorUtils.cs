@@ -22,14 +22,14 @@ namespace Microsoft.ML.Numeric
     {
         public static float DotProduct(float[] a, float[] b)
         {
-            Contracts.Check(Utils.Size(a) == Utils.Size(b), "Arrays must have the same length");
+            Contracts.Check(Utils.Size(a) == Utils.Size(b), Strings.ArraysMustHaveTheSameLength);
             Contracts.Check(Utils.Size(a) > 0);
             return CpuMathUtils.DotProductDense(a, b, a.Length);
         }
 
         public static float DotProduct(float[] a, in VBuffer<float> b)
         {
-            Contracts.Check(Utils.Size(a) == b.Length, "Vectors must have the same dimensionality.");
+            Contracts.Check(Utils.Size(a) == b.Length, Strings.VectorsMustHaveTheSameDimensionality);
             var bValues = b.GetValues();
             if (bValues.Length == 0)
                 return 0;
@@ -40,7 +40,7 @@ namespace Microsoft.ML.Numeric
 
         public static float DotProduct(in VBuffer<float> a, in VBuffer<float> b)
         {
-            Contracts.Check(a.Length == b.Length, "Vectors must have the same dimensionality.");
+            Contracts.Check(a.Length == b.Length, Strings.VectorsMustHaveTheSameDimensionality);
 
             var aValues = a.GetValues();
             var bValues = b.GetValues();
@@ -69,8 +69,8 @@ namespace Microsoft.ML.Numeric
         /// </summary>
         public static void SparsifyNormalize(ref VBuffer<float> a, int top, int bottom, bool normalize)
         {
-            Contracts.CheckParam(top >= 0, nameof(top), "Top count needs to be non-negative");
-            Contracts.CheckParam(bottom >= 0, nameof(bottom), "Bottom count needs to be non-negative");
+            Contracts.CheckParam(top >= 0, nameof(top), Strings.TopCountNeedsToBeNonNegative);
+            Contracts.CheckParam(bottom >= 0, nameof(bottom), Strings.BottomCountNeedsToBeNonNegative);
             float absMax = 0;
 
             // In the top heap, we pop the smallest values, so that the 'top' largest remain.
@@ -159,7 +159,7 @@ namespace Microsoft.ML.Numeric
         /// </summary>
         public static void MulElementWise(in VBuffer<float> a, ref VBuffer<float> dst)
         {
-            Contracts.Check(a.Length == dst.Length, "Vectors must have the same dimensionality.");
+            Contracts.Check(a.Length == dst.Length, Strings.VectorsMustHaveTheSameDimensionality);
 
             if (a.IsDense && dst.IsDense)
             {
@@ -251,7 +251,7 @@ namespace Microsoft.ML.Numeric
         public static float DotProductWithOffset(in VBuffer<float> a, int offset, in VBuffer<float> b)
         {
             Contracts.Check(0 <= offset && offset <= a.Length);
-            Contracts.Check(b.Length <= a.Length - offset, "VBuffer b must be no longer than a.Length - offset.");
+            Contracts.Check(b.Length <= a.Length - offset, Strings.VBufferBMustBeNoLongerThanALengthOffset);
 
             var aValues = a.GetValues();
             var bValues = b.GetValues();
@@ -303,7 +303,7 @@ namespace Microsoft.ML.Numeric
         public static float DotProductWithOffset(float[] a, int offset, in VBuffer<float> b)
         {
             Contracts.Check(0 <= offset && offset <= a.Length);
-            Contracts.Check(b.Length <= a.Length - offset, "VBuffer b must be no longer than a.Length - offset.");
+            Contracts.Check(b.Length <= a.Length - offset, Strings.VBufferBMustBeNoLongerThanALengthOffset);
 
             var bValues = b.GetValues();
             if (bValues.Length == 0)
@@ -393,7 +393,7 @@ namespace Microsoft.ML.Numeric
         /// <returns>Distance from a to b</returns>
         public static float L2DistSquared(in VBuffer<float> a, in VBuffer<float> b)
         {
-            Contracts.Check(a.Length == b.Length, "Vectors must have the same dimensionality.");
+            Contracts.Check(a.Length == b.Length, Strings.VectorsMustHaveTheSameDimensionality);
             if (a.IsDense)
             {
                 if (b.IsDense)
@@ -414,7 +414,7 @@ namespace Microsoft.ML.Numeric
         public static float L2DistSquared(float[] a, in VBuffer<float> b)
         {
             Contracts.CheckValue(a, nameof(a));
-            Contracts.Check(Utils.Size(a) == b.Length, "Vectors must have the same dimensionality.");
+            Contracts.Check(Utils.Size(a) == b.Length, Strings.VectorsMustHaveTheSameDimensionality);
             if (b.IsDense)
                 return L2DiffSquaredDense(a, b.GetValues(), b.Length);
             return L2DistSquaredHalfSparse(a.AsSpan(0, a.Length), b.GetValues(), b.GetIndices());
@@ -427,7 +427,7 @@ namespace Microsoft.ML.Numeric
         {
             Contracts.CheckValue(src, nameof(src));
             Contracts.CheckValue(dst, nameof(dst));
-            Contracts.CheckParam(src.Length == dst.Length, nameof(dst), "Arrays must have the same dimensionality.");
+            Contracts.CheckParam(src.Length == dst.Length, nameof(dst), Strings.ArraysMustHaveTheSameDimensionality);
             if (src.Length == 0)
                 return;
             CpuMathUtils.Add(src, dst, src.Length);
@@ -441,7 +441,7 @@ namespace Microsoft.ML.Numeric
         /// <param name="c">Coefficient</param>
         public static void AddMult(in VBuffer<float> src, Span<float> dst, float c)
         {
-            Contracts.CheckParam(src.Length == dst.Length, nameof(dst), "Arrays must have the same dimensionality.");
+            Contracts.CheckParam(src.Length == dst.Length, nameof(dst), Strings.ArraysMustHaveTheSameDimensionality);
 
             var srcValues = src.GetValues();
             if (srcValues.Length == 0 || c == 0)
@@ -469,7 +469,7 @@ namespace Microsoft.ML.Numeric
         {
             Contracts.CheckValue(dst, nameof(dst));
             Contracts.Check(0 <= offset && offset <= dst.Length);
-            Contracts.Check(src.Length <= dst.Length - offset, "Vector src must be no longer than dst.Length - offset.");
+            Contracts.Check(src.Length <= dst.Length - offset, Strings.VectorSrcMustBeNoLongerThanDstLengthOffset);
 
             var srcValues = src.GetValues();
             if (srcValues.Length == 0 || c == 0)
@@ -496,7 +496,7 @@ namespace Microsoft.ML.Numeric
         /// <param name="c">Multiple</param>
         public static void AddMult(float[] src, float[] dst, float c)
         {
-            Contracts.Check(src.Length == dst.Length, "Arrays must have the same dimensionality.");
+            Contracts.Check(src.Length == dst.Length, Strings.ArraysMustHaveTheSameDimensionality);
 
             if (c == 0)
                 return;
@@ -540,7 +540,7 @@ namespace Microsoft.ML.Numeric
 
         public static float Distance(float[] a, float[] b)
         {
-            Contracts.Check(a.Length == b.Length, "Arrays must have the same dimensionality.");
+            Contracts.Check(a.Length == b.Length, Strings.ArraysMustHaveTheSameDimensionality);
 
             float res = 0;
             for (int i = 0; i < a.Length; i++)

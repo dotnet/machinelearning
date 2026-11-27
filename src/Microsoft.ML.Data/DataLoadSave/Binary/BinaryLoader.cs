@@ -241,7 +241,7 @@ namespace Microsoft.ML.Data.IO
                             long numBlocks = (rc - 1) / RowsPerBlock + 1;
                             // By the format it's perfectly legal, but we don't yet support reading so many blocks.
                             if (numBlocks > int.MaxValue)
-                                throw _ectx.ExceptNotSupp("This version of the software does not support {0} blocks", numBlocks);
+                                throw _ectx.ExceptNotSupp(Strings.ThisVersionOfTheSoftwareDoesNotSupportBlocks, numBlocks);
                             var lookup = new BlockLookup[numBlocks];
                             stream.Seek(LookupOffset, SeekOrigin.Begin);
                             var reader = _parent._reader;
@@ -252,13 +252,13 @@ namespace Microsoft.ML.Data.IO
                                 long offset = reader.ReadInt64();
                                 int compLen = reader.ReadInt32();
                                 int decompLen = reader.ReadInt32();
-                                _ectx.CheckDecode(0 <= compLen, "negative compressed block length detected");
-                                _ectx.CheckDecode(0 <= decompLen, "negative decompressed block length detected");
+                                _ectx.CheckDecode(0 <= compLen, Strings.NegativeCompressedBlockLengthDetected);
+                                _ectx.CheckDecode(0 <= decompLen, Strings.NegativeDecompressedBlockLengthDetected);
                                 if (maxCompLen < compLen)
                                     maxCompLen = compLen;
                                 if (maxDecompLen < decompLen)
                                     maxDecompLen = decompLen;
-                                _ectx.CheckDecode(Header.HeaderSize <= offset && offset <= _parent._header.TailOffset - compLen, "block offset out of range");
+                                _ectx.CheckDecode(Header.HeaderSize <= offset && offset <= _parent._header.TailOffset - compLen, Strings.BlockOffsetOutOfRange);
                                 lookup[b] = new BlockLookup(offset, compLen, decompLen);
                             }
                             _lookup = lookup;
@@ -324,7 +324,7 @@ namespace Microsoft.ML.Data.IO
 
                 ulong mtocCount = reader.ReadLeb128Int();
                 ch.CheckDecode(0 < mtocCount && mtocCount < int.MaxValue,
-                    "Bad number of metadata TOC entries read");
+                    Strings.BadNumberOfMetadataTOCEntriesRead);
                 var mtocEntries = new List<MetadataTableOfContentsEntry>();
                 var deadMtocEntries = new List<MetadataTableOfContentsEntry>();
                 var map = new Dictionary<string, MetadataTableOfContentsEntry>();
@@ -334,8 +334,8 @@ namespace Microsoft.ML.Data.IO
                 for (int i = 0; i < (int)mtocCount; ++i)
                 {
                     string kind = reader.ReadString();
-                    ch.CheckDecode(!string.IsNullOrEmpty(kind), "Metadata kind must be non-empty string");
-                    ch.CheckDecode(kinds.Add(kind), "Duplicate metadata kind read from file");
+                    ch.CheckDecode(!string.IsNullOrEmpty(kind), Strings.MetadataKindMustBeNonEmptyString);
+                    ch.CheckDecode(kinds.Add(kind), Strings.DuplicateMetadataKindReadFromFile);
                     IValueCodec codec;
                     bool gotCodec = _parent._factory.TryReadCodec(stream, out codec);
                     // Even in the case where we did not succeed loading the codec, we still
@@ -344,12 +344,12 @@ namespace Microsoft.ML.Data.IO
                     bool knowCompression = Enum.IsDefined(typeof(CompressionKind), compression);
                     long blockOffset = reader.ReadInt64();
                     ch.CheckDecode(Header.HeaderSize <= blockOffset && blockOffset <= _parent._header.TailOffset,
-                        "Metadata block offset out of range");
+                        Strings.MetadataBlockOffsetOutOfRange);
                     ulong ublockSize = reader.ReadLeb128Int();
-                    ch.CheckDecode(ublockSize <= long.MaxValue, "Metadata block size out of range");
+                    ch.CheckDecode(ublockSize <= long.MaxValue, Strings.MetadataBlockSizeOutOfRange);
                     long blockSize = (long)ublockSize;
                     ch.CheckDecode(0 < blockSize && blockSize <= _parent._header.TailOffset - blockOffset,
-                        "Metadata block size out of range");
+                        Strings.MetadataBlockSizeOutOfRange);
                     if (gotCodec && knowCompression)
                     {
                         var entry = MetadataTableOfContentsEntry.Create(_parent, kind, codec, compression, blockOffset, blockSize);
@@ -767,10 +767,10 @@ namespace Microsoft.ML.Data.IO
 
             _host.CheckValue(args, nameof(args));
             _host.CheckValue(stream, nameof(stream));
-            _host.CheckParam(stream.CanRead, nameof(stream), "input stream must be readable");
-            _host.CheckParam(stream.CanSeek, nameof(stream), "input stream must be seekable");
-            _host.CheckParam(stream.Position == 0, nameof(stream), "input stream must be at head");
-            _host.CheckUserArg(0 <= args.PoolBlocks, nameof(args.PoolBlocks), "must be non-negative");
+            _host.CheckParam(stream.CanRead, nameof(stream), Strings.InputStreamMustBeReadable);
+            _host.CheckParam(stream.CanSeek, nameof(stream), Strings.InputStreamMustBeSeekable);
+            _host.CheckParam(stream.Position == 0, nameof(stream), Strings.InputStreamMustBeAtHead);
+            _host.CheckUserArg(0 <= args.PoolBlocks, nameof(args.PoolBlocks), Strings.MustBeNonNegative);
 
             using (var ch = _host.Start("Initializing"))
             {
@@ -827,9 +827,9 @@ namespace Microsoft.ML.Data.IO
 
             _host.AssertValue(ctx);
             _host.CheckValue(stream, nameof(stream));
-            _host.CheckParam(stream.CanRead, nameof(stream), "input stream must be readable");
-            _host.CheckParam(stream.CanSeek, nameof(stream), "input stream must be seekable");
-            _host.CheckParam(stream.Position == 0, nameof(stream), "input stream must be at head");
+            _host.CheckParam(stream.CanRead, nameof(stream), Strings.InputStreamMustBeReadable);
+            _host.CheckParam(stream.CanSeek, nameof(stream), Strings.InputStreamMustBeSeekable);
+            _host.CheckParam(stream.Position == 0, nameof(stream), Strings.InputStreamMustBeAtHead);
 
             // *** Binary format **
             // int: Number of threads if explicitly defined, or 0 if the
@@ -926,7 +926,7 @@ namespace Microsoft.ML.Data.IO
         private static Stream OpenStream(IMultiStreamSource files)
         {
             Contracts.CheckValue(files, nameof(files));
-            Contracts.CheckParam(files.Count == 1, nameof(files), "binary loader must be created with one file");
+            Contracts.CheckParam(files.Count == 1, nameof(files), Strings.BinaryLoaderMustBeCreatedWithOneFile);
             return files.Open(0);
         }
 
@@ -1032,7 +1032,7 @@ namespace Microsoft.ML.Data.IO
             int cb = _reader.Read(headerBytes, 0, Header.HeaderSize);
             if (cb != Header.HeaderSize)
             {
-                throw _host.ExceptDecode("Read only {0} bytes in file, expected header size of {1}",
+                throw _host.ExceptDecode(Strings.ReadOnlyBytesInFileExpectedHeaderSizeOf,
                     cb, Header.HeaderSize);
             }
             Header header;
@@ -1045,18 +1045,18 @@ namespace Microsoft.ML.Data.IO
             // formatting.
 
             _host.CheckDecode(header.Signature == Header.SignatureValue,
-                "This does not appear to be a binary dataview file");
+                Strings.ThisDoesNotAppearToBeABinaryDataviewFile);
 
             // Obviously the compatibility version can't exceed the true version of the file.
             if (header.CompatibleVersion > header.Version)
             {
-                throw _host.ExceptDecode("Compatibility version {0} cannot be greater than file version {1}",
+                throw _host.ExceptDecode(Strings.CompatibilityVersionCannotBeGreaterThanFileVersion,
                     Header.VersionToString(header.CompatibleVersion), Header.VersionToString(header.Version));
             }
 
             if (header.Version < ReaderFirstVersion)
             {
-                throw _host.ExceptDecode("Unexpected version {0} encountered, earliest expected here was {1}",
+                throw _host.ExceptDecode(Strings.UnexpectedVersionEncounteredEarliestExpectedHereWas,
                     Header.VersionToString(header.Version), Header.VersionToString(ReaderFirstVersion));
             }
             // Check the versions.
@@ -1065,27 +1065,27 @@ namespace Microsoft.ML.Data.IO
                 // This is distinct from the earlier message semantically in that the check
                 // against ReaderFirstVersion is an indication of format impurity, whereas this
                 // is simply a matter of software support.
-                throw _host.Except("Cannot read version {0} data, earliest that can be handled is {1}",
+                throw _host.Except(Strings.CannotReadVersionDataEarliestThatCanBeHandledIs,
                     Header.VersionToString(header.CompatibleVersion), Header.VersionToString(MetadataVersion));
             }
             if (header.CompatibleVersion > ReaderVersion)
             {
-                throw _host.Except("Cannot read version {0} data, latest that can be handled is {1}",
+                throw _host.Except(Strings.CannotReadVersionDataLatestThatCanBeHandledIs,
                     Header.VersionToString(header.CompatibleVersion), Header.VersionToString(ReaderVersion));
             }
 
-            _host.CheckDecode(header.RowCount >= 0, "Row count cannot be negative");
-            _host.CheckDecode(header.ColumnCount >= 0, "Column count cannot be negative");
+            _host.CheckDecode(header.RowCount >= 0, Strings.RowCountCannotBeNegative);
+            _host.CheckDecode(header.ColumnCount >= 0, Strings.ColumnCountCannotBeNegative);
             // Check the table of contents offset, though we do not at this time have the contents themselves.
             if (header.ColumnCount != 0 && header.TableOfContentsOffset < Header.HeaderSize)
-                throw _host.ExceptDecode("Table of contents offset {0} less than header size, impossible", header.TableOfContentsOffset);
+                throw _host.ExceptDecode(Strings.TableOfContentsOffsetLessThanHeaderSizeImpossible, header.TableOfContentsOffset);
 
             // Check the tail signature.
             if (header.TailOffset < Header.HeaderSize)
-                throw _host.ExceptDecode("Tail offset {0} less than header size, impossible", header.TailOffset);
+                throw _host.ExceptDecode(Strings.TailOffsetLessThanHeaderSizeImpossible, header.TailOffset);
             _stream.Seek(header.TailOffset, SeekOrigin.Begin);
             ulong tailSig = _reader.ReadUInt64();
-            _host.CheckDecode(tailSig == Header.TailSignatureValue, "Incorrect tail signature");
+            _host.CheckDecode(tailSig == Header.TailSignatureValue, Strings.IncorrectTailSignature);
             return header;
         }
 
@@ -1111,13 +1111,13 @@ namespace Microsoft.ML.Data.IO
                 int rowsPerBlock = (int)_reader.ReadLeb128Int();
                 // 0 is only a valid blocksize if there are no rows.
                 if (!(0 < rowsPerBlock || (rowsPerBlock == 0 && _header.RowCount == 0)))
-                    throw ch.ExceptDecode("Bad number of rows per block {0} read", rowsPerBlock);
+                    throw ch.ExceptDecode(Strings.BadNumberOfRowsPerBlockRead, rowsPerBlock);
                 // Even though the format allows it, we do not (yet?) support different block sizes across columns.
                 if (c == 0)
                     allRowsPerBlock = rowsPerBlock;
                 else if (allRowsPerBlock != rowsPerBlock)
                 {
-                    throw ch.ExceptNotSupp("Different rows per block per column not supported yet, encountered {0} and {1}",
+                    throw ch.ExceptNotSupp(Strings.DifferentRowsPerBlockPerColumnNotSupportedYetEncountered,
                         allRowsPerBlock, rowsPerBlock);
                 }
 
@@ -1127,11 +1127,11 @@ namespace Microsoft.ML.Data.IO
                     // What is the number of element in the lookup table?
                     long lookupLen = (_header.RowCount - 1) / rowsPerBlock + 1;
                     ch.CheckDecode(Header.HeaderSize <= lookupOffset && lookupOffset <= _header.TailOffset - 16 * lookupLen,
-                        "Lookup table offset out of range");
+                        Strings.LookupTableOffsetOutOfRange);
                 }
                 long metadataTocOffset = _reader.ReadInt64();
                 ch.CheckDecode(metadataTocOffset == 0 || Header.HeaderSize <= metadataTocOffset && metadataTocOffset <= _header.TailOffset,
-                    "Metadata TOC offset out of range");
+                    Strings.MetadataTOCOffsetOutOfRange);
                 var entry = new TableOfContentsEntry(this, c, name, codec,
                     compression, rowsPerBlock, lookupOffset, metadataTocOffset);
                 if (gotCodec && knowCompression)
@@ -1661,7 +1661,7 @@ namespace Microsoft.ML.Data.IO
 
                 private void Get(ref T value)
                 {
-                    Ectx.Check(_curr != null, RowCursorUtils.FetchValueStateError);
+                    Ectx.Check(_curr != null, Strings.ValuesUnavailableOutsideCursorPosition);
                     long src = _curr.RowIndexLim - _remaining - 1;
                     _mapper(in src, ref value);
                 }
@@ -1950,7 +1950,7 @@ namespace Microsoft.ML.Data.IO
 
                 private void Get(ref T value)
                 {
-                    Contracts.Check(_curr != null, RowCursorUtils.FetchValueStateError);
+                    Contracts.Check(_curr != null, Strings.ValuesUnavailableOutsideCursorPosition);
                     _curr.Reader.Get(ref value);
                 }
 
@@ -2034,13 +2034,12 @@ namespace Microsoft.ML.Data.IO
             /// <param name="column"> is the output column whose getter should be returned.</param>
             public override ValueGetter<TValue> GetGetter<TValue>(DataViewSchema.Column column)
             {
-                Ch.CheckParam(column.Index < _colToActivesIndex.Length, nameof(column), "requested column not active.");
+                Ch.CheckParam(column.Index < _colToActivesIndex.Length, nameof(column), Strings.RequestedColumnNotActive);
 
                 var originGetter = _pipeGetters[_colToActivesIndex[column.Index]];
                 var getter = originGetter as ValueGetter<TValue>;
                 if (getter == null)
-                    throw Ch.Except($"Invalid TValue: '{typeof(TValue)}', " +
-                        $"expected type: '{originGetter.GetType().GetGenericArguments().First()}'.");
+                    throw Ch.Except(string.Format(Strings.InvalidTValueExpectedType, typeof(TValue), originGetter.GetType().GetGenericArguments().First()));
                 return getter;
             }
 
@@ -2053,7 +2052,7 @@ namespace Microsoft.ML.Data.IO
 
             private Delegate NoRowGetter<T>()
             {
-                ValueGetter<T> del = (ref T value) => throw Ch.Except(RowCursorUtils.FetchValueStateError);
+                ValueGetter<T> del = (ref T value) => throw Ch.Except(Strings.ValuesUnavailableOutsideCursorPosition);
                 return del;
             }
 
@@ -2064,7 +2063,7 @@ namespace Microsoft.ML.Data.IO
                     return
                         (ref DataViewRowId val) =>
                         {
-                            Ch.Check(IsGood, RowCursorUtils.FetchValueStateError);
+                            Ch.Check(IsGood, Strings.ValuesUnavailableOutsideCursorPosition);
                             val = new DataViewRowId((ulong)Position, 0);
                         };
                 }
@@ -2083,7 +2082,7 @@ namespace Microsoft.ML.Data.IO
                 return
                     (ref DataViewRowId val) =>
                     {
-                        Ch.Check(IsGood, RowCursorUtils.FetchValueStateError);
+                        Ch.Check(IsGood, Strings.ValuesUnavailableOutsideCursorPosition);
                         long pos = Position;
                         if (pos >= firstPositionToCorrect)
                             pos += correction;
@@ -2116,7 +2115,7 @@ namespace Microsoft.ML.Data.IO
             {
                 Contracts.CheckValue(env, nameof(env));
                 env.CheckValue(args, nameof(args));
-                env.CheckNonWhiteSpace(args.DataFile, nameof(args.DataFile), "Data file must be specified");
+                env.CheckNonWhiteSpace(args.DataFile, nameof(args.DataFile), Strings.DataFileMustBeSpecified);
 
                 _dataFile = args.DataFile;
                 _env = env.Register(LoadName, verbose: args.Verbose);

@@ -82,12 +82,12 @@ namespace Microsoft.ML.Trainers.Ensemble
             using (var ch = Host.Start("Init"))
             {
                 var predictorFactories = Args.GetPredictorFactories();
-                ch.CheckUserArg(Utils.Size(predictorFactories) > 0, nameof(EnsembleTrainer.Arguments.BasePredictors), "This should have at-least one value");
+                ch.CheckUserArg(Utils.Size(predictorFactories) > 0, nameof(EnsembleTrainer.Arguments.BasePredictors), Strings.ThisShouldHaveAtLeastOneValue);
 
                 NumModels = Args.NumModels ??
                     (predictorFactories.Length == 1 ? DefaultNumModels : predictorFactories.Length);
 
-                ch.CheckUserArg(NumModels > 0, nameof(Args.NumModels), "Must be positive, or null to indicate numModels is the number of base predictors");
+                ch.CheckUserArg(NumModels > 0, nameof(Args.NumModels), Strings.NumModelsMustBePositiveOrNull);
 
                 if (Utils.Size(predictorFactories) > NumModels)
                     ch.Warning("The base predictor count is greater than models count. Some of the base predictors will be ignored.");
@@ -127,7 +127,7 @@ namespace Microsoft.ML.Trainers.Ensemble
             var stackingTrainer = Combiner as IStackingTrainer<TOutput>;
 
             //REVIEW: Implement stacking for Batch mode.
-            ch.CheckUserArg(stackingTrainer == null || Args.BatchSize <= 0, nameof(Args.BatchSize), "Stacking works only with Non-batch mode");
+            ch.CheckUserArg(stackingTrainer == null || Args.BatchSize <= 0, nameof(Args.BatchSize), Strings.StackingWorksOnlyWithNonBatchMode);
 
             var validationDataSetProportion = SubModelSelector.ValidationDatasetProportion;
             if (stackingTrainer != null)
@@ -185,7 +185,7 @@ namespace Microsoft.ML.Trainers.Ensemble
                 int modelSize = Utils.Size(models);
                 if (modelSize < Utils.Size(Trainers))
                     ch.Warning("{0} of {1} trainings failed.", Utils.Size(Trainers) - modelSize, Utils.Size(Trainers));
-                ch.Check(modelSize > 0, "Ensemble training resulted in no valid models.");
+                ch.Check(modelSize > 0, Strings.EnsembleTrainingResultedInNoValidModels);
             }
             return CreatePredictor(models);
         }

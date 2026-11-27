@@ -28,7 +28,7 @@ namespace Microsoft.ML.Data
         /// </remarks>
         public KeyTypeAttribute()
         {
-            throw Contracts.ExceptNotSupp("Using KeyType without the Count parameter is not supported");
+            throw Contracts.ExceptNotSupp(Strings.UsingKeyTypeWithoutTheCountParameterIsNotSupported);
         }
 
         /// <summary>
@@ -75,7 +75,7 @@ namespace Microsoft.ML.Data
         /// <param name="size">Expected size of array. A zero value indicates that the vector type is considered to have unknown length.</param>
         public VectorTypeAttribute(int size)
         {
-            Contracts.CheckParam(size >= 0, nameof(size), "Should be non-negative number");
+            Contracts.CheckParam(size >= 0, nameof(size), Strings.ShouldBeNonNegativeNumber);
             Dims = new int[1] { size };
         }
 
@@ -90,7 +90,7 @@ namespace Microsoft.ML.Data
         {
             foreach (var size in dimensions)
             {
-                Contracts.CheckParam(size >= 0, nameof(dimensions), "Should contain only non-negative values");
+                Contracts.CheckParam(size >= 0, nameof(dimensions), Strings.ShouldContainOnlyNonNegativeValues);
             }
             Dims = dimensions;
         }
@@ -173,7 +173,7 @@ namespace Microsoft.ML.Data
                 return false;
 
             ectx.Check(cursorChannelAttrMembers.Length == 1,
-                "Only one public field or property with CursorChannel attribute is allowed.");
+                Strings.MultipleCursorChannelMembers);
 
             //Check that the marked field has type IChannel.
             var cursorChannelAttrMemberInfo = cursorChannelAttrMembers[0];
@@ -181,19 +181,19 @@ namespace Microsoft.ML.Data
             {
                 case FieldInfo cursorChannelAttrFieldInfo:
                     ectx.Check(cursorChannelAttrFieldInfo.FieldType == typeof(IChannel),
-                        "Field marked as CursorChannel must have type IChannel.");
+                        Strings.FieldMarkedAsCursorChannelMustHaveTypeIChannel);
                     cursorChannelAttrFieldInfo.SetValue(obj, channel);
                     break;
 
                 case PropertyInfo cursorChannelAttrPropertyInfo:
                     ectx.Check(cursorChannelAttrPropertyInfo.PropertyType == typeof(IChannel),
-                        "Property marked as CursorChannel must have type IChannel.");
+                        Strings.PropertyMarkedAsCursorChannelMustHaveTypeIChannel);
                     cursorChannelAttrPropertyInfo.SetValue(obj, channel);
                     break;
 
                 default:
                     Contracts.Assert(false);
-                    throw Contracts.ExceptNotSupp("Expected a FieldInfo or a PropertyInfo");
+                    throw Contracts.ExceptNotSupp(Strings.ExpectedAFieldInfoOrAPropertyInfo);
             }
             return true;
         }
@@ -260,7 +260,7 @@ namespace Microsoft.ML.Data
                 Contracts.CheckValue(annotationType, nameof(annotationType));
 
                 if (AnnotationInfos.ContainsKey(kind))
-                    throw Contracts.Except("Column already contains an annotation of this kind.");
+                    throw Contracts.Except(Strings.ColumnAlreadyContainsAnAnnotationOfThisKind);
                 AnnotationInfos[kind] = new AnnotationInfo<T>(kind, value, annotationType);
             }
 
@@ -308,7 +308,7 @@ namespace Microsoft.ML.Data
                 if (value.ColumnName != columnName)
                 {
                     throw Contracts.ExceptParam(nameof(columnName),
-                        "The column name is specified as '{0}' but must match the selector '{1}'.",
+                        Strings.ColumnNameDoesNotMatchSelector,
                         value.ColumnName, columnName);
                 }
 
@@ -370,7 +370,7 @@ namespace Microsoft.ML.Data
 
                 default:
                     Contracts.Assert(false);
-                    throw Contracts.ExceptNotSupp("Expected a FieldInfo or a PropertyInfo");
+                    throw Contracts.ExceptNotSupp(Strings.ExpectedAFieldInfoOrAPropertyInfo);
             }
 
             if (memberInfo.GetCustomAttribute<NoColumnAttribute>() != null)
@@ -390,7 +390,7 @@ namespace Microsoft.ML.Data
             customAttributes = memberInfo.GetCustomAttributes();
             var customTypeAttributes = customAttributes.Where(x => x is DataViewTypeAttribute);
             if (customTypeAttributes.Count() > 1)
-                throw Contracts.ExceptParam(nameof(userType), "Member {0} cannot be marked with multiple attributes, {1}, derived from {2}.",
+                throw Contracts.ExceptParam(nameof(userType), Strings.MemberCannotBeMarkedWithMultipleAttributesDerivedFrom,
                     memberInfo.Name, customTypeAttributes, typeof(DataViewTypeAttribute));
             else if (customTypeAttributes.Count() == 1)
             {
@@ -404,7 +404,7 @@ namespace Microsoft.ML.Data
             // well defined, so we are not guaranteed to have consistent "hiding" from run to
             // run, across different .NET versions.
             if (!colNames.Add(name))
-                throw Contracts.ExceptParam(nameof(userType), "Duplicate column name '{0}' detected, this is disallowed", name);
+                throw Contracts.ExceptParam(nameof(userType), Strings.DuplicateColumnNameDetectedThisIsDisallowed, name);
 
             return true;
         }
@@ -438,7 +438,7 @@ namespace Microsoft.ML.Data
                     if (keyAttr != null)
                     {
                         if (!KeyDataViewType.IsValidDataType(dataType))
-                            throw Contracts.ExceptParam(nameof(userType), "Member {0} marked with KeyType attribute, but does not appear to be a valid kind of data for a key type", memberInfo.Name);
+                            throw Contracts.ExceptParam(nameof(userType), Strings.KeyTypeAttributeAppliedToInvalidMember, memberInfo.Name);
                         if (keyAttr.KeyCount == null)
                             itemType = new KeyDataViewType(dataType, dataType.ToMaxInt());
                         else
@@ -449,12 +449,12 @@ namespace Microsoft.ML.Data
 
                     var vectorAttr = memberInfo.GetCustomAttribute<VectorTypeAttribute>();
                     if (vectorAttr != null && !isVector)
-                        throw Contracts.ExceptParam(nameof(userType), $"Member {memberInfo.Name} marked with {nameof(VectorTypeAttribute)}, but does not appear to be a vector type", memberInfo.Name);
+                        throw Contracts.ExceptParam(nameof(userType), string.Format(Strings.MemberAttributeRequiresVectorType, memberInfo.Name, nameof(VectorTypeAttribute)), memberInfo.Name);
                     if (isVector)
                     {
                         int[] dims = vectorAttr?.Dims;
                         if (dims != null && dims.Any(d => d < 0))
-                            throw Contracts.ExceptParam(nameof(userType), "Some of member {0}'s dimension lengths are negative");
+                            throw Contracts.ExceptParam(nameof(userType), Strings.SomeOfMemberSDimensionLengthsAreNegative);
                         if (Utils.Size(dims) == 0)
                             columnType = new VectorDataViewType(itemType, 0);
                         else

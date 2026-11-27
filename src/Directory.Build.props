@@ -14,6 +14,10 @@
     <CodeAnalysisRuleSet>$(MSBuildThisFileDirectory)\Source.ruleset</CodeAnalysisRuleSet>
     <EnableNETAnalyzers>true</EnableNETAnalyzers>
 
+    <_LocalizableStringsPath>$(MSBuildProjectDirectory)\Resources\Strings.resx</_LocalizableStringsPath>
+    <NeutralLanguage Condition="Exists('$(_LocalizableStringsPath)')">en</NeutralLanguage>
+    <EnableXlfLocalization Condition="Exists('$(_LocalizableStringsPath)')">false</EnableXlfLocalization>
+
     <NativeAssetsBuiltPath>$(BaseOutputPath)$(TargetArchitecture).$(Configuration)</NativeAssetsBuiltPath>
 
     <PackageRid Condition="'$(OS)' == 'Windows_NT'">win</PackageRid>

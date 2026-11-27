@@ -75,8 +75,8 @@ namespace Microsoft.ML.Data
             // REVIEW: What kind of checking should be applied to labelGains?
             // add the setter to utils here
             if (options.DcgTruncationLevel <= 0)
-                throw Host.ExceptUserArg(nameof(options.DcgTruncationLevel), "DCG Truncation Level must be greater than 0");
-            Host.CheckUserArg(options.LabelGains != null, nameof(options.LabelGains), "Label gains cannot be null");
+                throw Host.ExceptUserArg(nameof(options.DcgTruncationLevel), Strings.DCGTruncationLevelMustBeGreaterThan0);
+            Host.CheckUserArg(options.LabelGains != null, nameof(options.LabelGains), Strings.LabelGainsCannotBeNull);
 
             _truncationLevel = options.DcgTruncationLevel;
             _groupSummary = options.OutputGroupSummary;
@@ -87,7 +87,7 @@ namespace Microsoft.ML.Data
             {
                 Double gain;
                 if (!Double.TryParse(gains[i], out gain))
-                    throw Host.ExceptUserArg(nameof(options.LabelGains), "Label Gains must be of floating or integral type");
+                    throw Host.ExceptUserArg(nameof(options.LabelGains), Strings.LabelGainsMustBeOfFloatingOrIntegralType);
                 labelGains.Add(gain);
             }
             _labelGains = labelGains.ToArray();
@@ -134,9 +134,9 @@ namespace Microsoft.ML.Data
         internal override IDataTransform GetPerInstanceMetricsCore(RoleMappedData data)
         {
             Host.CheckValue(data, nameof(data));
-            Host.CheckParam(data.Schema.Label.HasValue, nameof(data), "Schema must contain a label column");
+            Host.CheckParam(data.Schema.Label.HasValue, nameof(data), Strings.SchemaMustContainALabelColumn);
             var scoreInfo = data.Schema.GetUniqueColumn(AnnotationUtils.Const.ScoreValueKind.Score);
-            Host.CheckParam(data.Schema.Group.HasValue, nameof(data), "Schema must contain a group column");
+            Host.CheckParam(data.Schema.Group.HasValue, nameof(data), Strings.SchemaMustContainAGroupColumn);
 
             return new RankingPerInstanceTransform(Host, data.Data,
                 data.Schema.Label.Value.Name, scoreInfo.Name, data.Schema.Group.Value.Name, _truncationLevel, _labelGains);
@@ -178,9 +178,9 @@ namespace Microsoft.ML.Data
             addAgg =
                 (stratColKey, stratColVal, agg) =>
                 {
-                    Host.Check(agg.Weighted == hasWeight, "All aggregators must either be weighted or unweighted");
+                    Host.Check(agg.Weighted == hasWeight, Strings.AllAggregatorsMustEitherBeWeightedOrUnweighted);
                     Host.Check(agg.UnweightedCounters.GroupSummary == aggregator.UnweightedCounters.GroupSummary,
-                        "All aggregators must either compute group summary or not compute group summary");
+                        Strings.AllAggregatorsMustEitherComputeGroupSummaryOrNotCompute);
 
                     stratCol.Add(stratColKey);
                     stratVal.Add(stratColVal);
@@ -506,7 +506,7 @@ namespace Microsoft.ML.Data
                     if (Single.IsNaN(_currentQueryWeight))
                         _currentQueryWeight = weight;
                     else
-                        Contracts.Check(weight == _currentQueryWeight, "Weights within query differ");
+                        Contracts.Check(weight == _currentQueryWeight, Strings.WeightsWithinQueryDiffer);
                 }
             }
 
@@ -703,7 +703,7 @@ namespace Microsoft.ML.Data
                 : base(env, input, labelCol, scoreCol, groupCol, RegistrationName)
             {
                 Host.CheckParam(0 < truncationLevel, nameof(truncationLevel),
-                    "Truncation level must be greater than 0");
+                    Strings.TruncationLevelMustBeGreaterThan0);
                 Host.CheckValue(labelGains, nameof(labelGains));
 
                 _truncationLevel = truncationLevel;
@@ -905,7 +905,7 @@ namespace Microsoft.ML.Data
             {
                 IDataView gs;
                 if (!TryGetGroupSummaryMetrics(metrics, out gs))
-                    throw ch.Except("Did not find group summary metrics");
+                    throw ch.Except(Strings.DidNotFindGroupSummaryMetrics);
 
                 ch.Trace("Saving group-summary results");
                 // If the data view contains stratification columns, filter so that only the overall metrics
@@ -940,8 +940,8 @@ namespace Microsoft.ML.Data
         private protected override IEnumerable<string> GetPerInstanceColumnsToSave(RoleMappedSchema schema)
         {
             Host.CheckValue(schema, nameof(schema));
-            Host.CheckParam(schema.Label.HasValue, nameof(schema), "Data must contain a label column");
-            Host.CheckParam(schema.Group.HasValue, nameof(schema), "Data must contain a group column");
+            Host.CheckParam(schema.Label.HasValue, nameof(schema), Strings.DataMustContainALabelColumn);
+            Host.CheckParam(schema.Group.HasValue, nameof(schema), Strings.DataMustContainAGroupColumn);
 
             // The ranking evaluator outputs the label, group key and score columns.
             yield return schema.Group.Value.Name;

@@ -114,9 +114,9 @@ namespace Microsoft.ML.Data
         public double GetCountForClassPair(int predictedClassIndicatorIndex, int actualClassIndicatorIndex)
         {
             _host.CheckParam(predictedClassIndicatorIndex > -1 && predictedClassIndicatorIndex < Counts.Count,
-                nameof(predictedClassIndicatorIndex), "Invalid index. Should be non-negative, less than the number of classes.");
+                nameof(predictedClassIndicatorIndex), Strings.ClassIndexOutOfRange);
             _host.CheckParam(actualClassIndicatorIndex > -1 && actualClassIndicatorIndex < Counts.Count,
-                nameof(actualClassIndicatorIndex), "Invalid index. Should be non-negative, less than the number of classes.");
+                nameof(actualClassIndicatorIndex), Strings.ClassIndexOutOfRange);
 
             return Counts[actualClassIndicatorIndex][predictedClassIndicatorIndex];
         }

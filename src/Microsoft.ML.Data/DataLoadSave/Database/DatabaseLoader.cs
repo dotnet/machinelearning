@@ -50,7 +50,7 @@ namespace Microsoft.ML.Data
             var cols = options.Columns;
             if (Utils.Size(cols) == 0)
             {
-                throw _host.Except("DatabaseLoader requires at least one Column");
+                throw _host.Except(Strings.DatabaseLoaderRequiresAtLeastOneColumn);
             }
 
             _bindings = new Bindings(this, cols);
@@ -113,7 +113,7 @@ namespace Microsoft.ML.Data
             var memberInfos = (fieldInfos as IEnumerable<MemberInfo>).Concat(propertyInfos).ToArray();
 
             if (memberInfos.Length == 0)
-                throw host.ExceptParam(nameof(TInput), $"Should define at least one public, readable field or property in {nameof(TInput)}.");
+                throw host.ExceptParam(nameof(TInput), Strings.ShouldDefineAtLeastOnePublicReadableFieldOrProperty);
 
             var columns = new List<Column>();
 
@@ -132,7 +132,7 @@ namespace Microsoft.ML.Data
                 {
                     if (nameMappingAttr is object)
                     {
-                        throw Contracts.Except($"Cannot specify both {nameof(LoadColumnAttribute)} and {nameof(LoadColumnNameAttribute)}");
+                        throw Contracts.Except(Strings.CannotSpecifyBothLoadColumnAttributeAndLoadColumnNameAttribute);
                     }
 
                     column.Source = indexMappingAttr.Sources.Select((source) => Range.FromTextLoaderRange(source)).ToArray();
@@ -147,18 +147,18 @@ namespace Microsoft.ML.Data
                 {
                     case FieldInfo field:
                         if (!InternalDataKindExtensions.TryGetDataKind(field.FieldType.IsArray ? field.FieldType.GetElementType() : field.FieldType, out dk))
-                            throw Contracts.Except($"Field {memberInfo.Name} is of unsupported type.");
+                            throw Contracts.Except(string.Format(Strings.FieldIsOfUnsupportedType, memberInfo.Name));
 
                         break;
 
                     case PropertyInfo property:
                         if (!InternalDataKindExtensions.TryGetDataKind(property.PropertyType.IsArray ? property.PropertyType.GetElementType() : property.PropertyType, out dk))
-                            throw Contracts.Except($"Property {memberInfo.Name} is of unsupported type.");
+                            throw Contracts.Except(string.Format(Strings.PropertyIsOfUnsupportedType, memberInfo.Name));
                         break;
 
                     default:
                         Contracts.Assert(false);
-                        throw Contracts.ExceptNotSupp("Expected a FieldInfo or a PropertyInfo");
+                        throw Contracts.ExceptNotSupp(Strings.ExpectedAFieldInfoOrAPropertyInfo);
                 }
 
                 column.Type = dk.ToDbType();
@@ -262,7 +262,7 @@ namespace Microsoft.ML.Data
             /// <param name="index">The index of the field of the table to read.</param>
             public Range(int index)
             {
-                Contracts.CheckParam(index >= 0, nameof(index), "Must be non-negative");
+                Contracts.CheckParam(index >= 0, nameof(index), Strings.MustBeNonNegative);
                 Min = index;
                 Max = index;
                 Name = null;
@@ -287,8 +287,8 @@ namespace Microsoft.ML.Data
             /// <param name="max">The maximum-inclusive index of the column.</param>
             public Range(int min, int max)
             {
-                Contracts.CheckParam(min >= 0, nameof(min), "Must be non-negative");
-                Contracts.CheckParam(max >= min, nameof(max), "Must be greater than or equal to " + nameof(min));
+                Contracts.CheckParam(min >= 0, nameof(min), Strings.MustBeNonNegative);
+                Contracts.CheckParam(max >= min, nameof(max), Strings.MustBeGreaterThanOrEqualToMin);
 
                 Min = min;
                 Max = max;
@@ -433,8 +433,8 @@ namespace Microsoft.ML.Data
                             if (segs[a].Lim > segs[b].Min)
                             {
                                 throw user ?
-                                    Contracts.ExceptUserArg(nameof(Column.Source), "Intervals specified for column '{0}' overlap", name) :
-                                    Contracts.ExceptDecode("Intervals specified for column '{0}' overlap", name);
+                                    Contracts.ExceptUserArg(nameof(Column.Source), Strings.IntervalsSpecifiedForColumnOverlap, name) :
+                                    Contracts.ExceptDecode(Strings.IntervalsSpecifiedForColumnOverlap, name);
                             }
                         }
                     }
@@ -496,7 +496,7 @@ namespace Microsoft.ML.Data
                         }
                         else
                         {
-                            ch.CheckUserArg(Enum.IsDefined(typeof(DbType), col.Type), nameof(Column.Type), "Bad item type");
+                            ch.CheckUserArg(Enum.IsDefined(typeof(DbType), col.Type), nameof(Column.Type), Strings.BadItemType);
                             itemType = ColumnTypeExtensions.PrimitiveTypeFromType(col.Type.ToType());
                         }
 
@@ -686,7 +686,7 @@ namespace Microsoft.ML.Data
 
                 KeyDataViewType keyType;
                 Type rawType = dbType.ToType();
-                Contracts.CheckUserArg(KeyDataViewType.IsValidDataType(rawType), nameof(DatabaseLoader.Column.Type), "Bad item type for Key");
+                Contracts.CheckUserArg(KeyDataViewType.IsValidDataType(rawType), nameof(DatabaseLoader.Column.Type), Strings.BadItemTypeForKey);
 
                 if (keyCount.Count == null)
                     keyType = new KeyDataViewType(rawType, rawType.ToMaxInt());

@@ -51,7 +51,7 @@ namespace Microsoft.ML.Data
         public static string[] GetTempColumnNames(this DataViewSchema schema, int n, string tag = null)
         {
             Contracts.CheckValue(schema, nameof(schema));
-            Contracts.Check(n > 0, "n");
+            Contracts.Check(n > 0, nameof(n));
 
             var res = new string[n];
             int j = 0;
@@ -332,11 +332,11 @@ namespace Microsoft.ML.Data
                 ch.CheckNonEmpty(inputs, nameof(inputs));
                 if (inputs.Length == 1)
                     return inputs[0];
-                ch.CheckParam(SameSchemaAndActivity(inputs), nameof(inputs), "Inputs not compatible for consolidation");
+                ch.CheckParam(SameSchemaAndActivity(inputs), nameof(inputs), Strings.InputsNotCompatibleForConsolidation);
 
                 DataViewRowCursor cursor = inputs[0];
                 var schema = cursor.Schema;
-                ch.CheckParam(AllCacheable(schema, cursor.IsColumnActive), nameof(inputs), "Inputs had some uncachable input columns");
+                ch.CheckParam(AllCacheable(schema, cursor.IsColumnActive), nameof(inputs), Strings.InputsHadSomeUncachableInputColumns);
 
                 int[] activeToCol;
                 int[] colToActive;
@@ -829,7 +829,7 @@ namespace Microsoft.ML.Data
                 public void SetAll(OutPipe[] pipes)
                 {
                     if (_ex != null)
-                        throw Contracts.Except(_ex, "Splitter/consolidator worker encountered exception while consuming source data");
+                        throw Contracts.Except(_ex, Strings.SplitterConsolidatorWorkerFailedWhileConsumingSourceData);
                     Contracts.Assert(Utils.Size(pipes) == _batchColumns.Length);
                     for (int p = 0; p < _batchColumns.Length; ++p)
                     {
@@ -969,7 +969,7 @@ namespace Microsoft.ML.Data
 
                     protected override void Getter(ref VBuffer<T> value)
                     {
-                        Contracts.Check(_index < _count, "Cannot get value as the cursor is not in a good state");
+                        Contracts.Check(_index < _count, Strings.CursorNotInValidState);
                         Values[_index].CopyTo(ref value);
                     }
                 }
@@ -983,7 +983,7 @@ namespace Microsoft.ML.Data
 
                     protected override void Getter(ref T value)
                     {
-                        Contracts.Check(_index < _count, "Cannot get value as the cursor is not in a good state");
+                        Contracts.Check(_index < _count, Strings.CursorNotInValidState);
                         value = Values[_index];
                     }
                 }
@@ -1122,14 +1122,13 @@ namespace Microsoft.ML.Data
                 /// <param name="column"> is the output column whose getter should be returned.</param>
                 public override ValueGetter<TValue> GetGetter<TValue>(DataViewSchema.Column column)
                 {
-                    Ch.CheckParam(IsColumnActive(column), nameof(column), "requested column not active.");
-                    Ch.CheckParam(column.Index < _colToActive.Length, nameof(column), "requested column is not active or valid for the Schema.");
+                    Ch.CheckParam(IsColumnActive(column), nameof(column), Strings.RequestedColumnNotActive);
+                    Ch.CheckParam(column.Index < _colToActive.Length, nameof(column), Strings.RequestedColumnIsNotActiveOrValidForTheSchema);
 
                     var originGetter = _getters[_colToActive[column.Index]];
                     var getter = originGetter as ValueGetter<TValue>;
                     if (getter == null)
-                        throw Ch.Except($"Invalid TValue: '{typeof(TValue)}', " +
-                            $"expected type: '{originGetter.GetType().GetGenericArguments().First()}'.");
+                        throw Ch.Except(string.Format(Strings.InvalidTValueExpectedType, typeof(TValue), originGetter.GetType().GetGenericArguments().First()));
                     return getter;
                 }
             }
@@ -1234,7 +1233,7 @@ namespace Microsoft.ML.Data
                 return
                     (ref DataViewRowId val) =>
                     {
-                        Ch.Check(_icursor >= 0, RowCursorUtils.FetchValueStateError);
+                        Ch.Check(_icursor >= 0, Strings.ValuesUnavailableOutsideCursorPosition);
                         idGetters[_icursor](ref val);
                     };
             }
@@ -1260,7 +1259,7 @@ namespace Microsoft.ML.Data
                 ValueGetter<T> mine =
                     (ref T value) =>
                     {
-                        Ch.Check(_icursor >= 0, RowCursorUtils.FetchValueStateError);
+                        Ch.Check(_icursor >= 0, Strings.ValuesUnavailableOutsideCursorPosition);
                         getters[_icursor](ref value);
                     };
                 return mine;
@@ -1313,14 +1312,13 @@ namespace Microsoft.ML.Data
             /// <param name="column"> is the output column whose getter should be returned.</param>
             public override ValueGetter<TValue> GetGetter<TValue>(DataViewSchema.Column column)
             {
-                Ch.CheckParam(IsColumnActive(column), nameof(column), "requested column not active");
-                Ch.CheckParam(column.Index < _colToActive.Length, nameof(column), "requested column not active or is invalid for the schema. ");
+                Ch.CheckParam(IsColumnActive(column), nameof(column), Strings.RequestedColumnNotActive);
+                Ch.CheckParam(column.Index < _colToActive.Length, nameof(column), Strings.RequestedColumnNotActiveOrIsInvalidForTheSchema);
 
                 var originGetter = _getters[_colToActive[column.Index]];
                 var getter = originGetter as ValueGetter<TValue>;
                 if (getter == null)
-                    throw Ch.Except($"Invalid TValue: '{typeof(TValue)}', " +
-                        $"expected type: '{originGetter.GetType().GetGenericArguments().First()}'.");
+                    throw Ch.Except(string.Format(Strings.InvalidTValueExpectedType, typeof(TValue), originGetter.GetType().GetGenericArguments().First()));
                 return getter;
             }
         }

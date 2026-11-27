@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -47,13 +47,13 @@ namespace Microsoft.ML.Fairlearn
                 _epsilon = ratioBoundSlack;
                 if (ratioBond <= 0.0f || ratioBond > 1.0f)
                 {
-                    throw new Exception("ratio must lie between (0.1]");
+                    throw new Exception(Strings.RatioMustLieBetween01);
                 }
                 _ratio = ratioBond;
             }
             else
             {
-                throw new Exception("Only one of difference_bound and ratio_bound can be used");
+                throw new Exception(Strings.FairnessBoundsMutuallyExclusive);
             }
         }
 

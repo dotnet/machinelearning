@@ -1,0 +1,203 @@
+﻿<?xml version='1.0' encoding='utf-8'?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="BatchDoesNotHaveTestData" xml:space="preserve">
+    <value>Batch does not have test data</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Ensemble/Selector/SubsetSelector/BaseSubsetSelector.cs:97.</comment>
+  </data>
+  <data name="CantSaveAnUntrainedStackingCombiner" xml:space="preserve">
+    <value>Can't save an untrained Stacking combiner</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Ensemble/OutputCombiners/BaseStacking.cs:70.</comment>
+  </data>
+  <data name="CannotDetermineTheNumberOfClassesThePredictorOutputs" xml:space="preserve">
+    <value>Cannot determine the number of classes the predictor outputs</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Ensemble/PipelineEnsemble.cs:628.</comment>
+  </data>
+  <data name="CombinerTypeIncompatibleWithScoreColumnKind" xml:space="preserve">
+    <value>Combiner type incompatible with score column kind</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Ensemble/PipelineEnsemble.cs:526. Exception or validation message. Source: src/Microsoft.ML.Ensemble/PipelineEnsemble.cs:532. Exception or validation message. Source: src/Microsoft.ML.Ensemble/PipelineEnsemble.cs:537.</comment>
+  </data>
+  <data name="EnsembleTrainingResultedInNoValidModels" xml:space="preserve">
+    <value>Ensemble training resulted in no valid models.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Ensemble/Trainer/EnsembleTrainerBase.cs:188.</comment>
+  </data>
+  <data name="EnsembleWasCreatedWithNoModels" xml:space="preserve">
+    <value>Ensemble was created with no models.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Ensemble/Trainer/EnsembleModelParametersBase.cs:32.</comment>
+  </data>
+  <data name="EvaluatorDidNotProduceAnyOverallMetrics" xml:space="preserve">
+    <value>Evaluator did not produce any overall metrics</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Ensemble/Selector/SubModelSelector/BaseSubModelSelector.cs:95.</comment>
+  </data>
+  <data name="InconsistentSchemaColumnCounts" xml:space="preserve">
+    <value>Inconsistent schemas: not all schemas have the same number of columns</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Ensemble/PipelineEnsemble.cs:444.</comment>
+  </data>
+  <data name="InconsistentSchemasSomeSchemasDoNotContainTheColumn" xml:space="preserve">
+    <value>Inconsistent schemas: Some schemas do not contain the column '{0}'</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Ensemble/PipelineEnsemble.cs:440.</comment>
+  </data>
+  <data name="InnerPredictorTypeNotCompatibleWithTheEnsembleType" xml:space="preserve">
+    <value>Inner predictor type not compatible with the ensemble type.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Ensemble/Trainer/EnsembleModelParametersBase.cs:70.</comment>
+  </data>
+  <data name="InputPredictorDidNotHaveTheExpectedOutputType" xml:space="preserve">
+    <value>Input predictor did not have the expected output type {0}.</value>
+    <comment>Exception or validation message. Placeholders: {0}=typeof(TOutput).Name. Source: src/Microsoft.ML.Ensemble/FeatureSubsetModel.cs:26.</comment>
+  </data>
+  <data name="ModelKeyLabelTypeMismatch" xml:space="preserve">
+    <value>Label column of model {0} has different key value type than model 0</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Ensemble/PipelineEnsemble.cs:671.</comment>
+  </data>
+  <data name="LabelColumnOfModelHasDifferentTypeThanModel0" xml:space="preserve">
+    <value>Label column of model {0} has different type than model 0</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Ensemble/PipelineEnsemble.cs:667.</comment>
+  </data>
+  <data name="KeyLabelColumnRequiresKeyValuesMetadata" xml:space="preserve">
+    <value>Label column of type key must have a vector of key values metadata</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Ensemble/PipelineEnsemble.cs:610.</comment>
+  </data>
+  <data name="LabelIsNotBinary" xml:space="preserve">
+    <value>Label is not binary</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Ensemble/PipelineEnsemble.cs:606.</comment>
+  </data>
+  <data name="ModelClassCountMismatch" xml:space="preserve">
+    <value>Label of model {0} has different number of classes than model 0</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Ensemble/PipelineEnsemble.cs:638.</comment>
+  </data>
+  <data name="LabelOfModelHasDifferentValuesThanModel0" xml:space="preserve">
+    <value>Label of model {0} has different values than model 0</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Ensemble/PipelineEnsemble.cs:674.</comment>
+  </data>
+  <data name="MapperWasNotTrainedUsingALabelColumn" xml:space="preserve">
+    <value>Mapper was not trained using a label column</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Ensemble/PipelineEnsemble.cs:165.</comment>
+  </data>
+  <data name="MetricsDidNotContainTheRequestedMetric" xml:space="preserve">
+    <value>Metrics did not contain the requested metric '{0}'</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Ensemble/Selector/SubModelSelector/BaseBestPerformanceSelector.cs:111. Exception or validation message. Source: src/Microsoft.ML.Ensemble/Selector/SubModelSelector/BaseBestPerformanceSelector.cs:98. Exception or validation message. Source: src/Microsoft.ML.Ensemble/Selector/SubModelSelector/BaseSubModelSelector.cs:47.</comment>
+  </data>
+  <data name="NumModelsMustBePositiveOrNull" xml:space="preserve">
+    <value>Must be positive, or null to indicate numModels is the number of base predictors</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Ensemble/Trainer/EnsembleTrainerBase.cs:90.</comment>
+  </data>
+  <data name="PredictorDoesNotContainAScoreColumn" xml:space="preserve">
+    <value>Predictor {0} does not contain a score column</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Ensemble/PipelineEnsemble.cs:79.</comment>
+  </data>
+  <data name="PredictorDoesNotImplementExpectedInterface" xml:space="preserve">
+    <value>Predictor does not implement expected interface</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Ensemble/Trainer/EnsembleDistributionModelParameters.cs:92. Exception or validation message. Source: src/Microsoft.ML.Ensemble/Trainer/EnsembleModelParameters.cs:82. Exception or validation message. Source: src/Microsoft.ML.Ensemble/Trainer/Multiclass/EnsembleMulticlassModelParameters.cs:74.</comment>
+  </data>
+  <data name="PredictorDoesntImplementTheExpectedInterface" xml:space="preserve">
+    <value>Predictor doesn't implement the expected interface</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Ensemble/Selector/SubModelSelector/BaseDiverseSelector.cs:43.</comment>
+  </data>
+  <data name="PredictorInputTypeMismatch" xml:space="preserve">
+    <value>Predictor input type mismatch</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Ensemble/Trainer/EnsembleDistributionModelParameters.cs:98. Exception or validation message. Source: src/Microsoft.ML.Ensemble/Trainer/EnsembleModelParameters.cs:88. Exception or validation message. Source: src/Microsoft.ML.Ensemble/Trainer/Multiclass/EnsembleMulticlassModelParameters.cs:80.</comment>
+  </data>
+  <data name="PredictorIsNotAPipelineEnsemblePredictor" xml:space="preserve">
+    <value>Predictor is not a pipeline ensemble predictor</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Ensemble/EntryPoints/PipelineEnsemble.cs:45.</comment>
+  </data>
+  <data name="PredictorIsNotARowToRowMapper" xml:space="preserve">
+    <value>Predictor {0} is not a row to row mapper</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Ensemble/PipelineEnsemble.cs:74.</comment>
+  </data>
+  <data name="ShouldBeGreaterThan0AndLessThan1" xml:space="preserve">
+    <value>Should be greater than 0 and less than 1</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Ensemble/Selector/SubModelSelector/SubModelDataSelector.cs:40.</comment>
+  </data>
+  <data name="ProportionMustBeInUnitInterval" xml:space="preserve">
+    <value>Should be greater than or equal to 0 and less than 1</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Ensemble/Selector/SubModelSelector/SubModelDataSelector.cs:37. Exception or validation message. Source: src/Microsoft.ML.Ensemble/Selector/SubsetSelector/BaseSubsetSelector.cs:48.</comment>
+  </data>
+  <data name="StackingPredictorDoesntImplementTheExpectedInterface" xml:space="preserve">
+    <value>Stacking predictor doesn't implement the expected interface</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Ensemble/OutputCombiners/BaseStacking.cs:116.</comment>
+  </data>
+  <data name="StackingPredictorInputTypeIsUnsupported" xml:space="preserve">
+    <value>Stacking predictor input type is unsupported: {0}</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Ensemble/OutputCombiners/BaseStacking.cs:118.</comment>
+  </data>
+  <data name="StackingPredictorOutputTypeIsUnsupported" xml:space="preserve">
+    <value>Stacking predictor output type is unsupported: {0}</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Ensemble/OutputCombiners/BaseStacking.cs:120.</comment>
+  </data>
+  <data name="StackingWorksOnlyWithNonBatchMode" xml:space="preserve">
+    <value>Stacking works only with Non-batch mode</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Ensemble/Trainer/EnsembleTrainerBase.cs:130.</comment>
+  </data>
+  <data name="RandomFeatureSelectorProportionMustBeBetweenZeroAndOne" xml:space="preserve">
+    <value>The feature proportion for RandomFeatureSelector should be greater than 0 and lesser than 1</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Ensemble/Selector/FeatureSelector/RandomFeatureSelector.cs:44.</comment>
+  </data>
+  <data name="SerializedDataAndEntryNameCountsMustMatch" xml:space="preserve">
+    <value>The length of dataSerialized must be equal to the length of dataZipEntryNames</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Ensemble/EntryPoints/CreateEnsemble.cs:369.</comment>
+  </data>
+  <data name="StackingValidationProportionOutOfRange" xml:space="preserve">
+    <value>The validation proportion for stacking should be greater than or equal to 0 and less than 1</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Ensemble/OutputCombiners/BaseStacking.cs:42.</comment>
+  </data>
+  <data name="ThisShouldHaveAtLeastOneValue" xml:space="preserve">
+    <value>This should have at-least one value</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Ensemble/Trainer/EnsembleTrainerBase.cs:85.</comment>
+  </data>
+  <data name="TrainCalledMultipleTimes" xml:space="preserve">
+    <value>Train called multiple times</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Ensemble/OutputCombiners/BaseStacking.cs:132.</comment>
+  </data>
+  <data name="TrainingOfStackingCombinerNotComplete" xml:space="preserve">
+    <value>Training of stacking combiner not complete</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Ensemble/OutputCombiners/BaseStacking.cs:91.</comment>
+  </data>
+  <data name="TrainingSchemaForModel0DoesNotHaveALabel" xml:space="preserve">
+    <value>Training schema for model 0 does not have a label column</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Ensemble/PipelineEnsemble.cs:598.</comment>
+  </data>
+  <data name="TrainingSchemaForModelDoesNotHaveALabelColumn" xml:space="preserve">
+    <value>Training schema for model {0} does not have a label column</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Ensemble/PipelineEnsemble.cs:662.</comment>
+  </data>
+  <data name="TransformPipelineContainsNonRowToRowMapperTransforms" xml:space="preserve">
+    <value>Transform pipeline {0} contains transforms that do not implement IRowToRowMapper</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Ensemble/PipelineEnsemble.cs:88.</comment>
+  </data>
+  <data name="UndefinedMetricName" xml:space="preserve">
+    <value>Undefined metric name</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Ensemble/Selector/SubModelSelector/BestPerformanceRegressionSelector.cs:41. Exception or validation message. Source: src/Microsoft.ML.Ensemble/Selector/SubModelSelector/BestPerformanceSelector.cs:41. Exception or validation message. Source: src/Microsoft.ML.Ensemble/Selector/SubModelSelector/BestPerformanceSelectorMulticlass.cs:41.</comment>
+  </data>
+  <data name="UnknownCombinerKind" xml:space="preserve">
+    <value>Unknown combiner kind</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Ensemble/EntryPoints/CreateEnsemble.cs:154. Exception or validation message. Source: src/Microsoft.ML.Ensemble/EntryPoints/CreateEnsemble.cs:186. Exception or validation message. Source: src/Microsoft.ML.Ensemble/EntryPoints/CreateEnsemble.cs:219. Exception or validation message. Source: src/Microsoft.ML.Ensemble/EntryPoints/CreateEnsemble.cs:243. Exception or validation message. Source: src/Microsoft.ML.Ensemble/EntryPoints/CreateEnsemble.cs:270. Exception or validation message. Source: src/Microsoft.ML.Ensemble/EntryPoints/CreateEnsemble.cs:294.</comment>
+  </data>
+  <data name="UnknownPredictionKind" xml:space="preserve">
+    <value>Unknown prediction kind</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Ensemble/PipelineEnsemble.cs:244. Exception or validation message. Source: src/Microsoft.ML.Ensemble/PipelineEnsemble.cs:270.</comment>
+  </data>
+  <data name="UnknownScoreKind" xml:space="preserve">
+    <value>Unknown score kind</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Ensemble/PipelineEnsemble.cs:540. Exception or validation message. Source: src/Microsoft.ML.Ensemble/PipelineEnsemble.cs:561.</comment>
+  </data>
+  <data name="UnrecognizedPredictionKind" xml:space="preserve">
+    <value>Unrecognized prediction kind '{0}'</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Ensemble/Selector/SubModelSelector/BaseSubModelSelector.cs:131. Exception or validation message. Source: src/Microsoft.ML.Ensemble/Selector/SubModelSelector/BaseSubModelSelector.cs:68.</comment>
+  </data>
+  <data name="UnsupportedLabelType" xml:space="preserve">
+    <value>Unsupported label type</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Ensemble/OutputCombiners/BaseStacking.cs:165.</comment>
+  </data>
+</root>

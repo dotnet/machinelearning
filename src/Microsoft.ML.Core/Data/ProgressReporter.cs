@@ -71,7 +71,7 @@ internal static class ProgressReporting
         public void Checkpoint(params double?[] values)
         {
             _ectx.AssertValueOrNull(values);
-            _ectx.Check(!_isDisposed, "Can't report checkpoints after disposing");
+            _ectx.Check(!_isDisposed, Strings.CantReportCheckpointsAfterDisposing);
             var entry = new ProgressEntry(true, _headerAndAction.Item1);
 
             int n = Utils.Size(values);
@@ -91,7 +91,7 @@ internal static class ProgressReporting
                 entry.ProgressLim[iDst++] = lim;
             }
 
-            _ectx.Check(iSrc == n, "Too many values provided in Checkpoint");
+            _ectx.Check(iSrc == n, Strings.TooManyValuesProvidedInCheckpoint);
             _tracker.Log(this, ProgressEvent.EventKind.Progress, entry);
         }
 
@@ -403,7 +403,7 @@ internal static class ProgressReporting
             {
                 info = _infos.FirstOrDefault(x => x.Channel == source);
                 if (info == null)
-                    throw _ectx.Except("Event sent after the calculation lifetime expired.");
+                    throw _ectx.Except(Strings.EventSentAfterTheCalculationLifetimeExpired);
             }
             switch (kind)
             {

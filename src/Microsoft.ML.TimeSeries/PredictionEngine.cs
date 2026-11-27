@@ -177,7 +177,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
                     differentActive |= wantsActive != isActive;
 
                     if (wantsActive && !isActive)
-                        throw Contracts.ExceptParam(nameof(input), $"Mapper required column '{input.Schema[c].Name}' active but it was not.");
+                        throw Contracts.ExceptParam(nameof(input), string.Format(Strings.MapperRequiredColumnActiveButItWasNot, input.Schema[c].Name));
                 }
 
                 var row = mapper.GetRow(input, activeColumns);
@@ -236,8 +236,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
         private IRowToRowMapper GetRowToRowMapper(DataViewSchema inputSchema)
         {
             Contracts.CheckValue(inputSchema, nameof(inputSchema));
-            Contracts.Check(IsRowToRowMapper(InputTransformer), nameof(GetRowToRowMapper) +
-                " method called despite " + nameof(IsRowToRowMapper) + " being false. or transformer not being " + nameof(IStatefulTransformer));
+            Contracts.Check(IsRowToRowMapper(InputTransformer), Strings.GetRowToRowMapperRequiresStatefulRowToRowTransformer);
 
             if (!(InputTransformer is ITransformerChainAccessor))
                 if (InputTransformer is IStatefulTransformer statefulTransformer)
@@ -265,7 +264,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
         private protected override Func<DataViewSchema, IRowToRowMapper> TransformerChecker(IExceptionContext ectx, ITransformer transformer)
         {
             ectx.CheckValue(transformer, nameof(transformer));
-            ectx.CheckParam(IsRowToRowMapper(transformer), nameof(transformer), "Must be a row to row mapper or " + nameof(IStatefulTransformer));
+            ectx.CheckParam(IsRowToRowMapper(transformer), nameof(transformer), Strings.MustBeARowToRowMapperOrIStatefulTransformer);
             InputTransformer = transformer;
             return GetRowToRowMapper;
         }

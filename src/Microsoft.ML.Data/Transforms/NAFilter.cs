@@ -107,13 +107,13 @@ namespace Microsoft.ML.Transforms
                 string src = args.Columns[i];
                 int index;
                 if (!schema.TryGetColumnIndex(src, out index))
-                    throw Host.ExceptUserArg(nameof(args.Columns), "Source column '{0}' not found", src);
+                    throw Host.ExceptUserArg(nameof(args.Columns), Strings.SourceColumnNotFound, src);
                 if (_srcIndexToInfoIndex.ContainsKey(index))
-                    throw Host.ExceptUserArg(nameof(args.Columns), "Source column '{0}' specified multiple times", src);
+                    throw Host.ExceptUserArg(nameof(args.Columns), Strings.SourceColumnSpecifiedMultipleTimes, src);
 
                 var type = schema[index].Type;
                 if (!TestType(type))
-                    throw Host.ExceptUserArg(nameof(args.Columns), $"Column '{src}' has type {type} which does not support missing values, so we cannot filter on them", src);
+                    throw Host.ExceptUserArg(nameof(args.Columns), string.Format(Strings.MissingValueFilterUnsupportedColumnType, src, type), src);
 
                 _infos[i] = new ColInfo(index, type);
                 _srcIndexToInfoIndex.Add(index, i);
@@ -145,7 +145,7 @@ namespace Microsoft.ML.Transforms
                 if (!schema.TryGetColumnIndex(src, out index))
                     throw Host.ExceptSchemaMismatch(nameof(schema), "source", src);
                 if (_srcIndexToInfoIndex.ContainsKey(index))
-                    throw Host.Except("Source column '{0}' specified multiple times", src);
+                    throw Host.Except(Strings.SourceColumnSpecifiedMultipleTimes, src);
 
                 var type = schema[index].Type;
                 if (!TestType(type))
@@ -429,8 +429,7 @@ namespace Microsoft.ML.Transforms
                 var originFn = _values[index].GetGetter();
                 fn = originFn as ValueGetter<TValue>;
                 if (fn == null)
-                    throw Ch.Except($"Invalid TValue: '{typeof(TValue)}', " +
-                            $"expected type: '{originFn.GetType().GetGenericArguments().First()}'.");
+                    throw Ch.Except(string.Format(Strings.InvalidTValueExpectedType, typeof(TValue), originFn.GetType().GetGenericArguments().First()));
                 return true;
             }
 

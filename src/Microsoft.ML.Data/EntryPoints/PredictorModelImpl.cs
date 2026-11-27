@@ -49,11 +49,11 @@ namespace Microsoft.ML.EntryPoints
                 TransformModel = new TransformModelImpl(env, stream);
 
                 var roles = ModelFileUtils.LoadRoleMappingsOrNull(env, stream);
-                env.CheckDecode(roles != null, "Predictor model must contain role mappings");
+                env.CheckDecode(roles != null, Strings.PredictorModelMustContainRoleMappings);
                 _roleMappings = roles.ToArray();
 
                 Predictor = ModelFileUtils.LoadPredictorOrNull(env, stream);
-                env.CheckDecode(Predictor != null, "Predictor model must contain a predictor");
+                env.CheckDecode(Predictor != null, Strings.PredictorModelMustContainAPredictor);
             }
         }
 

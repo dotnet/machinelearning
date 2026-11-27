@@ -142,7 +142,7 @@ namespace Microsoft.ML.Trainers.FastTree
         public TolerantEarlyStoppingRule(float threshold = 0.01f)
             : base()
         {
-            Contracts.CheckUserArg(threshold >= 0, nameof(threshold), "Must be non-negative.");
+            Contracts.CheckUserArg(threshold >= 0, nameof(threshold), Strings.MustBeNonNegative);
             Threshold = threshold;
         }
 
@@ -150,7 +150,7 @@ namespace Microsoft.ML.Trainers.FastTree
         private TolerantEarlyStoppingRule(Options options, bool lowerIsBetter)
             : base(lowerIsBetter)
         {
-            Contracts.CheckUserArg(options.Threshold >= 0, nameof(options.Threshold), "Must be non-negative.");
+            Contracts.CheckUserArg(options.Threshold >= 0, nameof(options.Threshold), Strings.MustBeNonNegative);
             Threshold = options.Threshold;
         }
 
@@ -206,8 +206,8 @@ namespace Microsoft.ML.Trainers.FastTree
         private protected MovingWindowRule(float threshold, int windowSize)
             : base()
         {
-            Contracts.CheckUserArg(0 <= threshold && threshold <= 1, nameof(threshold), "Must be in range [0,1].");
-            Contracts.CheckUserArg(windowSize > 0, nameof(windowSize), "Must be positive.");
+            Contracts.CheckUserArg(0 <= threshold && threshold <= 1, nameof(threshold), Strings.MustBeBetweenZeroAndOneInclusive);
+            Contracts.CheckUserArg(windowSize > 0, nameof(windowSize), Strings.MustBePositive);
 
             Threshold = threshold;
             WindowSize = windowSize;
@@ -217,8 +217,8 @@ namespace Microsoft.ML.Trainers.FastTree
         private protected MovingWindowRule(bool lowerIsBetter, float threshold, int windowSize)
             : base(lowerIsBetter)
         {
-            Contracts.CheckUserArg(0 <= threshold && threshold <= 1, nameof(threshold), "Must be in range [0,1].");
-            Contracts.CheckUserArg(windowSize > 0, nameof(windowSize), "Must be positive.");
+            Contracts.CheckUserArg(0 <= threshold && threshold <= 1, nameof(threshold), Strings.MustBeBetweenZeroAndOneInclusive);
+            Contracts.CheckUserArg(windowSize > 0, nameof(windowSize), Strings.MustBePositive);
 
             Threshold = threshold;
             WindowSize = windowSize;
@@ -312,7 +312,7 @@ namespace Microsoft.ML.Trainers.FastTree
         public GeneralityLossRule(float threshold = 0.01f) :
             base()
         {
-            Contracts.CheckUserArg(0 <= threshold && threshold <= 1, nameof(threshold), "Must be in range [0,1].");
+            Contracts.CheckUserArg(0 <= threshold && threshold <= 1, nameof(threshold), Strings.MustBeBetweenZeroAndOneInclusive);
             Threshold = threshold;
         }
 
@@ -320,7 +320,7 @@ namespace Microsoft.ML.Trainers.FastTree
         private GeneralityLossRule(Options options, bool lowerIsBetter)
             : base(lowerIsBetter)
         {
-            Contracts.CheckUserArg(0 <= options.Threshold && options.Threshold <= 1, nameof(options.Threshold), "Must be in range [0,1].");
+            Contracts.CheckUserArg(0 <= options.Threshold && options.Threshold <= 1, nameof(options.Threshold), Strings.MustBeBetweenZeroAndOneInclusive);
             Threshold = options.Threshold;
         }
 
@@ -496,7 +496,7 @@ namespace Microsoft.ML.Trainers.FastTree
         public ConsecutiveGeneralityLossRule(int windowSize = 5)
             : base()
         {
-            Contracts.CheckUserArg(windowSize > 0, nameof(windowSize), "Must be positive");
+            Contracts.CheckUserArg(windowSize > 0, nameof(windowSize), Strings.MustBePositive);
             WindowSize = windowSize;
             _prevScore = LowerIsBetter ? float.PositiveInfinity : float.NegativeInfinity;
         }
@@ -504,7 +504,7 @@ namespace Microsoft.ML.Trainers.FastTree
         private ConsecutiveGeneralityLossRule(Options options, bool lowerIsBetter)
             : base(lowerIsBetter)
         {
-            Contracts.CheckUserArg(options.WindowSize > 0, nameof(options.WindowSize), "Must be positive");
+            Contracts.CheckUserArg(options.WindowSize > 0, nameof(options.WindowSize), Strings.MustBePositive);
             WindowSize = options.WindowSize;
             _prevScore = LowerIsBetter ? float.PositiveInfinity : float.NegativeInfinity;
         }

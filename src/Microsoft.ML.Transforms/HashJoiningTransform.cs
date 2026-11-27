@@ -202,7 +202,7 @@ namespace Microsoft.ML.Transforms
             Host.Assert(Infos.Length == Utils.Size(args.Columns));
 
             if (args.NumberOfBits < NumBitsMin || args.NumberOfBits >= NumBitsLim)
-                throw Host.ExceptUserArg(nameof(args.NumberOfBits), "numberOfBits should be between {0} and {1} inclusive", NumBitsMin, NumBitsLim - 1);
+                throw Host.ExceptUserArg(nameof(args.NumberOfBits), Strings.NumberOfBitsShouldBeBetweenAndInclusive, NumBitsMin, NumBitsLim - 1);
 
             _exes = new ColumnOptions[Infos.Length];
             for (int i = 0; i < Infos.Length; i++)
@@ -356,12 +356,12 @@ namespace Microsoft.ML.Transforms
                 {
                     int index;
                     if (!int.TryParse(slotIndices[j].ToString(), out index) || index < 0 || index >= srcSlotCount)
-                        throw Host.Except("Unexpected slot index '{1}' in group {0}. Expected 0 to {2}", i, slotIndices[j], srcSlotCount - 1);
+                        throw Host.Except(Strings.UnexpectedSlotIndexInGroupExpected0To, i, slotIndices[j], srcSlotCount - 1);
                     slots[j] = index;
                 }
 
                 if (slots.Distinct().Count() < slots.Length)
-                    throw Host.Except("Group '{0}' has duplicate slot indices", parts[i]);
+                    throw Host.Except(Strings.GroupHasDuplicateSlotIndices, parts[i]);
             }
 
             return slotMap;

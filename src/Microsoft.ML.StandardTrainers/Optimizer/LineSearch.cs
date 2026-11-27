@@ -165,7 +165,7 @@ namespace Microsoft.ML.Numeric
 
         private float FindMinimum(DiffFunc1D func, float initValue, float initDeriv)
         {
-            Contracts.CheckParam(initDeriv < 0, nameof(initDeriv), "Cannot search in direction of ascent!");
+            Contracts.CheckParam(initDeriv < 0, nameof(initDeriv), Strings.CannotSearchInDirectionOfAscent);
 
             StepValueDeriv lo = new StepValueDeriv(func, 0, initValue, initDeriv);
             StepValueDeriv hi = new StepValueDeriv(func, _step);
@@ -423,7 +423,7 @@ namespace Microsoft.ML.Numeric
         /// <returns>Minimizing value</returns>
         public float Minimize(DiffFunc1D f, float initVal, float initDeriv)
         {
-            Contracts.Check(initDeriv < 0, "Cannot search in direction of ascent!");
+            Contracts.Check(initDeriv < 0, Strings.CannotSearchInDirectionOfAscent);
 
             float dummy;
             for (_step *= 2; ; _step /= 2)

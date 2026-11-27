@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -46,12 +46,12 @@ namespace Microsoft.ML.Tokenizers
 
             if (modelProto.TrainerSpec.ModelType != TrainerSpec.Types.ModelType.Bpe)
             {
-                throw new ArgumentException("The model type is not Bpe.", nameof(modelProto));
+                throw new ArgumentException(Strings.TheModelTypeIsNotBpe, nameof(modelProto));
             }
 
             if (modelProto.NormalizerSpec.Name != "identity" && !string.IsNullOrEmpty(modelProto.NormalizerSpec.Name))
             {
-                throw new ArgumentException($"Normalization '{modelProto.NormalizerSpec.Name}' is not supported.", nameof(modelProto));
+                throw new ArgumentException(string.Format(Strings.NormalizationIsNotSupported, modelProto.NormalizerSpec.Name), nameof(modelProto));
             }
 
             return new LlamaTokenizer(modelProto, addBeginOfSentence, addEndOfSentence, specialTokens);

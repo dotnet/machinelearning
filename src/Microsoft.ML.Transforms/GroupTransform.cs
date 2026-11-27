@@ -111,7 +111,7 @@ namespace Microsoft.ML.Transforms
             : base(env, RegistrationName, input)
         {
             Host.CheckValue(options, nameof(options));
-            Host.CheckUserArg(Utils.Size(options.GroupKeys) > 0, nameof(options.GroupKeys), "There must be at least one group key");
+            Host.CheckUserArg(Utils.Size(options.GroupKeys) > 0, nameof(options.GroupKeys), Strings.ThereMustBeAtLeastOneGroupKey);
 
             _groupBinding = new GroupBinding(Host, Source.Schema, options.GroupKeys, options.Columns ?? new string[0]);
         }
@@ -294,7 +294,7 @@ namespace Microsoft.ML.Transforms
 
                     // Prepare column's type.
                     var aggregatedValueType = sourceSchema[groupValueColumnName].Type as PrimitiveDataViewType;
-                    _ectx.CheckValue(aggregatedValueType, nameof(aggregatedValueType), "Columns being aggregated must be primitive types such as string, float, or integer");
+                    _ectx.CheckValue(aggregatedValueType, nameof(aggregatedValueType), Strings.AggregatedColumnsMustBePrimitive);
                     var aggregatedResultType = new VectorDataViewType(aggregatedValueType);
 
                     // Add column into output schema.
@@ -414,7 +414,7 @@ namespace Microsoft.ML.Transforms
                             else if ((typeof(ReadOnlyMemory<char>).IsAssignableFrom(typeof(T))))
                                 result = ((ReadOnlyMemory<char>)(object)oldValue).Span.SequenceEqual(((ReadOnlyMemory<char>)(object)newValue).Span);
                             else
-                                Contracts.Check(result = false, "Invalid type.");
+                                Contracts.Check(result = false, Strings.InvalidType);
 
                             result = result || first;
                             oldValue = newValue;
@@ -649,7 +649,7 @@ namespace Microsoft.ML.Transforms
             {
                 _parent._groupBinding.CheckColumnInRange(column.Index);
                 if (!_active[column.Index])
-                    throw Ch.ExceptParam(nameof(column), "Column #{0} is not active", column);
+                    throw Ch.ExceptParam(nameof(column), Strings.ColumnIsNotActive, column);
 
                 if (column.Index < _groupCount)
                 {

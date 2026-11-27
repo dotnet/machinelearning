@@ -190,7 +190,7 @@ namespace Microsoft.ML.Model
             if (ent == null) // either loadTransforms is true, or it's not a composite loader
                 ent = rep.OpenEntry(dir = DirDataLoaderModel, ModelLoadContext.ModelStreamName);
 
-            env.CheckDecode(ent != null, "Loader is not found.");
+            env.CheckDecode(ent != null, Strings.LoaderIsNotFound);
             env.AssertNonEmpty(dir);
             using (ent)
             {
@@ -311,8 +311,8 @@ namespace Microsoft.ML.Model
                         string roleStr = role.ToString();
                         string colStr = col.ToString();
 
-                        h.CheckDecode(!string.IsNullOrWhiteSpace(roleStr), "Role name must not be empty");
-                        h.CheckDecode(!string.IsNullOrWhiteSpace(colStr), "Column name must not be empty");
+                        h.CheckDecode(!string.IsNullOrWhiteSpace(roleStr), Strings.RoleNameMustNotBeEmpty);
+                        h.CheckDecode(!string.IsNullOrWhiteSpace(colStr), Strings.ColumnNameMustNotBeEmpty);
                         list.Add(new KeyValuePair<string, string>(roleStr, colStr));
                     }
                 }
@@ -385,7 +385,7 @@ namespace Microsoft.ML.Model
                 Contracts.Assert(index == 0);
                 var ent = _repository.OpenEntryOrNull(_directory, _filename);
                 if (ent == null)
-                    throw Contracts.Except($"File '{_filename}' is missing from the repository");
+                    throw Contracts.Except(string.Format(Strings.FileIsMissingFromTheRepository, _filename));
                 return new EntryStream(ent);
             }
 

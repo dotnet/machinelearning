@@ -338,7 +338,7 @@ namespace Microsoft.ML.Data
 
                 private void EnsureCachedPosition()
                 {
-                    _ectx.Check(_input.Position >= 0, RowCursorUtils.FetchValueStateError);
+                    _ectx.Check(_input.Position >= 0, Strings.ValuesUnavailableOutsideCursorPosition);
                     if (_cachedPosition != _input.Position)
                     {
                         _featureGetter(ref _src);
@@ -415,7 +415,7 @@ namespace Microsoft.ML.Data
             if (predictor is CalibratedModelParametersBase<FastTreeBinaryModelParameters, PlattCalibrator> calibrated)
                 predictor = calibrated.SubModel;
             _ensemble = predictor as TreeEnsembleModelParameters;
-            _host.Check(_ensemble != null, "Predictor in model file does not have compatible type");
+            _host.Check(_ensemble != null, Strings.PredictorInModelFileDoesNotHaveCompatibleType);
 
             _totalLeafCount = CountLeaves(_ensemble);
         }
@@ -523,7 +523,7 @@ namespace Microsoft.ML.Data
         {
             Contracts.AssertValue(env);
             env.AssertValue(schema);
-            env.CheckParam(schema.Feature != null, nameof(schema), "Need a feature column");
+            env.CheckParam(schema.Feature != null, nameof(schema), Strings.NeedAFeatureColumn);
 
             return new BoundMapper(env, this, schema, _treesColumnName, _leavesColumnName, _pathsColumnName);
         }
@@ -617,8 +617,8 @@ namespace Microsoft.ML.Data
             host.CheckValue(args, nameof(args));
             host.CheckValue(input, nameof(input));
             host.CheckUserArg(!string.IsNullOrWhiteSpace(args.TrainedModelFile) || args.Trainer != null, nameof(args.TrainedModelFile),
-                "Please specify either a trainer or an input model file.");
-            host.CheckUserArg(!string.IsNullOrEmpty(args.FeatureColumn), nameof(args.FeatureColumn), "Transform needs an input features column");
+                Strings.PleaseSpecifyEitherATrainerOrAnInputModelFile);
+            host.CheckUserArg(!string.IsNullOrEmpty(args.FeatureColumn), nameof(args.FeatureColumn), Strings.TransformNeedsAnInputFeaturesColumn);
 
             IDataTransform xf;
             using (var ch = host.Start("Create Tree Ensemble Scorer"))
@@ -651,11 +651,11 @@ namespace Microsoft.ML.Data
                     // Predictor should be a TreeEnsembleModelParameters, which implements IValueMapper, so this should
                     // be non-null.
                     var vm = predictor as IValueMapper;
-                    ch.CheckUserArg(vm != null, nameof(args.TrainedModelFile), "Predictor in model file does not have compatible type");
+                    ch.CheckUserArg(vm != null, nameof(args.TrainedModelFile), Strings.PredictorInModelFileDoesNotHaveCompatibleType);
                     if (vm.InputType.GetVectorSize() != data.Schema.Feature.Value.Type.GetVectorSize())
                     {
                         throw ch.ExceptUserArg(nameof(args.TrainedModelFile),
-                            "Predictor in model file expects {0} features, but data has {1} features",
+                            Strings.PredictorInModelFileExpectsFeaturesButDataHasFeatures,
                             vm.InputType.GetVectorSize(), data.Schema.Feature.Value.Type.GetVectorSize());
                     }
 
@@ -697,7 +697,7 @@ namespace Microsoft.ML.Data
 
             host.CheckValue(args, nameof(args));
             host.CheckValue(input, nameof(input));
-            host.CheckUserArg(args.PredictorModel != null, nameof(args.PredictorModel), "Please specify a predictor model.");
+            host.CheckUserArg(args.PredictorModel != null, nameof(args.PredictorModel), Strings.PleaseSpecifyAPredictorModel);
 
             using (var ch = host.Start("Create Tree Ensemble Scorer"))
             {
@@ -722,11 +722,11 @@ namespace Microsoft.ML.Data
                 // Predictor should be a TreeEnsembleModelParameters, which implements IValueMapper, so this should
                 // be non-null.
                 var vm = predictor as IValueMapper;
-                ch.CheckUserArg(vm != null, nameof(args.PredictorModel), "Predictor does not have compatible type");
+                ch.CheckUserArg(vm != null, nameof(args.PredictorModel), Strings.PredictorDoesNotHaveCompatibleType);
                 if (data != null && vm.InputType.GetVectorSize() != data.Schema.Feature.Value.Type.GetVectorSize())
                 {
                     throw ch.ExceptUserArg(nameof(args.PredictorModel),
-                        "Predictor expects {0} features, but data has {1} features",
+                        Strings.PredictorExpectsFeaturesButDataHasFeatures,
                         vm.InputType.GetVectorSize(), data.Schema.Feature.Value.Type.GetVectorSize());
                 }
 
@@ -767,7 +767,7 @@ namespace Microsoft.ML.Data
             }
             else
             {
-                ch.Check(type.Count > 0, "Label must be of known cardinality.");
+                ch.Check(type.Count > 0, Strings.LabelMustBeOfKnownCardinality);
                 int[] permutation = Utils.GetRandomPermutation(RandomUtils.Create(seed), type.GetCountAsInt32(env));
                 mapper =
                     (in TInput src, ref Single dst) =>

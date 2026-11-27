@@ -1,0 +1,431 @@
+﻿<?xml version='1.0' encoding='utf-8'?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="APieceStringInModelVocabIsNull" xml:space="preserve">
+    <value>A piece string in 'model.vocab' is null.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Tokenizers/Model/SentencePieceTokenizer.cs:643.</comment>
+  </data>
+  <data name="APostProcessorTemplateSpecialTokenIdMustBeAString" xml:space="preserve">
+    <value>A post_processor template 'SpecialToken.id' must be a string.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Tokenizers/Model/SentencePieceTokenizer.cs:901.</comment>
+  </data>
+  <data name="ATokenizerJsonNormalizerEntryMustBeAJSONObject" xml:space="preserve">
+    <value>A tokenizer.json normalizer entry must be a JSON object.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Tokenizers/Normalizer/SentencePieceNormalizationStep.cs:131.</comment>
+  </data>
+  <data name="AddedTokenEntryRequiresContentAndId" xml:space="preserve">
+    <value>An 'added_tokens' entry must have a string 'content' and a numeric 'id'.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Tokenizers/Model/SentencePieceTokenizer.cs:786.</comment>
+  </data>
+  <data name="ArgumentSymbolShouldNotBeNull" xml:space="preserve">
+    <value>argument symbol should not be null.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Tokenizers/Model/EnglishRobertaTokenizer.cs:1171.</comment>
+  </data>
+  <data name="BlobForNormalizationRuleIsBroken" xml:space="preserve">
+    <value>Blob for normalization rule is broken.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Tokenizers/Normalizer/SentencePieceNormalizer.cs:573.</comment>
+  </data>
+  <data name="CacheSizeMustBeAPositiveNumber" xml:space="preserve">
+    <value>Cache size must be a positive number.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Tokenizers/Utils/LruCache.cs:33.</comment>
+  </data>
+  <data name="CantParseToInteger" xml:space="preserve">
+    <value>Can't parse {0} to integer</value>
+    <comment>Exception or validation message. Placeholders: {0}=line.Substring(spaceIndex). Source: src/Microsoft.ML.Tokenizers/Model/TiktokenTokenizer.cs:222.</comment>
+  </data>
+  <data name="CannotParseTheLine" xml:space="preserve">
+    <value>Cannot parse the line: '{0}'.</value>
+    <comment>Exception or validation message. Placeholders: {0}=line. Source: src/Microsoft.ML.Tokenizers/Model/EnglishRobertaTokenizer.cs:1267.</comment>
+  </data>
+  <data name="CannotReadTheFileMergeFileErrorMessage" xml:space="preserve">
+    <value>Cannot read the file Merge file.{0}Error message: {1}</value>
+    <comment>Exception or validation message. Placeholders: {0}=Environment.NewLine, {1}=e.Message. Source: src/Microsoft.ML.Tokenizers/Model/CodeGenTokenizer.cs:1796. Exception or validation message. Placeholders: {0}=Environment.NewLine, {1}=e.Message. Source: src/Microsoft.ML.Tokenizers/Model/EnglishRobertaTokenizer.cs:228.</comment>
+  </data>
+  <data name="CouldNotFindTheMergesFile" xml:space="preserve">
+    <value>Could not find the merges file '{0}'.</value>
+    <comment>Exception or validation message. Placeholders: {0}=mergesFile. Source: src/Microsoft.ML.Tokenizers/Model/BpeOptions.cs:63.</comment>
+  </data>
+  <data name="CouldNotFindTheVocabularyFile" xml:space="preserve">
+    <value>Could not find the vocabulary file '{0}'.</value>
+    <comment>Exception or validation message. Placeholders: {0}=vocabFile. Source: src/Microsoft.ML.Tokenizers/Model/BpeOptions.cs:46.</comment>
+  </data>
+  <data name="ModelVocabEntryMustBePieceScoreArray" xml:space="preserve">
+    <value>Each entry in 'model.vocab' must be a [piece, score] array.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Tokenizers/Model/SentencePieceTokenizer.cs:632.</comment>
+  </data>
+  <data name="ModelVocabEntryMustBeStringNumberPair" xml:space="preserve">
+    <value>Each entry in 'model.vocab' must be a [string piece, number score] pair.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Tokenizers/Model/SentencePieceTokenizer.cs:637.</comment>
+  </data>
+  <data name="ExpectedModelTypeUnigramButFound" xml:space="preserve">
+    <value>Expected model type 'Unigram' but found '{0}'.</value>
+    <comment>Exception or validation message. Placeholders: {0}=modelTypeElement.GetString(). Source: src/Microsoft.ML.Tokenizers/Model/SentencePieceTokenizer.cs:595.</comment>
+  </data>
+  <data name="FailedToInsertKeyInvalidNullCharacter" xml:space="preserve">
+    <value>failed to insert key: invalid null character</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Tokenizers/Utils/DoubleArrayTrie.cs:363.</comment>
+  </data>
+  <data name="FailedToInsertKeyNegativeValue" xml:space="preserve">
+    <value>failed to insert key: negative value</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Tokenizers/Utils/DoubleArrayTrie.cs:342.</comment>
+  </data>
+  <data name="FailedToInsertKeyWrongKeyOrder" xml:space="preserve">
+    <value>failed to insert key: wrong key order</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Tokenizers/Utils/DoubleArrayTrie.cs:369.</comment>
+  </data>
+  <data name="FailedToInsertKeyZeroLengthKey" xml:space="preserve">
+    <value>failed to insert key: zero-length key</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Tokenizers/Utils/DoubleArrayTrie.cs:346.</comment>
+  </data>
+  <data name="FailedToLoadFromBPEVocabFileStream" xml:space="preserve">
+    <value>Failed to load from BPE vocab file stream: {0}</value>
+    <comment>Exception or validation message. Placeholders: {0}=ex.Message. Source: src/Microsoft.ML.Tokenizers/Model/TiktokenTokenizer.cs:233.</comment>
+  </data>
+  <data name="FailedToModifyUnitTooLargeOffset" xml:space="preserve">
+    <value>failed to modify unit: too large offset</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Tokenizers/Utils/DoubleArrayTrie.cs:656.</comment>
+  </data>
+  <data name="FailedToReadTheVocabularyFile" xml:space="preserve">
+    <value>Failed to read the vocabulary file.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Tokenizers/Model/CodeGenTokenizer.cs:1761. Exception or validation message. Source: src/Microsoft.ML.Tokenizers/Model/EnglishRobertaTokenizer.cs:193.</comment>
+  </data>
+  <data name="IncorrectVocabularyFormatExpectedTokenCnt" xml:space="preserve">
+    <value>Incorrect vocabulary format, expected "&lt;token&gt; &lt;cnt&gt;"</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Tokenizers/Model/EnglishRobertaTokenizer.cs:1262.</comment>
+  </data>
+  <data name="IndexShouldBeNonNegativeGot" xml:space="preserve">
+    <value>Index should be non-negative, got {0}.</value>
+    <comment>Exception or validation message. Placeholders: {0}=idx. Source: src/Microsoft.ML.Tokenizers/Model/EnglishRobertaTokenizer.cs:1210.</comment>
+  </data>
+  <data name="InvalidFormatInTheBPEVocabFileStream" xml:space="preserve">
+    <value>Invalid format in the BPE vocab file stream</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Tokenizers/Model/TiktokenTokenizer.cs:176. Exception or validation message. Source: src/Microsoft.ML.Tokenizers/Model/TiktokenTokenizer.cs:213.</comment>
+  </data>
+  <data name="InvalidFormatOfMergeFileAtLine" xml:space="preserve">
+    <value>Invalid format of merge file at line: "{0}"</value>
+    <comment>Exception or validation message. Placeholders: {0}=line. Source: src/Microsoft.ML.Tokenizers/Model/CodeGenTokenizer.cs:1787. Exception or validation message. Placeholders: {0}=line. Source: src/Microsoft.ML.Tokenizers/Model/EnglishRobertaTokenizer.cs:219.</comment>
+  </data>
+  <data name="InvalidJSON" xml:space="preserve">
+    <value>Invalid JSON.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Tokenizers/Utils/StringSpanOrdinalKey.cs:166.</comment>
+  </data>
+  <data name="InvalidLengthDelimitedFieldSize" xml:space="preserve">
+    <value>Invalid length-delimited field size.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Tokenizers/SentencepieceModel.cs:71.</comment>
+  </data>
+  <data name="InvalidMergerFileFormatAtLine" xml:space="preserve">
+    <value>Invalid merger file format at line: {0}</value>
+    <comment>Exception or validation message. Placeholders: {0}=lineNumber. Source: src/Microsoft.ML.Tokenizers/Model/BpeTokenizer.cs:1182.</comment>
+  </data>
+  <data name="InvalidMergerFileFormat" xml:space="preserve">
+    <value>Invalid merger file format</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Tokenizers/Model/BpeTokenizer.cs:179.</comment>
+  </data>
+  <data name="IsOutOfRange" xml:space="preserve">
+    <value>{0} is out of range</value>
+    <comment>Exception or validation message. Placeholders: {0}=index. Source: src/Microsoft.ML.Tokenizers/Utils/Vec.cs:23.</comment>
+  </data>
+  <data name="MalformedVarint" xml:space="preserve">
+    <value>Malformed varint.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Tokenizers/SentencepieceModel.cs:131. Exception or validation message. Source: src/Microsoft.ML.Tokenizers/SentencepieceModel.cs:63.</comment>
+  </data>
+  <data name="NormalizationIsNotSupported" xml:space="preserve">
+    <value>Normalization '{0}' is not supported.</value>
+    <comment>Exception or validation message. Placeholders: {0}=modelProto.NormalizerSpec.Name. Source: src/Microsoft.ML.Tokenizers/Model/LlamaTokenizer.cs:54.</comment>
+  </data>
+  <data name="PreTokenizerCannotBeNull" xml:space="preserve">
+    <value>Pre-tokenizer cannot be null.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Tokenizers/PreTokenizer/CompositePreTokenizer.cs:50.</comment>
+  </data>
+  <data name="ProblemsMetWhenParsingJSONVocabularyObjectErrorMessage" xml:space="preserve">
+    <value>Problems met when parsing JSON vocabulary object.{0}Error message: {1}</value>
+    <comment>Exception or validation message. Placeholders: {0}=Environment.NewLine, {1}=e.Message. Source: src/Microsoft.ML.Tokenizers/Model/CodeGenTokenizer.cs:1756. Exception or validation message. Placeholders: {0}=Environment.NewLine, {1}=e.Message. Source: src/Microsoft.ML.Tokenizers/Model/EnglishRobertaTokenizer.cs:188.</comment>
+  </data>
+  <data name="ReplaceNormalizerHasAnInvalidRegexPattern" xml:space="preserve">
+    <value>Replace normalizer has an invalid Regex pattern '{0}'.</value>
+    <comment>Exception or validation message. Placeholders: {0}=regexPattern. Source: src/Microsoft.ML.Tokenizers/Normalizer/SentencePieceNormalizationStep.cs:448.</comment>
+  </data>
+  <data name="ReplaceNormalizerIsMissingItsPattern" xml:space="preserve">
+    <value>Replace normalizer is missing its pattern.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Tokenizers/Normalizer/SentencePieceNormalizationStep.cs:421.</comment>
+  </data>
+  <data name="ReplaceNormalizerRegexPatternMustBeAString" xml:space="preserve">
+    <value>Replace normalizer 'Regex' pattern must be a string.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Tokenizers/Normalizer/SentencePieceNormalizationStep.cs:438.</comment>
+  </data>
+  <data name="ReplaceNormalizerRequiresAStringOrRegexPattern" xml:space="preserve">
+    <value>Replace normalizer requires a String or Regex pattern.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Tokenizers/Normalizer/SentencePieceNormalizationStep.cs:452.</comment>
+  </data>
+  <data name="ReplaceNormalizerStringPatternMustBeAString" xml:space="preserve">
+    <value>Replace normalizer 'String' pattern must be a string.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Tokenizers/Normalizer/SentencePieceNormalizationStep.cs:428.</comment>
+  </data>
+  <data name="VocabularyMissingRequiredSpecialToken" xml:space="preserve">
+    <value>The BOS, EOS, or UNK token is not present in the vocabulary.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Tokenizers/Model/SentencePieceUnigramModel.cs:38.</comment>
+  </data>
+  <data name="BeginningOfSentenceTokenMissingFromVocabulary" xml:space="preserve">
+    <value>The beginning of sentence token '{0}' is not found in the vocabulary.</value>
+    <comment>Exception or validation message. Placeholders: {0}=BeginningOfSentenceToken. Source: src/Microsoft.ML.Tokenizers/Model/CodeGenTokenizer.cs:163.</comment>
+  </data>
+  <data name="BeginningOfSentenceTokenRequired" xml:space="preserve">
+    <value>The beginning of sentence token must be provided when the flag is set to include it in the encoding.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Tokenizers/Model/CodeGenTokenizer.cs:181.</comment>
+  </data>
+  <data name="BeginningOfSentenceTokenAbsentFromVocabulary" xml:space="preserve">
+    <value>The beginning of sentence token '{0}' was not present in the vocabulary.</value>
+    <comment>Exception or validation message. Placeholders: {0}=beginningOfSentenceToken. Source: src/Microsoft.ML.Tokenizers/Model/BpeTokenizer.cs:325.</comment>
+  </data>
+  <data name="TheContentOfTheVocabularyFileIsNotValid" xml:space="preserve">
+    <value>The content of the vocabulary file '{0}' is not valid.</value>
+    <comment>Exception or validation message. Placeholders: {0}=vocabFile. Source: src/Microsoft.ML.Tokenizers/Model/BpeOptions.cs:54.</comment>
+  </data>
+  <data name="UnsupportedEncodingName" xml:space="preserve">
+    <value>The encoding name '{0}' is not supported. The only supported encoding names are: {1}, {2}, {3}, and {4}.</value>
+    <comment>Exception or validation message. Placeholders: {0}=encodingName, {1}=TiktokenTokenizer.Cl100kBaseEncodingName, {2}=TiktokenTokenizer.P50kBaseEncodingName, {3}=TiktokenTokenizer.P50kEditEncodingName, {4}=TiktokenTokenizer.R50kBaseEncodingName. Source: src/Microsoft.ML.Tokenizers/Model/TiktokenTokenizer.cs:1573.</comment>
+  </data>
+  <data name="EndOfSentenceTokenMissingFromVocabulary" xml:space="preserve">
+    <value>The end of sentence token '{0}' is not found in the vocabulary.</value>
+    <comment>Exception or validation message. Placeholders: {0}=EndOfSentenceToken. Source: src/Microsoft.ML.Tokenizers/Model/CodeGenTokenizer.cs:173.</comment>
+  </data>
+  <data name="EndOfSentenceTokenRequired" xml:space="preserve">
+    <value>The end of sentence token must be provided when the flag is set to include it in the encoding.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Tokenizers/Model/CodeGenTokenizer.cs:186.</comment>
+  </data>
+  <data name="EndOfSentenceTokenAbsentFromVocabulary" xml:space="preserve">
+    <value>The end of sentence token '{0}' was not present in the vocabulary.</value>
+    <comment>Exception or validation message. Placeholders: {0}=endOfSentenceToken. Source: src/Microsoft.ML.Tokenizers/Model/BpeTokenizer.cs:336.</comment>
+  </data>
+  <data name="TheMaxTokenCountMustBeGreaterThan0" xml:space="preserve">
+    <value>The max token count must be greater than 0.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Tokenizers/Model/BpeTokenizer.cs:694. Exception or validation message. Source: src/Microsoft.ML.Tokenizers/Model/EnglishRobertaTokenizer.cs:546. Exception or validation message. Source: src/Microsoft.ML.Tokenizers/Model/SentencePieceBpeModel.cs:856. Exception or validation message. Source: src/Microsoft.ML.Tokenizers/Model/TiktokenTokenizer.cs:661. Exception or validation message. Source: src/Microsoft.ML.Tokenizers/Model/WordPieceTokenizer.cs:606.</comment>
+  </data>
+  <data name="MaximumCharactersPerWordMustBePositive" xml:space="preserve">
+    <value>The maximum number of characters per word must be greater than zero.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Tokenizers/Model/WordPieceTokenizer.cs:59.</comment>
+  </data>
+  <data name="TheMaximumNumberOfTokensMustBeGreaterThan0" xml:space="preserve">
+    <value>The maximum number of tokens must be greater than 0.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Tokenizers/Model/SentencePieceBpeModel.cs:340.</comment>
+  </data>
+  <data name="TheMaximumNumberOfTokensMustBeGreaterThanZero" xml:space="preserve">
+    <value>The maximum number of tokens must be greater than zero.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Tokenizers/Model/BpeTokenizer.cs:494. Exception or validation message. Source: src/Microsoft.ML.Tokenizers/Model/BpeTokenizer.cs:561. Exception or validation message. Source: src/Microsoft.ML.Tokenizers/Model/BpeTokenizer.cs:641. Exception or validation message. Source: src/Microsoft.ML.Tokenizers/Model/CodeGenTokenizer.cs:582. Exception or validation message. Source: src/Microsoft.ML.Tokenizers/Model/CodeGenTokenizer.cs:800. Exception or validation message. Source: src/Microsoft.ML.Tokenizers/Model/CodeGenTokenizer.cs:938. Exception or validation message. Source: src/Microsoft.ML.Tokenizers/Model/EnglishRobertaTokenizer.cs:414. Exception or validation message. Source: src/Microsoft.ML.Tokenizers/Model/EnglishRobertaTokenizer.cs:499. Exception or validation message. Source: src/Microsoft.ML.Tokenizers/Model/SentencePieceBpeModel.cs:286. Exception or validation message. Source: src/Microsoft.ML.Tokenizers/Model/SentencePieceBpeModel.cs:315. Exception or validation message. Source: src/Microsoft.ML.Tokenizers/Model/SentencePieceBpeModel.cs:606. Exception or validation message. Source: src/Microsoft.ML.Tokenizers/Model/TiktokenTokenizer.cs:367. Exception or validation message. Source: src/Microsoft.ML.Tokenizers/Model/TiktokenTokenizer.cs:535. Exception or validation message. Source: src/Microsoft.ML.Tokenizers/Model/WordPieceTokenizer.cs:394. Exception or validation message. Source: src/Microsoft.ML.Tokenizers/Model/WordPieceTokenizer.cs:546.</comment>
+  </data>
+  <data name="TheMergeEntriesCannotBeNull" xml:space="preserve">
+    <value>The merge entries cannot be null.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Tokenizers/Model/BpeTokenizer.cs:173.</comment>
+  </data>
+  <data name="MergeValueShorterThanPrefix" xml:space="preserve">
+    <value>The merge value '{0}' is too short to be merged with a prefix of length {1}. This implies that the merge file is either damaged or missing the prefix in its entries.</value>
+    <comment>Exception or validation message. Placeholders: {0}=mergeValues.b, {1}=prefixLen. Source: src/Microsoft.ML.Tokenizers/Model/BpeTokenizer.cs:380.</comment>
+  </data>
+  <data name="UnsupportedMetaspaceReplacement" xml:space="preserve">
+    <value>The Metaspace 'replacement' '{0}' is not supported; only U+2581 ('▁') is supported.</value>
+    <comment>Exception or validation message. Placeholders: {0}=replacement. Source: src/Microsoft.ML.Tokenizers/Model/SentencePieceTokenizer.cs:1246.</comment>
+  </data>
+  <data name="TheModelIsNotSupported" xml:space="preserve">
+    <value>The model '{0}' is not supported.</value>
+    <comment>Exception or validation message. Placeholders: {0}=modelName ?? modelEncoding.ToString(). Source: src/Microsoft.ML.Tokenizers/Model/TiktokenTokenizer.cs:1238. Exception or validation message. Placeholders: {0}=modelName. Source: src/Microsoft.ML.Tokenizers/Model/TiktokenTokenizer.cs:1171.</comment>
+  </data>
+  <data name="TheModelTypeIsNotBpe" xml:space="preserve">
+    <value>The model type is not Bpe.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Tokenizers/Model/LlamaTokenizer.cs:49.</comment>
+  </data>
+  <data name="TheModelTypeIsNotSupported" xml:space="preserve">
+    <value>The model type '{0}' is not supported.</value>
+    <comment>Exception or validation message. Placeholders: {0}=modelProto.TrainerSpec.ModelType. Source: src/Microsoft.ML.Tokenizers/Model/SentencePieceTokenizer.cs:30.</comment>
+  </data>
+  <data name="PostProcessorTokenIdMismatch" xml:space="preserve">
+    <value>The post-processor '{0}' token '{1}' with id {2} does not match the vocabulary or added tokens.</value>
+    <comment>Exception or validation message. Placeholders: {0}=property, {1}=token, {2}=id. Source: src/Microsoft.ML.Tokenizers/Model/SentencePieceTokenizer.cs:981.</comment>
+  </data>
+  <data name="ThePreTokenizerAddPrefixSpaceMustBeABoolean" xml:space="preserve">
+    <value>The pre_tokenizer 'add_prefix_space' must be a boolean.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Tokenizers/Model/SentencePieceTokenizer.cs:1227.</comment>
+  </data>
+  <data name="ThePreTokenizerReplacementMustBeAString" xml:space="preserve">
+    <value>The pre_tokenizer 'replacement' must be a string.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Tokenizers/Model/SentencePieceTokenizer.cs:1237.</comment>
+  </data>
+  <data name="ThePrecompiledNormalizerPrecompiledCharsmapMustBeAString" xml:space="preserve">
+    <value>The Precompiled normalizer 'precompiled_charsmap' must be a string.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Tokenizers/Normalizer/SentencePieceNormalizationStep.cs:156.</comment>
+  </data>
+  <data name="ThePrependNormalizerPrependMustBeAString" xml:space="preserve">
+    <value>The Prepend normalizer 'prepend' must be a string.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Tokenizers/Normalizer/SentencePieceNormalizationStep.cs:193.</comment>
+  </data>
+  <data name="TheProvidedTokenIDsCouldNotBeDecoded" xml:space="preserve">
+    <value>The provided token IDs could not be decoded.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Tokenizers/Tokenizer.cs:412.</comment>
+  </data>
+  <data name="SpecialTokenIdMismatch" xml:space="preserve">
+    <value>The special token '{0}' is not in the vocabulary or assigned id value {1} different than the value {2} in the special tokens.</value>
+    <comment>Exception or validation message. Placeholders: {0}=kvp.Key, {1}=id, {2}=kvp.Value. Source: src/Microsoft.ML.Tokenizers/Model/BertTokenizer.cs:780.</comment>
+  </data>
+  <data name="TheSpecialTokenIsNotInTheVocabulary" xml:space="preserve">
+    <value>The special token '{0}' is not in the vocabulary.</value>
+    <comment>Exception or validation message. Placeholders: {0}=token. Source: src/Microsoft.ML.Tokenizers/Model/BertTokenizer.cs:818.</comment>
+  </data>
+  <data name="TokenizerDataPackageMissing" xml:space="preserve">
+    <value>The tokenizer data file {0}.dll could not be loaded. Please reference the package {1} in your project.</value>
+    <comment>Exception or validation message. Placeholders: {0}=tiktokenConfiguration.PackageName, {1}=tiktokenConfiguration.PackageName. Source: src/Microsoft.ML.Tokenizers/Model/TiktokenTokenizer.cs:1321.</comment>
+  </data>
+  <data name="TheTokenizerJsonDoesNotContainAModelProperty" xml:space="preserve">
+    <value>The tokenizer.json does not contain a 'model' property.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Tokenizers/Model/SentencePieceTokenizer.cs:579.</comment>
+  </data>
+  <data name="TheTokenizerJsonDoesNotContainTheRequiredSpecialToken" xml:space="preserve">
+    <value>The tokenizer.json does not contain the required special token '{0}'.</value>
+    <comment>Exception or validation message. Placeholders: {0}=tokenName. Source: src/Microsoft.ML.Tokenizers/Model/SentencePieceTokenizer.cs:1002.</comment>
+  </data>
+  <data name="TheTokenizerJsonModelDoesNotContainAValidVocab" xml:space="preserve">
+    <value>The tokenizer.json model does not contain a valid 'vocab' array.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Tokenizers/Model/SentencePieceTokenizer.cs:624.</comment>
+  </data>
+  <data name="TheTokenizerJsonModelDoesNotContainAnUnkId" xml:space="preserve">
+    <value>The tokenizer.json model does not contain an 'unk_id' property.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Tokenizers/Model/SentencePieceTokenizer.cs:605.</comment>
+  </data>
+  <data name="ByteFallbackRequiresCompleteBytePieceBlock" xml:space="preserve">
+    <value>The tokenizer.json model enables byte_fallback but does not contain a contiguous &lt;0x00&gt;..&lt;0xFF&gt; byte-piece block required to represent it.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Tokenizers/Model/SentencePieceUnigramModel.cs:220.</comment>
+  </data>
+  <data name="NullUnknownTokenRequiresByteFallback" xml:space="preserve">
+    <value>The tokenizer.json model has a null 'unk_id' but does not enable 'byte_fallback'; a Unigram model without an unknown token is only supported when byte_fallback is enabled.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Tokenizers/Model/SentencePieceTokenizer.cs:656.</comment>
+  </data>
+  <data name="TokenizerModelTypeMissingWithMerges" xml:space="preserve">
+    <value>The tokenizer.json 'model' has no 'type' and contains 'merges'; this factory only supports 'Unigram' models.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Tokenizers/Model/SentencePieceTokenizer.cs:600.</comment>
+  </data>
+  <data name="TheTokenizerJsonModelPropertyMustBeAJSONObject" xml:space="preserve">
+    <value>The tokenizer.json 'model' property must be a JSON object.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Tokenizers/Model/SentencePieceTokenizer.cs:584.</comment>
+  </data>
+  <data name="UnknownTokenIdOutOfRange" xml:space="preserve">
+    <value>The tokenizer.json model 'unk_id' ({0}) is out of range for a vocabulary of {1} pieces.</value>
+    <comment>Exception or validation message. Placeholders: {0}=unkId, {1}=vocab.Count. Source: src/Microsoft.ML.Tokenizers/Model/SentencePieceTokenizer.cs:661.</comment>
+  </data>
+  <data name="UnknownTokenIdMustBeNumberOrNull" xml:space="preserve">
+    <value>The tokenizer.json model 'unk_id' property must be a number or null.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Tokenizers/Model/SentencePieceTokenizer.cs:613.</comment>
+  </data>
+  <data name="TheTokenizerJsonNormalizerPrecompiledCharsmapIsNotValidBase64" xml:space="preserve">
+    <value>The tokenizer.json normalizer 'precompiled_charsmap' is not valid base64.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Tokenizers/Normalizer/SentencePieceNormalizationStep.cs:219.</comment>
+  </data>
+  <data name="PostProcessorSpecialTokenMissing" xml:space="preserve">
+    <value>The tokenizer.json post_processor references special token '{0}' that is not present in the vocabulary.</value>
+    <comment>Exception or validation message. Placeholders: {0}=tokenName. Source: src/Microsoft.ML.Tokenizers/Model/SentencePieceTokenizer.cs:955.</comment>
+  </data>
+  <data name="PostProcessorSpecialTokenIdNotNumeric" xml:space="preserve">
+    <value>The tokenizer.json post_processor special token '{0}' has a non-numeric id.</value>
+    <comment>Exception or validation message. Placeholders: {0}=tokenName. Source: src/Microsoft.ML.Tokenizers/Model/SentencePieceTokenizer.cs:930.</comment>
+  </data>
+  <data name="PostProcessorSpecialTokenIdMismatch" xml:space="preserve">
+    <value>The tokenizer.json post_processor special token '{0}' maps to id {1}, which does not match the vocabulary or added tokens.</value>
+    <comment>Exception or validation message. Placeholders: {0}=tokenName, {1}=id. Source: src/Microsoft.ML.Tokenizers/Model/SentencePieceTokenizer.cs:941.</comment>
+  </data>
+  <data name="UnsupportedPreTokenizerType" xml:space="preserve">
+    <value>The tokenizer.json pre_tokenizer type '{0}' is not supported; only Metaspace, WhitespaceSplit, Whitespace, and Sequence are handled.</value>
+    <comment>Exception or validation message. Placeholders: {0}=type ?? "&lt;missing&gt;". Source: src/Microsoft.ML.Tokenizers/Model/SentencePieceTokenizer.cs:1210.</comment>
+  </data>
+  <data name="TheUnknownTokenIsNotFoundInTheVocabulary" xml:space="preserve">
+    <value>The Unknown token '{0}' is not found in the vocabulary.</value>
+    <comment>Exception or validation message. Placeholders: {0}=UnknownToken. Source: src/Microsoft.ML.Tokenizers/Model/CodeGenTokenizer.cs:153.</comment>
+  </data>
+  <data name="TheUnknownTokenIsNotInTheVocabulary" xml:space="preserve">
+    <value>The unknown token '{0}' is not in the vocabulary.</value>
+    <comment>Exception or validation message. Placeholders: {0}=options.UnknownToken. Source: src/Microsoft.ML.Tokenizers/Model/WordPieceTokenizer.cs:64.</comment>
+  </data>
+  <data name="TheVocabularyCannotBeEmpty" xml:space="preserve">
+    <value>The vocabulary cannot be empty.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Tokenizers/Model/BpeTokenizer.cs:161.</comment>
+  </data>
+  <data name="TheVocabularyCannotBeNull" xml:space="preserve">
+    <value>The vocabulary cannot be null.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Tokenizers/Model/BpeTokenizer.cs:149.</comment>
+  </data>
+  <data name="TheVocabularyDoesNotContainTheRequiredSpecialToken" xml:space="preserve">
+    <value>The vocabulary does not contain the required special token.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Tokenizers/Model/SentencePieceUnigramModel.cs:366.</comment>
+  </data>
+  <data name="PostProcessorTemplateMissingSequencePlaceholder" xml:space="preserve">
+    <value>tokenizer.json post_processor template does not contain a sequence placeholder.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Tokenizers/Model/SentencePieceTokenizer.cs:912.</comment>
+  </data>
+  <data name="MultiplePostProcessorSequencesUnsupported" xml:space="preserve">
+    <value>tokenizer.json post_processor templates with more than one sequence are not supported.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Tokenizers/Model/SentencePieceTokenizer.cs:891.</comment>
+  </data>
+  <data name="TooManyPreTokenizers" xml:space="preserve">
+    <value>Too many pre-tokenizers provided. Maximum is {0}.</value>
+    <comment>Exception or validation message. Placeholders: {0}=MaxPreTokenizersCount. Source: src/Microsoft.ML.Tokenizers/PreTokenizer/CompositePreTokenizer.cs:43.</comment>
+  </data>
+  <data name="TrieDataSizeExceedsTheInputBlobSize" xml:space="preserve">
+    <value>Trie data size exceeds the input blob size.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Tokenizers/Normalizer/SentencePieceNormalizer.cs:588.</comment>
+  </data>
+  <data name="MergeTokenMissingFromVocabulary" xml:space="preserve">
+    <value>Trying to merge a token '{0}' which not exist in the vocabulary.</value>
+    <comment>Exception or validation message. Placeholders: {0}=mergeValues.a. Source: src/Microsoft.ML.Tokenizers/Model/BpeTokenizer.cs:370. Exception or validation message. Placeholders: {0}=mergeValues.b. Source: src/Microsoft.ML.Tokenizers/Model/BpeTokenizer.cs:375. Exception or validation message. Placeholders: {0}=newToken. Source: src/Microsoft.ML.Tokenizers/Model/BpeTokenizer.cs:386.</comment>
+  </data>
+  <data name="UnexpectedEndOfDataWhileReadingFloat" xml:space="preserve">
+    <value>Unexpected end of data while reading float.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Tokenizers/SentencepieceModel.cs:89.</comment>
+  </data>
+  <data name="UnexpectedEndOfDataWhileReadingVarint" xml:space="preserve">
+    <value>Unexpected end of data while reading varint.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Tokenizers/SentencepieceModel.cs:24. Exception or validation message. Source: src/Microsoft.ML.Tokenizers/SentencepieceModel.cs:38. Exception or validation message. Source: src/Microsoft.ML.Tokenizers/SentencepieceModel.cs:54.</comment>
+  </data>
+  <data name="UnexpectedEndOfDataWhileSkippingFixed32" xml:space="preserve">
+    <value>Unexpected end of data while skipping fixed32.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Tokenizers/SentencepieceModel.cs:152.</comment>
+  </data>
+  <data name="UnexpectedEndOfDataWhileSkippingFixed64" xml:space="preserve">
+    <value>Unexpected end of data while skipping fixed64.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Tokenizers/SentencepieceModel.cs:139.</comment>
+  </data>
+  <data name="UnexpectedEndOfDataWhileSkippingVarint" xml:space="preserve">
+    <value>Unexpected end of data while skipping varint.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Tokenizers/SentencepieceModel.cs:121.</comment>
+  </data>
+  <data name="UnsupportedUnigramNormalizerType" xml:space="preserve">
+    <value>Unigram normalizer type '{0}' is not supported when loading a tokenizer.json with content-modifying normalizer steps.</value>
+    <comment>Exception or validation message. Placeholders: {0}=type ?? "&lt;missing&gt;". Source: src/Microsoft.ML.Tokenizers/Normalizer/SentencePieceNormalizationStep.cs:205.</comment>
+  </data>
+  <data name="UnkIdMustBeAValidIndexInTheVocabulary" xml:space="preserve">
+    <value>unkId must be a valid index in the vocabulary.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Tokenizers/Model/SentencePieceUnigramModel.cs:320. Exception or validation message. Source: src/Microsoft.ML.Tokenizers/Model/SentencePieceUnigramModel.cs:337.</comment>
+  </data>
+  <data name="UnknownOrUnsupportedProtobufWireType" xml:space="preserve">
+    <value>Unknown or unsupported protobuf wire type {0}.</value>
+    <comment>Exception or validation message. Placeholders: {0}=wireType. Source: src/Microsoft.ML.Tokenizers/SentencepieceModel.cs:158.</comment>
+  </data>
+  <data name="UnknownTokenOutOfVocabulary" xml:space="preserve">
+    <value>Unknown Token Out Of Vocabulary.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.Tokenizers/Model/BpeTokenizer.cs:1294. Exception or validation message. Source: src/Microsoft.ML.Tokenizers/Model/BpeTokenizer.cs:1303.</comment>
+  </data>
+  <data name="UnknownTokenWasNotPresentIn" xml:space="preserve">
+    <value>Unknown Token '{0}' was not present in '{1}'.</value>
+    <comment>Exception or validation message. Placeholders: {0}=value, {1}=nameof(Vocabulary). Source: src/Microsoft.ML.Tokenizers/Model/BpeTokenizer.cs:62.</comment>
+  </data>
+  <data name="InvalidBase64String" xml:space="preserve">
+    <value>Invalid base64 string '{0}'</value>
+    <comment>Exception or validation message. Placeholders: {0}=base64String.Substring(offset, length). Source: src/Microsoft.ML.Tokenizers/Utils/Helpers.netcoreapp.cs:43.</comment>
+  </data>
+</root>

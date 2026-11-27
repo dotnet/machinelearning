@@ -95,7 +95,7 @@ namespace Microsoft.ML.Data
             }
             transforms.Reverse();
 
-            env.Check(oldSource == null || chain == oldSource, "Source data not found in the chain");
+            env.Check(oldSource == null || chain == oldSource, Strings.SourceDataNotFoundInTheChain);
 
             IDataView newChain = newSource;
             foreach (var transform in transforms)

@@ -1,0 +1,71 @@
+﻿<?xml version='1.0' encoding='utf-8'?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="CannotInitializeKMeansPredictorWithNonFiniteCentroidCoordinates" xml:space="preserve">
+    <value>Cannot initialize K-means predictor with non-finite centroid coordinates</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.KMeansClustering/KMeansModelParameters.cs:92.</comment>
+  </data>
+  <data name="CentroidVectorsShouldHaveAtLeastOneLength" xml:space="preserve">
+    <value>Centroid vectors should have at least one length</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.KMeansClustering/KMeansModelParameters.cs:80.</comment>
+  </data>
+  <data name="DimensionalityDoesntMatchExpectedGot" xml:space="preserve">
+    <value>Dimensionality doesn't match, expected {0}, got {1}</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.KMeansClustering/KMeansPlusPlusTrainer.cs:386.</comment>
+  </data>
+  <data name="FailedToInitializeClustersTooFewExamples" xml:space="preserve">
+    <value>Failed to initialize clusters: too few examples</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.KMeansClustering/KMeansPlusPlusTrainer.cs:1674.</comment>
+  </data>
+  <data name="InconsistentDimensionsFoundAmongCentroids" xml:space="preserve">
+    <value>Inconsistent dimensions found among centroids</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.KMeansClustering/KMeansModelParameters.cs:90.</comment>
+  </data>
+  <data name="IncorrectNumberOfFeaturesExpectedGot" xml:space="preserve">
+    <value>Incorrect number of features: expected {0}, got {1}</value>
+    <comment>Exception or validation message. Placeholders: {0}=_dimensionality, {1}=src.Length. Source: src/Microsoft.ML.KMeansClustering/KMeansModelParameters.cs:156.</comment>
+  </data>
+  <data name="ModelTrainingFailedNonFiniteCoordinatesAreGenerated" xml:space="preserve">
+    <value>Model training failed: non-finite coordinates are generated</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.KMeansClustering/KMeansPlusPlusTrainer.cs:1840.</comment>
+  </data>
+  <data name="MustBeEitherNullOrAPositiveInteger" xml:space="preserve">
+    <value>Must be either null or a positive integer.</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.KMeansClustering/KMeansPlusPlusTrainer.cs:192.</comment>
+  </data>
+  <data name="MustBeNonNegative" xml:space="preserve">
+    <value>Must be non-negative</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.KMeansClustering/KMeansPlusPlusTrainer.cs:796.</comment>
+  </data>
+  <data name="MustBePositive" xml:space="preserve">
+    <value>Must be positive</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.KMeansClustering/KMeansPlusPlusTrainer.cs:174. Exception or validation message. Source: src/Microsoft.ML.KMeansClustering/KMeansPlusPlusTrainer.cs:180. Exception or validation message. Source: src/Microsoft.ML.KMeansClustering/KMeansPlusPlusTrainer.cs:186. Exception or validation message. Source: src/Microsoft.ML.KMeansClustering/KMeansPlusPlusTrainer.cs:793. Exception or validation message. Source: src/Microsoft.ML.KMeansClustering/KMeansPlusPlusTrainer.cs:794. Exception or validation message. Source: src/Microsoft.ML.KMeansClustering/KMeansPlusPlusTrainer.cs:795.</comment>
+  </data>
+  <data name="NeedAtLeastOneCluster" xml:space="preserve">
+    <value>Need at least one cluster</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.KMeansClustering/KMeansModelParameters.cs:78.</comment>
+  </data>
+  <data name="NotEnoughCentroidsForPredictorInitialization" xml:space="preserve">
+    <value>Not enough centroids for predictor initialization</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.KMeansClustering/KMeansModelParameters.cs:79.</comment>
+  </data>
+  <data name="InsufficientDistinctInstancesForClusters" xml:space="preserve">
+    <value>Not enough distinct instances to populate {0} clusters (only found {1} distinct instances)</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.KMeansClustering/KMeansPlusPlusTrainer.cs:437.</comment>
+  </data>
+  <data name="ToleranceMustBePositive" xml:space="preserve">
+    <value>Tolerance must be positive</value>
+    <comment>Exception or validation message. Source: src/Microsoft.ML.KMeansClustering/KMeansPlusPlusTrainer.cs:183.</comment>
+  </data>
+</root>
