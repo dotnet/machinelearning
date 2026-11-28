@@ -259,7 +259,8 @@ namespace Microsoft.ML
         /// doesn't need to output a probability. You can pass the whole model; PFI uses the last prediction transformer in it. The data must
         /// already contain that transformer's feature column, for example the output of <see cref="ITransformer.Transform(IDataView)"/>.
         /// An <see cref="ImmutableDictionary{TKey, TValue}"/> of <see cref="BinaryClassificationMetricsStatistics"/> objects is returned,
-        /// keyed by the slot names of the feature column; a slot without a name is keyed as "Slot" followed by its index.
+        /// keyed by the slot names of the feature column. The feature column must have slot names (concatenating scalar columns
+        /// adds them); a slot whose name is empty is keyed as "Slot" followed by its index.
         /// See the sample below for an example of working with these results to analyze the feature importance of a model.
         /// </para>
         /// </remarks>
