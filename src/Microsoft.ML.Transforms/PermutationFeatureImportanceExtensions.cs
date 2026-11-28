@@ -254,15 +254,20 @@ namespace Microsoft.ML
         /// PFI works by performing this permutation analysis across all the features of a model, one after another.
         /// </para>
         /// <para>
-        /// In this implementation, PFI computes the change in all possible binary classification evaluation metrics for each feature, and an
-        /// <see cref="ImmutableArray"/> of <see cref="BinaryClassificationMetrics"/> objects is returned. See the sample below for an
-        /// example of working with these results to analyze the feature importance of a model.
+        /// In this implementation, PFI computes the change in all possible binary classification evaluation metrics for each feature
+        /// using <see cref="BinaryClassificationCatalog.EvaluateNonCalibrated(IDataView, string, string, string)"/>, so the model
+        /// doesn't need to output a probability. You can pass the whole model; PFI uses the last prediction transformer in it. The data must
+        /// already contain that transformer's feature column, for example the output of <see cref="ITransformer.Transform(IDataView)"/>.
+        /// An <see cref="ImmutableDictionary{TKey, TValue}"/> of <see cref="BinaryClassificationMetricsStatistics"/> objects is returned,
+        /// keyed by the slot names of the feature column. The feature column must have slot names (concatenating scalar columns
+        /// adds them); a slot whose name is empty is keyed as "Slot" followed by its index.
+        /// See the sample below for an example of working with these results to analyze the feature importance of a model.
         /// </para>
         /// </remarks>
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        /// [!code-csharp[PermutationFeatureImportance](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/BinaryClassification/PermutationFeatureImportance.cs)]
+        /// [!code-csharp[PermutationFeatureImportanceNonCalibrated](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/BinaryClassification/PermutationFeatureImportanceNonCalibrated.cs)]
         /// ]]>
         /// </format>
         /// </example>
